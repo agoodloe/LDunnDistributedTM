@@ -1,0 +1,164 @@
+\section{Sheaf-theoretic data fusion}
+
+\section{Sheaf-theoretic data fusion}
+
+Now we turn from database-level coordination to coordination at the application level. In particular, we look at the question how to integrate noisy, heterogeneous sensor data from different sources to form a global picture of the overall environment as observed by the sensor system. The framework of \emph{sheaf theory}, a category-theoretic abstraction used to reason about potentially different types of data viewed from potentially overlapping points of view, stands out as a candidate for this sort of work. This viewpoint is most prominently echoed in work by Robinson:
+\begin{quote}
+>   [Sheaves] provide a convenient language for describing how systems composed of interrelated parts can interact. \ldots [They] can naturally represent systems composed of different types of subsystems. \cite{2020robinsonPseudometric}
+\end{quote}
+\begin{quote}
+>   Sheaves are the canonical data structure for sensor integration. \cite{2017robinsonCanonical}
+\end{quote}
+This section will explore the basic ideas of sheaf theory and relate them to the sensor-integration problem from a somewhat unique perspective, rooted in a computer science rather than topology, that emphasizes the intuition for presheaves first and describes sheaves as presheaves with a sense of overlapping perspectives and the ability to glue overlapping observations together.
+
+\subsection{Presheaves as spaces of observations over viewpoints}
+
+Sheaf theory can be approached primarily from the perspective of topology or category theory. A category-theoretic approach, in some sense simpler and preferred by the author, is to see sheaves as \emph{presheaves} that satisfy a gluing condition. Presheaves are a simple and interesting categorical structure in their own right. Since they are weaker (follow fewer axioms) than sheaves, they are also more general, simultaneously generalizing indexed families of sets, undirected graphs, and semiautomata, among other things. We assume basic familiarity with category theory, recalling that a category $\mathcal{C}$ consists of a collection of \emph{objects} and \emph{arrows} between objects and the ability to compose arrows. A reader without the relevant background may consult any number of introductions to the subject such as Awodey's \emph{Category Theory} \cite{10.5555/2060081}.
+
+
+Where $\mathcal{C}$ is a category, a presheaf $\mathcal{S}$ over $\mathcal{C}$ is a functor of type
+\[ \mathcal{S}: \mathcal{C}^\textrm{op} \to \mathrm{Set}.\]
+In other words, $\mathcal{S}$ maps arrows $X \xrightarrow{f} Y$ in $\mathcal{C}$ to arrows $\mathcal{S}(Y) \to \mathcal{S}(X)$ between sets.  Often we will write $\mathcal{S}(X)$ with a notation like $S_X$ to reduce clutter. Notice that $\mathcal{S}$ changes the direction of arrows; one says $\mathcal{S}$ is \emph{contravariant}. There is nothing particularly special about $\mathcal{S}$ being contravariant, so we can just as well consider functors of type $\mathcal{C} \to \mathrm{Set}$. These are called \emph{co}presheaves, though some authors describe both types of functors as presheaves.
+Furthermore, in many cases $\mathrm{Set}$ is replaced with some other category $\mathcal{D}$, and for that reason any functor can be seen as a presheaf to a certain extent. In short, ``presheaf'' is a term which caries a connotation and speaks more to our viewpoint than to the exact structure of a functor. One way of summarizing this intuition is that a presheaf is a structure which associates to objects, seen as viewpoints, spaces of possible observations we could make from the given viewpoint.
+
+
+Perhaps the simplest example of a presheaf---strictly speaking a copresheaf---is a family of sets indexed by a partial order.
+\begin{example}[Race finishers as a copresheaf]\label{exm:race}
+>   Let $P$ be a set of participants in a 5K race, which we assume lasts for 60 minutes. At any point in time $t \in \{1, \ldots 60\}$, we can consider the set $S_t \subseteq P$ of participants who have completed the race by minute $t$. This set monotonically increases with $t$:
+>   \[t_1 \leq t_2 \implies S_{t_1} \subseteq S_{t_2}.\]
+>   Of course, a subset inclusion $S \subseteq S'$ can equally be seen as an injective function $S \xhookrightarrow{} S'$. With this perspective, the family $\{S_t\}_{t \in \{1, \ldots 60\}}$ can be seen as a covariant presheaf $\mathcal{S}$ in which $\mathcal{C}$ is a total order and the induced arrows are all subset inclusions.-
+\end{example}
+If we imagine observing the set of participants who have completed the race, then $\{1, \ldots 60\}$ represents a set of temporal viewpoints, and $S_{t}$ represents the space of possible observations from a particular viewpoint $t$. These viewpoints are not wholly independent from each other, but are related by a total order. The presheaf structure of $\mathcal{S}$ maps relationships (orderings) between viewpoints to relationships (set inclusions) between spaces of possible observations made from those viewpoints.
+
+In many applications of sheaf theory, including when sheaves are used as sensor integration models, presheaves are contravariant, so that an arrow $X \to Y$ in $\mathcal{C}$ is mapped to a function $S_Y \to S_X$ between sets. The arrow-flipping typically has a simple explanation: very often the set $S_X$ is of the form $X \to T$ where $T$ is some fixed set like, say, $\mathbb{R}$. Therefore, an arrow $X \xrightarrow{f} Y$ in $\mathcal{C}$ induces a function $\left(Y \to \mathbb{R}\right) \to \left(X \to \mathbb{R}\right)$ given by some form of pre-composition by $f$. In other words, contravariance typically corresponds to the fact that $X$ occurs in \emph{negative position} in the expression $S_X$. More generally, presheaves are contravariant when the set $S_X$ can in some loose sense be thought of as sets of images or occurrences of $X$ in some context. With this reading, an arrow $X \xrightarrow{f} Y$ in $\mathcal{C}$ can be loosely read as ``a sense in which an $X$ occurs in $Y$.'' Therefore we expect an arrow $S_Y \to S_X$, as any occurrence of $Y$ must include an occurrence of $X$ by following ``backwards'' the sense in which an $X$ occurs in $Y$. This is best demonstrated by an example.
+
+\begin{example}[Word occurrences as a presheaf]\label{exm:words} Let $M$ represent the latest issue of Spaceport Magazine.\footnote{\url{https://www.nasa.gov/centers/kennedy/spaceport-magazine.html}} To be concrete, suppose the issue contains 25 pages with 250 words each with an average of $5$ ASCII characters per word, yielding a total of $25 \times 250 \times 5 = 31250$ characters. As there are 256 ASCII values,\footnote{Of course not all ASCII values are English letters---they may be control characters for example---but let us ignore this.} $M$ can be seen as a function of type
+\[ M : \mathbf{31,250} \to \mathbf{256}\]
+where $\mathbf{n} = \{0, 1, \ldots n-1\}$.
+
+Let $W$ be the set of finite ASCII strings. The reader can verify that $W$ forms a category according to the substring relationship, where there is an arrow $w_1 \rightsquigarrow w_2$ for each way that $w_1$ occurs in $w_2$. Note that this is not a partial order, but a kind of ``partial order with multiplicity,'' as a word may be a subword of another in multiple ways. For instance, there are two arrows of type
+\[\texttt{AS} \rightsquigarrow \texttt{NASA\_ASTRONAUT}.\]a
+
+
+
+The word-occurrence presheaf $\mathcal{S} : W \to \mathcal{P}(\mathbf{31,250})$ assigns to each word $w$ the set of values $n \in \mathbf{31,250}$ where $w$ occurs in the magazine beginning at character position $n$ (i.e. where $M[n] M[n+1] \ldots M[n+\textrm{length}(w)-1] = w$). That is, $\mathcal{S}(w)$ is the set of occurrences of $w$. Finally, consider a substring relationship $w_1 \rightsquigarrow w_2$. Then any occurrence of $w_2$ can be naturally associated to an occurrence of $w_1$ in an obvious way. That is, we get a function
+
+\[\mathcal{S}(w_1 \rightsquigarrow w_2) : \mathcal{S}(w_2) \to \mathcal{S}(w_1)\]
+By verifying the identity and composition properties of $\mathcal{S}$, the reader can verify this is in fact a presheaf.
+\end{example}
+
+\subsection{Sheaves as presheaves with overlap}
+
+We have seen that presheaves associate viewpoints to spaces of possible observations from that viewpoint, or objects to sets of occurrences of that object. Very often the set of viewpoints, the category $\mathcal{C}$, is the set $\mathcal{T}$ of open sets of a topological space $(X, \mathcal{T})$, viewed as a partial order and therefore a category. Because a partial order has at most one arrow between two objects (i.e. a subset inclusion $U \subseteq V$), for any presheaf $\mathcal{S}$ and any value $s \in \mathcal{S}(V)$, there is no ambiguity in writing $s|_U$ for the value $\mathcal{S}(U \subseteq V)(s) \in \mathcal{S}(U)$. This is called the \emph{restriction} of $s$ onto $U$.
+
+Note that (pre)sheaves by themselves only relate viewpoints to spaces of possible observations. They contain no observed data by themselves. Actual observations are known as \emph{sections}---elements of $\mathcal{S}(U)$ for some $U \in \mathcal{C}$. In Example \ref{exm:race}, a section over $t$ is any individual $s \in S_t$ who has completed the race by time $t$. In Example \ref{exm:words}, a section over $w$ is an individual occurrence of the word $w$. When the domain of a presheaf is a topological space, we speak of local and global sections. %\footnote{We can modify Example \ref{exm:race} by thinking of the time domain with the Alexandrov topology, whose open sets would be the upper sets of the partial order, which are in bijection with the elements of $\{1\ldots60\}$. In this case the global sections would be elements of $S_{60}$, consisting of all participants who finish the race.}
+
+\begin{definition}
+>   Let $\mathcal{S}$ be a presheaf on a topological space. For any $U \in \mathcal{T}$, a \emph{local section over $U$} is an element $s \in \mathcal{S}(U)$. A \emph{global} section is a section over $X$.
+\end{definition}
+
+If $\mathcal{S}(U)$ represents the set of possible observations from viewpoint $U$, then a local section over $U$ is an actual observation. Besides sections, we will also have occasion to think about families of sections, which Robinson has called \emph{assignments} in the context of sensor integration.
+\begin{definition}
+>   A \emph{partial assignment} over $\mathcal{U} \subseteq \mathcal{T}$ is a family of values
+\[ a : \forall (U \in \mathcal{U}), \mathcal{S}(U)\]
+(this is pseudo-dependent-type-theory notation, representing a choice $a_U \in \mathcal{S}(U)$ for each $U$). A \emph{global} assignment is an assignment over $\mathcal{T}$.
+\end{definition}
+Note that the individual values $a_U$ may have no particular relation with each other---any family of sections constitutes an assignment. Assignments are not required to be very coherent objects.
+
+Typically some of the sets in $\mathcal{T}$ will overlap with each other, i.e. two open sets can have non-trivial intersection. If these open sets are thought of as viewpoints, this means viewpoints can overlap. \emph{Sheaves} can be thought of as presheaves which bake in the idea that viewpoints can overlap and which behave well with respect to this overlap. To define this precisely, we first make precise what it means for observations to overlap.
+
+
+Typically some of the sets in $\mathcal{T}$ will overlap with each other, i.e. two open sets can have non-trivial intersection. If these open sets are thought of as viewpoints, this means viewpoints can overlap. \emph{Sheaves} can be thought of as presheaves which bake in the idea that viewpoints can overlap and which behave well with respect to this overlap. To define this precisely, we first make precise what it means for observations to overlap.
+
+\begin{definition}
+>   Fix some collection of open sets $\mathcal{U} = \{U_i\}_{i \in I}$. A \emph{compatible assignment} over $\mathcal{U}$ is a $\mathcal{U}$-assignment $a : \forall (U \in \mathcal{U}), \mathcal{S}(U)$
+>   such that
+>   \[a_{U_i} |_{U_i \cap U_j} = a_{U_j} |_{U_i \cap U_j}\] for all $U_i$, $U_j \in \mathcal{U}$.
+\end{definition}
+In other words, a compatible assignment is a family of observations for which, where any two observations are taken from overlapping viewpoints, the cropped observations restrict to exactly the same value on the intersection of the two viewpoints. Finally, a sheaf is a presheaf where compatible assignments uniquely determine a ``glued together'' observation.
+\begin{definition}
+>   A \emph{sheaf of sets} over a topological space is a presheaf which satisfies the following condition: for all $\mathcal{U}\subseteq \mathcal{T}$, for all compatible $\mathcal{U}$ assignments $a$ there exists a unique value
+>   \[s\in \mathcal{S}(\cup \mathcal{U})\]
+>   such that $a_{U_i} = s|_{U_i}$ for all $U_i \in \mathcal{U}$.
+\end{definition}
+In other words, for any family of compatibly overlapping observations taken over a set $\mathcal{U}$ of viewpoints, there is a unique observation $s$ over the entire domain $\cup \mathcal{U}$ for which the family just consists of restrictions of $s$. Since this is rather abstract, we pause to consider a simple example: bitmaps, or functions which assign pixel values to ``coordinates.''
+
+\subsubsection{A bitmap sheaf}
+Let $\textsc{grid} := \mathbf{n} \times \mathbf{n}$. We think of this set, of cardinality $n^2$, as the set of pixel sensors in a digital camera. Consider this as a discrete topological space $\left(\textsc{grid}, \mathcal{P}(\textsc{grid})\right)$, in which all subsets are open. Sets $U \in \mathcal{P}(\textsc{grid})$ are subsets of sensors. Each subset is a viewpoint from which to take partial photographs.
+
+We make a distinction between the sensor $(i, j) \in \mathbf{n} \times \mathbf{n}$, and a \emph{pixel} associated with this sensor. The difference is that a pixel is the data produced by the sensor. For simplicity we assume pixels are simple 8-bit grayscale values, so the set of pixel values is the set $\mathbf{256}$. Now we construct a contravariant functor $\mathcal{S}$ associating to each subset $U \in \mathcal{P}(\textsc{grid})$ of sensors the space of (partial) images we could take using only those sensors:
+\[\mathcal{S}(U) := U \to \mathbf{256}
+\]
+This functor is contravariant, because if $U \subseteq V$, then we can \emph{crop} $V$-images into $U$-images by discarding the pixel values of the sensors in $V \setminus U$:
+\[ \mathcal{S}\left(U \subseteq V \right) : \left(V \to \mathbf{256}\right) \to \left(U \to \mathbf{256}\right)\]
+The reader can verify that $\mathcal{S}$ is a presheaf.
+
+It is easy to see that any compatible assignment represents a set of partial images that exactly overlap in pixel values wherever their sensor domains overlap. The sheaf condition is easily verified, representing the fact that such a collection of overlapping partial images can be uniquely glued together into a larger photograph incorporating the entire set of pixel values available. Therefore $\mathcal{S}$ is in fact a sheaf.
+
+
+\subsection{Data fusion as approximating global sections}
+
+To glue together assignments into global images, we require the sections to exactly overlap on the overlap of their domains. In real world sensor integration, this is too strong a restriction---real sensor observations will likely not glue together into global sections because sensors may disagree about certain values. Therefore, \cite{2017robinsonCanonical} considers sheaves which associate \emph{pseudometric spaces}, rather than mere sets, to open sets.
+
+\begin{definition}
+>   A \emph{sensor integration sheaf} $\mathcal{S}$ is a pseudometric-valued sheaf on a finite topological space $(X, \mathcal{T})$. That is, $\mathcal{S}(U)$ is some pseudometric space for each open set $U \in \mathcal{T}$, such that subset inclusions $U \subseteq V$ induce continuous functions $\mathcal{S}(V) \to \mathcal{S}(U)$, and $\mathcal{S}$ is subject to the sheaf condition.
+\end{definition}
+In this model, the set $X$ represents the entire set of observables of some sensor context (Robinson calls these entities, but ``observables'' would seem to be a more evocative term). These are the sorts of values that can be observed by a sensor, such as the GPS coordinates or velocity of a plane. Let $\Sigma$ represent a set of sensors, each of which reports data on some subset $U \subseteq X$ of observables. These sets are used to induce a topology on $X$, whose open sets can be thought of as ``related'' observables. With this data model, a local section is an actual observation of the observables in $U$, and a global section is a system-wide observation over the set of all entities in the model.
+
+The advantage of considering pseudometric spaces over mere sets is that we can measure the distance between two observations over the same set of observables.
+
+\begin{definition}
+>   The \emph{assignment pseudometric} is a pseudometric on $\mathcal{U}$-assignments given by
+>   \[ d_\textrm{assign.} (a, b) = \mathrm{sup}_{U \in \mathcal{U}} d_U(a(U), b(U))\]
+>   where $d_U$ is the pseudometric of the space $\mathcal{S}(U)$.
+\end{definition}
+
+In other words, the distance between assignments is the maximum amount by which they disagree over any set of observables.
+
+We assume each sensor $\sigma \in \Sigma$ is associated with an open set $U_\sigma \in \mathcal{T}$, and therefore a set of raw observations, one from each sensor, corresponds to a partial assignment
+\[ a : \forall (\sigma \in \Sigma), \mathcal{S}(U_\sigma).\]
+
+\begin{definition}
+>   The \emph{optimal data fusion} over a partial assignment $a$ is a global section which minimizes the assignment pseudometric. That is, it is a value $s \in \mathcal{S}(X)$ such that
+>   \[ d(a, s|_U) = \mathrm{sup}_{U \in \mathcal{U}} d_U(a(U), \mathcal{S}(U \subseteq X)(s))\]
+>   is minimized.
+\end{definition}
+Of course, establishing the existence and uniqueness of such a global section is a matter requiring attention and care.
+
+Finally, the self-agreement among a sensor network may be captured by the idea of the consistency radius of the assignment.
+
+\begin{definition}
+>   An $\epsilon$-approximate section for $\mathcal{S}$ is an assignment $a : \forall (U \in \mathcal{T}), \mathcal{S}(U)$ for which
+>   \[d_V(a_V, a_U|_V) \leq \epsilon
+>   \]
+>   for all subset inclusions $V \subseteq U$. The minimal $\epsilon$ for which $a$ is an $\epsilon$-approximate section is $a$'s \emph{consistency radius}.
+\end{definition}
+
+
+Robinson uses the idea of the consistency radius to all define a rather sophisticated structure known as the \emph{consistency filtration}. This is a set of partial open covers of the topological space which, loosely speaking, indicate which sets of sensors are most in agreement and which contribute most to the value of the consistency radius.
+
+\subsection{Benefits of the sheaf-theoretic framework}
+
+The fact that a sheaf may assign a different space of observations to each sensor domain $U$ intrinsically lends itself to heterogeneous networks of sensors (\textbf{D2}).
+
+Considering \textbf{D1}, Robinson in \cite{2020robinsonPseudometric} establishes that the sensor-integration sheaves are robust in the sense that
+\begin{quote}
+>   small perturbations in the data (the assignment) or the model (the sheaf) do not result in large changes in the consistency radius or in the consistency filtration.
+\end{quote}
+Consider however a scenario in which a sensor $\sigma_\textrm{bad}$ is malfunctioning or returning particularly noisy data. In this situation, the consistency radius of the partial assignment would be great, owing to the fact that any global section is likely to disagree strongly with the data produced by $\sigma_\textrm{bad}$. In this situation, the consistency filtration could be used to detect that $\sigma_\textrm{bad}$ contributes particularly greatly to the overall value of $\epsilon$, in which case the data model could be updated to remove this sensor from consideration. Such a procedure would provide even stronger robustness guarantees.-
+
+\subsection{Optimizing sheaf-theoretic data fusion for locality}
+
+We turn again to the idea of locality (\textbf{D3}). The optimization problem considered in this line of applied sheaf theory typically assumes the data fusion process operates with full knowledge of the assignment produced by the sensor network. This assumes we can move all of the sensor data into a central computer to run this optimization problem, a centralized design which may not be appropriate in every context. Fortunately, this apparently does not have to be the case, as one could just as well consider partial assignments produced by subsets $U$ of sensors.
+
+Imagine two nodes $A$ and $B$. $A$ is interested in the observables in sensor domain $U_A$, and receives data from a family $F_A \subseteq \Sigma$ of sensors whose domains all lie within $U_A$. $A$'s local fusion problem is to accept partial assignments over $F_A$ and fuse these to product optimal sections $s_A \in \mathcal{S}(U_A)$ over $U_A$. For example, $U_A$ is a set of observables relevant to some geographic region, $F_A$ is the set of drone-attached sensors monitoring this region, and $\mathcal{S}(U_A)$ is the set of observations that $A$ could make of its territory. As this data changes in time, $A$ receives updates from its sensor network, so the partial assignment and the fused section $s_A$ all vary in time. Likewise, suppose $B$ is interested in domain $U_B$, and receives sensor data from a sensor family $F_B \subseteq \Sigma$, which provides a stream of partial assignments, which $B$ fuses into observations which lie in $\mathcal{S}(U_B)$.
+
+If $A$ and $B$ are nearby, $U_A$ and $U_B$ will overlap. For $A$ and $B$ to cooperate, it will be important for them to have a shared understanding of the sensor domain $U_A \cap U_B$. For $A$, this value is $\mathcal{S}(U_A \cap U_B \subseteq U_A)(s_A) = s_A|_{U_A \cap U_B}$, while $B$ observes  $\mathcal{S}(U_A \cap U_B \subseteq U_B)(s_B) = s_B|_{U_A \cap U_B}$. For example, picture two different fire teams both observing the spread of fire in two geographic regions which happen to overlap---for these teams to coordinate, it is important that their two views of the overlapping region look the same. For a variety of reasons, the parties may in general have different observations of $\mathcal{S}(U_A \cap U_B)$. For instance, the two parties may receive updates from different sensors, which can result in  data fusion problems because one node factors in information that the other node may not have access to (i.e. $F_A \setminus F_B$ and $F_B \setminus F_A$), which influences the parties' respective observations in $\mathcal{S}(U_A \cap U_B)$. Another factor is simply that $A$ and $B$ may overlap in their sensor families, but receive updates at different rates for whatever reason. Regardless, the point is that it would be of high interest to bound the value-
+\[ d_{\mathcal{S}(U_A \cap U_B)} \left( s_A|_{U_A \cap U_B}, s_B|_{U_A \cap U_B} \right) \in \mathbb{R}^{\geq 0},
+\]
+as this represents the spread between the overlapping observations made by $A$ and $B$. Taking a cue from continuous consistency in Section 2, this value could be used to influence the frequency with which $A$ and $B$ share sensor data, ensuring that the other team is kept in-the-loop about any new or significant observations, preventing their viewpoints from diverging. One might also factor in the physical area of the overlapping geographical region observed by the sensors in $U_A \cap U_B$, because if two teams have divergent viewpoints about a large region, it is particularly important to bring them closer to a state of synchronization. In contrast, if their overlapping regions are small, it may be a lesser priority to keep these views in sync, as this would tend to correspond to $A$ and $B$ being far apart and interested in mostly disjoint regions. As a sanity check, suppose $U_A \cap U_B = \emptyset$, so $A$ and $B$ are observing entirely disjoint sets of entities. In sheaf theory $\mathcal{S}(\emptyset)$ is generally defined as some kind of trivial space, which for pseudometric spaces would be the one-point metric space. In this case, we necessarily have
+\[ d_{\mathcal{S}(U_A \cap U_B)} \left( s_A|_{U_A \cap U_B}, s_B|_{U_A \cap U_B} \right)  = 0,
+\]
+which correctly indicates there is no particular need for $A$ and $B$ to share any sensor data.
+
+
