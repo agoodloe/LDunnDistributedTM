@@ -1,60 +1,238 @@
 \section{Continuous consistency}
 
 
-Informally speaking, for two agents to cooperate, it is clear they have some shared knowledge.\footnote{By ``shared knowledge'' we mean a common data model and common data. This is to be distinguished from the more technical concept of ``common knowledge'' in epistemic modal logic.} The proof of this is by its contrapositive--agents which have no shared knowledge have no way to cooperate with each other. Therefore one of the most basic tasks of a distributed system is to maintain local replicas of some shared data. We will assume this takes the form of a replicated database, though it could be any other form of shared persistent object.
+Informally speaking, for two agents to cooperate, it is clear they have some
+shared knowledge.\footnote{By ``shared knowledge'' we mean a common data model
+and common data. This is to be distinguished from the more technical concept of
+``common knowledge'' in epistemic modal logic.} The proof of this is by its
+contrapositive--agents which have no shared knowledge have no way to cooperate
+with each other. Therefore one of the most basic tasks of a distributed system
+is to maintain local replicas of some shared data. We will assume this takes the
+form of a replicated database, though it could be any other form of shared
+persistent object.
 
-Historically, replicated databases have been designed at two extremes of the consistency spectrum, with some systems implemented to provide strong consistency, and other highly available systems implemented on top of some optimistic model of consistency. At both extremes, while one of C or A is enforced, users have virtually no control over the other. That is, for a highly available systems, there is no guaranteed upper bound on the amount of inconsistency between the various replicas, nor any knowledge or direct influence on how available a strongly consistent system would be. This forces application developers to choose between high A/low C or high C/low A.
+Historically, replicated databases have been designed at two extremes of the
+consistency spectrum, with some systems implemented to provide strong
+consistency, and other highly available systems implemented on top of some
+optimistic model of consistency. At both extremes, while one of C or A is
+enforced, users have virtually no control over the other. That is, for a highly
+available systems, there is no guaranteed upper bound on the amount of
+inconsistency between the various replicas, nor any knowledge or direct
+influence on how available a strongly consistent system would be. This forces
+application developers to choose between high A/low C or high C/low A.
 
-In a series of papers \cite{2000tact} \cite{2000tactalgorithms} \cite{2002tact}, Yu and Vahdat propose a theory of \emph{continuous consistency} which is designed to expose ``a continuum between strong and optimistic consistency.''  A definition of  ``continuous consistency'' is a quantifiable, dynamically tunable, per-replica bounds on the likelihood of an inconsistent database access by system nodes. As their framework is intended to be both highly general but also practical for application developers, the authors implement a Java middleware library called TACT used to augment applications with support for wide-area replication. While TACT itself is more of a proof of concept (and whose source, written in Java 1.2, appears to have never been made available), the function and design of this library make it worthwhile to study for general lessons. The literature also includes three case studies based on simulated network conditions demonstrating how the theory plays out in practice. \cite{2002tact}
+In a series of papers \cite{2000tact} \cite{2000tactalgorithms} \cite{2002tact},
+Yu and Vahdat propose a theory of \emph{continuous consistency} which is
+designed to expose ``a continuum between strong and optimistic consistency.''  A
+definition of  ``continuous consistency'' is a quantifiable, dynamically
+tunable, per-replica bounds on the likelihood of an inconsistent database access
+by system nodes. As their framework is intended to be both highly general but
+also practical for application developers, the authors implement a Java
+middleware library called TACT used to augment applications with support for
+wide-area replication. While TACT itself is more of a proof of concept (and
+whose source, written in Java 1.2, appears to have never been made available),
+the function and design of this library make it worthwhile to study for general
+lessons. The literature also includes three case studies based on simulated
+network conditions demonstrating how the theory plays out in practice.
+\cite{2002tact}
 
 \subsection{How TACT works}
 
-TACT is based on the somewhat informal concept of a \emph{conit}, or \emph{con}sistency un\emph{it}, representing the smallest unit of data whose consistency with other replicas an application wishes to bound. For instance, in an airline reservation system, a conit could be defined for an individual seat on the plane, though a conit could also be defined at the level of blocks of seats. The level of granularity is determined by the application---coarse-grained conits reduce the bookkeeping required by TACT, at the potential cost of unnecessarily reducing the performance for access to a conit due to logically unrelated updates to a conit composed of independent data.  Ultimately, the exact definition of a conit is set by the application developer.
+TACT is based on the somewhat informal concept of a \emph{conit}, or
+\emph{con}sistency un\emph{it}, representing the smallest unit of data whose
+consistency with other replicas an application wishes to bound. For instance, in
+an airline reservation system, a conit could be defined for an individual seat
+on the plane, though a conit could also be defined at the level of blocks of
+seats. The level of granularity is determined by the
+application---coarse-grained conits reduce the bookkeeping required by TACT, at
+the potential cost of unnecessarily reducing the performance for access to a
+conit due to logically unrelated updates to a conit composed of independent
+data.  Ultimately, the exact definition of a conit is set by the application
+developer.
 
-TACT enforces invariants that bound the maximum inconsistency between a local replica of a conit and its true global value, which is the well-defined value the conit would converge to after all updates across the system are applied everywhere. These invariants are measured by three independent metrics: numerical error, order error, and staleness error. For a replica at node $A$, these error values are defined as follows:
+TACT enforces invariants that bound the maximum inconsistency between a local
+replica of a conit and its true global value, which is the well-defined value
+the conit would converge to after all updates across the system are applied
+everywhere. These invariants are measured by three independent metrics:
+numerical error, order error, and staleness error. For a replica at node $A$,
+these error values are defined as follows:
 
 \begin{description}
    \item[numerical error] the total weight of all writes unseen by $A$
-   \item[order error] the number of tentative writes on $A$'s replica which may end up reordered before they are committed in a global serialization order
-   \item[staleness error] the oldest write (in physical time) to any node unseen by $A$
+   \item[order error] the number of tentative writes on $A$'s replica which may
+     end up reordered before they are committed in a global serialization order
+   \item[staleness error] the oldest write (in physical time) to any node unseen
+     by $A$
 \end{description}
 
-At each node $A$, the maximum allowable error values are set for all three metrics, and all client requests to $A$ are guaranteed to return results whose inconsistency is bounded by these values. Notably, different nodes may maintain different bounds---one node may provide strong guarantees, while another may provide weaker guarantees. In theory and empirically, loosening each of these bounds while holding the others constant increases the availability of a node, as it reduces the administrative overhead required to keep the local replica up-to-date. Furthermore, these error bounds can be set dynamically, not just at system startup, so that administrators can tune system performance in response to changing network characteristics.
+At each node $A$, the maximum allowable error values are set for all three
+metrics, and all client requests to $A$ are guaranteed to return results whose
+inconsistency is bounded by these values. Notably, different nodes may maintain
+different bounds---one node may provide strong guarantees, while another may
+provide weaker guarantees. In theory and empirically, loosening each of these
+bounds while holding the others constant increases the availability of a node,
+as it reduces the administrative overhead required to keep the local replica
+up-to-date. Furthermore, these error bounds can be set dynamically, not just at
+system startup, so that administrators can tune system performance in response
+to changing network characteristics.
 
-Each TACT node maintains a logical scalar time and a vector clock $V_A$ containing logical timestamps for every other node. Incoming write requests to node $A$ are timestamped with $A$'s logical time. Loosely speaking, if $V_A[B]=t$, meaning node $A$ has a timestamp $t$ for node $B$ in $A$'s vector clock, then $A$ has seen every update seen by $B$ up to $B$'s logical time $t$. This ensures the so-called coverage property, which states that a replica has seen all system-wide updates with accept times less than or equal to the minimum logical time in its vector clock. TACT employs one-way anti-entropy sessions for write propagation, in which nodes exchange vector clocks, then one node sends every update known to it but not the other. A rough overview of how TACT handle a write request (say) is as follows:
+Each TACT node maintains a logical scalar time and a vector clock $V_A$
+containing logical timestamps for every other node. Incoming write requests to
+node $A$ are timestamped with $A$'s logical time. Loosely speaking, if
+$V_A[B]=t$, meaning node $A$ has a timestamp $t$ for node $B$ in $A$'s vector
+clock, then $A$ has seen every update seen by $B$ up to $B$'s logical time $t$.
+This ensures the so-called coverage property, which states that a replica has
+seen all system-wide updates with accept times less than or equal to the minimum
+logical time in its vector clock. TACT employs one-way anti-entropy sessions for
+write propagation, in which nodes exchange vector clocks, then one node sends
+every update known to it but not the other. A rough overview of how TACT handle
+a write request (say) is as follows:
 
-Each TACT node maintains a logical scalar time and a vector clock $V_A$ containing logical timestamps for every other node. Incoming write requests to node $A$ are timestamped with $A$'s logical time. Loosely speaking, if $V_A[B]=t$, meaning node $A$ has a timestamp $t$ for node $B$ in $A$'s vector clock, then $A$ has seen every update seen by $B$ up to $B$'s logical time $t$. This ensures the so-called coverage property, which states that a replica has seen all system-wide updates with accept times less than or equal to the minimum logical time in its vector clock. TACT employs one-way anti-entropy sessions for write propagation, in which nodes exchange vector clocks, then one node sends every update known to it but not the other. A rough overview of how TACT handle a write request (say) is as follows:
+Each TACT node maintains a logical scalar time and a vector clock $V_A$
+containing logical timestamps for every other node. Incoming write requests to
+node $A$ are timestamped with $A$'s logical time. Loosely speaking, if
+$V_A[B]=t$, meaning node $A$ has a timestamp $t$ for node $B$ in $A$'s vector
+clock, then $A$ has seen every update seen by $B$ up to $B$'s logical time $t$.
+This ensures the so-called coverage property, which states that a replica has
+seen all system-wide updates with accept times less than or equal to the minimum
+logical time in its vector clock. TACT employs one-way anti-entropy sessions for
+write propagation, in which nodes exchange vector clocks, then one node sends
+every update known to it but not the other. A rough overview of how TACT handle
+a write request (say) is as follows:
 \begin{enumerate}
-   \item An application accepts a write request to a conit from a client. This is passed to TACT, which stamps the update with $A$'s node identifier and logical time.
-   \item For each other node $B$, based on $B$'s numerical error bounds (which are known to $A$), TACT may initiate an anti-entropy session with $B$, pushing the set of updates known to $A$ but not necessarily to $B$. This procedure maintains the invariant that $B$'s conit's value is within a certain range of the true value. For example, if the client write could exceed every other node's numerical error bounds, $A$ may need to push the update to every node immediately.
-   \item After possibly notifying other nodes of the new update, TACT accepts the write \emph{tentatively} and the client's write request returns. Globally, tentative updates are ordered partially but not totally, so the exact order of the client's write in the global database is not determined yet.
-   \item When the number of tentative writes at $A$ exceeds $A$'s allowed bounds (the order error bound), the writes are \emph{committed} through a commitment protocol, which involves pulling writes from remote replicas by initiating more anti-entropy sessions. This is used to commit writes in a global total order. This may require reordering tentative writes, which is why it is of interest to bound the allowed number of tentative writes before commitment procedure is triggered.
-   \item By maintaining a separate physical-time vector clock, TACT periodically initiates anti-entropy sessions in the background, pulling data from remote replicas to maintain levels of data staleness that are acceptable to $A$.
+   \item An application accepts a write request to a conit from a client. This
+     is passed to TACT, which stamps the update with $A$'s node identifier and
+     logical time.
+   \item For each other node $B$, based on $B$'s numerical error bounds (which
+     are known to $A$), TACT may initiate an anti-entropy session with $B$,
+     pushing the set of updates known to $A$ but not necessarily to $B$. This
+     procedure maintains the invariant that $B$'s conit's value is within a
+     certain range of the true value. For example, if the client write could
+     exceed every other node's numerical error bounds, $A$ may need to push the
+     update to every node immediately.
+   \item After possibly notifying other nodes of the new update, TACT accepts
+     the write \emph{tentatively} and the client's write request returns.
+     Globally, tentative updates are ordered partially but not totally, so the
+     exact order of the client's write in the global database is not determined
+     yet.
+   \item When the number of tentative writes at $A$ exceeds $A$'s allowed bounds
+     (the order error bound), the writes are \emph{committed} through a
+     commitment protocol, which involves pulling writes from remote replicas by
+     initiating more anti-entropy sessions. This is used to commit writes in a
+     global total order. This may require reordering tentative writes, which is
+     why it is of interest to bound the allowed number of tentative writes
+     before commitment procedure is triggered.
+   \item By maintaining a separate physical-time vector clock, TACT periodically
+     initiates anti-entropy sessions in the background, pulling data from remote
+     replicas to maintain levels of data staleness that are acceptable to $A$.
 \end{enumerate}
 
-Note especially that the way the three invariants are enforced is different for each kind. We offer more detail below.
+Note especially that the way the three invariants are enforced is different for
+each kind. We offer more detail below.
 
 
 \subsubsection{Bounding numerical error with push-based anti-entropy}
 
-Consider some node $A$ maintaining a replica of some conit. As numerical error limits the total weight of system-wide writes that haven't been seen at $A$, this form of error is bounded in a cooperative fashion which requires nodes to push updates to $A$. This is somewhat tricky as a node $B$ does not always know the full set of updates seen by $A$, so $B$ must conservatively forward to $A$ any update which could violate $A$'s bounds based on $B$'s timestamp for $A$. The precise algorithms for doing this, including a couple variations and proofs of correctness, have been given in \cite{2000tactalgorithms}. Because this form of error relies on joint cooperation of all other nodes, updating $A$'s numerical error bound requires the use of a consensus protocol---the invariant cannot be enforced unless all other nodes are aware of the level of numerical consistency desired by $A$.
+Consider some node $A$ maintaining a replica of some conit. As numerical error
+limits the total weight of system-wide writes that haven't been seen at $A$,
+this form of error is bounded in a cooperative fashion which requires nodes to
+push updates to $A$. This is somewhat tricky as a node $B$ does not always know
+the full set of updates seen by $A$, so $B$ must conservatively forward to $A$
+any update which could violate $A$'s bounds based on $B$'s timestamp for $A$.
+The precise algorithms for doing this, including a couple variations and proofs
+of correctness, have been given in \cite{2000tactalgorithms}. Because this form
+of error relies on joint cooperation of all other nodes, updating $A$'s
+numerical error bound requires the use of a consensus protocol---the invariant
+cannot be enforced unless all other nodes are aware of the level of numerical
+consistency desired by $A$.
 
-By the way, the exact scheme for weighing updates is also determined by the application developer rather than TACT. This decouples the protocol for maintaining consistency from the policy assigning weights to various kinds of updates.
+By the way, the exact scheme for weighing updates is also determined by the
+application developer rather than TACT. This decouples the protocol for
+maintaining consistency from the policy assigning weights to various kinds of
+updates.
 
 \subsubsection{Bounding order/staleness errors with pull-based anti-entropy}
 
-To commit writes in a global total order, $A$ must ensure it has seen all system-wide updates whose acceptance timestamps are less than or equal to the timestamp of $A$'s tentative writes. This means $A$ may need to contact nodes whose time in $A$'s vector clock is small, meaning $A$ has not seen updates recently accepted by that node (not even indirectly through anti-entropy sessions with other nodes). In this case, $A$ will need to pull unseen updates from such nodes. Note that unlike numerical error, this procedure only requires local knowledge. Therefore updating $A$'s order error does not require a consensus protocol.
+To commit writes in a global total order, $A$ must ensure it has seen all
+system-wide updates whose acceptance timestamps are less than or equal to the
+timestamp of $A$'s tentative writes. This means $A$ may need to contact nodes
+whose time in $A$'s vector clock is small, meaning $A$ has not seen updates
+recently accepted by that node (not even indirectly through anti-entropy
+sessions with other nodes). In this case, $A$ will need to pull unseen updates
+from such nodes. Note that unlike numerical error, this procedure only requires
+local knowledge. Therefore updating $A$'s order error does not require a
+consensus protocol.
 
-Staleness error is bounded similarly, with $A$ pulling updates from nodes whose entry in $A$'s physical vector clock, corresponding to the physical time of the most recently seen updates from that node, is below a threshold determined by $A$.
+Staleness error is bounded similarly, with $A$ pulling updates from nodes whose
+entry in $A$'s physical vector clock, corresponding to the physical time of the
+most recently seen updates from that node, is below a threshold determined by
+$A$.
 
 \subsection{Topics for future work}
-As discussed, a design decision of TACT is to propagate writes using anti-entropy sessions, as opposed to a gossip protocol, message groups, broadcasts, etc. According to the authors, anti-entropy was chosen because of its ``flexibility in operating under a variety of network scenarios.'' \cite{2002tact} A concrete implementation in the TC-5 setting should be optimized for the kind of network scenarios most likely to be encountered in this context. The network topology might also be taken into account, as it may be more efficient to contact nearby nodes more often, exploiting locality (\textbf{D3}). It also may be advantageous for node $A$ to initiate anti-entropy sessions with high-consistency nodes, as these are more likely to have the sort of data needed to update $A$'s local replica. For example, if $A$ needs to pull updates from $B$, $C$ and $D$, it may be better to initiate a single session with a high-consistency node $E$ than to contact these three nodes individually, using $E$ as a kind of cache. Of course, this could lead to a cache miss penalty if $E$ doesn't have this data, and because $E$ is assumed to be a high consistency node, it may also be a low availability node. Therefore designing a policy like this greatly depends on the specifics of the system.
+As discussed, a design decision of TACT is to propagate writes using
+anti-entropy sessions, as opposed to a gossip protocol, message groups,
+broadcasts, etc. According to the authors, anti-entropy was chosen because of
+its ``flexibility in operating under a variety of network scenarios.''
+\cite{2002tact} A concrete implementation in the  setting of wild fire fighting should be
+optimized for the kind of network scenarios most likely to be encountered in
+this context. The network topology might also be taken into account, as it may
+be more efficient to contact nearby nodes more often, exploiting locality
+(\textbf{D3}). It also may be advantageous for node $A$ to initiate anti-entropy
+sessions with high-consistency nodes, as these are more likely to have the sort
+of data needed to update $A$'s local replica. For example, if $A$ needs to pull
+updates from $B$, $C$ and $D$, it may be better to initiate a single session
+with a high-consistency node $E$ than to contact these three nodes individually,
+using $E$ as a kind of cache. Of course, this could lead to a cache miss penalty
+if $E$ doesn't have this data, and because $E$ is assumed to be a high
+consistency node, it may also be a low availability node. Therefore designing a
+policy like this greatly depends on the specifics of the system.
 
-It is not immediately clear how TACT could cope with node failure or more serious network partitions gracefully. Specifically, the commitment protocol only commits tentative writes whose timestamp is less than the minimal timestamp in the node's vector clock. This means that if a node is failing, or if there is a network partition, it will eventually become impossible for other nodes to advance some components of their vector clocks, at which point it will be impossible to commit any more writes to the database. This is not a graceful failure (\textbf{D1}). To get around this, it may be desirable to implement a partition-detecting routine which can trigger a fallback mode in which the system operates with special rules. In this mode, perhaps a \emph{quorum} could be used to continue to commit writes while maintaining serialization order.\footnote{ \url{https://en.wikipedia.org/wiki/Quorum_(distributed_computing)}}
+It is not immediately clear how TACT could cope with node failure or more
+serious network partitions gracefully. Specifically, the commitment protocol
+only commits tentative writes whose timestamp is less than the minimal timestamp
+in the node's vector clock. This means that if a node is failing, or if there is
+a network partition, it will eventually become impossible for other nodes to
+advance some components of their vector clocks, at which point it will be
+impossible to commit any more writes to the database. This is not a graceful
+failure (\textbf{D1}). To get around this, it may be desirable to implement a
+partition-detecting routine which can trigger a fallback mode in which the
+system operates with special rules. In this mode, perhaps a \emph{quorum} could
+be used to continue to commit writes while maintaining serialization
+order.\footnote{
+  \url{https://en.wikipedia.org/wiki/Quorum_(distributed_computing)}}
 
-Related to the above, TACT appears to be implemented on the assumption that the set of replicas is fixed and known to all participants. This assumption is likely not valid in the TC-5 setting, nor does it appear to be fundamental to the idea of continuous consistency. Therefore, one should investigate how the protocol could be extended to handle node entry and exit from the system.
+Related to the above, TACT appears to be implemented on the assumption that the
+set of replicas is fixed and known to all participants. This assumption is
+likely not valid in the setting of disaster relief or wildfire fighting, nor does it appear to be fundamental to
+the idea of continuous consistency. Therefore, one should investigate how the
+protocol could be extended to handle node entry and exit from the system.
 
-TACT provides tunability at the level of the individual node. While this is good from the perspective of supporting heterogeneity (\textbf{D2}), it may be desirable to implement some more global coordination on top of TACT which can, for example, dynamically control global system tuning in response to network conditions. For example, perhaps in the event of a transient network failure which greatly restricts the available data bandwidth, it may be the case that some nodes should back off their consistency requirements to reserve the scarce bandwidth for use by high-priority nodes. (A reader with a passing familiarity with emergency communications will know such policies are typical, albeit in a less formalized sense.)
+TACT provides tunability at the level of the individual node. While this is good
+from the perspective of supporting heterogeneity (\textbf{D2}), it may be
+desirable to implement some more global coordination on top of TACT which can,
+for example, dynamically control global system tuning in response to network
+conditions. For example, perhaps in the event of a transient network failure
+which greatly restricts the available data bandwidth, it may be the case that
+some nodes should back off their consistency requirements to reserve the scarce
+bandwidth for use by high-priority nodes. (A reader with a passing familiarity
+with emergency communications will know such policies are typical, albeit in a
+less formalized sense.)
 
-While TACT is naturally explained in terms of sitting between an application and a globally shared database, the general theory of continuous consistency is more granular, bounding the consistency of individual conits. This means, for example, that not every node needs to maintain a complete copy of an entire database, but only the conits which are relevant to that node's mission. This supports heterogeneity (\textbf{D2}). However, an interesting question, related to the points above, is how a node's set of replicated conits can envolve in time. For example, imagine a ground team which travels over far distances. At any moment, the team may only be interested in (say) data relevant to a 5-mile radius of their position. Or to be more nuanced, perhaps the team has the highest consistency requirements for these data, with lower requirements for data less relevant to their location. As their location evolves, so does their relative interest in different conits. Investigating how to coordinate this sort of evolving interest systematically and optimally is an interesting question for future research. Once again, this offers room to exploit locality (\textbf{D3}), where related nodes are ones with similar levels of interest in similar conits, as these ones are likely the most profitable to pull updates from.
+While TACT is naturally explained in terms of sitting between an application and
+a globally shared database, the general theory of continuous consistency is more
+granular, bounding the consistency of individual conits. This means, for
+example, that not every node needs to maintain a complete copy of an entire
+database, but only the conits which are relevant to that node's mission. This
+supports heterogeneity (\textbf{D2}). However, an interesting question, related
+to the points above, is how a node's set of replicated conits can envolve in
+time. For example, imagine a ground team which travels over far distances. At
+any moment, the team may only be interested in (say) data relevant to a 5-mile
+radius of their position. Or to be more nuanced, perhaps the team has the
+highest consistency requirements for these data, with lower requirements for
+data less relevant to their location. As their location evolves, so does their
+relative interest in different conits. Investigating how to coordinate this sort
+of evolving interest systematically and optimally is an interesting question for
+future research. Once again, this offers room to exploit locality (\textbf{D3}),
+where related nodes are ones with similar levels of interest in similar conits,
+as these ones are likely the most profitable to pull updates from.
 

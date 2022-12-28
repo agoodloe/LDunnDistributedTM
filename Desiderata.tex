@@ -1,11 +1,91 @@
 \subsection{Desiderata}
 
-The systems considered in TC-5 are generally critical in the sense that poor system behavior can lead to compromised human safety, among other things. Therefore a key desire is to exercise as much control over system characteristics as possible, even in the face of significant but unpredictable network latencies. While system behavior can always be impacted by degraded communications, hardware issues, etc., we aim to avoid system failures that are disproportionate to their underlying cause. Instead, the system should be flexible enough to compensate for various kinds of failures. One example of potentially unbounded system behavior arises when considering the consistency/availability tradeoff. Frequently one is limited by a sort of uncertainty principle---the more strict our guarantees of consistency, the less we can promise about system performance, and vice versa, which makes it difficult to predict system behavior under different network and workload conditions. We should seek to avoid situations where system performance is determined by the vagaries of circumstance by providing means to accommodate on-the-ground conditions. All of this we subsume under the umbrella of providing \emph{robust control} over the system.
+The systems considered in wildfire fighting are generally critical in the sense
+that poor
+system behavior can lead to compromised human safety, among other things.
+Therefore a key desire is to exercise as much control over system
+characteristics as possible, even in the face of significant but unpredictable
+network latencies. While system behavior can always be impacted by degraded
+communications, hardware issues, etc., we aim to avoid system failures that are
+disproportionate to their underlying cause. Instead, the system should be
+flexible enough to compensate for various kinds of failures. One example of
+potentially unbounded system behavior arises when considering the
+consistency/availability tradeoff. Frequently one is limited by a sort of
+uncertainty principle---the more strict our guarantees of consistency, the less
+we can promise about system performance, and vice versa, which makes it
+difficult to predict system behavior under different network and workload
+conditions. We should seek to avoid situations where system performance is
+determined by the vagaries of circumstance by providing means to accommodate
+on-the-ground conditions. All of this we subsume under the umbrella of providing
+\emph{robust control} over the system.
 
-Another salient feature of TC-5 is a prolific \emph{heterogeneity} throughout the system. In the quote at the beginning of this paper, it is said that the nodes of a distributed system cooperate to solve a task.  A salient feature of TC-5 is that nodes may often cooperate to solve entirely \emph{different} tasks. For instance, the task of one drone may be to hover over and monitor a fire, while another drone may be used to  deliver resources to ground crews. These nodes may cooperate with each other, such as to route messages between ground teams, but their exact goals, requirements, and risk factors may differ. One can also expect a wide variety of different types of nodes---ground teams, airplanes, and UAVs of different kinds, for instance. Nodes can be expected to have different computational and storage resources, and  different levels of access to the network (e.g. due to different kinds of radios or positions in the network topology). Different nodes may also fall under different administrative domains, say if they are managed by different agencies. One also expects use of a wide variety of off-the-shelf rather than purpose-built hardware. All of these considerations suggest there may be no ``typical'' system node, which is a challenge for system design.
+Another salient feature of the use cases we are considering is a prolific
+\emph{heterogeneity} throughout
+the system. In the quote at the beginning of this paper, it is said that the
+nodes of a distributed system cooperate to solve a task.  A salient feature of
+TC-5 is that nodes may often cooperate to solve entirely \emph{different} tasks.
+For instance, the task of one drone may be to hover over and monitor a fire,
+while another drone may be used to  deliver resources to ground crews. These
+  nodes may cooperate with each other, such as to route messages between ground
+  teams, but their exact goals, requirements, and risk factors may differ. One
+  can also expect a wide variety of different types of nodes---ground teams,
+  airplanes, and UAVs of different kinds, for instance. Nodes can be expected to
+  have different computational and storage resources, and  different levels of
+  access to the network (e.g. due to different kinds of radios or positions in
+  the network topology). Different nodes may also fall under different
+  administrative domains, say if they are managed by different agencies. One
+  also expects use of a wide variety of off-the-shelf rather than purpose-built
+  hardware. All of these considerations suggest there may be no ``typical''
+  system node, which is a challenge for system design.
 
-On the bright side, with heterogeneity comes opportunities to exploit \emph{locality}. By this we mean that some nodes will tend to overlap in their means, motives, and opportunities to cooperate with each other more than others. Precisely what constitutes such ``related'' nodes may vary, but often it could often mean nodes which are geographically near to each other. It could also be taken more abstractly, such as nodes with similar configurations, administrators, or positions in the network topology. Distributed applications should be optimized for this sort of phenomena, such as by opportunistically forming localized message-passing groups. We expect that nodes probably cannot uniformly rely on quick access to a central global authority, such as a central database replica, as communication between central and edge nodes is likely to correlate with higher latencies, so decentralized or federated designs are likely to fare better. Much as in real-world emergencies\footnote{Such as the author's extensive experience with hurricanes in Florida.} we can expect that some of the more common and available forms of cooperation and communication will tend to be highly localized, with system nodes thought of as cooperating within overlapping spheres of influence.
+On the bright side, with heterogeneity comes opportunities to exploit
+\emph{locality}. By this we mean that some nodes will tend to overlap in their
+means, motives, and opportunities to cooperate with each other more than others.
+Precisely what constitutes such ``related'' nodes may vary, but often it could
+often mean nodes which are geographically near to each other. It could also be
+taken more abstractly, such as nodes with similar configurations,
+administrators, or positions in the network topology. Distributed applications
+should be optimized for this sort of phenomena, such as by opportunistically
+forming localized message-passing groups. We expect that nodes probably cannot
+uniformly rely on quick access to a central global authority, such as a central
+database replica, as communication between central and edge nodes is likely to
+correlate with higher latencies, so decentralized or federated designs are
+likely to fare better. Much as in real-world emergencies\footnote{Such as the
+author's extensive experience with hurricanes in Florida.} we can expect that
+some of the more common and available forms of cooperation and communication
+will tend to be highly localized, with system nodes thought of as cooperating
+within overlapping spheres of influence.
 
-Based on the preceding discussion, we enumerate a set of desiderata that are somewhat unique of TC-5. We refer back to this list in discussion of specific frameworks.
+Based on the preceding discussion, we enumerate a set of desiderata that are
+somewhat unique to the distributed computing in a disaster relief or wildfire
+fighting setting. We refer back to this list in discussion of specific
+frameworks.
+
+\begin{enumerate}
+        \item[D1] \textbf{Provide robust control}. While tradeoffs are
+        unavoidable, this should not involve forgoing all control over some
+        aspect of the system. For instance, a high-availability database
+        replication framework is not necessarily desirable if it provides no
+        bounds on the degree of inconsistency observed by users. Ideally, it
+        should be possible to respond to on-the-ground circumstances by
+        reconfiguring the system to reflect real conditions. We should also
+        desire gradual failure---an errant sensor or failing node should not
+        affect system performance disproportionately.
+        \item[D2] \textbf{Accommodate heterogeneity}. Systems frameworks should
+        not assume that nodes are generally comparable in intentions,
+        capabilities, and risks. For example, it may be ideal to push
+        decision-making and configuration down to the individual node
+        administrator as much as possible.
+        \item[D3] \textbf{Exploit locality}. Nodes operate in overlapping
+        spheres of influence, and this overlap will tend to coincide with
+        \emph{means}, \emph{motive}, and \emph{opportunity} for cooperation.
+        Overlapping nodes are likely to have knowledge relevant to each other's
+        goals, to share similar goals, and to experience higher throughput in
+        communications. The system design should reflect this phenomenon, such
+        as by optimizing protocols to take advantage of it.
+\end{enumerate}
+
+With these ideals in mind, we turn to considering some topics in distributed
+systems research which are well-suited to our goals.
 
 
