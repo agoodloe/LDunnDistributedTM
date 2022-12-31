@@ -1,5 +1,125 @@
 \section{Continuous consistency}
 
+\subsection{Tradeoffs between system consistency and availability}
+
+The fundamental goal of a distributed computing system is to provide the abstraction of a single computer.
+is to present the abstraction of a
+single global node shared by all clients, i.e. to hide the distributed nature of
+the system. For instance, suppose nodes $A$ and $B$ cooperate to maintain a
+shared value $n \in \mathbb{N}$ which can be accessed from either node. This
+requires the nodes to pass messages to each other, used to notify the other of
+updates. A client who issues a write request on node $A$ probably wishes to
+immediately observe the effects of this update upon issuing a read request to
+node $B$. Note that a client may not have any control, knowledge, or interest in
+which node is serving any particular request---they expect $A$ and $B$ to behave
+identically.\footnote{Though a system may be implemented with a predictable
+	client-node pairing scheme, such as a content-distribution network (CDN) which
+	routes web requests to the caching node geographically nearest to the client.
+	Such a design exploits \emph{locality}, a major theme of this paper we get into
+	later.} That a multiple-node system is fundamentally more complex than an
+individual node is evidenced by the fact that the previous goal is not
+realizable in a certain extremal sense.
+
+\begin{theorem}[Brewer's CAP Theorem]
+	A distributed system cannot achieve all three of the following conditions at
+	the same time.
+	\begin{enumerate}
+		\item \textbf{Consistency}: Clients always read the value of the most
+		recent write (possibly issued to another node by another
+		client).\footnote{Formally, Gilbert and Lynch \cite{2002gilbertlynchCAP}
+			take consistency to mean \emph{linearizability}.}
+		\item \textbf{Availability}: A client request is always eventually served
+		(possibly after an unbounded but finite amount of time).
+		\item \textbf{Partition-tolerance}: The system operates even in a
+		situation where network communication links between nodes are
+		unavailable.
+	\end{enumerate}
+\end{theorem}
+\begin{proof}
+	It is clear why this is called the CAP theorem, and we will sometimes use the
+	letters C, A, and P to refer to these properties. The theorem is generally
+	attributed to Brewer \cite{2000brewerCAP}, though the first totally rigorous
+	proof was given in Gilbert and Lynch \cite{2002gilbertlynchCAP}. At the
+	informal level of this report, the proof is easy. Continuing our example from
+	earlier, suppose both $A$ and $B$ have the shared understanding $n = k - 1$
+	when a network partition occurs and separates the nodes. We do not assume the
+	network will ever recover---perhaps a router has failed and will not be
+	replaced.
+	
+	
+	
+	
+	
+	Now suppose a client issues a write update $n \textrm{ := } k$ to node $A$.
+	$A$ must eventually accept this update, at which point all future read
+	requests to $A$ will return $k$, as otherwise $A$ would be unavailable. Now
+	suppose a client issues a read request to $B$. $B$ has not seen the update at
+	node $A$, but to maintain availability it must eventually return the stale
+	value $k-1$, which violates consistency---$A$ and $B$ no longer present the
+	illusion of a single node.
+\end{proof}
+
+In the proof of CAP, it may seem extreme not to assume that the network will
+become available again, not even after an unbounded amount of time. Indeed,
+several aspects of the theorem are highly idealized. Note for example that
+``availability'' only means eventually, with no bounds on the amount of time the
+client may need to wait. Nonetheless, the theorem highlights a deeper phenomenon
+that occurs throughout the study of distributed systems, namely a fundamental
+tension between ensuring both liveness and safety properties when the network is
+not completely reliable.\footnote{Broadening our perspective, one may see this
+	as a fundamental tension in logic between soundness (a safety property) and
+	completeness (a kind of liveness), such as embodied in G\"odel's famed
+	incompleteness theorems.}  \cite{2012perspectivesCAP} \emph{Liveness} is the
+property that a system will eventually do something good, like respond to a
+client. \emph{Safety} is the property that a system never does something bad,
+like respond in an observably inconsistent way. In short, the only way to
+guarantee safety in the presence of network disruption requires doing nothing at
+all, comprising liveness. Said from another angle, if all nodes in a system
+resolve to continue functioning despite network disruption, there is always a
+chance something bad will happen.
+
+Despite this inherent tradeoff, the framing of CAP as a ``choose 2-of-3''
+problem is misleading, as claimed by no less an authority than the author:
+
+\begin{quote}
+	The ``2 of 3" formulation was always misleading because it tended to
+	oversimplify the tensions among properties. Now such nuances matter. CAP
+	prohibits only a tiny part of the design space: perfect availability and
+	consistency in the presence of partitions, which are rare.
+	\cite{@2012brewerCAPchanged}
+\end{quote}
+
+In the context of this quote, Brewer had in mind such systems as one might find
+in a modern datacenter, where total network disruption is likely to be uncommon.
+Bewer also had in mind a decade's worth of research on detecting and working
+around network disruption, such as on the modern internet where multiple routes
+between two nodes are typically available. In such settings,  heavy-duty
+disruptions like a total outage \cite{2021facebookBGP} are exceptional events
+and smaller partitions have a limited impact on overall system performance.
+
+In the context of wildfire fighting and other disaster relief, it makes sense to
+assume that partitions are not rare,
+or even to assume that some amount of network partitioning is expected under
+normal conditions. Thinking of extreme scenarios such as those considered in the
+Solar System Internet \cite{2016nasaSSI}, one can imagine situations where the
+ability to pass messages between two nodes is a more exceptional scenario than a
+network partition. Despite this difference of context, the point of Brewer's
+message is the same: in the presence of a disruptive network, the engineering
+challenge is to strike a reasonable balance between consistency and
+availability, not simply to choose one to the exclusion of the other.
+
+So far we have discussed ``distributed systems'' in the abstract. In practice,
+systems come in a variety of different kinds, ranging from certain kinds of
+loosely coupled multiprocessor designs all the way up to a sophisticated
+worldwide network of datacenters. Of course, the exact details of the
+system---its scale, purpose, and network characteristics, among other
+things---will influence precisely how we go about balancing its properties and
+building applications. With some of the basic difficulties now outlined, we turn
+to a consideration of the defining characteristics of the systems considered in
+wildfire  fighting and disaster releif.
+
+
+\subsection{TACT}
 
 Informally speaking, for two agents to cooperate, it is clear they have some
 shared knowledge.\footnote{By ``shared knowledge'' we mean a common data model

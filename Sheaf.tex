@@ -1,6 +1,5 @@
 \section{Sheaf-theoretic data fusion}
 
-\section{Sheaf-theoretic data fusion}
 
 Now we turn from database-level coordination to coordination at the application level. In particular, we look at the question how to integrate noisy, heterogeneous sensor data from different sources to form a global picture of the overall environment as observed by the sensor system. The framework of \emph{sheaf theory}, a category-theoretic abstraction used to reason about potentially different types of data viewed from potentially overlapping points of view, stands out as a candidate for this sort of work. This viewpoint is most prominently echoed in work by Robinson:
 \begin{quote}
@@ -11,7 +10,11 @@ Now we turn from database-level coordination to coordination at the application 
 \end{quote}
 This section will explore the basic ideas of sheaf theory and relate them to the sensor-integration problem from a somewhat unique perspective, rooted in a computer science rather than topology, that emphasizes the intuition for presheaves first and describes sheaves as presheaves with a sense of overlapping perspectives and the ability to glue overlapping observations together.
 
-\subsection{Presheaves as spaces of observations over viewpoints}
+\subsection{Introduction to sheaves and presheaves} 
+
+TBD
+
+\subsubsection{Presheaves as spaces of observations over viewpoints}
 
 Sheaf theory can be approached primarily from the perspective of topology or category theory. A category-theoretic approach, in some sense simpler and preferred by the author, is to see sheaves as \emph{presheaves} that satisfy a gluing condition. Presheaves are a simple and interesting categorical structure in their own right. Since they are weaker (follow fewer axioms) than sheaves, they are also more general, simultaneously generalizing indexed families of sets, undirected graphs, and semiautomata, among other things. We assume basic familiarity with category theory, recalling that a category $\mathcal{C}$ consists of a collection of \emph{objects} and \emph{arrows} between objects and the ability to compose arrows. A reader without the relevant background may consult any number of introductions to the subject such as Awodey's \emph{Category Theory} \cite{10.5555/2060081}.
 
@@ -47,7 +50,7 @@ The word-occurrence presheaf $\mathcal{S} : W \to \mathcal{P}(\mathbf{31,250})$ 
 By verifying the identity and composition properties of $\mathcal{S}$, the reader can verify this is in fact a presheaf.
 \end{example}
 
-\subsection{Sheaves as presheaves with overlap}
+\subsubsection{Sheaves as presheaves with overlapping domains}
 
 We have seen that presheaves associate viewpoints to spaces of possible observations from that viewpoint, or objects to sets of occurrences of that object. Very often the set of viewpoints, the category $\mathcal{C}$, is the set $\mathcal{T}$ of open sets of a topological space $(X, \mathcal{T})$, viewed as a partial order and therefore a category. Because a partial order has at most one arrow between two objects (i.e. a subset inclusion $U \subseteq V$), for any presheaf $\mathcal{S}$ and any value $s \in \mathcal{S}(V)$, there is no ambiguity in writing $s|_U$ for the value $\mathcal{S}(U \subseteq V)(s) \in \mathcal{S}(U)$. This is called the \emph{restriction} of $s$ onto $U$.
 
@@ -83,7 +86,9 @@ In other words, a compatible assignment is a family of observations for which, w
 \end{definition}
 In other words, for any family of compatibly overlapping observations taken over a set $\mathcal{U}$ of viewpoints, there is a unique observation $s$ over the entire domain $\cup \mathcal{U}$ for which the family just consists of restrictions of $s$. Since this is rather abstract, we pause to consider a simple example: bitmaps, or functions which assign pixel values to ``coordinates.''
 
-\subsubsection{A bitmap sheaf}
+\subsubsection{Examples of sheaves and presheaves}
+
+\paragraph{A bitmap sheaf}
 Let $\textsc{grid} := \mathbf{n} \times \mathbf{n}$. We think of this set, of cardinality $n^2$, as the set of pixel sensors in a digital camera. Consider this as a discrete topological space $\left(\textsc{grid}, \mathcal{P}(\textsc{grid})\right)$, in which all subsets are open. Sets $U \in \mathcal{P}(\textsc{grid})$ are subsets of sensors. Each subset is a viewpoint from which to take partial photographs.
 
 We make a distinction between the sensor $(i, j) \in \mathbf{n} \times \mathbf{n}$, and a \emph{pixel} associated with this sensor. The difference is that a pixel is the data produced by the sensor. For simplicity we assume pixels are simple 8-bit grayscale values, so the set of pixel values is the set $\mathbf{256}$. Now we construct a contravariant functor $\mathcal{S}$ associating to each subset $U \in \mathcal{P}(\textsc{grid})$ of sensors the space of (partial) images we could take using only those sensors:
@@ -96,7 +101,7 @@ The reader can verify that $\mathcal{S}$ is a presheaf.
 It is easy to see that any compatible assignment represents a set of partial images that exactly overlap in pixel values wherever their sensor domains overlap. The sheaf condition is easily verified, representing the fact that such a collection of overlapping partial images can be uniquely glued together into a larger photograph incorporating the entire set of pixel values available. Therefore $\mathcal{S}$ is in fact a sheaf.
 
 
-\subsection{Data fusion as approximating global sections}
+\subsection{Data fusion as approximate global sections}
 
 To glue together assignments into global images, we require the sections to exactly overlap on the overlap of their domains. In real world sensor integration, this is too strong a restriction---real sensor observations will likely not glue together into global sections because sensors may disagree about certain values. Therefore, \cite{2017robinsonCanonical} considers sheaves which associate \emph{pseudometric spaces}, rather than mere sets, to open sets.
 
