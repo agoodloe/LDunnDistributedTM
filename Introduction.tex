@@ -1,4 +1,38 @@
-\subsection{Background}
+\section{Introduction}
+
+Civil aviation has primarily been focused on efficiently moving goods
+and people via the airspace to their destination. The application of
+sound engineering practices and conservative operating procedures has
+made flying the safest mode of transportation. The desire not to
+compromise such a safe system has made it difficult to introduce
+unmanned and autonomous vehicles into the airspace. The rules for
+operating aircraft in the US national airspace are typically relaxed
+when needed to support natural disaster relief. The NASA Aeronautics'
+Airspace Operations and Safety Program (AOSP) System Wide Safety (SWS)
+project has been investigating how unmanned and manned aircraft may
+safely operate in shared airspace using wildfire fighting and
+hurricane relief as case studies.
+
+Traditionally, civil aviation has employed simple communication
+patterns between air and ground and among aircraft. The typical
+airborne communication is very simple: aircraft broadcast their
+position information via automatic dependent surveillance-broadcast
+(ADS-B). Air-ground communication basically consists of radio
+communication between pilots and air traffic controllers. The use
+cases under consideration demand more sophisticated coordination
+between airborne and ground-based elements in order to accomplish
+shared mission goals such as operating safely, delivering resources,
+and fighting fires. Yet the operating environment will not admit the
+use of reliable high-bandwidth internet connections that enable
+reliable transfers of large data. At best, we can assume some form of
+ad-hoc wireless mesh network with performance characteristics quite
+unlike that of modern household internet connections, with messages
+being sporadically dropped or delayed due to ad-hoc routing
+protocols. Coordinating distributed agents over an unreliable
+communications medium necessitates a sophisticated analysis of the
+situation, which is the subject of this memorandum.
+
+\subsection{Distributed systems}
 A distributed system, broadly construed, is a collection of
 independent entities that cooperate to solve a problem that cannot be
 individually solved \cite{kshemkalyani_singhal_2008}. This memo is
@@ -18,34 +52,37 @@ distributed computing systems as
    network, and where each computer has its own memory and runs its own
    operating system.
 \end{quotation}
-Our assumption is that ground-based and airborne agents interact with
-computers that are connected by some type of communications
-network. This network may be multi-modal, such as an assemblage of two
-or more different radio systems with some kind of bridge for passing
-messages between them. ``Computers'' should be read as broadly as
-possible and may include aircraft systems like ADS-B, portable
-communications equipment, satellites, vehicle-mounted personal
-computers, or smart phones carried by firefighters in the field.
+Our basic model is that ground-based and airborne agents interact as
+\emph{clients} to computers that are connected by some type of
+communications network. This network may be multi-modal, such as an
+assemblage of two or more different radio systems with some kind of
+bridge for passing messages between them. In general, it will be far
+less reliable and achieve much less throughput than, for example, a
+fiber-optic network located in a modern datacenter. Computers should
+be understood in the broadest sense, taken to include aircraft systems
+like ADS-B, portable communications equipment, satellites,
+vehicle-mounted personal computers, or smart phones carried by
+firefighters in the field.
 
-Absence of a common memory requires communication by message-passing
-over the network, as opposed to writing shared data to a common memory
-location. A salient and abiding feature of distributed computing is
-that the network is not perfectly reliable, particularly in the
-context of emergency response scenarios where high-bandwidth
+Absence of a common memory implies communication takes place by
+passing messages over the network, as opposed to writing shared data
+to a common memory location. Essentially the defining characteristic
+of distributed computing is that the network is not perfectly reliable
+and communication over it is not instantaneous. This is particularly
+true during emergency response scenarios where high-bandwidth
 communication is not consistently available to all clients. For
 example, two firefighting ground teams may not be able to directly
 communicate over a radio network if the teams are separated by a tall
-ridgeline. Unreliability of a shared communication medium is
-essentially the defining characteristic of distributed computing, and
-it brings with it inherent challenges. Handling these sorts of
-challenges gracefully---for example, passing messages over the
-ridgeline using a nearby drone to route messages between the two
-parties---requires more sophisticated coordination protocols than have
-traditionally been applied in this domain. The inherent imperfections
-of the network imply that distributed applications are subject to
-theoretical and practical limitations. This memo discusses some of
-these limitations and indicates how they may be handled gracefully,
-i.e. without compromising the high safety standards of civil aviation.
+ridgeline. Unreliability of a shared communication medium brings with
+it inherent challenges. Handling these sorts of challenges
+gracefully---for example, passing messages over the ridgeline using a
+nearby drone to route messages between the two parties---requires more
+sophisticated coordination protocols than have traditionally been
+applied in this domain. The inherent imperfections of the network
+imply that distributed applications are subject to theoretical and
+practical limitations. This memo discusses some of these limitations
+and indicates how they may be handled gracefully, without sacrificing
+the high safety standards of aviation.
 
 The basic challenge of a distributed computing system is to provide
 the illusion that the independent computers actually act ``as a single
@@ -86,24 +123,3 @@ an application-level framework for combining data from multiple
 sources. What these topics have in common is an ability to adapt to
 the challenges of the settings under consideration while providing
 quantifiable bounds for system (in)consistency.
-
-\section{Three desiderata of distributed systems frameworks}
-
-Given the particular details of civil aviation and disaster response,
-this section lists three desirable features of distributed
-applications.
-
-\subsection{Quantifiable bounds on inconsistency}
-
-``A framework should provide a way to *quantify* the amount of
-(in)consistency it delivers.''
-
-\subsection{Accommodation of heterogeneous nodes}
-
-``A framework should not assume that there is a typical system
-node. Put another way, the system should accomdata a potentially
-diverse range of heterogeneous clients.''
-
-\subsection{Optimization for a geographic ad-hoc communications network}
-
-``A framework should be optimized to take advantage of locality.''

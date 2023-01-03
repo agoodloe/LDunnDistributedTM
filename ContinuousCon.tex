@@ -1,358 +1,454 @@
-\section{Continuous consistency}
+\section{Continuous consistency and Brewer's CAP theorem}
 
-\subsection{Tradeoffs between system consistency and availability}
+In this section we consider the inherent tradeoff between system
+consistency and performance and availability.\footnote{To be precise,
+system performance refers to the observable speed with which a system
+node handles client requests, while availability refers to the
+percentage of time a node spends processing clients' requests, as
+opposed to waiting for some network activity to take place. These are
+linked ideas, but theoretical results and models tend to be phrased in
+terms of system availability.} We start by summarizing Brewer's CAP
+theorem, a fundamental result describing inherent tradeoffs between
+the simultaneous goals of high consistency, high availability, and
+resilience to network partitions. A somewhat $\textrm{na\"ive}$
+reading of this theorem is that a system can achieve any only two of
+these at once. Then we discuss optimistic consistency, a broad term
+for distributed systems frameworks which enforce high availability but
+provide high consistency only when ideal network conditions
+prevail. Such models generally violate our requirement for
+quantifiable inconsistency, so they are inappropriate for
+safety-critical systems. To address this shortcoming, we discuss TACT
+\cite{2002tact}, a general-purpose middleware\footnote{A middleware is
+a layer of software that mediates an application's access to a backend
+such as a database. Using middleware libraries provides application
+developers enhanced flexibility and affordances---in our case,
+general-purpose replication services---compared to accessing a backend
+directly.} library that allows applications to implement dynamically
+tunable consistency requirements. TACT can be used by applications to
+set relaxed but quantifiable and guaranteed consistency bounds,
+exposing a continuous tradeoff between performance and system
+coherence. Ideas from TACT may be profitably applied to the sorts of
+distributed systems under consideration.
 
-The fundamental goal of a distributed computing system is to provide the abstraction of a single computer.
-is to present the abstraction of a
-single global node shared by all clients, i.e. to hide the distributed nature of
-the system. For instance, suppose nodes $A$ and $B$ cooperate to maintain a
-shared value $n \in \mathbb{N}$ which can be accessed from either node. This
-requires the nodes to pass messages to each other, used to notify the other of
-updates. A client who issues a write request on node $A$ probably wishes to
-immediately observe the effects of this update upon issuing a read request to
-node $B$. Note that a client may not have any control, knowledge, or interest in
-which node is serving any particular request---they expect $A$ and $B$ to behave
-identically.\footnote{Though a system may be implemented with a predictable
-	client-node pairing scheme, such as a content-distribution network (CDN) which
-	routes web requests to the caching node geographically nearest to the client.
-	Such a design exploits \emph{locality}, a major theme of this paper we get into
-	later.} That a multiple-node system is fundamentally more complex than an
+\subsection{The CAP theorem: tradeoffs between consistency and availability}
+
+A fundamental result in the distributed systems literature is Brewer's
+CAP theorem. This result limits the extent to which a system can
+provide idealized consistency (C) and high availability (A) in the
+present of network partitions (P), i.e. outages. Consider an extremely
+simple system comprised of two nodes $A$ and $B$ that communicate over
+an imperfect network. These nodes cooperate to maintain a shared value
+$n \in \mathbb{N}$ which can be accessed from either node. Both nodes
+accept requests from clients to read or update $n$, and any client may
+use either node. For example, $A$ and $B$ can represent two automated
+teller machines (ATMs) that are able to process reads and withdrawals
+out of a single account, where $n$ represents the account balance in
+dollars. The nodes cooperate to maintained a shared understanding of
+the value of $n$ because one's bank account should be the same
+regardless of which ATM one uses. In a disaster response scenario, $n$
+could represent the number of available resources of some type, while
+nodes $A$ and $B$ accept requests from clients to dispatch these
+resources.
+
+This requires the nodes to pass messages to each other, used to notify
+the other of updates. A client who issues a write request on node $A$
+probably wishes to immediately observe the effects of this update upon
+issuing a read request to node $B$. Note that a client may not have
+any control, knowledge, or interest in which node is serving any
+particular request---they expect $A$ and $B$ to behave
+identically.\footnote{Though a system may be implemented with a
+predictable client-node pairing scheme, such as a content-distribution
+network (CDN) which routes web requests to the caching node
+geographically nearest to the client.  Such a design exploits
+\emph{locality}, a major theme of this paper we get into later.} That
+a multiple-node system is fundamentally more complex than an
 individual node is evidenced by the fact that the previous goal is not
 realizable in a certain extremal sense.
 
+\begin{enumerate}
+\item \textbf{Consistency}: Clients always read the value of the most
+  recent write (possibly issued to another node by another
+  client).\footnote{Formally, Gilbert and Lynch
+  \cite{2002gilbertlynchCAP} take consistency to mean
+  \emph{linearizability}.}
+\item \textbf{Availability}: A client request is always eventually
+  served (possibly after an unbounded but finite amount of time).
+\item \textbf{Partition-tolerance}: The system operates even in a
+  situation where network communication links between nodes are
+  unavailable.
+\end{enumerate}
+
+Given that all three of these conditions are expressed in very
+idealized ways, it is not surprising to find that no distributed
+computing system can provide all three characteristics absolutely.
+
 \begin{theorem}[Brewer's CAP Theorem]
-	A distributed system cannot achieve all three of the following conditions at
-	the same time.
-	\begin{enumerate}
-		\item \textbf{Consistency}: Clients always read the value of the most
-		recent write (possibly issued to another node by another
-		client).\footnote{Formally, Gilbert and Lynch \cite{2002gilbertlynchCAP}
-			take consistency to mean \emph{linearizability}.}
-		\item \textbf{Availability}: A client request is always eventually served
-		(possibly after an unbounded but finite amount of time).
-		\item \textbf{Partition-tolerance}: The system operates even in a
-		situation where network communication links between nodes are
-		unavailable.
-	\end{enumerate}
+  In the asychronous network model, no distributed system can
+  guarantee atomic consistency and eventual-availability. That is, we
+  cannot simultaneously delivers idealized extreme amounts of the
+  following three features: consistency, availability, and
+  partition-tolerance.
 \end{theorem}
 \begin{proof}
-	It is clear why this is called the CAP theorem, and we will sometimes use the
-	letters C, A, and P to refer to these properties. The theorem is generally
-	attributed to Brewer \cite{2000brewerCAP}, though the first totally rigorous
-	proof was given in Gilbert and Lynch \cite{2002gilbertlynchCAP}. At the
-	informal level of this report, the proof is easy. Continuing our example from
-	earlier, suppose both $A$ and $B$ have the shared understanding $n = k - 1$
-	when a network partition occurs and separates the nodes. We do not assume the
-	network will ever recover---perhaps a router has failed and will not be
-	replaced.
-	
-	
-	
-	
-	
-	Now suppose a client issues a write update $n \textrm{ := } k$ to node $A$.
-	$A$ must eventually accept this update, at which point all future read
-	requests to $A$ will return $k$, as otherwise $A$ would be unavailable. Now
-	suppose a client issues a read request to $B$. $B$ has not seen the update at
-	node $A$, but to maintain availability it must eventually return the stale
-	value $k-1$, which violates consistency---$A$ and $B$ no longer present the
-	illusion of a single node.
+  It is clear why this is called the CAP theorem, and we will
+  sometimes use the letters C, A, and P to refer to these
+  properties. The theorem is generally attributed to Brewer
+  \cite{2000brewerCAP}, though the first totally rigorous proof was
+  given in Gilbert and Lynch \cite{2002gilbertlynchCAP}. At the
+  informal level of this report, the proof is easy. Continuing our
+  example from earlier, suppose both $A$ and $B$ have the shared
+  understanding $n = k - 1$ when a network partition occurs and
+  separates the nodes. We do not assume the network will ever
+  recover---perhaps a router has failed and will not be replaced.
+
+  Now suppose a client issues a write update $n \textrm{ := } k$ to
+  node $A$.  $A$ must eventually accept this update, at which point
+  all future read requests to $A$ will return $k$, as otherwise $A$
+  would be unavailable. Now suppose a client issues a read request to
+  $B$. $B$ has not seen the update at node $A$, but to maintain
+  availability it must eventually return the stale value $k-1$, which
+  violates consistency---$A$ and $B$ no longer present the illusion of
+  a single node.
 \end{proof}
 
-In the proof of CAP, it may seem extreme not to assume that the network will
-become available again, not even after an unbounded amount of time. Indeed,
-several aspects of the theorem are highly idealized. Note for example that
-``availability'' only means eventually, with no bounds on the amount of time the
-client may need to wait. Nonetheless, the theorem highlights a deeper phenomenon
-that occurs throughout the study of distributed systems, namely a fundamental
-tension between ensuring both liveness and safety properties when the network is
-not completely reliable.\footnote{Broadening our perspective, one may see this
-	as a fundamental tension in logic between soundness (a safety property) and
-	completeness (a kind of liveness), such as embodied in G\"odel's famed
-	incompleteness theorems.}  \cite{2012perspectivesCAP} \emph{Liveness} is the
-property that a system will eventually do something good, like respond to a
-client. \emph{Safety} is the property that a system never does something bad,
-like respond in an observably inconsistent way. In short, the only way to
-guarantee safety in the presence of network disruption requires doing nothing at
-all, comprising liveness. Said from another angle, if all nodes in a system
-resolve to continue functioning despite network disruption, there is always a
-chance something bad will happen.
+In the proof of CAP, it may seem extreme not to assume that the
+network will become available again, not even after an unbounded
+amount of time. Indeed, several aspects of the theorem are highly
+idealized. Note for example that ``availability'' only means
+eventually, with no bounds on the amount of time the client may need
+to wait. Nonetheless, the theorem highlights a deeper phenomenon that
+occurs throughout the study of distributed systems, namely a
+fundamental tension between ensuring both liveness and safety
+properties when the network is not completely
+reliable.\footnote{Broadening our perspective, one may see this as a
+fundamental tension in logic between soundness (a safety property) and
+completeness (a kind of liveness), such as embodied in G\"odel's famed
+incompleteness theorems.}  \cite{2012perspectivesCAP} \emph{Liveness}
+is the property that a system will eventually do something good, like
+respond to a client. \emph{Safety} is the property that a system never
+does something bad, like respond in an observably inconsistent way. In
+short, the only way to guarantee safety in the presence of network
+disruption requires doing nothing at all, comprising liveness. Said
+from another angle, if all nodes in a system resolve to continue
+functioning despite network disruption, there is always a chance
+something bad will happen.
 
-Despite this inherent tradeoff, the framing of CAP as a ``choose 2-of-3''
-problem is misleading, as claimed by no less an authority than the author:
+It has been traditional to describe the CAP theorem as forcing
+developers of distributed applications to choose at most two of three
+conditions:
+\begin{itemize}
+  \item A consistent and highly available system which fails
+    during network partitions.
+  \item a consistent and partition-resistant system, such as might be
+    appropriate for financial institution where inconsistency is very constly
+  \item A highly available and partition-resistant system,
+\end{itemize}
 
+In reality, the CAP theorem is an extremely idealized result which
+only forbids a system that provides an idealized extreme degree of all
+three properties. The theorem only constrains---but does not prohibit
+the existence of---real-world applications that feature a desirable
+combination of all three characteristics, as noted by Brewer himself:
 \begin{quote}
-	The ``2 of 3" formulation was always misleading because it tended to
-	oversimplify the tensions among properties. Now such nuances matter. CAP
-	prohibits only a tiny part of the design space: perfect availability and
-	consistency in the presence of partitions, which are rare.
-	\cite{@2012brewerCAPchanged}
+  The ``2 of 3" formulation was always misleading because it tended to
+  oversimplify the tensions among properties. Now such nuances
+  matter. CAP prohibits only a tiny part of the design space: perfect
+  availability and consistency in the presence of partitions\ldots \cite{@2012brewerCAPchanged}
 \end{quote}
 
-In the context of this quote, Brewer had in mind such systems as one might find
-in a modern datacenter, where total network disruption is likely to be uncommon.
-Bewer also had in mind a decade's worth of research on detecting and working
-around network disruption, such as on the modern internet where multiple routes
-between two nodes are typically available. In such settings,  heavy-duty
-disruptions like a total outage \cite{2021facebookBGP} are exceptional events
-and smaller partitions have a limited impact on overall system performance.
+\subsection{Optimistic consistency}
+Some real-world systems are designed under an ``optimistic
+consistency'' model, meaning they are optimized to provide high
+availability while providing only some unknown amount of
+consistency---whatever amount of consistency can be provided given the
+on-the-ground network conditions. Applications designed with this
+model can work well in, for example, datacenters, where high-bandwidth
+communications tend to be reliable and network partitions are rare
+(CITE), in which case highly availabile systems can also provide
+relatively high consistency. In such a setting, applications may
+typically exhibit small amounts of inconsistency, and in exceptional
+cases high amounts of inconsistency. For example, the viewer counts
+displayed on video-sharing website may differ slightly for users
+accessing the service at the same time. In scenarios such as these,
+the cost of inconsistency can be relatively low.
 
-In the context of wildfire fighting and other disaster relief, it makes sense to
-assume that partitions are not rare,
-or even to assume that some amount of network partitioning is expected under
-normal conditions. Thinking of extreme scenarios such as those considered in the
-Solar System Internet \cite{2016nasaSSI}, one can imagine situations where the
-ability to pass messages between two nodes is a more exceptional scenario than a
-network partition. Despite this difference of context, the point of Brewer's
-message is the same: in the presence of a disruptive network, the engineering
-challenge is to strike a reasonable balance between consistency and
-availability, not simply to choose one to the exclusion of the other.
+For the aviation and disaster-response scenarios considered in this
+document, sound engineering practices would tend to rule out designing
+applications around an optimistic consistency framework for a simple
+reason: they cannot generally provide guarantees about system
+consistency, particularly given that these networks will often be
+highly unpredictable. Due to the safety-critical nature of aviation
+and disaster response, agents must have a precise understanding of how
+well their local data coincides with the ``global'' picture. For
+example, one ought to be confident that, when surveying the landscape
+to determine the most recent positions of nearby crews and aircraft,
+other agents are also looking at relatively similar data. If
+independent agents make decisions based on mutually inconsistent
+understanding of where others are located, they can easily exhibit
+uncoordinated behavior that compromises safety. As another example,
+users should feel extremely confident that they are receiving
+broadcast messages in the same order that other parties are sending
+them, lest dangerous misunderstandings occur. In scenarios where high
+consistency cannot, be guaranteed within tolerable boundaries, users
+should be alerted to this fact: for example, a dangerous manoeauver
+should not be performed if the system cannot guarantee it is has
+relatively accurate information about the location of ground crews.
 
-So far we have discussed ``distributed systems'' in the abstract. In practice,
-systems come in a variety of different kinds, ranging from certain kinds of
-loosely coupled multiprocessor designs all the way up to a sophisticated
-worldwide network of datacenters. Of course, the exact details of the
-system---its scale, purpose, and network characteristics, among other
-things---will influence precisely how we go about balancing its properties and
-building applications. With some of the basic difficulties now outlined, we turn
-to a consideration of the defining characteristics of the systems considered in
-wildfire  fighting and disaster releif.
+Given that optimistic consistency models are inappropriate due their
+somewhat carefree nature, one may consider resorting to models that
+enforce high consistency guarantees. However, this will frequently
+incur a prohibitive overhead, especially given that we assume a highly
+unreliable network. Therefore, high-consistency frameworks may not
+provide an acceptable amount of availability.
+
+In realistic scenarios, it is acceptable to ``dial back'' the
+consistency requirements to achieve a reasonable balance of
+consistency and availability, but importantly one hopes to achieve
+this without sacrificing actual guarantees about consistency,
+i.e. upper bounds on the inconsistency. This is the purpose of continous consistency.
 
 
-\subsection{TACT}
+\subsection{TACT: Tunable availability and consistency toolkit}
 
-Informally speaking, for two agents to cooperate, it is clear they have some
-shared knowledge.\footnote{By ``shared knowledge'' we mean a common data model
-and common data. This is to be distinguished from the more technical concept of
-``common knowledge'' in epistemic modal logic.} The proof of this is by its
-contrapositive--agents which have no shared knowledge have no way to cooperate
-with each other. Therefore one of the most basic tasks of a distributed system
-is to maintain local replicas of some shared data. We will assume this takes the
-form of a replicated database, though it could be any other form of shared
-persistent object.
+In a series of papers \cite{2000tact} \cite{2000tactalgorithms}
+\cite{2002tact}, Yu and Vahdat propose a theory of \emph{continuous
+consistency} which is designed to expose ``a continuum between strong
+and optimistic consistency.'' One
 
-Historically, replicated databases have been designed at two extremes of the
-consistency spectrum, with some systems implemented to provide strong
-consistency, and other highly available systems implemented on top of some
-optimistic model of consistency. At both extremes, while one of C or A is
-enforced, users have virtually no control over the other. That is, for a highly
-available systems, there is no guaranteed upper bound on the amount of
-inconsistency between the various replicas, nor any knowledge or direct
-influence on how available a strongly consistent system would be. This forces
-application developers to choose between high A/low C or high C/low A.
+A definition of ``continuous
+consistency'' is a quantifiable, dynamically tunable, per-replica
+bounds on the likelihood of an inconsistent database access by system
+nodes.
 
-In a series of papers \cite{2000tact} \cite{2000tactalgorithms} \cite{2002tact},
-Yu and Vahdat propose a theory of \emph{continuous consistency} which is
-designed to expose ``a continuum between strong and optimistic consistency.''  A
-definition of  ``continuous consistency'' is a quantifiable, dynamically
-tunable, per-replica bounds on the likelihood of an inconsistent database access
-by system nodes. As their framework is intended to be both highly general but
-also practical for application developers, the authors implement a Java
-middleware library called TACT used to augment applications with support for
-wide-area replication. While TACT itself is more of a proof of concept (and
-whose source, written in Java 1.2, appears to have never been made available),
-the function and design of this library make it worthwhile to study for general
-lessons. The literature also includes three case studies based on simulated
-network conditions demonstrating how the theory plays out in practice.
+As their framework is intended to be both highly general but
+also practical for application developers, the authors implement a
+Java middleware library called TACT used to augment applications with
+support for wide-area replication. While TACT itself is more of a
+proof of concept (and whose source, written in Java 1.2, appears to
+have never been made available), the function and design of this
+library make it worthwhile to study for general lessons. The
+literature also includes three case studies based on simulated network
+conditions demonstrating how the theory plays out in practice.
 \cite{2002tact}
 
-\subsection{How TACT works}
-
 TACT is based on the somewhat informal concept of a \emph{conit}, or
-\emph{con}sistency un\emph{it}, representing the smallest unit of data whose
-consistency with other replicas an application wishes to bound. For instance, in
-an airline reservation system, a conit could be defined for an individual seat
-on the plane, though a conit could also be defined at the level of blocks of
-seats. The level of granularity is determined by the
-application---coarse-grained conits reduce the bookkeeping required by TACT, at
-the potential cost of unnecessarily reducing the performance for access to a
-conit due to logically unrelated updates to a conit composed of independent
-data.  Ultimately, the exact definition of a conit is set by the application
+\emph{con}sistency un\emph{it}, representing the smallest unit of data
+whose consistency with other replicas an application wishes to
+bound. For instance, in an airline reservation system, a conit could
+be defined for an individual seat on the plane, though a conit could
+also be defined at the level of blocks of seats. The level of
+granularity is determined by the application---coarse-grained conits
+reduce the bookkeeping required by TACT, at the potential cost of
+unnecessarily reducing the performance for access to a conit due to
+logically unrelated updates to a conit composed of independent data.
+Ultimately, the exact definition of a conit is set by the application
 developer.
 
-TACT enforces invariants that bound the maximum inconsistency between a local
-replica of a conit and its true global value, which is the well-defined value
-the conit would converge to after all updates across the system are applied
-everywhere. These invariants are measured by three independent metrics:
-numerical error, order error, and staleness error. For a replica at node $A$,
-these error values are defined as follows:
+TACT enforces invariants that bound the maximum inconsistency between
+a local replica of a conit and its true global value, which is the
+well-defined value the conit would converge to after all updates
+across the system are applied everywhere. These invariants are
+measured by three independent metrics: numerical error, order error,
+and staleness error. For a replica at node $A$, these error values are
+defined as follows:
 
 \begin{description}
    \item[numerical error] the total weight of all writes unseen by $A$
-   \item[order error] the number of tentative writes on $A$'s replica which may
-     end up reordered before they are committed in a global serialization order
-   \item[staleness error] the oldest write (in physical time) to any node unseen
-     by $A$
+   \item[order error] the number of tentative writes on $A$'s replica
+     which may end up reordered before they are committed in a global
+     serialization order
+   \item[staleness error] the oldest write (in physical time) to any
+     node unseen by $A$
 \end{description}
 
-At each node $A$, the maximum allowable error values are set for all three
-metrics, and all client requests to $A$ are guaranteed to return results whose
-inconsistency is bounded by these values. Notably, different nodes may maintain
-different bounds---one node may provide strong guarantees, while another may
-provide weaker guarantees. In theory and empirically, loosening each of these
-bounds while holding the others constant increases the availability of a node,
-as it reduces the administrative overhead required to keep the local replica
-up-to-date. Furthermore, these error bounds can be set dynamically, not just at
-system startup, so that administrators can tune system performance in response
-to changing network characteristics.
+At each node $A$, the maximum allowable error values are set for all
+three metrics, and all client requests to $A$ are guaranteed to return
+results whose inconsistency is bounded by these values. Notably,
+different nodes may maintain different bounds---one node may provide
+strong guarantees, while another may provide weaker guarantees. In
+theory and empirically, loosening each of these bounds while holding
+the others constant increases the availability of a node, as it
+reduces the administrative overhead required to keep the local replica
+up-to-date. Furthermore, these error bounds can be set dynamically,
+not just at system startup, so that administrators can tune system
+performance in response to changing network characteristics.
 
-Each TACT node maintains a logical scalar time and a vector clock $V_A$
-containing logical timestamps for every other node. Incoming write requests to
-node $A$ are timestamped with $A$'s logical time. Loosely speaking, if
-$V_A[B]=t$, meaning node $A$ has a timestamp $t$ for node $B$ in $A$'s vector
-clock, then $A$ has seen every update seen by $B$ up to $B$'s logical time $t$.
-This ensures the so-called coverage property, which states that a replica has
-seen all system-wide updates with accept times less than or equal to the minimum
-logical time in its vector clock. TACT employs one-way anti-entropy sessions for
-write propagation, in which nodes exchange vector clocks, then one node sends
-every update known to it but not the other. A rough overview of how TACT handle
-a write request (say) is as follows:
+Each TACT node maintains a logical scalar time and a vector clock
+$V_A$ containing logical timestamps for every other node. Incoming
+write requests to node $A$ are timestamped with $A$'s logical
+time. Loosely speaking, if $V_A[B]=t$, meaning node $A$ has a
+timestamp $t$ for node $B$ in $A$'s vector clock, then $A$ has seen
+every update seen by $B$ up to $B$'s logical time $t$.  This ensures
+the so-called coverage property, which states that a replica has seen
+all system-wide updates with accept times less than or equal to the
+minimum logical time in its vector clock. TACT employs one-way
+anti-entropy sessions for write propagation, in which nodes exchange
+vector clocks, then one node sends every update known to it but not
+the other. A rough overview of how TACT handle a write request (say)
+is as follows:
 
-Each TACT node maintains a logical scalar time and a vector clock $V_A$
-containing logical timestamps for every other node. Incoming write requests to
-node $A$ are timestamped with $A$'s logical time. Loosely speaking, if
-$V_A[B]=t$, meaning node $A$ has a timestamp $t$ for node $B$ in $A$'s vector
-clock, then $A$ has seen every update seen by $B$ up to $B$'s logical time $t$.
-This ensures the so-called coverage property, which states that a replica has
-seen all system-wide updates with accept times less than or equal to the minimum
-logical time in its vector clock. TACT employs one-way anti-entropy sessions for
-write propagation, in which nodes exchange vector clocks, then one node sends
-every update known to it but not the other. A rough overview of how TACT handle
-a write request (say) is as follows:
+Each TACT node maintains a logical scalar time and a vector clock
+$V_A$ containing logical timestamps for every other node. Incoming
+write requests to node $A$ are timestamped with $A$'s logical
+time. Loosely speaking, if $V_A[B]=t$, meaning node $A$ has a
+timestamp $t$ for node $B$ in $A$'s vector clock, then $A$ has seen
+every update seen by $B$ up to $B$'s logical time $t$.  This ensures
+the so-called coverage property, which states that a replica has seen
+all system-wide updates with accept times less than or equal to the
+minimum logical time in its vector clock. TACT employs one-way
+anti-entropy sessions for write propagation, in which nodes exchange
+vector clocks, then one node sends every update known to it but not
+the other. A rough overview of how TACT handle a write request (say)
+is as follows:
 \begin{enumerate}
-   \item An application accepts a write request to a conit from a client. This
-     is passed to TACT, which stamps the update with $A$'s node identifier and
-     logical time.
-   \item For each other node $B$, based on $B$'s numerical error bounds (which
-     are known to $A$), TACT may initiate an anti-entropy session with $B$,
-     pushing the set of updates known to $A$ but not necessarily to $B$. This
-     procedure maintains the invariant that $B$'s conit's value is within a
-     certain range of the true value. For example, if the client write could
-     exceed every other node's numerical error bounds, $A$ may need to push the
-     update to every node immediately.
-   \item After possibly notifying other nodes of the new update, TACT accepts
-     the write \emph{tentatively} and the client's write request returns.
-     Globally, tentative updates are ordered partially but not totally, so the
-     exact order of the client's write in the global database is not determined
-     yet.
-   \item When the number of tentative writes at $A$ exceeds $A$'s allowed bounds
-     (the order error bound), the writes are \emph{committed} through a
-     commitment protocol, which involves pulling writes from remote replicas by
-     initiating more anti-entropy sessions. This is used to commit writes in a
-     global total order. This may require reordering tentative writes, which is
-     why it is of interest to bound the allowed number of tentative writes
-     before commitment procedure is triggered.
-   \item By maintaining a separate physical-time vector clock, TACT periodically
-     initiates anti-entropy sessions in the background, pulling data from remote
-     replicas to maintain levels of data staleness that are acceptable to $A$.
+\item An application accepts a write request to a conit from a
+  client. This is passed to TACT, which stamps the update with $A$'s
+  node identifier and logical time.
+\item For each other node $B$, based on $B$'s numerical error bounds
+  (which are known to $A$), TACT may initiate an anti-entropy session
+  with $B$, pushing the set of updates known to $A$ but not
+  necessarily to $B$. This procedure maintains the invariant that
+  $B$'s conit's value is within a certain range of the true value. For
+  example, if the client write could exceed every other node's
+  numerical error bounds, $A$ may need to push the update to every
+  node immediately.
+\item After possibly notifying other nodes of the new update, TACT
+  accepts the write \emph{tentatively} and the client's write request
+  returns.  Globally, tentative updates are ordered partially but not
+  totally, so the exact order of the client's write in the global
+  database is not determined yet.
+\item When the number of tentative writes at $A$ exceeds $A$'s allowed
+  bounds (the order error bound), the writes are \emph{committed}
+  through a commitment protocol, which involves pulling writes from
+  remote replicas by initiating more anti-entropy sessions. This is
+  used to commit writes in a global total order. This may require
+  reordering tentative writes, which is why it is of interest to bound
+  the allowed number of tentative writes before commitment procedure
+  is triggered.
+\item By maintaining a separate physical-time vector clock, TACT
+  periodically initiates anti-entropy sessions in the background,
+  pulling data from remote replicas to maintain levels of data
+  staleness that are acceptable to $A$.
 \end{enumerate}
 
-Note especially that the way the three invariants are enforced is different for
-each kind. We offer more detail below.
+Note especially that the way the three invariants are enforced is
+different for each kind. We offer more detail below.
 
 
 \subsubsection{Bounding numerical error with push-based anti-entropy}
 
-Consider some node $A$ maintaining a replica of some conit. As numerical error
-limits the total weight of system-wide writes that haven't been seen at $A$,
-this form of error is bounded in a cooperative fashion which requires nodes to
-push updates to $A$. This is somewhat tricky as a node $B$ does not always know
-the full set of updates seen by $A$, so $B$ must conservatively forward to $A$
-any update which could violate $A$'s bounds based on $B$'s timestamp for $A$.
-The precise algorithms for doing this, including a couple variations and proofs
-of correctness, have been given in \cite{2000tactalgorithms}. Because this form
-of error relies on joint cooperation of all other nodes, updating $A$'s
-numerical error bound requires the use of a consensus protocol---the invariant
-cannot be enforced unless all other nodes are aware of the level of numerical
+Consider some node $A$ maintaining a replica of some conit. As
+numerical error limits the total weight of system-wide writes that
+haven't been seen at $A$, this form of error is bounded in a
+cooperative fashion which requires nodes to push updates to $A$. This
+is somewhat tricky as a node $B$ does not always know the full set of
+updates seen by $A$, so $B$ must conservatively forward to $A$ any
+update which could violate $A$'s bounds based on $B$'s timestamp for
+$A$.  The precise algorithms for doing this, including a couple
+variations and proofs of correctness, have been given in
+\cite{2000tactalgorithms}. Because this form of error relies on joint
+cooperation of all other nodes, updating $A$'s numerical error bound
+requires the use of a consensus protocol---the invariant cannot be
+enforced unless all other nodes are aware of the level of numerical
 consistency desired by $A$.
 
-By the way, the exact scheme for weighing updates is also determined by the
-application developer rather than TACT. This decouples the protocol for
-maintaining consistency from the policy assigning weights to various kinds of
-updates.
+By the way, the exact scheme for weighing updates is also determined
+by the application developer rather than TACT. This decouples the
+protocol for maintaining consistency from the policy assigning weights
+to various kinds of updates.
 
 \subsubsection{Bounding order/staleness errors with pull-based anti-entropy}
 
-To commit writes in a global total order, $A$ must ensure it has seen all
-system-wide updates whose acceptance timestamps are less than or equal to the
-timestamp of $A$'s tentative writes. This means $A$ may need to contact nodes
-whose time in $A$'s vector clock is small, meaning $A$ has not seen updates
-recently accepted by that node (not even indirectly through anti-entropy
-sessions with other nodes). In this case, $A$ will need to pull unseen updates
-from such nodes. Note that unlike numerical error, this procedure only requires
-local knowledge. Therefore updating $A$'s order error does not require a
+To commit writes in a global total order, $A$ must ensure it has seen
+all system-wide updates whose acceptance timestamps are less than or
+equal to the timestamp of $A$'s tentative writes. This means $A$ may
+need to contact nodes whose time in $A$'s vector clock is small,
+meaning $A$ has not seen updates recently accepted by that node (not
+even indirectly through anti-entropy sessions with other nodes). In
+this case, $A$ will need to pull unseen updates from such nodes. Note
+that unlike numerical error, this procedure only requires local
+knowledge. Therefore updating $A$'s order error does not require a
 consensus protocol.
 
-Staleness error is bounded similarly, with $A$ pulling updates from nodes whose
-entry in $A$'s physical vector clock, corresponding to the physical time of the
-most recently seen updates from that node, is below a threshold determined by
-$A$.
+Staleness error is bounded similarly, with $A$ pulling updates from
+nodes whose entry in $A$'s physical vector clock, corresponding to the
+physical time of the most recently seen updates from that node, is
+below a threshold determined by $A$.
 
-\subsection{Topics for future work}
+\subsection{Analysis and considerations for future work}
 As discussed, a design decision of TACT is to propagate writes using
-anti-entropy sessions, as opposed to a gossip protocol, message groups,
-broadcasts, etc. According to the authors, anti-entropy was chosen because of
-its ``flexibility in operating under a variety of network scenarios.''
-\cite{2002tact} A concrete implementation in the  setting of wild fire fighting should be
-optimized for the kind of network scenarios most likely to be encountered in
-this context. The network topology might also be taken into account, as it may
-be more efficient to contact nearby nodes more often, exploiting locality
-(\textbf{D3}). It also may be advantageous for node $A$ to initiate anti-entropy
-sessions with high-consistency nodes, as these are more likely to have the sort
-of data needed to update $A$'s local replica. For example, if $A$ needs to pull
-updates from $B$, $C$ and $D$, it may be better to initiate a single session
-with a high-consistency node $E$ than to contact these three nodes individually,
-using $E$ as a kind of cache. Of course, this could lead to a cache miss penalty
-if $E$ doesn't have this data, and because $E$ is assumed to be a high
-consistency node, it may also be a low availability node. Therefore designing a
-policy like this greatly depends on the specifics of the system.
+anti-entropy sessions, as opposed to a gossip protocol, message
+groups, broadcasts, etc. According to the authors, anti-entropy was
+chosen because of its ``flexibility in operating under a variety of
+network scenarios.''  \cite{2002tact} A concrete implementation in the
+setting of wild fire fighting should be optimized for the kind of
+network scenarios most likely to be encountered in this context. The
+network topology might also be taken into account, as it may be more
+efficient to contact nearby nodes more often, exploiting locality
+(\textbf{D3}). It also may be advantageous for node $A$ to initiate
+anti-entropy sessions with high-consistency nodes, as these are more
+likely to have the sort of data needed to update $A$'s local
+replica. For example, if $A$ needs to pull updates from $B$, $C$ and
+$D$, it may be better to initiate a single session with a
+high-consistency node $E$ than to contact these three nodes
+individually, using $E$ as a kind of cache. Of course, this could lead
+to a cache miss penalty if $E$ doesn't have this data, and because $E$
+is assumed to be a high consistency node, it may also be a low
+availability node. Therefore designing a policy like this greatly
+depends on the specifics of the system.
 
-It is not immediately clear how TACT could cope with node failure or more
-serious network partitions gracefully. Specifically, the commitment protocol
-only commits tentative writes whose timestamp is less than the minimal timestamp
-in the node's vector clock. This means that if a node is failing, or if there is
-a network partition, it will eventually become impossible for other nodes to
-advance some components of their vector clocks, at which point it will be
-impossible to commit any more writes to the database. This is not a graceful
-failure (\textbf{D1}). To get around this, it may be desirable to implement a
-partition-detecting routine which can trigger a fallback mode in which the
-system operates with special rules. In this mode, perhaps a \emph{quorum} could
-be used to continue to commit writes while maintaining serialization
-order.\footnote{
-  \url{https://en.wikipedia.org/wiki/Quorum_(distributed_computing)}}
+It is not immediately clear how TACT could cope with node failure or
+more serious network partitions gracefully. Specifically, the
+commitment protocol only commits tentative writes whose timestamp is
+less than the minimal timestamp in the node's vector clock. This means
+that if a node is failing, or if there is a network partition, it will
+eventually become impossible for other nodes to advance some
+components of their vector clocks, at which point it will be
+impossible to commit any more writes to the database. This is not a
+graceful failure (\textbf{D1}). To get around this, it may be
+desirable to implement a partition-detecting routine which can trigger
+a fallback mode in which the system operates with special rules. In
+this mode, perhaps a \emph{quorum} could be used to continue to commit
+writes while maintaining serialization order.\footnote{
+\url{https://en.wikipedia.org/wiki/Quorum_(distributed_computing)}}
 
-Related to the above, TACT appears to be implemented on the assumption that the
-set of replicas is fixed and known to all participants. This assumption is
-likely not valid in the setting of disaster relief or wildfire fighting, nor does it appear to be fundamental to
-the idea of continuous consistency. Therefore, one should investigate how the
-protocol could be extended to handle node entry and exit from the system.
+Related to the above, TACT appears to be implemented on the assumption
+that the set of replicas is fixed and known to all participants. This
+assumption is likely not valid in the setting of disaster relief or
+wildfire fighting, nor does it appear to be fundamental to the idea of
+continuous consistency. Therefore, one should investigate how the
+protocol could be extended to handle node entry and exit from the
+system.
 
-TACT provides tunability at the level of the individual node. While this is good
-from the perspective of supporting heterogeneity (\textbf{D2}), it may be
-desirable to implement some more global coordination on top of TACT which can,
-for example, dynamically control global system tuning in response to network
-conditions. For example, perhaps in the event of a transient network failure
-which greatly restricts the available data bandwidth, it may be the case that
-some nodes should back off their consistency requirements to reserve the scarce
-bandwidth for use by high-priority nodes. (A reader with a passing familiarity
-with emergency communications will know such policies are typical, albeit in a
-less formalized sense.)
+TACT provides tunability at the level of the individual node. While
+this is good from the perspective of supporting heterogeneity
+(\textbf{D2}), it may be desirable to implement some more global
+coordination on top of TACT which can, for example, dynamically
+control global system tuning in response to network conditions. For
+example, perhaps in the event of a transient network failure which
+greatly restricts the available data bandwidth, it may be the case
+that some nodes should back off their consistency requirements to
+reserve the scarce bandwidth for use by high-priority nodes. (A reader
+with a passing familiarity with emergency communications will know
+such policies are typical, albeit in a less formalized sense.)
 
-While TACT is naturally explained in terms of sitting between an application and
-a globally shared database, the general theory of continuous consistency is more
-granular, bounding the consistency of individual conits. This means, for
-example, that not every node needs to maintain a complete copy of an entire
-database, but only the conits which are relevant to that node's mission. This
-supports heterogeneity (\textbf{D2}). However, an interesting question, related
-to the points above, is how a node's set of replicated conits can envolve in
-time. For example, imagine a ground team which travels over far distances. At
-any moment, the team may only be interested in (say) data relevant to a 5-mile
-radius of their position. Or to be more nuanced, perhaps the team has the
-highest consistency requirements for these data, with lower requirements for
-data less relevant to their location. As their location evolves, so does their
-relative interest in different conits. Investigating how to coordinate this sort
-of evolving interest systematically and optimally is an interesting question for
-future research. Once again, this offers room to exploit locality (\textbf{D3}),
-where related nodes are ones with similar levels of interest in similar conits,
-as these ones are likely the most profitable to pull updates from.
-
+While TACT is naturally explained in terms of sitting between an
+application and a globally shared database, the general theory of
+continuous consistency is more granular, bounding the consistency of
+individual conits. This means, for example, that not every node needs
+to maintain a complete copy of an entire database, but only the conits
+which are relevant to that node's mission. This supports heterogeneity
+(\textbf{D2}). However, an interesting question, related to the points
+above, is how a node's set of replicated conits can envolve in
+time. For example, imagine a ground team which travels over far
+distances. At any moment, the team may only be interested in (say)
+data relevant to a 5-mile radius of their position. Or to be more
+nuanced, perhaps the team has the highest consistency requirements for
+these data, with lower requirements for data less relevant to their
+location. As their location evolves, so does their relative interest
+in different conits. Investigating how to coordinate this sort of
+evolving interest systematically and optimally is an interesting
+question for future research. Once again, this offers room to exploit
+locality (\textbf{D3}), where related nodes are ones with similar
+levels of interest in similar conits, as these ones are likely the
+most profitable to pull updates from.

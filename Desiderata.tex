@@ -1,104 +1,30 @@
-\subsection{Desiderata for distributed systems}
+\subsection{Three desiderata of distributed systems applications}
 
-The systems considered in wildfire fighting are generally critical in the sense
-that poor
-system behavior can lead to compromised human safety, among other things.
-Therefore a key desire is to exercise as much control over system
-characteristics as possible, even in the face of significant but unpredictable
-network latencies. While system behavior can always be impacted by degraded
-communications, hardware issues, etc., we aim to avoid system failures that are
-disproportionate to their underlying cause. Instead, the system should be
-flexible enough to compensate for various kinds of failures. One example of
-potentially unbounded system behavior arises when considering the
-consistency/availability tradeoff. Frequently one is limited by a sort of
-uncertainty principle---the more strict our guarantees of consistency, the less
-we can promise about system performance, and vice versa, which makes it
-difficult to predict system behavior under different network and workload
-conditions. We should seek to avoid situations where system performance is
-determined by the vagaries of circumstance by providing means to accommodate
-on-the-ground conditions. All of this we subsume under the umbrella of providing
-\emph{robust control} over the system.
+Given the particular details of civil aviation and disaster response,
+this section lists three desirable features of distributed
+applications.
 
-Another salient feature of the use cases we are considering is a prolific
-\emph{heterogeneity} throughout
-the system. In the quote at the beginning of this paper, it is said that the
-nodes of a distributed system cooperate to solve a task.  A salient feature of
-TC-5 is that nodes may often cooperate to solve entirely \emph{different} tasks.
-For instance, the task of one drone may be to hover over and monitor a fire,
-while another drone may be used to  deliver resources to ground crews. These
-nodes may cooperate with each other, such as to route messages between ground
-teams, but their exact goals, requirements, and risk factors may differ. One
-can also expect a wide variety of different types of nodes---ground teams,
-airplanes, and UAVs of different kinds, for instance. Nodes can be expected to
-have different computational and storage resources, and  different levels of
-access to the network (e.g. due to different kinds of radios or positions in
-the network topology). Different nodes may also fall under different
-administrative domains, say if they are managed by different agencies. One
-also expects use of a wide variety of off-the-shelf rather than purpose-built
-hardware. All of these considerations suggest there may be no ``typical''
-system node, which is a challenge for system design.
+\begin{description}
+\item[D1] Quantifiable bounds on inconsistency
+\item[D2] Ability to accomodate a heterogeneous collection of system nodes
+\item[D3] Optimization for geographic ad-hoc communications networks
+\end{description}
 
-On the bright side, with heterogeneity comes opportunities to exploit
-\emph{locality}. By this we mean that some nodes will tend to overlap in their
-means, motives, and opportunities to cooperate with each other more than others.
-Precisely what constitutes such ``related'' nodes may vary, but often it could
-often mean nodes which are geographically near to each other. It could also be
-taken more abstractly, such as nodes with similar configurations,
-administrators, or positions in the network topology. Distributed applications
-should be optimized for this sort of phenomena, such as by opportunistically
-forming localized message-passing groups. We expect that nodes probably cannot
-uniformly rely on quick access to a central global authority, such as a central
-database replica, as communication between central and edge nodes is likely to
-correlate with higher latencies, so decentralized or federated designs are
-likely to fare better. Much as in real-world emergencies\footnote{Such as the
-	author's extensive experience with hurricanes in Florida.} we can expect that
-some of the more common and available forms of cooperation and communication
-will tend to be highly localized, with system nodes thought of as cooperating
-within overlapping spheres of influence.
+\subsubsection{Quantifiable bounds on inconsistency}
 
-Based on the preceding discussion, we enumerate a set of desiderata that are
-somewhat unique to the distributed computing in a disaster relief or wildfire
-fighting setting. We refer back to this list in discussion of specific
-frameworks.
+\emph{An application should provide a way to quantify the amount of
+consistency it delivers by placing upper bounds on observable
+inconsistency.}
 
-\begin{enumerate}
-	\item[D1] \textbf{Provide robust control}. While tradeoffs are
-	unavoidable, this should not involve forgoing all control over some
-	aspect of the system. For instance, a high-availability database
-	replication framework is not necessarily desirable if it provides no
-	bounds on the degree of inconsistency observed by users. Ideally, it
-	should be possible to respond to on-the-ground circumstances by
-	reconfiguring the system to reflect real conditions. We should also
-	desire gradual failure---an errant sensor or failing node should not
-	affect system performance disproportionately.
-	\item[D2] \textbf{Accommodate heterogeneity}. Systems frameworks should
-	not assume that nodes are generally comparable in intentions,
-	capabilities, and risks. For example, it may be ideal to push
-	decision-making and configuration down to the individual node
-	administrator as much as possible.
-	\item[D3] \textbf{Exploit locality}. Nodes operate in overlapping
-	spheres of influence, and this overlap will tend to coincide with
-	\emph{means}, \emph{motive}, and \emph{opportunity} for cooperation.
-	Overlapping nodes are likely to have knowledge relevant to each other's
-	goals, to share similar goals, and to experience higher throughput in
-	communications. The system design should reflect this phenomenon, such
-	as by optimizing protocols to take advantage of it.
-\end{enumerate}
+\subsubsection{Accommodation of heterogeneous nodes}
 
-With these ideals in mind, we turn to considering some topics in distributed
-systems research which are well-suited to our goals.
+\emph{Applications should not assume that there is a ``typical''
+system node. The system should accomdate a potentially diverse range
+of heterogeneous clients with different capabilities and goals.}
 
-\subsection{Two challenges for system consistency}
+\subsubsection{Optimization for a geographic ad-hoc communications network}
 
-\subsubsection{Continuous consistency metrics}
-
-Consider the case where a system of nodes cooperate to maintain a common key-value store. The system should be have consistent. Consistency means linearizability, a strong condition in which an omniscient external observe witnesses client read and write requests. To the viewer, it should appear that all requests took effect at some definite moment in time in between the issuance and the response to the client.
-
-There is a well-known tradeoff between system performance and consistency. Enforcing linearizability requires strong overhead for performance---intuitively, the nodes must carry out a lot of communication in order to ensure the system as a whole appears to behave consistently. For a variety of real-world applications, weaker guarantees are acceptable, particularly where this results in improved system performance. Commercially available database systems provide highly performant solutions under an \emph{optimistic consistency} model, in which system availability is preferred. This makes sense under the assumption that network communications are usually reliable enough, but they cannot provide any actual guarantees about system consistency: in the face of degraded network performance, we cannot be sure there is an upper limit of how far apart the nodes may drift.
-
-Continuous consistency rests on the idea of making first-class the spectrum of possible tradeoffs. Allows the system to adjust to real network conditions: nodes which can tolerate relaxed but bounded inconsistency. Nodes which prefer high consistent behavior, may enforce this at the cost of system performance and availability to its clients. This accommodates the heterogeneity.
-
-\subsubsection{Sheaf-theoretic sensor integration}
-
-Different sensors produce data, which is fused together. The goal is to assemble this data into a coherent global whole. Sensors may have overlapping sensor domains, that is, two sensors may both provide some data about a common entity, such as two cameras aimed at the same location from different angles, with overlapping fields of view. In the most ideal case, the sensors are of precisely the same type, and where they overlap they exactly agree. In reality, sensors may have noise, or they may not have pixel-by-pixel overlap. They may also collect data of different types, say RADAR and LIDAR both aimed at the same entity. In this case, it is not immediately obvious how to think about what it would mean to assemble the data into a coherent whole.
+\emph{Applications should be optimized for the particular
+characteristics of real-world communications patterns over
+geographically-based, ad-hoc wireless networks.}
 

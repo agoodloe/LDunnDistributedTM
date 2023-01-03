@@ -1,3 +1,4 @@
+% !TeX document-id = {beb7ced9-b3cd-42b2-b16a-3ed3c633a1d9}
 \documentclass[]             % options: RDPonly, coveronly, nocover
 {NASA}                       %   plus standard article class options
 %\DeclareRobustCommand{\mmodels}{\mathrel{|}\joinrel\Relbar}
@@ -23,16 +24,14 @@
 \tikzcdset{scale cd/.style={every label/.append style={scale=#1},
 		cells={nodes={scale=#1}}}}
 \usepackage{stmaryrd}
-% !BIB TS-program = biber
 \hypersetup{
 	colorlinks=true,
 	linkcolor=blue,
-	filecolor=magenta,      
+	filecolor=magenta,
 	urlcolor=cyan,
 	pdftitle={Overleaf Example},
 	pdfpagemode=FullScreen,
 }
-
 \urlstyle{same}
 
 \newtheorem{theorem}{Theorem}[section]
@@ -42,12 +41,11 @@
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
 
-\title{A Survey of Challenges in Coordinating Distributed Airborne and Ground
-Based Distributed Agents} 
+\title{A Survey of Challenges in Coordinating Distributed Airborne and Ground-Based Agents}
 \author{Lawrence Dunn and Alwyn E. Goodloe}
 
 \AuthorAffiliation{Lawrence Dunn \\ Department of Computer and Information
-Science \\ University of Pennsylvania \\ Philadelphia PA \\ Alwyn Goodloe\\                                          % for cover page
+Science \\ University of Pennsylvania \\ Philadelphia, PA \\ Alwyn Goodloe\\                                          % for cover page
   NASA Langley Research Center, Hampton, Virginia
 }
 \NasaCenter{Langley Research Center\\Hampton, Virginia 23681-2199}
@@ -70,25 +68,17 @@ Science \\ University of Pennsylvania \\ Philadelphia PA \\ Alwyn Goodloe\\     
 \Acknowledgment{The work was conducted during a summer internship at the NASA Langley Research Center in the Safety-Critical Avionics Systems Branch focusing on distributed computing  issues arising in the Safety Demonstrator challenge in the NASA Aeronautics System Wide Safety (SWS) program.}
 
 \abstract{TBD}
-\begin{document}
-	
 
+\begin{document}
 \newpage
 \tableofcontents
 \newpage
-	
-	
-%	\printbibliography[
-%	heading=bibintoc,
-%	title={Sources}]
-\include{Motivation}
-\include{Background}
-\include{Desiderata}
-\include{Examples}
-\include{ContinuousCon}
-\include{Sheaf}
-\include{Conclusion}
+\input{Introduction}
+\input{Desiderata}
+\input{ContinuousCon}
+\input{Sheaf}
+\input{Conclusion}
 
-\bibliography{ bibliography}
 \bibliographystyle{abbrv}
+\bibliography{bibliography}
 \end{document}
