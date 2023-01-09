@@ -5,34 +5,55 @@ and people via the airspace to their destination. The application of
 sound engineering practices and conservative operating procedures has
 made flying the safest mode of transportation. The desire not to
 compromise such a safe system has made it difficult to introduce
-unmanned and autonomous vehicles into the airspace. The rules for
-operating aircraft in the US national airspace are typically relaxed
-when needed to support natural disaster relief. The NASA Aeronautics'
+uncrewed and autonomous vehicles into the airspace. During natural
+disasters and relief efforts, the rules for operating aircraft in the
+US national airspace are typically relaxed. The NASA Aeronautics'
 Airspace Operations and Safety Program (AOSP) System Wide Safety (SWS)
 project has been investigating how unmanned and manned aircraft may
-safely operate in shared airspace using wildfire fighting and
-hurricane relief as case studies.
+safely operate in shared airspace, taking wildfire fighting and
+hurricase relief as use cases.
 
 Traditionally, civil aviation has employed simple communication
-patterns between air and ground and among aircraft. The typical
-airborne communication is very simple: aircraft broadcast their
-position information via automatic dependent surveillance-broadcast
-(ADS-B). Air-ground communication basically consists of radio
-communication between pilots and air traffic controllers. The use
-cases under consideration demand more sophisticated coordination
-between airborne and ground-based elements in order to accomplish
-shared mission goals such as operating safely, delivering resources,
-and fighting fires. Yet the operating environment will not admit the
-use of reliable high-bandwidth internet connections that enable
-reliable transfers of large data. At best, we can assume some form of
-ad-hoc wireless mesh network with performance characteristics quite
-unlike that of modern household internet connections, with messages
-being sporadically dropped or delayed due to ad-hoc routing
-protocols. Coordinating distributed agents over an unreliable
-communications medium necessitates a sophisticated analysis of the
-situation, which is the subject of this memorandum.
+patterns between air and ground and among aircraft. A typical airborne
+communication protocol is Automatic Dependent Surveillance-Broadcast
+(ADS-B), by which aircraft monitor and periodically their position
+information; these broadcasts can be monitored by air traffic
+controllers and nearby aircraft. Typical air-ground communication
+consists of conversations over radio between pilots and air traffic
+controllers. The use cases under consideration demand more
+sophisticated coordination between airborne and ground-based elements
+in order to accomplish shared mission goals such as operating safely,
+delivering resources, and fighting fires. Yet the operating
+environment will not admit the use of reliable high-throughput
+internet connections that consistently allow transferring large
+amounts of data between all clients. Instead, we assume some form of
+ad-hoc wireless mesh network using geographic routing (CITE), say one
+supported by the use of loosely coupled portable cellphone towers,
+with network packets often dropped or delayed in unpredictable
+ways. Coordinating distributed agents over an unreliable
+communications medium is a problem of distributed computing, a
+subdiscipline of computer science. This memorandum enumerates some of
+the considerations involved in coordinating air- and ground-based
+elements from a distributed computing perspective, identifying
+challenges, potential requirements, and frameworks that may aid in
+developing solutions.
 
-\subsection{Distributed systems}
+The rest of this memo is laid out as follows. Section 2 provides a
+high-level, informal introduction to the challenges of distributed
+computing. Section 3 discusses Brewer's CAP theorem, explaining the
+nature of the well-known consistency-availability tradeoff in the
+presense of network partitions. We explain how the framework of
+\emph{conits} (CITE) may be used for quantifying the nature of this
+tradeoff in the context of database replication, a desirable feature
+for safety-critical systems. Section 4 is an introduction to applied
+sheaf theory, which provides a high-level and general but rigorous
+mathematical framework for measuring the consistency of
+``overlapping'' observations. We discuss an simulated example, due to
+(CITE), where sheaves are used to integrate heterogeneous sensor data,
+thereby improving an estimated location for a crashed
+aircraft. Section 5 is a conclusion with suggestions for future work.
+
+\section{Distributed systems background}
 A distributed system, broadly construed, is a collection of
 independent entities that cooperate to solve a problem that cannot be
 individually solved \cite{kshemkalyani_singhal_2008}. This memo is
