@@ -1,109 +1,406 @@
-\subsection{Background}
+\section{Introduction to Distributed Systems}
+
 A distributed system, broadly construed, is a collection of
 independent entities that cooperate to solve a problem that cannot be
-individually solved \cite{kshemkalyani_singhal_2008}. This memo is
+individually solved \cite{kshemkalyani_singhal_2008}. Here we are
 concerned with the sorts of distributed systems involved in civil
-aviation, particularly in the context of disaster response scenarios
-like combating wildfires and providing hurricane relief. In this
-context, entities such as emergency responders, firefighters, crewed
-and uncrewed aircraft teams, air traffic controllers, and other
-personnel cooperate to solve shared tasks like navigating safely,
-delivering resources, extinguishing fires, and collecting and sharing
-data. This memo analyzes the situation from the perspective of
-distributed computing. Singhal and Shivaratri \cite{10.5555/562065} characterized a
-distributed computing systems as
-\begin{quotation}
-   A collection of computers that do not share common memory or a common
-   physical clock, that communicate by a messages passing over a communication
-   network, and where each computer has its own memory and runs its own
-   operating system.
-\end{quotation}
-Our assumption is that ground-based and airborne agents interact with
-computers that are connected by some type of communications
-network. This network may be multi-modal, such as an assemblage of two
-or more different radio systems with some kind of bridge for passing
-messages between them. ``Computers'' should be read as broadly as
-possible and may include aircraft systems like ADS-B, portable
-communications equipment, satellites, vehicle-mounted personal
-computers, or smart phones carried by firefighters in the field.
+aviation in the context of disaster response scenarios like combating
+wildfires and providing hurricane relief. In such scenarios, entities
+such as emergency responders, firefighters, crewed and uncrewed
+aircraft teams, air traffic controllers, and other personnel cooperate
+to solve shared tasks like navigating safely, delivering resources,
+extinguishing fires, and collecting and sharing data.
 
-Absence of a common memory requires communication by message-passing
-over the network, as opposed to writing shared data to a common memory
-location. A salient and abiding feature of distributed computing is
-that the network is not perfectly reliable, particularly in the
-context of emergency response scenarios where high-bandwidth
-communication is not consistently available to all clients. For
+Safely coordinating the actions of distributed agents over an
+unreliable communications medium is a challenge for distributed
+computing. Singhal and Shivaratri \cite{10.5555/562065} characterized
+a distributed computing system as
+
+\begin{quotation}
+  A collection of computers that do not share common memory or a
+  common physical clock, that communicate by message passing over a
+  communication network, and where each computer has its own memory
+  and runs its own operating system.
+\end{quotation}
+
+Our basic model is that ground-based and airborne agents interact as
+clients to computers that are connected by a wireless wide area
+network. "Computers" here should be understood here in the broadest
+sense, taken to include aircraft systems like ADS-B, portable
+communications equipment, satellites, vehicle-mounted personal
+computers, or smart phones carried by firefighters in the field. The
+communications network may be multi-modal, such as an assemblage of
+two or more different radio systems with some kind of bridge for
+passing messages between them. Rather than a highly centralized
+topology with a small number of dedicated routing nodes, which we
+presume to be brittle and inefficient in an ad-hoc geodistributed
+setting, we assume a mesh-style network where messages are routed in a
+more decentralized, peer-to-peer fashion.
+
+Absence of a common memory implies that all communication takes place
+over the network, rather than sharing data by writing it to a mutually
+accessible memory location. For all of the preceding reasons, we
+expect the network to be appreciably less reliable than, for example,
+a datacenter's fiber-optic local area network. That is to say, message
+delivery is generally neither guaranteed nor instantaneous. This would
+be particularly true during disaster response scenarios, such as in a
+remote wooded area or an area without working cell towers. For
 example, two firefighting ground teams may not be able to directly
-communicate over a radio network if the teams are separated by a tall
-ridgeline. Unreliability of a shared communication medium is
-essentially the defining characteristic of distributed computing, and
-it brings with it inherent challenges. Handling these sorts of
-challenges gracefully---for example, passing messages over the
-ridgeline using a nearby drone to route messages between the two
-parties---requires more sophisticated coordination protocols than have
-traditionally been applied in this domain. The inherent imperfections
-of the network imply that distributed applications are subject to
-theoretical and practical limitations. This memo discusses some of
-these limitations and indicates how they may be handled gracefully,
-i.e. without compromising the high safety standards of civil aviation.
+communicate with each other over a radio network if the teams are
+separated by a tall ridgeline. Handling these sorts of challenges
+gracefully---for example, passing messages over the ridgeline using a
+nearby drone to route messages between the two parties---requires
+building sophisticated distributed applications that can tolerate a
+chaotic network environment.
+
+Unreliability of the communications medium imposes challenges for
+coordination. As manifest in results like Brewer's CAP theorem, below,
+the imperfections of the network impose theoretical and practical
+limitations to how well this can be done, and how quickly. In the use
+cases under consideration, this must also be done without sacrificing
+the high safety standards of aviation. To discuss the nature of these
+challenges, we now turn to the topic of *consistency* among replicas
+of data objects.
+
+\subsection{Strong consistency models}
 
 The basic challenge of a distributed computing system is to provide
-the illusion that the independent computers actually act ``as a single
-coherent computer'' \cite{TanenbaumSteen07}. In other words, clients
-interacting with their computers should be presented with the illusion
-that they are in fact accessing a single, central computer which is
-simultaneously aware of every other client. This boils down to
-shielding users from the assumed limitations of the communications
-network. For a variety of reasons, real-world systems will fall short
-of behaving as a single perfectly coherent system. One reason for this
-is that there is a deep and well-understood tradeoff between system
+the illusion that many computers act ``as a single coherent computer''
+\cite{TanenbaumSteen07} that is simultaneously handling the requests
+of every client. This boilds down to hiding the effects of the
+unreliable network from the user.
+
+Among the most basic distributed applications is \emph{data
+replication}.  For simplicity we talk about replicating a "database,"
+but this could be any kind of interface for reading and updating data
+objects. In such an application, nodes maintain local copies of the
+data, allowing clients to update this data from any node. Then nodes
+coordinate in the background to ensure that every other node's local
+copy of the data reflects this new update.
+
+System nodes respond to \emph{read} and \emph{write requests} from
+clients. These are not instantaneous---both kinds of requests require
+some amount of time blocking, e.g. reading a disk or processing
+network traffic. The figure below shows a sequence diagram of two
+clients interacting with a distributed system; we leave it unspecified
+whether the two clients are interacting with the same system node or
+different nodes that must communicate over the network. Both clients
+send write requests to update a shared data value $x \in \mathbb{N}$.
+The reader should note that the write requests overlap in time, with
+the second client's request beginning before the first client's
+request has returned. Then both nodes issue read requests for the same
+value $x$. Client 1's reads $x$ as having value $a \in \mathbb{N}$,
+while client 2 reads $b \in \mathbb{N}$.
+
+\begin{figure}
+  \includegraphics[scale=0.6]{Sequence Diagram.png}
+  \caption{A sequence of read/write requests. A consistency model constrains the possible values of $a$ and $b$.}
+\end{figure}
+
+A \emph{consistency model} is a precise criterion for allowable system
+behaviors. In this example, a model constrains the range of possible
+values of $a$ and $b$. The strongest workable consistency model is
+linearizability\footnote{\url{https://cs.brown.edu/~mph/HerlihyW90/p463-herlihy.pdf}},
+also known as atomic consistency. \footnote{In the context of isolated
+database transactions, the analogous condition is called strict
+serializability or serializability with external order.} The intuition
+is that, as far as an outside observer can tell, a single central
+system process write requests in a way that is compatible with
+real-time---a write request completed at time t must be visible to a
+read request received at time t+n.
+
+Linearizability requires a system to act as a single node in a way
+that is compatible with real (wall clock) time. For instance, two
+consecutive read requests must return the same value, assuming no
+intermediate updates take place between the two requests. When
+requests are seen to overlap, such as the updates in our example,
+linearizability specifies no order on their execution. In other words,
+the system must act as if during *some* moment while processing the
+request, the update instantly took effect, but this order doesn't have
+to be the order in which a request was received if they are processed
+concurrently. In our example, this means either write request may take
+effect before the other. Therefore, linearizability constrains $a$ to
+be either $1$ or $2$, depending on which write is handled
+first. However, $b$ must have the same value as $a$, since this occurs
+after reading $a$ and there are no intermediate updates. If $b$ were
+unequal to $a$, it would be apparent to an external observer that the
+two clients must be operating on different copies of the data which
+are not mutually consistent.
+
+Enforcing linearizability imposes appreciable performance overheads on
+a system---basically, no agent can make progress on an update request
+until the update has been copied to all other agents. This goes
+against gradual failure---a problem anywhere can have global
+consequences. Therefore, real-world frameworks frequently consider
+consistency models weaker than linearizability. One weaker but still
+strong consistency model is sequential consistency (CITE). Here, we
+weaken the requirement that effects appear to happen in an order
+consistent with wall clock time. The new requirement is that the
+effects \emph{from a single client} must occur in their specified
+order (i.e. program order), but requests from two different clients
+may appear to happen in any order, even if they don't occur
+concurrently in real time. Sequential consistency would require that
+both $a$ and $b$ can be either 1 or 2, with no correlation. While a
+real-time observer can observe behavior that looks inconsistent with
+real time, the basic intuition is that if a history is always
+compatible with *some* temporal order that *could* have happened, the
+system's behavior is consistent enough for programmers to reason about
+about the correctness of their applications. Linearizability implies
+sequential consistency, and is sometimes called sequential consistency
+plus (compatibility with) external order.
+
+Unfortunately, both linearizability and even sequential consitency are
+too stringent to require from many distributed systems, and especially
+in an unreliable communications environment. The next section
+discusses the well-known tradeoff between consistency and
+performance/availability for data replication under imperfect network
+conditions.
+
+\subsection{The consistency/availability tradeoff}
+
+
+For a variety of reasons, real-world systems will fall short of
+behaving as a single perfectly coherent system. One reason for this is
+that there is a deep and well-understood tradeoff between system
 coherence and system performance---enforcing consistency comes at the
 cost of additional communications, which imposes a performance
-overhead since this process is not instantaneous. Lack of instantenous
-communications requires system nodes to spend time blocking (that is,
-sending messages to or waiting for responses from remote system nodes,
-rather than handling requests from local clients). Another reason for
-imperfect system coherence is that, besides being slow, the network
-may be unreliable, even exhibiting behavior that can look like that of
-an intentional adversary. For example, it may fail to deliver some
-messages, or delay them unpredictably, or rearrange the order in which
-they are delivered. Such imperfect network behavior presents obstacles
-to consistency, particularly if the system should also exhibit good
-performance.
+overhead since communication is not instantaneous. Communication
+requires system nodes to spend time blocking, i.e. sending messages to
+or waiting for responses from remote system nodes, instead of handling
+requests from local clients.
 
-For all of the preceding reasons, it is desirable to identify
-frameworks for designing and reasoning about distributed applications
-and protocols that can cope with network imperfections without
-compromising safety. This memo considers three high-level desiderata
-that we might expect from such frameworks, explaining the relevance of
-each one to the setting under consideration, i.e. civil aviation and
-disaster response. Then we consider two topics from different parts of
-the distributed systems literature that are relevant for building
-distributed applications, evaluating both of them with respect to our
-identified desiderata. These two topics are essentially independent,
-one being a general-purpose replication mechanism and the other being
-an application-level framework for combining data from multiple
-sources. What these topics have in common is an ability to adapt to
-the challenges of the settings under consideration while providing
-quantifiable bounds for system (in)consistency.
+Another reason for imperfect system coherence is that, besides being
+slow, the network may be unreliable, even exhibiting behavior that can
+look like that of an intentional adversary. For example, it may fail
+to deliver some messages, or delay them unpredictably, or rearrange
+the order in which they are delivered. Such imperfect network behavior
+presents obstacles to consistency, particularly if the system should
+also exhibit good performance.
 
-\section{Three desiderata of distributed systems frameworks}
+Observations of the tension between consistency and availability date
+back at least to Davidson (CITE) (CITE Birdman and Friedman). Fox and
+Brewer made the observation that during networkp partitions, at most
+one of consistency and availability can be guaranteed (CITE). This
+theorem was made precise and proved in 2002 by Gilbert and Lynch
+(CITE). To summarize this theorem, we start by defining these terms.
 
-Given the particular details of civil aviation and disaster response,
-this section lists three desirable features of distributed
-applications.
+\paragraph{Consistency}
 
-\subsection{Quantifiable bounds on inconsistency}
+Consistency in Gilbert and Lynch is defined as atomic consistency
+(linearizability).
 
-``A framework should provide a way to *quantify* the amount of
-(in)consistency it delivers.''
+\paragraph{Availability}
 
-\subsection{Accommodation of heterogeneous nodes}
+A CAP-available system is one that will definitely respond to every
+client request at some point in the future; indefinitely halting is
+not an option, regardless of the network's behavior. Generally we also
+care about the speed with which requests are handled, but the CAP
+theorem demonstrates there are already obstacles to ensuring that
+every request is handled *eventually*, regardless of how much delay it
+incurs.
 
-``A framework should not assume that there is a typical system
-node. Put another way, the system should accomdata a potentially
-diverse range of heterogeneous clients.''
+\paragraph{Partition-tolerance}
 
-\subsection{Optimization for a geographic ad-hoc communications network}
+A partition tolerant system continues to function, and ensure whatever
+guarantees it is meant to provide, in the face of arbitrary partitions
+in the network.
 
-``A framework should be optimized to take advantage of locality.''
+\begin{theorem}[CAP Theorem]
+In the presense of indefinite network partitions, a distributed system
+of two or more nodes cannot guarantee both linearizability and
+availability.
+\end{theorem}
+
+The proof is not complicated. We give only a sketch here, leaving the
+interested reader to consult Gilbert and Lynch \cite{}. In the example
+above, let the initial value of $x$ is $0$. Suppose the two clients
+have their requests served by two different system nodes, and suppose
+these nodes cannot pass messages due to an indefinite network
+partition. We argued above that linearizability requires the condition
+$b = a$.  However, enforcing this would clearly require some
+communication, perhaps indirect, between the two nodes serving the
+clients, regardless of which write request is considered to take place
+first. The only way to avoid violating the $a = b$ constraint would be
+to indefinitely delay responding to the read requests, which violates
+our requirement that system nodes eventually respond to clients, even
+if the network never recovers from the partition. Therefore, $P$
+implies we cannot have both $C$ and $A$.
+
+That consistency and availability are in tension is illustrative of an
+even broader tension in distributed systems: that between safey and
+liveness properties \cite{}. These terms can be understood as
+follows.
+
+\paragraph{Safety properties}
+ensure that a system avoids doing harmful things like violate a
+consistency restraint. Taken to the extreme, one way to ensure safety
+is to do nothing. For instance, we could enforce safety by never
+responding to user requests to read data in order to avoid offering
+information that is inconsistent with other nodes.
+
+\paragraph{Liveness properties}
+ensures that a system will eventually do something---perhaps
+anything. Taken to the extreme, one way to enforce liveness would be
+to immediately respond to user requests, without taking any steps to
+make sure this response is consistent with other nodes.
+
+In the use cases under consideration, one can imagine that an
+unresponsive system could indeed be considered "unsafe." The
+distinction between the two concepts in the distributed systems
+context is that safety constrains a system's allowable responses to
+clients, if one is even given, while liveness requires giving
+responses quickly.
+
+Because of the tension between them, building applications that
+provide both of these features is challenging. The basic takeaway is
+that if we want to increase how quickly a system can respond to
+requests, at some point we must relax our constraints on what the
+system is allowed to return.
+
+It is sometimes assumed that the CAP theorem claims that can only
+offer two of the properties C, A, and P. Actually, real-world systems
+can offer tolerable levels of consistency, availability, and
+partition-resilience. This is because the CAP theorem is highly
+idealized in several respects. The theorem constrains, but does not
+prohibit the existence of, applications that apply some degree of all
+three features.
+
+One way the conditions of the CAP theorem are idealized is that
+linearizability is a very strong condition. In practice one can often
+tolerate weaker levels of consistency. Second, CAP-availability only
+requires that requests are handled eventually. In a truly highly
+available system, we expect requests to be handled reasonably
+quickly. Finally, network partitions are often not as dramatic as a
+total communications blackout. Real-world conditions in our context
+are likely more chaotic, featuring many smaller disruptions and delays
+and sometimes larger ones. Communications between different clients
+may be affected differently, with nearby agents generally likely to
+have better communication channels between them than agents that are
+far apart.
+
+One way of "subverting CAP," often applied with highly available
+applications, is to consider *optimistic* notions of consistency. We
+shall explain that these models are inappropriate for safety-critical
+systems, which motivates our consideration of continuous consistency
+in Section \cite{}.
+
+\subsection{Optimistic consistency models}
+
+A possible response to the CAP theorem is to consider weaker
+consistency models. A particularly weak class is broadly known as
+"optimistic consistency," so named because this model rests on the
+assumption that partitions are relatively rare and the system will
+provide acceptable levels of consistency in its average use case---but
+the priority is to favor high availability rather than to enforce
+consistency.
+
+\begin{itemize}
+  \item For example, we can consider an extremely optimistic approach for
+  the scenario discussed above, with the aim to always provide maximum
+  availability, even during a total partition. We use a mechanism to
+  detect when a partition occurs and when it is recovered from. After,
+  we work to merge information after the partition has passed. For
+  example, we may combine all increments and decrements to a value,
+  saving them in a *write log*. That is, we maintain a history of
+  individual increments or decrements. After a partition, every node
+  broadcasts its entire write log to all other parties, so that every
+  node sees and applies all updates.
+
+  \item The problem with optimistic consistency, and with weak consistency
+  models in general, is that generally they do not provide a way to
+  bound the system's inconsistency, generally seeking instead to
+  emphasize system performance and providing only as much consistency
+  as the network happens to allow. In our previous example, values may
+  diverge wildly during the partition. In a datacenter, we could
+  estimate the likelihood and duration of a typical partition, and
+  derive probabilistic bounds on how widely two replicas may diverge
+  in practice. For instance, empirical observations may show that a
+  typical network partition lasts less than 2 hours, during which time
+  replicas tend to drift apart by approximately $X$ amount, and this
+  might be acceptable.
+
+  \item But this doesn't work in the environments considered in this
+  memo---there is no a priori "typical" network or usage pattern, and
+  no robust way to restrict observable levels of
+  inconsistency. Without such bounds, we cannot rely on the
+  approximate consistency of replicas without comprising safety. This
+  makes optimistic consistency inappropriate for safety-critical
+  systems.
+
+  \item We want to bound inconsistency. Since we can't make things perfect,
+  this will have to be traded for availability. The next topic
+  considers how we may bound inconsistency without necessarily
+  imposing the significant coordination penalty required to enforce
+  strong consistency.
+  
+\end{itemize}
+
+In light of both the CAP theorem and the safety-critical nature of our
+intended use cases, we now enumerate several desiderata we might
+expect from distributed applications.
+
+\subsection{Desiderata for distributed applications}
+
+This section lists three desirable features of distributed systems and
+frameworks for reasoning about or implementing them. We chose this set
+based on the particular details of civil aviation and disaster
+response, where safety is a high priority and usage/communication
+patterns may be unpredictable. These desiderata can be understood
+narrowly for the specific application of data replication, but these
+same considerations can be applied to any distributed application,
+such as the sheaf-theoretic data fusion in Section (CITE).
+
+\subsubsection*{D1: Quantifiable bounds on inconsistency}
+
+\emph{A distributed application should quantify the amount of consistency
+it delivers. That is, it should (1) provide a mathematical way of
+measuring inconsistency, and (2) bound this value while the system is
+available.}
+
+The CAP theorem implies that an available data replication application
+cannot bound inconsistency in all circumstances. When bounded
+inconsistency cannot be guaranteed, a system satisfying D1 may become
+unavailable. A reasonable alternative behavior would be to continue
+providing some form of availability, but alert the user that due to
+network and system use conditions the requisite level of consistency
+cannot be guaranteed by the application, leaving the user with the
+choice to assess the risk and continue using the system with a weaker
+inconsistency bound.
+
+\subsubsection*{D2: Accommodation of heterogeneous nodes}
+
+\emph{An application should not assume that there is a typical system
+node. Instead, the system should accomdate a diverse range of
+heterogeneous clients presenting different capabilities, tasks, and
+risk-factors.}
+
+One can expect a variety of hardware in the field. For example,
+wildfires often involve responses from many different fire
+departments, and it must be assumed that they are not always using
+identical systems. Different participants in the system may be solving
+different tasks, with different levels of access to the network, and
+they present different risks. Therefore, one should hope for
+frameworks that are as general as possible to accomodate a wide
+variety of clients.
+
+This can be contrasted with a typical datacenter, where one might find
+racks of similar or identical machines with similar characteristics.
+
+\subsubsection*{D3: Optimization for an geodistributed wide area network}
+
+\emph{An application should be optimized for the sorts of
+communication patterns that occur in geodistributed wide area networks
+(WANs) under real-world conditions.}
+
+Consider two incidents. Wouldn't want to enforce needless global
+consistency, particularly if the agents in one area do not have the
+same consistency requirements for another area.
+
+Network throughput has some (perhaps approximately linear)
+relationship with throughput. Communications patterns are likely far
+from uniform too. In fact, these two things likely coincide---it is
+often that nodes which are nearby have a stronger need to coordinate
+their actions than nodes which are far away. For example, consider
+manoeauvering airplanes to avoid crash.
+
+A distributed framework should be able to handle this.

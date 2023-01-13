@@ -1,146 +1,68 @@
 \section{Introduction}
-
 Civil aviation has primarily been focused on efficiently moving goods
 and people via the airspace to their destination. The application of
 sound engineering practices and conservative operating procedures has
-made flying the safest mode of transportation. The desire not to
-compromise such a safe system has made it difficult to introduce
-uncrewed and autonomous vehicles into the airspace. During natural
-disasters and relief efforts, the rules for operating aircraft in the
-US national airspace are typically relaxed. The NASA Aeronautics'
-Airspace Operations and Safety Program (AOSP) System Wide Safety (SWS)
-project has been investigating how unmanned and manned aircraft may
-safely operate in shared airspace, taking wildfire fighting and
-hurricase relief as use cases.
+made flying the safest mode of transport. Now the desire not to
+compromise this safety makes it challenging to introduce uncrewed
+vehicles into the airspace. The rules for operating in the US national
+airspace are typically relaxed during natural disasters and relief
+efforts, however. The NASA Aeronautics' Airspace Operations and Safety
+Program (AOSP) System Wide Safety (SWS) project has been investigating
+how crewed and uncrewed aircraft may safely operate in shared
+airspace, taking wildfire fighting and hurricase relief as use cases.
 
-Traditionally, civil aviation has employed simple communication
-patterns between air and ground and among aircraft. A typical airborne
+Disaster response scenarios like the ones under consideration present
+a number of unique challenges for safe operations. Traditionally,
+civil aviation has employed simple communication patterns between air
+and ground and among aircraft. For instance, a typical airborne
 communication protocol is Automatic Dependent Surveillance-Broadcast
-(ADS-B), by which aircraft monitor and periodically their position
-information; these broadcasts can be monitored by air traffic
-controllers and nearby aircraft. Typical air-ground communication
-consists of conversations over radio between pilots and air traffic
-controllers. The use cases under consideration demand more
-sophisticated coordination between airborne and ground-based elements
-in order to accomplish shared mission goals such as operating safely,
-delivering resources, and fighting fires. Yet the operating
-environment will not admit the use of reliable high-throughput
-internet connections that consistently allow transferring large
-amounts of data between all clients. Instead, we assume some form of
-ad-hoc wireless mesh network using geographic routing (CITE), say one
-supported by the use of loosely coupled portable cellphone towers,
-with network packets often dropped or delayed in unpredictable
-ways. Coordinating distributed agents over an unreliable
-communications medium is a problem of distributed computing, a
-subdiscipline of computer science. This memorandum enumerates some of
-the considerations involved in coordinating air- and ground-based
-elements from a distributed computing perspective, identifying
-challenges, potential requirements, and frameworks that may aid in
-developing solutions.
+(ADS-B), by which aircraft monitor and periodically broadcast their
+position information to air traffic controllers and nearby
+aircraft. The use cases under consideration demand more sophisticated
+coordination between airborne and ground-based elements in order to
+accomplish shared mission goals such as operating safely, delivering
+resources, and fighting fires. However, the operating environment will
+not admit the use of reliable, high-bandwidth internet connections
+that consistently allow clients to transmit large amounts of data
+quickly.
 
-The rest of this memo is laid out as follows. Section 2 provides a
-high-level, informal introduction to the challenges of distributed
-computing. Section 3 discusses Brewer's CAP theorem, explaining the
-nature of the well-known consistency-availability tradeoff in the
-presense of network partitions. We explain how the framework of
-\emph{conits} (CITE) may be used for quantifying the nature of this
-tradeoff in the context of database replication, a desirable feature
-for safety-critical systems. Section 4 is an introduction to applied
-sheaf theory, which provides a high-level and general but rigorous
-mathematical framework for measuring the consistency of
-``overlapping'' observations. We discuss an simulated example, due to
-(CITE), where sheaves are used to integrate heterogeneous sensor data,
-thereby improving an estimated location for a crashed
-aircraft. Section 5 is a conclusion with suggestions for future work.
+The need for sophisticated coordination is in tension with the fact
+that the communications environment is inevitably somewhat chaotic and
+unpredictable. Rather than a highly centralized topology like that of
+a typical internet local area network (LAN), a more workable
+communications model would be something like an ad-hoc wide area mesh
+network using geographic routing \cite{}, say one supported by the
+deployment of portable communication towers. Due to its ad-hoc nature,
+and the particulars of our use cases, a robust communications
+framework cannot rely on many hypotheses the performance of such a
+network. For instance, issues like distance, terrain, smoke, and
+weather mean we should expect network packets to be dropped or delayed
+in unpredictable ways. These characteristics make it difficult to
+coordinate distributed agents and offer strong safety guarantees in
+general.
 
-\section{Distributed systems background}
-A distributed system, broadly construed, is a collection of
-independent entities that cooperate to solve a problem that cannot be
-individually solved \cite{kshemkalyani_singhal_2008}. This memo is
-concerned with the sorts of distributed systems involved in civil
-aviation, particularly in the context of disaster response scenarios
-like combating wildfires and providing hurricane relief. In this
-context, entities such as emergency responders, firefighters, crewed
-and uncrewed aircraft teams, air traffic controllers, and other
-personnel cooperate to solve shared tasks like navigating safely,
-delivering resources, extinguishing fires, and collecting and sharing
-data. This memo analyzes the situation from the perspective of
-distributed computing. Singhal and Shivaratri \cite{10.5555/562065} characterized a
-distributed computing systems as
-\begin{quotation}
-   A collection of computers that do not share common memory or a common
-   physical clock, that communicate by a messages passing over a communication
-   network, and where each computer has its own memory and runs its own
-   operating system.
-\end{quotation}
-Our basic model is that ground-based and airborne agents interact as
-\emph{clients} to computers that are connected by some type of
-communications network. This network may be multi-modal, such as an
-assemblage of two or more different radio systems with some kind of
-bridge for passing messages between them. In general, it will be far
-less reliable and achieve much less throughput than, for example, a
-fiber-optic network located in a modern datacenter. Computers should
-be understood in the broadest sense, taken to include aircraft systems
-like ADS-B, portable communications equipment, satellites,
-vehicle-mounted personal computers, or smart phones carried by
-firefighters in the field.
+Coordinating agents over an unreliable communications medium is a
+problem of distributed computing, a subdiscipline of computer
+science. This purpose of this memorandum is to enumerate some of the
+considerations involved in coordinating air- and ground-based elements
+from a distributed computing perspective, identifying challenges,
+potential requirements, and frameworks that may aid in developing
+solutions.
 
-Absence of a common memory implies communication takes place by
-passing messages over the network, as opposed to writing shared data
-to a common memory location. Essentially the defining characteristic
-of distributed computing is that the network is not perfectly reliable
-and communication over it is not instantaneous. This is particularly
-true during emergency response scenarios where high-bandwidth
-communication is not consistently available to all clients. For
-example, two firefighting ground teams may not be able to directly
-communicate over a radio network if the teams are separated by a tall
-ridgeline. Unreliability of a shared communication medium brings with
-it inherent challenges. Handling these sorts of challenges
-gracefully---for example, passing messages over the ridgeline using a
-nearby drone to route messages between the two parties---requires more
-sophisticated coordination protocols than have traditionally been
-applied in this domain. The inherent imperfections of the network
-imply that distributed applications are subject to theoretical and
-practical limitations. This memo discusses some of these limitations
-and indicates how they may be handled gracefully, without sacrificing
-the high safety standards of aviation.
-
-The basic challenge of a distributed computing system is to provide
-the illusion that the independent computers actually act ``as a single
-coherent computer'' \cite{TanenbaumSteen07}. In other words, clients
-interacting with their computers should be presented with the illusion
-that they are in fact accessing a single, central computer which is
-simultaneously aware of every other client. This boils down to
-shielding users from the assumed limitations of the communications
-network. For a variety of reasons, real-world systems will fall short
-of behaving as a single perfectly coherent system. One reason for this
-is that there is a deep and well-understood tradeoff between system
-coherence and system performance---enforcing consistency comes at the
-cost of additional communications, which imposes a performance
-overhead since this process is not instantaneous. Lack of instantenous
-communications requires system nodes to spend time blocking (that is,
-sending messages to or waiting for responses from remote system nodes,
-rather than handling requests from local clients). Another reason for
-imperfect system coherence is that, besides being slow, the network
-may be unreliable, even exhibiting behavior that can look like that of
-an intentional adversary. For example, it may fail to deliver some
-messages, or delay them unpredictably, or rearrange the order in which
-they are delivered. Such imperfect network behavior presents obstacles
-to consistency, particularly if the system should also exhibit good
-performance.
-
-For all of the preceding reasons, it is desirable to identify
-frameworks for designing and reasoning about distributed applications
-and protocols that can cope with network imperfections without
-compromising safety. This memo considers three high-level desiderata
-that we might expect from such frameworks, explaining the relevance of
-each one to the setting under consideration, i.e. civil aviation and
-disaster response. Then we consider two topics from different parts of
-the distributed systems literature that are relevant for building
-distributed applications, evaluating both of them with respect to our
-identified desiderata. These two topics are essentially independent,
-one being a general-purpose replication mechanism and the other being
-an application-level framework for combining data from multiple
-sources. What these topics have in common is an ability to adapt to
-the challenges of the settings under consideration while providing
-quantifiable bounds for system (in)consistency.
+The rest is laid out as follows. Section 2 provides a high-level,
+informal introduction to the challenges of distributed computing. We
+especially focus on Brewer's CAP theorem, highlighting the well-known
+consistency/availability (C/A) tradeoff in the presense of network
+partitions. We also offer a list of three desiderata we might expect
+of distributed applications in the sort of contexts under
+consideration.  Section 3 explains how the framework of \emph{conits}
+\cite{} may be used for quantifying the nature of the C/A tradeoff in
+the context of data replication, a desirable feature for
+safety-critical systems. Section 4 is an introduction to applied sheaf
+theory, which provides a highly general framework for measuring the
+mutual consistency of ``overlapping'' observations (i.e. ones which we
+expect to be correlated if not equal, such as the data generated by a
+sensor network). We discuss an simulated example, due to \cite{},
+where sheaves are used to integrate heterogeneous sensor data, thereby
+improving an estimated location for a crashed aircraft. Section 5 is a
+conclusion with suggestions for future work.
