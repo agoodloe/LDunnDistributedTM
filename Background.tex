@@ -15,43 +15,42 @@ Safely coordinating the actions of distributed agents over an
 unreliable communications medium is a challenge for distributed
 computing. Singhal and Shivaratri \cite{10.5555/562065} characterized
 a distributed computing system as
-
 \begin{quotation}
   A collection of computers that do not share common memory or a
   common physical clock, that communicate by message passing over a
   communication network, and where each computer has its own memory
   and runs its own operating system.
 \end{quotation}
+``Computers" here should be understood here in the broadest sense,
+taken to include aircraft systems like ADS-B, portable communications
+equipment, satellites, vehicle-mounted personal computers, or smart
+phones carried by firefighters in the field.
 
-Our basic model is that ground-based and airborne agents interact as
-clients to computers that are connected by a wireless wide area
-network. "Computers" here should be understood here in the broadest
-sense, taken to include aircraft systems like ADS-B, portable
-communications equipment, satellites, vehicle-mounted personal
-computers, or smart phones carried by firefighters in the field. The
-communications network may be multi-modal, such as an assemblage of
-two or more different radio systems with some kind of bridge for
-passing messages between them. Rather than a highly centralized
-topology with a small number of dedicated routing nodes, which we
-presume to be brittle and inefficient in an ad-hoc geodistributed
-setting, we assume a mesh-style network where messages are routed in a
-more decentralized, peer-to-peer fashion.
+A highly centralized network topology relying on a small number of
+routing nodes to pass messages would be too brittle for this
+setting. For example, failure of a centrally-located routing node
+could wreak havoc on the rest of the network, potentially triggering
+cascading failures throughout the system. Instead our model is that
+ground-based and airborne agents interact as clients over an ad-hoc
+mesh-style network where messages are routed in a decentralized,
+peer-to-peer fashion. This setup would be more resilient in the face
+of unreliable network behavior.  Inevitably, it will also be
+appreciably less reliable than, for example, a datacenter's
+fiber-optic local area network.
 
 Absence of a common memory implies that all communication takes place
 over the network, rather than sharing data by writing it to a mutually
-accessible memory location. For all of the preceding reasons, we
-expect the network to be appreciably less reliable than, for example,
-a datacenter's fiber-optic local area network. That is to say, message
-delivery is generally neither guaranteed nor instantaneous. This would
-be particularly true during disaster response scenarios, such as in a
-remote wooded area or an area without working cell towers. For
-example, two firefighting ground teams may not be able to directly
-communicate with each other over a radio network if the teams are
-separated by a tall ridgeline. Handling these sorts of challenges
-gracefully---for example, passing messages over the ridgeline using a
-nearby drone to route messages between the two parties---requires
-building sophisticated distributed applications that can tolerate a
-chaotic network environment.
+accessible memory location. In general, message delivery is generally
+neither guaranteed nor instantaneous. This would be particularly true
+during disaster response scenarios, such as in a remote wooded area or
+an area without working cell towers. For example, two firefighting
+ground teams may not be able to directly communicate with each other
+over a radio network if the teams are separated by a tall
+ridgeline. Handling these sorts of challenges gracefully---for
+example, passing messages over the ridgeline using a nearby drone to
+route messages between the two parties---requires building
+sophisticated distributed applications that can tolerate a chaotic
+network environment.
 
 Unreliability of the communications medium imposes challenges for
 coordination. As manifest in results like Brewer's CAP theorem, below,
@@ -59,7 +58,7 @@ the imperfections of the network impose theoretical and practical
 limitations to how well this can be done, and how quickly. In the use
 cases under consideration, this must also be done without sacrificing
 the high safety standards of aviation. To discuss the nature of these
-challenges, we now turn to the topic of *consistency* among replicas
+challenges, we now turn to the topic of consistency among replicas
 of data objects.
 
 \subsection{Strong consistency models}
@@ -89,8 +88,8 @@ send write requests to update a shared data value $x \in \mathbb{N}$.
 The reader should note that the write requests overlap in time, with
 the second client's request beginning before the first client's
 request has returned. Then both nodes issue read requests for the same
-value $x$. Client 1's reads $x$ as having value $a \in \mathbb{N}$,
-while client 2 reads $b \in \mathbb{N}$.
+value $x$. Client 1 reads $x$ as having value $a \in \mathbb{N}$,
+while Client 2 reads $b \in \mathbb{N}$.
 
 \begin{figure}
   \includegraphics[scale=0.6]{Sequence Diagram.png}
@@ -98,16 +97,17 @@ while client 2 reads $b \in \mathbb{N}$.
 \end{figure}
 
 A \emph{consistency model} is a precise criterion for allowable system
-behaviors. In this example, a model constrains the range of possible
-values of $a$ and $b$. The strongest workable consistency model is
+responses to these sorts of requests. In this example, a model
+constrains the range of possible values of $a$ and $b$. The strongest
+workable consistency model is
 linearizability\footnote{\url{https://cs.brown.edu/~mph/HerlihyW90/p463-herlihy.pdf}},
 also known as atomic consistency. \footnote{In the context of isolated
 database transactions, the analogous condition is called strict
 serializability or serializability with external order.} The intuition
 is that, as far as an outside observer can tell, a single central
 system process write requests in a way that is compatible with
-real-time---a write request completed at time t must be visible to a
-read request received at time t+n.
+real-time---a write request completed anywhere at time t must be
+visible to a read request received anywhere at time t+n.
 
 Linearizability requires a system to act as a single node in a way
 that is compatible with real (wall clock) time. For instance, two
@@ -115,7 +115,7 @@ consecutive read requests must return the same value, assuming no
 intermediate updates take place between the two requests. When
 requests are seen to overlap, such as the updates in our example,
 linearizability specifies no order on their execution. In other words,
-the system must act as if during *some* moment while processing the
+the system must act as if during some moment while processing the
 request, the update instantly took effect, but this order doesn't have
 to be the order in which a request was received if they are processed
 concurrently. In our example, this means either write request may take
@@ -133,7 +133,7 @@ until the update has been copied to all other agents. This goes
 against gradual failure---a problem anywhere can have global
 consequences. Therefore, real-world frameworks frequently consider
 consistency models weaker than linearizability. One weaker but still
-strong consistency model is sequential consistency (CITE). Here, we
+strong consistency model is sequential consistency \cite{}. Here, we
 weaken the requirement that effects appear to happen in an order
 consistent with wall clock time. The new requirement is that the
 effects \emph{from a single client} must occur in their specified
@@ -143,11 +143,11 @@ concurrently in real time. Sequential consistency would require that
 both $a$ and $b$ can be either 1 or 2, with no correlation. While a
 real-time observer can observe behavior that looks inconsistent with
 real time, the basic intuition is that if a history is always
-compatible with *some* temporal order that *could* have happened, the
-system's behavior is consistent enough for programmers to reason about
-about the correctness of their applications. Linearizability implies
-sequential consistency, and is sometimes called sequential consistency
-plus (compatibility with) external order.
+compatible with some temporal order that \emph{could} have happened,
+this is all a programmer needs to reason about the correctness of
+their applications. Linearizability implies sequential consistency,
+and is sometimes called sequential consistency plus (compatibility
+with) external order.
 
 Unfortunately, both linearizability and even sequential consitency are
 too stringent to require from many distributed systems, and especially
@@ -178,11 +178,11 @@ presents obstacles to consistency, particularly if the system should
 also exhibit good performance.
 
 Observations of the tension between consistency and availability date
-back at least to Davidson (CITE) (CITE Birdman and Friedman). Fox and
+back at least to Davidson \cite{} (CITE Birdman and Friedman). Fox and
 Brewer made the observation that during networkp partitions, at most
-one of consistency and availability can be guaranteed (CITE). This
+one of consistency and availability can be guaranteed \cite{}. This
 theorem was made precise and proved in 2002 by Gilbert and Lynch
-(CITE). To summarize this theorem, we start by defining these terms.
+\cite{}. To summarize this theorem, we start by defining these terms.
 
 \paragraph{Consistency}
 
@@ -196,7 +196,7 @@ client request at some point in the future; indefinitely halting is
 not an option, regardless of the network's behavior. Generally we also
 care about the speed with which requests are handled, but the CAP
 theorem demonstrates there are already obstacles to ensuring that
-every request is handled *eventually*, regardless of how much delay it
+every request is handled \emph{eventually}, regardless of how much delay it
 incurs.
 
 \paragraph{Partition-tolerance}
@@ -207,49 +207,74 @@ in the network.
 
 \begin{theorem}[CAP Theorem]
 In the presense of indefinite network partitions, a distributed system
-of two or more nodes cannot guarantee both linearizability and
-availability.
+cannot guarantee both atomic consistency and availability.
 \end{theorem}
 
-The proof is not complicated. We give only a sketch here, leaving the
-interested reader to consult Gilbert and Lynch \cite{}. In the example
-above, let the initial value of $x$ is $0$. Suppose the two clients
-have their requests served by two different system nodes, and suppose
-these nodes cannot pass messages due to an indefinite network
-partition. We argued above that linearizability requires the condition
-$b = a$.  However, enforcing this would clearly require some
-communication, perhaps indirect, between the two nodes serving the
-clients, regardless of which write request is considered to take place
-first. The only way to avoid violating the $a = b$ constraint would be
-to indefinitely delay responding to the read requests, which violates
-our requirement that system nodes eventually respond to clients, even
-if the network never recovers from the partition. Therefore, $P$
-implies we cannot have both $C$ and $A$.
+The proof is not complicated---indeed, it is almost trivial. We give
+only a sketch here, leaving the interested reader to consult Gilbert
+and Lynch \cite{}. In the example above, let the initial value of $x$
+is $0$. Suppose the two clients have their requests served by two
+different system nodes, and suppose these nodes cannot pass messages
+due to an indefinite network partition. We argued above that
+linearizability requires the condition $b = a$.  However, enforcing
+this would clearly require some communication, perhaps indirect,
+between the two nodes serving the clients, regardless of which write
+request is considered to take place first. The only way to avoid
+violating the $a = b$ constraint would be to indefinitely delay
+responding to the read requests, which violates our requirement that
+system nodes eventually respond to clients, even if the network never
+recovers from the partition. Therefore, $P$ implies we cannot have
+both $C$ and $A$.
+
+While the proof of the CAP theorem is rather trivial, its
+interpretation is subtle, and it has been the subject of popular
+discussion. It is sometimes assumed that the CAP theorem claims that
+can only offer two of the properties C, A, and P. Actually, real-world
+systems can offer tolerable levels of consistency, availability, and
+partition-resilience. This is because the CAP theorem is highly
+idealized in several respects. The theorem constrains, but does not
+prohibit the existence of, applications that apply some degree of all
+three features.
+
+One way the the CAP theorem is idealized is that it defines
+consistency as linearizability, a very strong condition. In practice
+one often tolerates weaker levels of consistency. Also, network
+partitions are often not as dramatic as an indefinite total
+communications blackout. Real-world conditions in our context are
+likely more chaotic, featuring many smaller disruptions and delays and
+sometimes larger ones. Communications between different clients may be
+affected differently, with nearby agents generally likely to have
+better communication channels between them than agents that are far
+apart. Finally, CAP-availability is a suprisingly weak condition. It
+only requires that requests are handled eventually. In a truly highly
+available system, we expect requests to be handled quickly almost
+always. Altogether, the extremes of C, A, and P in the CAP theorem are
+not reflective of most real-world applications.
 
 That consistency and availability are in tension is illustrative of an
 even broader tension in distributed systems: that between safey and
 liveness properties \cite{}. These terms can be understood as
 follows.
 
-\paragraph{Safety properties}
-ensure that a system avoids doing harmful things like violate a
-consistency restraint. Taken to the extreme, one way to ensure safety
-is to do nothing. For instance, we could enforce safety by never
-responding to user requests to read data in order to avoid offering
-information that is inconsistent with other nodes.
+\paragraph{Safety}
+Safety properties ensure that a system avoids doing something ``bad''
+like violating a consistency invariant. Taken to the extreme, one way
+to ensure safety is to do nothing. For instance, we could enforce
+safety by never responding to read requests in order to avoid offering
+information that is inconsistent with that of other nodes.
 
-\paragraph{Liveness properties}
-ensures that a system will eventually do something---perhaps
-anything. Taken to the extreme, one way to enforce liveness would be
-to immediately respond to user requests, without taking any steps to
-make sure this response is consistent with other nodes.
+\paragraph{Liveness}
+Liveness properties ensure that a system will eventually do something
+``good'', like respond to a client. Taken to the extreme, one very
+lively behavior would be to immediately respond to user requests,
+without taking any steps to make sure this response is consistent with
+that of other nodes.
 
-In the use cases under consideration, one can imagine that an
-unresponsive system could indeed be considered "unsafe." The
-distinction between the two concepts in the distributed systems
-context is that safety constrains a system's allowable responses to
-clients, if one is even given, while liveness requires giving
-responses quickly.
+Note that in our use cases, one can imagine that an unresponsive
+system could indeed be considered ``unsafe.'' The distinction between
+the two here is that safety constrains a system's allowable responses
+to clients, if one is even given, while liveness requires giving
+responses.
 
 Because of the tension between them, building applications that
 provide both of these features is challenging. The basic takeaway is
@@ -257,42 +282,19 @@ that if we want to increase how quickly a system can respond to
 requests, at some point we must relax our constraints on what the
 system is allowed to return.
 
-It is sometimes assumed that the CAP theorem claims that can only
-offer two of the properties C, A, and P. Actually, real-world systems
-can offer tolerable levels of consistency, availability, and
-partition-resilience. This is because the CAP theorem is highly
-idealized in several respects. The theorem constrains, but does not
-prohibit the existence of, applications that apply some degree of all
-three features.
-
-One way the conditions of the CAP theorem are idealized is that
-linearizability is a very strong condition. In practice one can often
-tolerate weaker levels of consistency. Second, CAP-availability only
-requires that requests are handled eventually. In a truly highly
-available system, we expect requests to be handled reasonably
-quickly. Finally, network partitions are often not as dramatic as a
-total communications blackout. Real-world conditions in our context
-are likely more chaotic, featuring many smaller disruptions and delays
-and sometimes larger ones. Communications between different clients
-may be affected differently, with nearby agents generally likely to
-have better communication channels between them than agents that are
-far apart.
-
-One way of "subverting CAP," often applied with highly available
-applications, is to consider *optimistic* notions of consistency. We
-shall explain that these models are inappropriate for safety-critical
-systems, which motivates our consideration of continuous consistency
-in Section \cite{}.
-
 \subsection{Optimistic consistency models}
+One way of ``subverting CAP,'' often applied with highly available
+applications, is to consider \emph{optimistic} notions of consistency.  A
+possible response to the CAP theorem is to consider weaker consistency
+models. A particularly weak class is broadly known as "optimistic
+consistency," so named because this model rests on the assumption that
+partitions are relatively rare and the system will provide acceptable
+levels of consistency in its average use case---but the priority is to
+favor high availability rather than to enforce consistency.
 
-A possible response to the CAP theorem is to consider weaker
-consistency models. A particularly weak class is broadly known as
-"optimistic consistency," so named because this model rests on the
-assumption that partitions are relatively rare and the system will
-provide acceptable levels of consistency in its average use case---but
-the priority is to favor high availability rather than to enforce
-consistency.
+We shall explain that these models are inappropriate for
+safety-critical systems, which motivates our consideration of
+continuous consistency in Section \cite{}.
 
 \begin{itemize}
   \item For example, we can consider an extremely optimistic approach for
@@ -301,7 +303,7 @@ consistency.
   detect when a partition occurs and when it is recovered from. After,
   we work to merge information after the partition has passed. For
   example, we may combine all increments and decrements to a value,
-  saving them in a *write log*. That is, we maintain a history of
+  saving them in a \emph{write log}. That is, we maintain a history of
   individual increments or decrements. After a partition, every node
   broadcasts its entire write log to all other parties, so that every
   node sees and applies all updates.
@@ -348,7 +350,7 @@ response, where safety is a high priority and usage/communication
 patterns may be unpredictable. These desiderata can be understood
 narrowly for the specific application of data replication, but these
 same considerations can be applied to any distributed application,
-such as the sheaf-theoretic data fusion in Section (CITE).
+such as the sheaf-theoretic data fusion in Section \cite{}.
 
 \subsubsection*{D1: Quantifiable bounds on inconsistency}
 
