@@ -5,199 +5,193 @@ independent entities that cooperate to solve a problem that cannot be
 individually solved \cite{kshemkalyani_singhal_2008}. Here we are
 concerned with the sorts of distributed systems involved in civil
 aviation in the context of disaster response scenarios like combating
-wildfires and providing hurricane relief. In such scenarios, entities
-such as emergency responders, firefighters, crewed and uncrewed
-aircraft teams, air traffic controllers, and other personnel cooperate
-to solve shared tasks like navigating safely, delivering resources,
-extinguishing fires, and collecting and sharing data.
+wildfires and providing hurricane relief. In these scenarios, entities
+like emergency responders, firefighters, crewed and uncrewed aircraft
+teams, air traffic controllers, and other personnel cooperate to solve
+shared tasks like navigating safely, delivering resources,
+extinguishing fires, and collecting and sharing data. A paramount
+concern in all of our use cases is that the system must ensure strong
+safety guarantees.
 
-Safely coordinating the actions of distributed agents over an
-unreliable communications medium is a challenge for distributed
-computing. Singhal and Shivaratri \cite{10.5555/562065} characterized
-a distributed computing system as
+Safely coordinating the actions of distributed agents is a challenge
+for distributed computing. Singhal and Shivaratri
+\cite{10.5555/562065} characterized a distributed computing system as
 \begin{quotation}
   A collection of computers that do not share common memory or a
   common physical clock, that communicate by message passing over a
   communication network, and where each computer has its own memory
   and runs its own operating system.
 \end{quotation}
-``Computers" here should be understood here in the broadest sense,
-taken to include aircraft systems like ADS-B, portable communications
-equipment, satellites, vehicle-mounted personal computers, or smart
-phones carried by firefighters in the field.
+``Computers" here should be understood broadly, taken to include
+aircraft systems like ADS-B, portable communications equipment,
+satellites, vehicle-mounted personal computers, or smartphones carried
+by firefighters in the field.
+
+Absence of a common memory implies that all communication between
+system nodes takes place over the network, rather than by writing data
+to mutually accessible memory. In general, and particularly during
+disaster response scenarios, message delivery is neither guaranteed
+nor instantaneous. For example, two firefighting ground teams may not
+be able to communicate with each other over a radio network if the
+teams are separated by a tall ridgeline. Handling these sorts of
+challenges gracefully---for example, automatically redirecting a
+nearby drone to route messages over the ridgeline---requires
+sophisticated distributed applications that can tolerate a chaotic
+operating environment and network.
 
 A highly centralized network topology relying on a small number of
-routing nodes to pass messages would be too brittle for this
-setting. For example, failure of a centrally-located routing node
-could wreak havoc on the rest of the network, potentially triggering
-cascading failures throughout the system. Instead our model is that
-ground-based and airborne agents interact as clients over an ad-hoc
-mesh-style network where messages are routed in a decentralized,
-peer-to-peer fashion. This setup would be more resilient in the face
-of unreliable network behavior.  Inevitably, it will also be
-appreciably less reliable than, for example, a datacenter's
-fiber-optic local area network.
+central nodes to coordinate and pass messages would be too brittle for
+our intended use cases. Such a setup could allow, for instance, the
+failure of a centrally-located node to wreak havoc on the rest of the
+network, perhaps triggering cascading failures throughout the
+system. Instead our model is that ground-based and airborne agents
+interact as clients over an ad-hoc mesh-style network, say one
+supported by the deployment of portable communication towers. We
+imagine that messages are routed in a somewhat or entirely
+decentralized, peer-to-peer fashion, as such a setup would be more
+resilient in the face of an unpredictable environment. Compared to,
+say, a datacenter's fiber-optic local area network, there are fewer
+guarantees about how reliably messages can be transmitted between any
+two clients.
 
-Absence of a common memory implies that all communication takes place
-over the network, rather than sharing data by writing it to a mutually
-accessible memory location. In general, message delivery is generally
-neither guaranteed nor instantaneous. This would be particularly true
-during disaster response scenarios, such as in a remote wooded area or
-an area without working cell towers. For example, two firefighting
-ground teams may not be able to directly communicate with each other
-over a radio network if the teams are separated by a tall
-ridgeline. Handling these sorts of challenges gracefully---for
-example, passing messages over the ridgeline using a nearby drone to
-route messages between the two parties---requires building
-sophisticated distributed applications that can tolerate a chaotic
-network environment.
-
-Unreliability of the communications medium imposes challenges for
-coordination. As manifest in results like Brewer's CAP theorem, below,
-the imperfections of the network impose theoretical and practical
-limitations to how well this can be done, and how quickly. In the use
-cases under consideration, this must also be done without sacrificing
-the high safety standards of aviation. To discuss the nature of these
-challenges, we now turn to the topic of consistency among replicas
-of data objects.
+As manifest in results like Brewer's CAP theorem, below, the
+imperfections in network impose theoretical and practical limitations
+to how well one can coordinate distributed agents, and how quickly. To
+discuss the nature of these challenges more formally, we turn to the
+topic of consistency among replicas of data objects.
 
 \subsection{Strong consistency models}
 
 The basic challenge of a distributed computing system is to provide
 the illusion that many computers act ``as a single coherent computer''
-\cite{TanenbaumSteen07} that is simultaneously handling the requests
-of every client. This boilds down to hiding the effects of the
-unreliable network from the user.
+\cite{TanenbaumSteen07} that handles the requests of every client
+simultaneously. Presenting such an illusion requires coordination over
+the network, so much of system coherence boils down to hiding the
+effects of the unreliable network from the user.\footnote{Network
+delays are a primary obstacle to coordination, but not the only
+one. For instance, the fact that we do not assume nodes share
+synchronized clocks makes it more challenging to enforce a global
+total order of operations.}
 
 Among the most basic distributed applications is \emph{data
-replication}.  For simplicity we talk about replicating a "database,"
-but this could be any kind of interface for reading and updating data
-objects. In such an application, nodes maintain local copies of the
-data, allowing clients to update this data from any node. Then nodes
-coordinate in the background to ensure that every other node's local
-copy of the data reflects this new update.
+replication}. In such an application, nodes maintain local replicas of
+some globally shared state. For simplicity, we discuss an example
+which replicates a key-value store of natural numbers, but this could
+be any other kind of data structure like a FIFO queue. The application
+affords clients the ability to read and/or update the data from any
+node. Handling these requests requires nodes to spend time
+coordinating with other nodes, e.g. to propagate updates throughout
+the system, or to lookup the most up-to-date value to return to the
+client. Therefore each request has a start time (when the request is
+first received) and strictly greater end time (when the response is
+sent back to the client).
 
-System nodes respond to \emph{read} and \emph{write requests} from
-clients. These are not instantaneous---both kinds of requests require
-some amount of time blocking, e.g. reading a disk or processing
-network traffic. The figure below shows a sequence diagram of two
-clients interacting with a distributed system; we leave it unspecified
-whether the two clients are interacting with the same system node or
-different nodes that must communicate over the network. Both clients
-send write requests to update a shared data value $x \in \mathbb{N}$.
-The reader should note that the write requests overlap in time, with
-the second client's request beginning before the first client's
-request has returned. Then both nodes issue read requests for the same
-value $x$. Client 1 reads $x$ as having value $a \in \mathbb{N}$,
-while Client 2 reads $b \in \mathbb{N}$.
+The figure below shows a sequence diagram of two clients interacting
+with a distributed system. The vertical axis represents real
+(i.e. wall-clock) time, which increases in the downward
+direction. Both clients send write requests to update the natural
+number associated with $x$. The reader should note that the requests
+overlap in real time, with the second client's request accepted before
+the first client's request has returned. After both requests are
+handled, both nodes issue read requests for the same value $x$. Client
+1 reads $x$ as having value $a \in \mathbb{N}$, while Client 2 reads
+$b \in \mathbb{N}$.
 
 \begin{figure}
   \includegraphics[scale=0.6]{Sequence Diagram.png}
   \caption{A sequence of read/write requests. A consistency model constrains the possible values of $a$ and $b$.}
 \end{figure}
 
-A \emph{consistency model} is a precise criterion for allowable system
-responses to these sorts of requests. In this example, a model
-constrains the range of possible values of $a$ and $b$. The strongest
-workable consistency model is
-linearizability\footnote{\url{https://cs.brown.edu/~mph/HerlihyW90/p463-herlihy.pdf}},
-also known as atomic consistency. \footnote{In the context of isolated
-database transactions, the analogous condition is called strict
-serializability or serializability with external order.} The intuition
-is that, as far as an outside observer can tell, a single central
-system process write requests in a way that is compatible with
-real-time---a write request completed anywhere at time t must be
-visible to a read request received anywhere at time t+n.
+A \emph{consistency model} is a constraint on the allowable system
+responses to these sorts of request histories. In this example, a
+model constrains the possible values of $a$ and $b$. The strongest
+workable consistency model is atomic consistency \cite{}, also known
+as linearizability.\footnote{In the context of isolated database
+transactions, the analogous condition is called strict serializability
+or serializability with external order.} The intuition is that to an
+outside observer, a linearizable system processes requests exactly as
+if they were all being handled by one node, though not always in the
+order they requests were received. For instance, two consecutive read
+requests must return the same value, assuming no intermediate updates
+take place between the two requests. When requests are seen to
+overlap, such as the updates in our example, linearizability specifies
+no order on their execution. In other words, the system must act as if
+during some moment while processing the request, the update instantly
+took effect, but this order doesn't have to be the order in which a
+request was received if they are processed concurrently.
 
-Linearizability requires a system to act as a single node in a way
-that is compatible with real (wall clock) time. For instance, two
-consecutive read requests must return the same value, assuming no
-intermediate updates take place between the two requests. When
-requests are seen to overlap, such as the updates in our example,
-linearizability specifies no order on their execution. In other words,
-the system must act as if during some moment while processing the
-request, the update instantly took effect, but this order doesn't have
-to be the order in which a request was received if they are processed
-concurrently. In our example, this means either write request may take
-effect before the other. Therefore, linearizability constrains $a$ to
-be either $1$ or $2$, depending on which write is handled
-first. However, $b$ must have the same value as $a$, since this occurs
-after reading $a$ and there are no intermediate updates. If $b$ were
-unequal to $a$, it would be apparent to an external observer that the
-two clients must be operating on different copies of the data which
-are not mutually consistent.
+Applied to our example, linearizability allows either write request to
+take effect before the other, but they both take effect before $a$ is
+read by Client 1, so $a$ must be $1$ or $2$. $b$ must have the same
+value as $a$, since it is read after reading $a$ and there are no
+intermediate updates to $x$. Linearizability would be violated if $b
+\neq a$ because an external observer could infer the clients are
+operating on different, inconsistent copies of $x$.
 
 Enforcing linearizability imposes appreciable performance overheads on
-a system---basically, no agent can make progress on an update request
-until the update has been copied to all other agents. This goes
-against gradual failure---a problem anywhere can have global
-consequences. Therefore, real-world frameworks frequently consider
-consistency models weaker than linearizability. One weaker but still
-strong consistency model is sequential consistency \cite{}. Here, we
-weaken the requirement that effects appear to happen in an order
-consistent with wall clock time. The new requirement is that the
-effects \emph{from a single client} must occur in their specified
-order (i.e. program order), but requests from two different clients
-may appear to happen in any order, even if they don't occur
-concurrently in real time. Sequential consistency would require that
-both $a$ and $b$ can be either 1 or 2, with no correlation. While a
-real-time observer can observe behavior that looks inconsistent with
-real time, the basic intuition is that if a history is always
-compatible with some temporal order that \emph{could} have happened,
-this is all a programmer needs to reason about the correctness of
-their applications. Linearizability implies sequential consistency,
-and is sometimes called sequential consistency plus (compatibility
-with) external order.
+a system, as no agent can complete an update until the update has been
+propagated to all other agents. Consequently, issues with a small
+number of nodes can have a disproportionately disruptive impact on the
+entire distributed application. Unsurprisingly, real-world frameworks
+frequently consider models weaker than linearizability.
 
-Unfortunately, both linearizability and even sequential consitency are
-too stringent to require from many distributed systems, and especially
-in an unreliable communications environment. The next section
-discusses the well-known tradeoff between consistency and
-performance/availability for data replication under imperfect network
-conditions.
+One weaker model, but one still regarded as a form of ``strong''
+consistency, is sequential consistency \cite{}. Here, we weaken the
+requirement that effects appear to happen in an order consistent with
+wall clock time. The new requirement is that the effects \emph{from a
+single client} must occur in their specified order (i.e. program
+order), but requests from two different clients may appear to happen
+in any order, even if they don't occur concurrently in real
+time. Sequential consistency would require that both $a$ and $b$ can
+be either 1 or 2, with no correlation. While a real-time observer can
+observe behavior that looks inconsistent with real time, the basic
+intuition is that if a history is always compatible with some temporal
+order that \emph{could} have happened, this is all a programmer needs
+to reason about the correctness of their applications. Linearizability
+implies sequential consistency, and is sometimes called sequential
+consistency plus (compatibility with) external order.
+
+Both forms of strong consistency, atomic and sequential, are too
+stringent to require from many applications, especially in an
+unreliable communications environment, due to performance overheads.
+The next section discusses this tradeoff.
 
 \subsection{The consistency/availability tradeoff}
-
 
 For a variety of reasons, real-world systems will fall short of
 behaving as a single perfectly coherent system. One reason for this is
 that there is a deep and well-understood tradeoff between system
-coherence and system performance---enforcing consistency comes at the
-cost of additional communications, which imposes a performance
-overhead since communication is not instantaneous. Communication
-requires system nodes to spend time blocking, i.e. sending messages to
-or waiting for responses from remote system nodes, instead of handling
-requests from local clients.
+coherence and system performance. Enforcing consistency comes at the
+cost of additional communications. Communications impose overheads, as
+they require system nodes to spend time blocking, i.e. sending
+messages to or waiting for responses from remote system nodes, instead
+of handling requests from local clients. The network may also fail to
+deliver some messages, or delay them unpredictably, or rearrange the
+order in which they are delivered. All of these present obstacles to
+consistency, particularly if the system should also exhibit good
+performance.
 
-Another reason for imperfect system coherence is that, besides being
-slow, the network may be unreliable, even exhibiting behavior that can
-look like that of an intentional adversary. For example, it may fail
-to deliver some messages, or delay them unpredictably, or rearrange
-the order in which they are delivered. Such imperfect network behavior
-presents obstacles to consistency, particularly if the system should
-also exhibit good performance.
-
-Observations of the tension between consistency and availability date
-back at least to Davidson \cite{} (CITE Birdman and Friedman). Fox and
-Brewer made the observation that during networkp partitions, at most
-one of consistency and availability can be guaranteed \cite{}. This
-theorem was made precise and proved in 2002 by Gilbert and Lynch
-\cite{}. To summarize this theorem, we start by defining these terms.
+Fox and Brewer made the observation that during network partitions, at
+most one of consistency and availability can be guaranteed
+\cite{}. This theorem was made precise and proved in 2002 by Gilbert
+and Lynch \cite{}. To summarize this theorem, we start by defining
+these terms.
 
 \paragraph{Consistency}
 
 Consistency in Gilbert and Lynch is defined as atomic consistency
-(linearizability).
+(linearizability). The CAP theorem can be also generalized to
+sequential consistency.
 
 \paragraph{Availability}
 
 A CAP-available system is one that will definitely respond to every
-client request at some point in the future; indefinitely halting is
-not an option, regardless of the network's behavior. Generally we also
-care about the speed with which requests are handled, but the CAP
-theorem demonstrates there are already obstacles to ensuring that
-every request is handled \emph{eventually}, regardless of how much delay it
-incurs.
+client request at some point in the future; indefinitely blocking is
+not an option, regardless of the network's behavior. In reality we
+also care about the \emph{speed} with which requests are handled, but
+the CAP theorem demonstrates there are already obstacles to ensuring
+that every request is handled \emph{eventually}, regardless of how
+much delay it incurs.
 
 \paragraph{Partition-tolerance}
 
@@ -210,31 +204,29 @@ In the presense of indefinite network partitions, a distributed system
 cannot guarantee both atomic consistency and availability.
 \end{theorem}
 
-The proof is not complicated---indeed, it is almost trivial. We give
+The proof is not complicated. Indeed, it is almost trivial. We give
 only a sketch here, leaving the interested reader to consult Gilbert
-and Lynch \cite{}. In the example above, let the initial value of $x$
-is $0$. Suppose the two clients have their requests served by two
-different system nodes, and suppose these nodes cannot pass messages
-due to an indefinite network partition. We argued above that
-linearizability requires the condition $b = a$.  However, enforcing
-this would clearly require some communication, perhaps indirect,
-between the two nodes serving the clients, regardless of which write
-request is considered to take place first. The only way to avoid
-violating the $a = b$ constraint would be to indefinitely delay
-responding to the read requests, which violates our requirement that
-system nodes eventually respond to clients, even if the network never
-recovers from the partition. Therefore, $P$ implies we cannot have
-both $C$ and $A$.
+and Lynch \cite{}. In the example above, suppose the two clients have
+their requests served by two different system nodes, and suppose these
+nodes cannot pass messages due to an indefinite network
+partition. Linearizability requires that $a$ is $1$ or $2$ and $b =
+a$.  Clearly $a$ cannot be $2$ if there is no communication between
+the two clients. But clearly $b$ cannot be $1$ for the same reason.
+To avoid violating the condition $b = a$ we could suppose the system
+indefinitely delays responding to the read requests, but this violates
+our requirement that system nodes eventually respond to clients (even
+if the network never recovers from the partition). Therefore, $P$
+implies we cannot have both $C$ and $A$.
 
 While the proof of the CAP theorem is rather trivial, its
-interpretation is subtle, and it has been the subject of popular
-discussion. It is sometimes assumed that the CAP theorem claims that
-can only offer two of the properties C, A, and P. Actually, real-world
-systems can offer tolerable levels of consistency, availability, and
-partition-resilience. This is because the CAP theorem is highly
-idealized in several respects. The theorem constrains, but does not
-prohibit the existence of, applications that apply some degree of all
-three features.
+interpretation is subtle and has been the subject of considerable
+popular discussion \cite{}. It is sometimes assumed that the CAP theorem
+claims that a distributed system can only offer two of the properties
+C, A, and P. Actually, real-world systems can offer tolerable levels
+of consistency, availability, and partition-resilience, as all three
+of these concepts are highly idealized in the statement of the
+theorem. The theorem constrains, but does not prohibit the existence
+of, applications that apply some degree of all three features.
 
 One way the the CAP theorem is idealized is that it defines
 consistency as linearizability, a very strong condition. In practice
@@ -251,10 +243,11 @@ available system, we expect requests to be handled quickly almost
 always. Altogether, the extremes of C, A, and P in the CAP theorem are
 not reflective of most real-world applications.
 
-That consistency and availability are in tension is illustrative of an
-even broader tension in distributed systems: that between safey and
-liveness properties \cite{}. These terms can be understood as
-follows.
+Observations of the tension between consistency and availability date
+back at least to Davidson \cite{} (CITE Birdman and Friedman). That
+consistency and availability are in tension is illustrative of an even
+broader tension in distributed systems: that between safey and
+liveness properties \cite{}. These terms can be understood as follows.
 
 \paragraph{Safety}
 Safety properties ensure that a system avoids doing something ``bad''
@@ -334,7 +327,7 @@ continuous consistency in Section \cite{}.
   considers how we may bound inconsistency without necessarily
   imposing the significant coordination penalty required to enforce
   strong consistency.
-  
+
 \end{itemize}
 
 In light of both the CAP theorem and the safety-critical nature of our
@@ -384,9 +377,6 @@ different tasks, with different levels of access to the network, and
 they present different risks. Therefore, one should hope for
 frameworks that are as general as possible to accomodate a wide
 variety of clients.
-
-This can be contrasted with a typical datacenter, where one might find
-racks of similar or identical machines with similar characteristics.
 
 \subsubsection*{D3: Optimization for an geodistributed wide area network}
 
