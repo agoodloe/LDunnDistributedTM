@@ -30,6 +30,77 @@ doi = {10.1145/343477.343502}
 	year = 2007
 }
 
+@INPROCEEDINGS{1999foxbrewer,
+  author={Fox, A. and Brewer, E.A.},
+  booktitle={Proceedings of the Seventh Workshop on Hot Topics in Operating Systems}, 
+  title={Harvest, yield, and scalable tolerant systems}, 
+  year={1999},
+  volume={},
+  number={},
+  pages={174-178},
+  doi={10.1109/HOTOS.1999.798396}
+  }
+  
+@article{10.1145/78969.78972,
+author = {Herlihy, Maurice P. and Wing, Jeannette M.},
+title = {Linearizability: A Correctness Condition for Concurrent Objects},
+year = {1990},
+issue_date = {July 1990},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {12},
+number = {3},
+issn = {0164-0925},
+url = {https://doi.org/10.1145/78969.78972},
+doi = {10.1145/78969.78972},
+abstract = {A concurrent object is a data object shared by concurrent processes. Linearizability is a correctness condition for concurrent objects that exploits the semantics of abstract data types. It permits a high degree of concurrency, yet it permits programmers to specify and reason about concurrent objects using known techniques from the sequential domain. Linearizability provides the illusion that each operation applied by concurrent processes takes effect instantaneously at some point between its invocation and its response, implying that the meaning of a concurrent object's operations can be given by pre- and post-conditions. This paper defines linearizability, compares it to other correctness conditions, presents and demonstrates a method for proving the correctness of implementations, and shows how to reason about concurrent objects, given they are linearizable.},
+journal = {ACM Trans. Program. Lang. Syst.},
+month = {jul},
+pages = {463–492},
+numpages = {30}
+}
+
+@ARTICLE{2012CAP12Years,
+  author={Brewer, Eric},
+  journal={Computer}, 
+  title={CAP twelve years later: How the "rules" have changed}, 
+  year={2012},
+  volume={45},
+  number={2},
+  pages={23-29},
+  doi={10.1109/MC.2012.37}}
+
+
+@ARTICLE{1979LamportSequential,
+  author={Lamport},
+  journal={IEEE Transactions on Computers}, 
+  title={How to Make a Multiprocessor Computer That Correctly Executes Multiprocess Programs}, 
+  year={1979},
+  volume={C-28},
+  number={9},
+  pages={690-691},
+  doi={10.1109/TC.1979.1675439}}
+
+@techreport{10.5555/866855,
+author = {Friedman, Roy and Birman, Ken},
+title = {Trading Consistency for Availability in Distributed Systems},
+year = {1996},
+publisher = {Cornell University},
+address = {USA},
+abstract = {This paper shows that two important classes of actions, {em non left commuting}/ and {em strongly non commuting}, cannot be executed by concurrent partitions in a system that provides serializable services. This result indicates that there is an inherent limitation to the ability of systems to provide services in a consistent manner during network partitions.}
+}
+
+@ARTICLE{2019wideningcap,
+  author={Muñoz-Escoí, Francesc D and de Juan-Marín, Rubén and García-Escrivá, José-Ramón and González de Mendívil, J R and Bernabéu-Aubán, José M},
+  journal={The Computer Journal}, 
+  title={CAP Theorem: Revision of Its Related Consistency Models}, 
+  year={2019},
+  volume={62},
+  number={6},
+  pages={943-960},
+  doi={10.1093/comjnl/bxy142}}
+
+
 @article{2002gilbertlynchCAP,
 	author = {Gilbert, Seth and Lynch, Nancy A.},
 	title = {Brewer's Conjecture and the Feasibility of Consistent, Available, Partition-Tolerant Web Services},
@@ -163,7 +234,14 @@ numpages = {30}
 	series = {OSDI'00}
 }
 
-@ARTICLE{1979Sift,  author={Wensley, J.H. and Lamport, L. and Goldberg, J. and Green, M.W. and Levitt, K.N. and Melliar-Smith, P.M. and Shostak, R.E. and Weinstock, C.B.},  journal={Proceedings of the IEEE},   title={SIFT: Design and analysis of a fault-tolerant computer for aircraft control},   year={1978},  volume={66},  number={10},  pages={1240-1255},  doi={10.1109/PROC.1978.11114}}
+@ARTICLE{1979Sift,  author={Wensley, J.H. and Lamport, L. and
+                  Goldberg, J. and Green, M.W. and Levitt, K.N. and
+                  Melliar-Smith, P.M. and Shostak, R.E. and Weinstock,
+                  C.B.},  journal={Proceedings of the IEEE},
+                  title={SIFT: Design and analysis of a fault-tolerant
+                  computer for aircraft control},   year={1978},
+                  volume={66},  number={10},  pages={1240-1255},
+                  doi={10.1109/PROC.1978.11114}}
 
 @ARTICLE {2012perspectivesCAP,
 	author = {Gilbert, Seth and Lynch, Nancy A.},

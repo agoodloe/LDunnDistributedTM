@@ -1,36 +1,35 @@
 \section{Continuous Consistency}
+\label{sec:contcons}
 
-We have discussed consistency as an all-or-nothing proposition: a
-distributed applications provides strong consistency or it does
-not. In many real-world scenarios, it makes sense to work with data
-that is consistent up to some $\epsilon > 0$. For instance, it may be
+We have discussed consistency as discrete proposition: a distributed
+application provides strong consistency or it does not. In many
+real-world scenarios, it makes sense to work with data that is
+consistent up to some $\epsilon > 0$. For instance, it may be
 acceptable if a web cache is 30 minutes out of date, but not 48 hours
 out of date. By weakening our consistency requirements to some
-tolerable level, we can imagine applications that provide relatively
-good consistency and availability, without offering either perfect C
-or A according to the CAP theorem. By controlling the threshold of
-acceptable inconsistency as a continuous quantity, one can even
-imagine precisely controlling the observable tradeoff between
-consistency and performance, allowing application developers to trade
-one for the other in a gradual fashion.
+tolerable numeric level, we can imagine applications that provide
+relatively good consistency and availability. This would offer neither
+perfect C or A according to the CAP theorem. It also would not offer
+P, as such bounds cannot be guaranteed in the presense of indefinite
+network partitions. However, it may be robust relative to the sorts of
+network behavior encountered in practice.
 
 Yu and Vahdat explored the CAP tradeoff from this perspective in a
-series of papers. Based on their idea of \emph{conits}, a unit of
-continuous consistency. They built a prototype toolkit called TACT,
-which allows applications to specify precisely their desired levels of
-consistency.
-\begin{enumerate}
-  \item 2000 Building Replicated Systems TACT
-  \item 2000 Efficient Numerical Error
-  \item 2000 Design and Evaluation of a Conit Model
-  \item 2001 Combining Generality Practicality
-  \item 2002 Design and Eval of a Conit-based Model
-\end{enumerate}
+series of papers \cite{2000tact} \cite{2000tactalgorithms}
+\cite{10.5555/1251229.1251250} \cite{DBLP:conf/icdcs/YuV01}
+\cite{2002tact}. They propose a theory of \emph{conits}, roughly a
+unit of data subject to their theory of continuous consistency. By
+controlling the threshold of acceptable inconsistency on each conit as
+a continuous quantity, applications can precisely control the
+observable tradeoff between consistency and performance, allowing
+trading one for the other in a gradual fashion. They built a prototype
+toolkit called TACT, which allows applications to specify precisely
+their desired levels of consistency for each conit.
 
 An interesting aspect of this work is that consistency can be tuned
-\emph{dynamically}. This is desirable because one does not know \emph{a priori}
-how much consistency or availability is acceptable. Indeed, the ideal
-tradeoff will depend on the precise network performance and
+\emph{dynamically}. This is desirable because one does not know a
+priori how much consistency or availability is acceptable. Indeed, the
+ideal tradeoff will depend on the precise network performance and
 communication patterns in the field, both of which can be expected to
 change in time. Say, because new network endpoints are added, or
 because some scenario leads to an unusually high level of
@@ -38,13 +37,12 @@ communication, straining the network.
 
 \subsection{Consistency metrics for conits}
 
-In the conit framework, each conit is associated with three
-independent metrics for measuring consistency: order error, real-time
-staleness, and numeric consistency. Each conit may set the
-inconsistency bounds for these metrics independently, allowing for
-fine-grained control.
+In the TACT framework, each conit is associated with three independent
+metrics for measuring consistency: order error, real-time staleness,
+and numeric consistency. Each conit may set the inconsistency bounds
+for these metrics independently, allowing for fine-grained control.
 
-\subsubsection*{Numeric consistency}
+\paragraph{Numeric consistency}
 
 Give a simplified explanation of the algorithm for split-weight
 absolute error bounding. Lorem ipsum dolor sit amet, consectetur

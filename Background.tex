@@ -105,8 +105,9 @@ $b \in \mathbb{N}$.
 A \emph{consistency model} is a constraint on the allowable system
 responses to these sorts of request histories. In this example, a
 model constrains the possible values of $a$ and $b$. The strongest
-workable consistency model is atomic consistency \cite{}, also known
-as linearizability.\footnote{In the context of isolated database
+workable consistency model is linearizability
+\cite{10.1145/78969.78972}, also known as atomic
+consistency.\footnote{In the context of isolated database
 transactions, the analogous condition is called strict serializability
 or serializability with external order.} The intuition is that to an
 outside observer, a linearizable system processes requests exactly as
@@ -136,20 +137,21 @@ entire distributed application. Unsurprisingly, real-world frameworks
 frequently consider models weaker than linearizability.
 
 One weaker model, but one still regarded as a form of ``strong''
-consistency, is sequential consistency \cite{}. Here, we weaken the
-requirement that effects appear to happen in an order consistent with
-wall clock time. The new requirement is that the effects \emph{from a
-single client} must occur in their specified order (i.e. program
-order), but requests from two different clients may appear to happen
-in any order, even if they don't occur concurrently in real
-time. Sequential consistency would require that both $a$ and $b$ can
-be either 1 or 2, with no correlation. While a real-time observer can
-observe behavior that looks inconsistent with real time, the basic
-intuition is that if a history is always compatible with some temporal
-order that \emph{could} have happened, this is all a programmer needs
-to reason about the correctness of their applications. Linearizability
-implies sequential consistency, and is sometimes called sequential
-consistency plus (compatibility with) external order.
+consistency, is sequential consistency
+\cite{1979LamportSequential}. Here, we weaken the requirement that
+effects appear to happen in an order consistent with wall clock
+time. The new requirement is that the effects \emph{from a single
+client} must occur in their specified order (i.e. program order), but
+requests from two different clients may appear to happen in any order,
+even if they don't occur concurrently in real time. Sequential
+consistency would require that both $a$ and $b$ can be either 1 or 2,
+with no correlation. While a real-time observer can observe behavior
+that looks inconsistent with real time, the basic intuition is that if
+a history is always compatible with some temporal order that
+\emph{could} have happened, this is all a programmer needs to reason
+about the correctness of their applications. Linearizability implies
+sequential consistency, and is sometimes called sequential consistency
+plus (compatibility with) external order.
 
 Both forms of strong consistency, atomic and sequential, are too
 stringent to require from many applications, especially in an
@@ -167,9 +169,9 @@ can be unpredictable. The network may also fail to deliver messages or
 rearrange their order. All of these present obstacles to consistency,
 particularly if the system should also exhibit good performance.
 
-Brewer observed that there is a fundamental tension between
-consistency, availability, and partition-tolerance.
-\cite{2000brewerCAP}. This tradeoff was precisely stated and proved in
+Fox and Brewer \cite{1999foxbrewer} observed that there is a
+fundamental tension between consistency, availability, and
+partition-tolerance. This tradeoff was precisely stated and proved in
 2002 by Gilbert and Lynch \cite{2002gilbertlynchCAP}. To summarize
 this theorem, we start by defining these terms.
 
@@ -177,7 +179,9 @@ this theorem, we start by defining these terms.
 
 Consistency in Gilbert and Lynch is defined as atomic consistency
 (linearizability). The CAP theorem can be also generalized to
-sequential consistency \cite{}.
+sequential consistency. As discussed in \cite{2019wideningcap}, this
+stronger theorem is essentially already proved by Birman and Friedman
+\cite{10.5555/866855}.
 
 \paragraph{Availability}
 
@@ -205,7 +209,7 @@ cannot guarantee both atomic consistency and availability.
 
 The proof is not complicated. Indeed, it is almost trivial. We give
 only a sketch here, leaving the interested reader to consult Gilbert
-and Lynch \cite{}. In the example above, suppose the two clients have
+and Lynch \cite{2002gilbertlynchCAP}. In the example above, suppose the two clients have
 their requests served by two different system nodes, and suppose these
 nodes cannot pass messages due to an indefinite network
 partition. Linearizability requires that $a$ is $1$ or $2$ and $b =
@@ -217,8 +221,8 @@ our requirement that system nodes eventually respond to
 clients. Therefore, $P$ implies we cannot have both $C$ and $A$.
 
 While the proof of the CAP theorem is rather trivial, its
-interpretation is subtle and has been the subject of considerable
-popular discussion \cite{}. It is sometimes assumed that the CAP theorem
+interpretation is subtle and has been the subject of much discussion
+\cite{2012CAP12Years}. It is sometimes assumed that the CAP theorem
 claims that a distributed system can only offer two of the properties
 C, A, and P. Actually, real-world systems can offer tolerable levels
 of consistency, availability, and partition-resilience, as all three
@@ -285,7 +289,7 @@ favor high availability rather than to enforce consistency.
 
 We shall explain that these models are inappropriate for
 safety-critical systems, which motivates our consideration of
-continuous consistency in Section \cite{}.
+continuous consistency in Section \ref{sec:contcons}.
 
 \begin{itemize}
   \item For example, we can consider an extremely optimistic approach for
@@ -341,7 +345,7 @@ response, where safety is a high priority and usage/communication
 patterns may be unpredictable. These desiderata can be understood
 narrowly for the specific application of data replication, but these
 same considerations can be applied to any distributed application,
-such as the sheaf-theoretic data fusion in Section \cite{}.
+such as the sheaf-theoretic data fusion in Section \ref{sec:sheaf}.
 
 \subsubsection*{D1: Quantifiable bounds on inconsistency}
 
@@ -355,7 +359,7 @@ cannot bound inconsistency in all circumstances. When bounded
 inconsistency cannot be guaranteed, a system satisfying D1 may become
 unavailable. A reasonable alternative behavior would be to continue
 providing some form of availability, but alert the user that due to
-network and system use conditions the requisite level of consistency
+network and system use conditions the requisite level of consisteny
 cannot be guaranteed by the application, leaving the user with the
 choice to assess the risk and continue using the system with a weaker
 inconsistency bound.
