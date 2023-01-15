@@ -30,7 +30,6 @@ doi = {10.1145/343477.343502}
 	year = 2007
 }
 
-
 @article{2002gilbertlynchCAP,
 	author = {Gilbert, Seth and Lynch, Nancy A.},
 	title = {Brewer's Conjecture and the Feasibility of Consistent, Available, Partition-Tolerant Web Services},
@@ -62,6 +61,42 @@ doi = {10.1145/343477.343502}
 
 @book{kshemkalyani_singhal_2008, place={Cambridge}, title={Distributed Computing: Principles, Algorithms, and Systems}, DOI={10.1017/CBO9780511805318}, publisher={Cambridge University Press}, author={Kshemkalyani, Ajay D. and Singhal, Mukesh}, year={2008}}
 
+@article{10.1145/5505.5508,
+author = {Davidson, Susan B. and Garcia-Molina, Hector and Skeen, Dale},
+title = {Consistency in a Partitioned Network: A Survey},
+year = {1985},
+issue_date = {Sept. 1985},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {17},
+number = {3},
+issn = {0360-0300},
+url = {https://doi.org/10.1145/5505.5508},
+doi = {10.1145/5505.5508},
+abstract = {Recently, several strategies have been proposed for transaction processing in partitioned distributed database systems with replicated data. These strategies are surveyed in light of the competing goals of maintaining correctness and achieving high availability. Extensions and combinations are then discussed, and guidelines are presented for selecting strategies for particular applications.},
+journal = {ACM Comput. Surv.},
+month = {sep},
+pages = {341–370},
+numpages = {30}
+}
+
+@inproceedings{DBLP:conf/icdcs/YuV01,
+  author    = {Haifeng Yu and
+               Amin Vahdat},
+  title     = {Combining Generality and Practicality in a Conit-Based Continuous
+               Consistency Model for Wide-Area Replication},
+  booktitle = {Proceedings of the 21st International Conference on Distributed Computing
+               Systems {(ICDCS} 2001), Phoenix, Arizona, USA, April 16-19, 2001},
+  pages     = {429--438},
+  publisher = {{IEEE} Computer Society},
+  year      = {2001},
+  url       = {https://doi.org/10.1109/ICDSC.2001.918973},
+  doi       = {10.1109/ICDSC.2001.918973},
+  timestamp = {Wed, 16 Oct 2019 14:14:50 +0200},
+  biburl    = {https://dblp.org/rec/conf/icdcs/YuV01.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
 @article{2002tact,
 	author = {Yu, Haifeng and Vahdat, Amin},
 	title = {Design and Evaluation of a Conit-Based Continuous Consistency Model for Replicated Services},
@@ -83,7 +118,14 @@ doi = {10.1145/343477.343502}
 }
 
 @INPROCEEDINGS{2000tact, 
-	author = {Yu, Haifeng and Vahdat, Amin},  booktitle={Proceedings Second International Workshop on Advanced Issues of E-Commerce and Web-Based Information Systems. WECWIS 2000},   title={Building replicated Internet services using TACT: a toolkit for tunable availability and consistency tradeoffs},   year={2000},  volume={},  number={},  pages={75-84},  doi={10.1109/WECWIS.2000.853861}}
+	author = {Yu, Haifeng and Vahdat, Amin},
+                  booktitle={Proceedings Second International Workshop
+                  on Advanced Issues of E-Commerce and Web-Based
+                  Information Systems. WECWIS 2000},   title={Building
+                  replicated Internet services using TACT: a toolkit
+                  for tunable availability and consistency tradeoffs},
+                  year={2000},  volume={},  number={},  pages={75-84},
+                  doi={10.1109/WECWIS.2000.853861}}
 
 @inproceedings{2000tactalgorithms,
 	author = {Yu, Haifeng and Vahdat, Amin},
@@ -115,7 +157,7 @@ doi = {10.1145/343477.343502}
 	publisher = {USENIX Association},
 	address = {USA},
 	abstract = {The tradeoffs between consistency, performance, and availability are well understood. Traditionally, however, designers of replicated systems have been forced to choose from either strong consistency guarantees or none at all. This paper explores the semantic space between traditional strong and optimistic consistency models for replicated services. We argue that an important class of applications can tolerate relaxed consistency, but benefit from bounding the maximum rate of inconsistent access in an application-specific manner. Thus, we develop a set of metrics, Numerical Error, Order Error, and Staleness, to capture the consistency spectrum. We then present the design and implementation of TACT, a middleware layer that enforces arbitrary consistency bounds among replicas using these metrics. Finally, we show that three replicated applications demonstrate significant semantic and performance benefits from using our framework.},
-	booktitle = {Proceedings of the 4th Conference on Symposium on Operating System Design &amp; Implementation - Volume 4},
+	booktitle = {{Proceedings of the 4th Conference on Symposium on Operating System Design and Implementation - Volume 4}},
 	articleno = {21},
 	location = {San Diego, California},
 	series = {OSDI'00}

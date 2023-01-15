@@ -158,46 +158,45 @@ The next section discusses this tradeoff.
 
 \subsection{The consistency/availability tradeoff}
 
-For a variety of reasons, real-world systems will fall short of
-behaving as a single perfectly coherent system. One reason for this is
-that there is a deep and well-understood tradeoff between system
-coherence and system performance. Enforcing consistency comes at the
-cost of additional communications. Communications impose overheads, as
-they require system nodes to spend time blocking, i.e. sending
-messages to or waiting for responses from remote system nodes, instead
-of handling requests from local clients. The network may also fail to
-deliver some messages, or delay them unpredictably, or rearrange the
-order in which they are delivered. All of these present obstacles to
-consistency, particularly if the system should also exhibit good
-performance.
+Real-world systems often fall short of behaving as a single perfectly
+coherent system. The root of this phenomenon is that there exists a
+deep and well-understood tradeoff between system coherence and system
+performance. Enforcing consistency comes at the cost of additional
+communications, and communications impose overheads, often ones that
+can be unpredictable. The network may also fail to deliver messages or
+rearrange their order. All of these present obstacles to consistency,
+particularly if the system should also exhibit good performance.
 
-Fox and Brewer made the observation that during network partitions, at
-most one of consistency and availability can be guaranteed
-\cite{}. This theorem was made precise and proved in 2002 by Gilbert
-and Lynch \cite{}. To summarize this theorem, we start by defining
-these terms.
+Brewer observed that there is a fundamental tension between
+consistency, availability, and partition-tolerance.
+\cite{2000brewerCAP}. This tradeoff was precisely stated and proved in
+2002 by Gilbert and Lynch \cite{2002gilbertlynchCAP}. To summarize
+this theorem, we start by defining these terms.
 
 \paragraph{Consistency}
 
 Consistency in Gilbert and Lynch is defined as atomic consistency
 (linearizability). The CAP theorem can be also generalized to
-sequential consistency.
+sequential consistency \cite{}.
 
 \paragraph{Availability}
 
 A CAP-available system is one that will definitely respond to every
-client request at some point in the future; indefinitely blocking is
-not an option, regardless of the network's behavior. In reality we
-also care about the \emph{speed} with which requests are handled, but
-the CAP theorem demonstrates there are already obstacles to ensuring
-that every request is handled \emph{eventually}, regardless of how
-much delay it incurs.
+client request at some point in the future. In particular, in the
+event of a network partition that prevents messages from being
+delivered, the system cannot indefinitely suspend processing requests
+until the network recovers, as we do not assume partitions eventually
+recover. In real applications we also care about the \emph{speed} with
+which requests are handled, but the CAP theorem demonstrates there are
+already obstacles to ensuring that every request is handled
+\emph{eventually}.
 
 \paragraph{Partition-tolerance}
 
 A partition tolerant system continues to function, and ensure whatever
 guarantees it is meant to provide, in the face of arbitrary partitions
-in the network.
+in the network. Note that partitions may never recover, say if a
+critical communications link is permanently severed.
 
 \begin{theorem}[CAP Theorem]
 In the presense of indefinite network partitions, a distributed system
@@ -214,9 +213,8 @@ a$.  Clearly $a$ cannot be $2$ if there is no communication between
 the two clients. But clearly $b$ cannot be $1$ for the same reason.
 To avoid violating the condition $b = a$ we could suppose the system
 indefinitely delays responding to the read requests, but this violates
-our requirement that system nodes eventually respond to clients (even
-if the network never recovers from the partition). Therefore, $P$
-implies we cannot have both $C$ and $A$.
+our requirement that system nodes eventually respond to
+clients. Therefore, $P$ implies we cannot have both $C$ and $A$.
 
 While the proof of the CAP theorem is rather trivial, its
 interpretation is subtle and has been the subject of considerable
@@ -243,11 +241,11 @@ available system, we expect requests to be handled quickly almost
 always. Altogether, the extremes of C, A, and P in the CAP theorem are
 not reflective of most real-world applications.
 
-Observations of the tension between consistency and availability date
-back at least to Davidson \cite{} (CITE Birdman and Friedman). That
-consistency and availability are in tension is illustrative of an even
+The tension between consistency and availability is well-understood
+\cite{10.1145/5505.5508}. It is a prototypical example of an even
 broader tension in distributed systems: that between safey and
-liveness properties \cite{}. These terms can be understood as follows.
+liveness properties \cite{2012perspectivesCAP}. These terms can be
+understood as follows.
 
 \paragraph{Safety}
 Safety properties ensure that a system avoids doing something ``bad''
