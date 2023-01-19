@@ -1,30 +1,63 @@
-\subsection{Three desiderata of distributed systems applications}
+\section{Desiderata for distributed applications}
+\label{sec:des}
 
-Given the particular details of civil aviation and disaster response,
-this section lists three desirable features of distributed
-applications.
+This section lists three desirable features of distributed systems and
+frameworks for reasoning about or implementing them. We chose this set
+based on the particular details of civil aviation and disaster
+response, where safety is a high priority and usage/communication
+patterns may be unpredictable. These desiderata can be understood
+narrowly for the specific application of data replication, but these
+same considerations can be applied to any distributed application,
+such as the sheaf-theoretic data fusion in Section \ref{sec:sheaf}.
 
-\begin{description}
-\item[D1] Quantifiable bounds on inconsistency
-\item[D2] Ability to accomodate a heterogeneous collection of system nodes
-\item[D3] Optimization for geographic ad-hoc communications networks
-\end{description}
+\subsubsection*{D1: Quantifiable bounds on inconsistency}
 
-\subsubsection{Quantifiable bounds on inconsistency}
+\emph{A distributed application should quantify the amount of consistency
+it delivers. That is, it should (1) provide a mathematical way of
+measuring inconsistency, and (2) bound this value while the system is
+available.}
 
-\emph{An application should provide a way to quantify the amount of
-consistency it delivers by placing upper bounds on observable
-inconsistency.}
+The CAP theorem implies that an available data replication application
+cannot bound inconsistency in all circumstances. When bounded
+inconsistency cannot be guaranteed, a system satisfying D1 may become
+unavailable. A reasonable alternative behavior would be to continue
+providing some form of availability, but alert the user that due to
+network and system use conditions the requisite level of consisteny
+cannot be guaranteed by the application, leaving the user with the
+choice to assess the risk and continue using the system with a weaker
+inconsistency bound.
 
-\subsubsection{Accommodation of heterogeneous nodes}
+\subsubsection*{D2: Accommodation of heterogeneous nodes}
 
-\emph{Applications should not assume that there is a ``typical''
-system node. The system should accomdate a potentially diverse range
-of heterogeneous clients with different capabilities and goals.}
+\emph{An application should not assume that there is a typical system
+node. Instead, the system should accomdate a diverse range of
+heterogeneous clients presenting different capabilities, tasks, and
+risk-factors.}
 
-\subsubsection{Optimization for a geographic ad-hoc communications network}
+One can expect a variety of hardware in the field. For example,
+wildfires often involve responses from many different fire
+departments, and it must be assumed that they are not always using
+identical systems. Different participants in the system may be solving
+different tasks, with different levels of access to the network, and
+they present different risks. Therefore, one should hope for
+frameworks that are as general as possible to accomodate a wide
+variety of clients.
 
-\emph{Applications should be optimized for the particular
-characteristics of real-world communications patterns over
-geographically-based, ad-hoc wireless networks.}
+\subsubsection*{D3: Optimization for an geodistributed wide area network}
 
+\emph{An application should be optimized for the sorts of
+communication patterns that occur in geodistributed wide area networks
+(WANs) under real-world conditions.}
+
+Consider two incidents. Wouldn't want to enforce needless global
+consistency, particularly if the agents in one area do not have the
+same consistency requirements for another area.
+
+Network throughput has some (perhaps approximately linear)
+relationship with throughput. Communications patterns are likely far
+from uniform too. In fact, these two things likely coincide---it is
+often that nodes which are nearby have a stronger need to coordinate
+their actions than nodes which are far away. For example, consider
+manoeauvering airplanes to avoid crash.
+
+A distributed framework should be able to handle this.
