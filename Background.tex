@@ -1,4 +1,5 @@
-\section{Introduction to Distributed Systems}
+\section{Consistency in distributed systems}
+\label{sec:distrsys}
 
 A distributed system, broadly construed, is a collection of
 independent entities that cooperate to solve a problem that cannot be
@@ -40,25 +41,25 @@ sophisticated distributed applications that can tolerate a chaotic
 operating environment and network.
 
 A highly centralized network topology relying on a small number of
-central nodes to coordinate and pass messages would be too brittle for
-our intended use cases. Such a setup could allow, for instance, the
-failure of a centrally-located node to wreak havoc on the rest of the
-network, perhaps triggering cascading failures throughout the
-system. Instead our model is that ground-based and airborne agents
+central nodes to route messages and coordinate betwee nodes would be
+too brittle for our intended use cases. Such a setup could allow, for
+instance, the failure of a centrally-located node to wreak havoc on
+the rest of the system, potentially even triggering cascading
+failures. Instead our model is that ground-based and airborne agents
 interact as clients over an ad-hoc mesh-style network, say one
 supported by the deployment of portable communication towers. We
 imagine that messages are routed in a somewhat or entirely
 decentralized, peer-to-peer fashion, as such a setup would be more
-resilient in the face of an unpredictable environment. Compared to,
-say, a datacenter's fiber-optic local area network, there are fewer
-guarantees about how reliably messages can be transmitted between any
-two clients.
+more resilient to the challenges of an unpredictable
+environment. Compared to, say, a datacenter's fiber-optic local area
+network, there are fewer guarantees about how reliably messages can be
+transmitted between any two clients.
 
 As manifest in results like Brewer's CAP theorem, below, the
 imperfections in network impose theoretical and practical limitations
-to how well one can coordinate distributed agents, and how quickly. To
-discuss the nature of these challenges more formally, we turn to the
-topic of consistency among replicas of data objects.
+to how well one can coordinate distributed agents. To discuss this
+topic more formally, we turn to the topic of consistency among
+replicas of data objects.
 
 \subsection{Strong consistency models}
 
@@ -84,7 +85,10 @@ coordinating with other nodes, e.g. to propagate updates throughout
 the system, or to lookup the most up-to-date value to return to the
 client. Therefore each request has a start time (when the request is
 first received) and strictly greater end time (when the response is
-sent back to the client).
+sent back to the client). If the end time of an event $e_1$ is
+strictly less than the start time of another request $e_2$, $e_1$ is
+said to precede $e_2$ in external order. This gives a partial (because
+some events may overlap in time) order on system events.
 
 The figure below shows a sequence diagram of two clients interacting
 with a distributed system. The vertical axis represents real
@@ -133,8 +137,8 @@ Enforcing linearizability imposes appreciable performance overheads on
 a system, as no agent can complete an update until the update has been
 propagated to all other agents. Consequently, issues with a small
 number of nodes can have a disproportionately disruptive impact on the
-entire distributed application. Unsurprisingly, real-world frameworks
-frequently consider models weaker than linearizability.
+entire application. Unsurprisingly, real-world frameworks frequently
+consider models weaker than linearizability.
 
 One weaker model, but one still regarded as a form of ``strong''
 consistency, is sequential consistency
@@ -156,7 +160,8 @@ plus (compatibility with) external order.
 Both forms of strong consistency, atomic and sequential, are too
 stringent to require from many applications, especially in an
 unreliable communications environment, due to performance overheads.
-The next section discusses this tradeoff.
+This phenomenon is partly captured by the so-called CAP theorem, which
+we now turn to.
 
 \subsection{The consistency/availability tradeoff}
 
@@ -166,8 +171,9 @@ deep and well-understood tradeoff between system coherence and system
 performance. Enforcing consistency comes at the cost of additional
 communications, and communications impose overheads, often ones that
 can be unpredictable. The network may also fail to deliver messages or
-rearrange their order. All of these present obstacles to consistency,
-particularly if the system should also exhibit good performance.
+rearrange their order. Such behavior presents obstacles to
+consistency, particularly if the system should also exhibit good
+performance.
 
 Fox and Brewer \cite{1999foxbrewer} observed that there is a
 fundamental tension between consistency, availability, and
@@ -222,13 +228,13 @@ clients. Therefore, $P$ implies we cannot have both $C$ and $A$.
 
 While the proof of the CAP theorem is rather trivial, its
 interpretation is subtle and has been the subject of much discussion
-\cite{2012CAP12Years}. It is sometimes assumed that the CAP theorem
-claims that a distributed system can only offer two of the properties
-C, A, and P. Actually, real-world systems can offer tolerable levels
-of consistency, availability, and partition-resilience, as all three
-of these concepts are highly idealized in the statement of the
-theorem. The theorem constrains, but does not prohibit the existence
-of, applications that apply some degree of all three features.
+in the years since \cite{2012CAP12Years}. It is sometimes assumed that
+the CAP theorem claims that a distributed system can only offer two of
+the properties C, A, and P. In fact, the theorem constrains, but does
+not prohibit the existence of, applications that apply some relaxed
+amount of all three features. The CAP theorem only rules out their
+combination when all three are interpreted in a highly idealized
+sense.
 
 One way the the CAP theorem is idealized is that it defines
 consistency as linearizability, a very strong condition. In practice
@@ -335,66 +341,3 @@ continuous consistency in Section \ref{sec:contcons}.
 In light of both the CAP theorem and the safety-critical nature of our
 intended use cases, we now enumerate several desiderata we might
 expect from distributed applications.
-
-\subsection{Desiderata for distributed applications}
-
-This section lists three desirable features of distributed systems and
-frameworks for reasoning about or implementing them. We chose this set
-based on the particular details of civil aviation and disaster
-response, where safety is a high priority and usage/communication
-patterns may be unpredictable. These desiderata can be understood
-narrowly for the specific application of data replication, but these
-same considerations can be applied to any distributed application,
-such as the sheaf-theoretic data fusion in Section \ref{sec:sheaf}.
-
-\subsubsection*{D1: Quantifiable bounds on inconsistency}
-
-\emph{A distributed application should quantify the amount of consistency
-it delivers. That is, it should (1) provide a mathematical way of
-measuring inconsistency, and (2) bound this value while the system is
-available.}
-
-The CAP theorem implies that an available data replication application
-cannot bound inconsistency in all circumstances. When bounded
-inconsistency cannot be guaranteed, a system satisfying D1 may become
-unavailable. A reasonable alternative behavior would be to continue
-providing some form of availability, but alert the user that due to
-network and system use conditions the requisite level of consisteny
-cannot be guaranteed by the application, leaving the user with the
-choice to assess the risk and continue using the system with a weaker
-inconsistency bound.
-
-\subsubsection*{D2: Accommodation of heterogeneous nodes}
-
-\emph{An application should not assume that there is a typical system
-node. Instead, the system should accomdate a diverse range of
-heterogeneous clients presenting different capabilities, tasks, and
-risk-factors.}
-
-One can expect a variety of hardware in the field. For example,
-wildfires often involve responses from many different fire
-departments, and it must be assumed that they are not always using
-identical systems. Different participants in the system may be solving
-different tasks, with different levels of access to the network, and
-they present different risks. Therefore, one should hope for
-frameworks that are as general as possible to accomodate a wide
-variety of clients.
-
-\subsubsection*{D3: Optimization for an geodistributed wide area network}
-
-\emph{An application should be optimized for the sorts of
-communication patterns that occur in geodistributed wide area networks
-(WANs) under real-world conditions.}
-
-Consider two incidents. Wouldn't want to enforce needless global
-consistency, particularly if the agents in one area do not have the
-same consistency requirements for another area.
-
-Network throughput has some (perhaps approximately linear)
-relationship with throughput. Communications patterns are likely far
-from uniform too. In fact, these two things likely coincide---it is
-often that nodes which are nearby have a stronger need to coordinate
-their actions than nodes which are far away. For example, consider
-manoeauvering airplanes to avoid crash.
-
-A distributed framework should be able to handle this.
