@@ -278,66 +278,10 @@ to clients, if one is even given, while liveness requires giving
 responses.
 
 Because of the tension between them, building applications that
-provide both of these features is challenging. The basic takeaway is
-that if we want to increase how quickly a system can respond to
-requests, at some point we must relax our constraints on what the
-system is allowed to return.
-
-\subsection{Optimistic consistency models}
-One way of ``subverting CAP,'' often applied with highly available
-applications, is to consider \emph{optimistic} notions of consistency.  A
-possible response to the CAP theorem is to consider weaker consistency
-models. A particularly weak class is broadly known as "optimistic
-consistency," so named because this model rests on the assumption that
-partitions are relatively rare and the system will provide acceptable
-levels of consistency in its average use case---but the priority is to
-favor high availability rather than to enforce consistency.
-
-We shall explain that these models are inappropriate for
-safety-critical systems, which motivates our consideration of
-continuous consistency in Section \ref{sec:contcons}.
-
-\begin{itemize}
-  \item For example, we can consider an extremely optimistic approach for
-  the scenario discussed above, with the aim to always provide maximum
-  availability, even during a total partition. We use a mechanism to
-  detect when a partition occurs and when it is recovered from. After,
-  we work to merge information after the partition has passed. For
-  example, we may combine all increments and decrements to a value,
-  saving them in a \emph{write log}. That is, we maintain a history of
-  individual increments or decrements. After a partition, every node
-  broadcasts its entire write log to all other parties, so that every
-  node sees and applies all updates.
-
-  \item The problem with optimistic consistency, and with weak consistency
-  models in general, is that generally they do not provide a way to
-  bound the system's inconsistency, generally seeking instead to
-  emphasize system performance and providing only as much consistency
-  as the network happens to allow. In our previous example, values may
-  diverge wildly during the partition. In a datacenter, we could
-  estimate the likelihood and duration of a typical partition, and
-  derive probabilistic bounds on how widely two replicas may diverge
-  in practice. For instance, empirical observations may show that a
-  typical network partition lasts less than 2 hours, during which time
-  replicas tend to drift apart by approximately $X$ amount, and this
-  might be acceptable.
-
-  \item But this doesn't work in the environments considered in this
-  memo---there is no a priori "typical" network or usage pattern, and
-  no robust way to restrict observable levels of
-  inconsistency. Without such bounds, we cannot rely on the
-  approximate consistency of replicas without comprising safety. This
-  makes optimistic consistency inappropriate for safety-critical
-  systems.
-
-  \item We want to bound inconsistency. Since we can't make things perfect,
-  this will have to be traded for availability. The next topic
-  considers how we may bound inconsistency without necessarily
-  imposing the significant coordination penalty required to enforce
-  strong consistency.
-
-\end{itemize}
-
-In light of both the CAP theorem and the safety-critical nature of our
-intended use cases, we now enumerate several desiderata we might
-expect from distributed applications.
+provide both of these features is challenging. The fundamental
+principle is that if we want to increase how quickly a system can
+respond to requests, eventually we must relax our constraints on what
+the system is allowed to return. In light of this deep tradeoff and
+the safety-critical nature of our use cases, the next section
+enumerates three features of distributed applications we consider
+particularly desirable in the contexts under consideration.
