@@ -2,7 +2,7 @@
 \label{sec:introduction}
 
 Civil aviation has traditionally focused primarily on the efficient
-and safe transportation of people and goods via the airspace. An
+and safe transportation of people and goods via the airspace. A n
 abiding concern for safety is reflected in the fact that flying is
 today the safest mode of transport, owing to the application of sound
 engineering practices and conservative operating procedures. Now the
@@ -12,87 +12,122 @@ NASA Aeronautics' Airspace Operations and Safety Program (AOSP) System
 Wide Safety (SWS) project has been investigating how crewed and
 uncrewed aircraft may safely operate in shared airspace. Because the
 rules for operating in the US national airspace are typically relaxed
-during natural disasters and relief efforts, wildfire fighting and
-hurricane relief are being studied as primary use cases.
+during natural disasters and relief efforts, wildfire suppression and
+hurricane relief are being studied as motivating use cases.
 
 Disaster response scenarios present unique challenges for safe
 operations. One major challenge is the need for system-wide
 coordination in spite of an unpredictable communications
 environment. Traditionally, civil aviation has employed simple
-communication patterns between air and ground and among aircraft. A
-typical example of a real-world protocol is Automatic Dependent
-Surveillance-Broadcast (ADS-B), by which aircraft periodically
-broadcast their position and velocity to air traffic controllers and
-nearby aircraft. The use cases under consideration demand more
-sophisticated coordination between airborne and ground-based elements
-to accomplish mission goals such as navigating safely in close
-proximity, delivering resources, and fighting fires.
+communication patterns between airborne and ground-based agents and
+among aircraft. For instance, aircraft equipped with Automatic
+Dependent Surveillance-Broadcast (ADS-B) monitor their location using
+GPS and periodically broadcast this information to air traffic
+controllers and nearby aircraft. The use cases under consideration
+demand more sophisticated coordination schemes between airborne and
+ground-based elements to accomplish mission goals such as navigating
+safely in close proximity, delivering resources, and suppressing
+fires.
 
 Unfortunately, the operating environment will not admit the use of
 reliable, high-throughput internet connections that consistently allow
 clients to transmit large amounts of data to each other quickly. For
 instance, obstructions like distance, terrain, smoke, and weather mean
 we should expect network packets to be dropped or delayed in
-unpredictable ways. Therefore, network performance will be relatively
-difficult to predict and control in these settings.
+unpredictable ways. We also expect the network characteristics to vary
+between deployments and to evolve dynamically in time. These factors
+make network performance difficult to predict and control, which in
+turn makes it difficult to coordinate distributed agents and offer
+strong safety guarantees.
 
-An unreliable communications environment makes it difficult to
-coordinate distributed agents while offering strong safety
-guarantees. Designing systems that are resilient to this sort of
-environment is a challenge for distributed computing, a subdiscipline
-of computer science. This purpose of this memorandum is to enumerate
-some of the considerations involved in coordinating air- and
-ground-based elements from a distributed computing perspective,
-identifying challenges, potential requirements, and frameworks that
-may aid in developing solutions.
+Designing systems that are resilient to these sorts of environments is
+a challenge for distributed computing, a subdiscipline of computer
+science. This purpose of this memorandum is to enumerate some of the
+considerations involved in coordinating air- and ground-based elements
+from a distributed computing perspective, identifying challenges,
+potential requirements, and frameworks that may aid in developing
+solutions.
+
+Our central theme is to emphasize \emph{continuous} notions of
+consistency between distributed agents. We shall see that na\"ive
+models of consistency provide strong safety guarantees but are
+unworkably brittle. For instance, Brewer's CAP theorem (Theorem
+\ref{thm:cap}) implies that \emph{atomic} consistency cannot be
+enforced by a highly-available system in the presense of network
+partitions---which are themselves guaranteed in real-world
+conditions. Therefore, we concentrate on notions of consistency that
+vary smoothly and quantifiably, which should result in more general
+frameworks that can provide safety guarantees even in real-world
+scenarious.
 
 \subsection{Layout of this document}
 
 This document aims to be self-contained and readable to a broad
 technical audience. It is laid out as follows.
 
-Section \ref{sec:distrsys} provides a high-level introduction to the
-topic of \emph{consistency} of distributed systems. We define two
-``strong'' consistency models, \emph{atomic} and \emph{sequential}
-consistency, both of which provide highly desirable safety
-guarantees. Then we turn our attention to the so-called CAP theorem
-\cite{2000brewerCAP} \cite{2002gilbertlynchCAP}, which captures a
-fundamental consistency/availability (C/A) tradeoff in the presense of
-network partitions (P). We observe that the CAP theorem effectively
-prohibits both of our consistency models in real-world scenarious,
-raising the question of how we can offer strong safety guarantees in
-light of this fundamental limitation.
+Section \ref{sec:distrsys} provides a high-level introduction to
+distributed systems and consistency models. We define two ``strong''
+models, \emph{atomic} and \emph{sequential} consistency, both of which
+provide highly desirable safety guarantees; we contrast these with the
+weaker model of \emph{causal} consistency. Then we turn our attention
+to the so-called CAP theorem \cite{2000brewerCAP}
+\cite{2002gilbertlynchCAP}, which captures a fundamental
+consistency/availability (C/A) tradeoff in the presense of network
+partitions (P). We observe that the CAP theorem effectively prohibits
+strong consistency in real-world scenarious, raising the question of
+how we can offer safety guarantees in light of this fundamental
+limitation.
 
-Section \ref{sec:des} offers a list of three desiderata of distributed
-applications in the contexts under consideration. These have been
-selected as especially desirable and relevant for our use cases, and
-they provide a basis for assessing the relevance of frameworks and
-techniques in overcoming the apparent limitations imposed by the CAP
-theorem and related results.
+Informed by the previous discussion, Section \ref{sec:des} offers a
+list of three desiderata of distributed applications in the contexts
+under consideration. These have been selected as especially desirable
+and relevant for our use cases, and they provide a basis for assessing
+the applicability of frameworks and techniques to overcome the
+apparent limitations imposed by the CAP theorem.
 
 Section \ref{sec:contcons} explains how the framework of \emph{conits}
 \cite{2002tact} may be used for quantifying the nature of the C/A
-tradeoff in the context of data replication, a desirable feature for
-safety-critical systems.
+tradeoff. Following Yu and Vahdat, we summarize how conit theory can
+be used enforce consistency up to some real-valued $\epsilon \geq
+0$. More precisely, we discuss three different approaches for
+measuring the divergence of data replicas. The semantics of conits are
+defined by applications, while the framework we lay out provides
+general-purpose mechanisms for enforcing conit consistency. At the
+extreme, conits can enforce strong consistency by setting $\epsilon =
+0$. For $\epsilon > 0$, the conits framework offers neither
+CAP-consistency nor CAP-availability. In return, applications provide
+limited amounts of availability, possibly during network partitions,
+while strictly bounding levels of inconsistency. One use case for this
+is to ``smooth out'' intermittent fluctuations in network performance,
+a desirable feature for safety-critical systems operating without
+strict assumptions about the network.
 
-Section \ref{sec:sheaf} is an introduction to
-applied sheaf theory, which provides a highly general framework for
-measuring the mutual consistency of ``overlapping'' observations
-(i.e. ones which we expect to be correlated if not equal, such as the
-data generated by a sensor network). We discuss an simulated example,
-due to \cite{}, where sheaves are used to integrate heterogeneous
-sensor data, thereby improving an estimated location for a crashed
-aircraft.
+Section \ref{sec:sheaf} is an introduction to applied sheaf theory,
+which provides a highly general framework for measuring the mutual
+consistency of ``overlapping'' observations (i.e. ones which we expect
+to be correlated if not equal, such as the data generated by a sensor
+network). We discuss an simulated example, due to \cite{}, where
+sheaves are used to integrate heterogeneous sensor data, thereby
+improving an estimated location for a crashed aircraft. Unlike many
+introductions to the subject, we emphasize sheaves as
+``topologically-flavored'' presheaves, viewing presheaves as highly
+generalized transition systems. Our expectation is that this approach
+makes the subject more accessible to computer scientists and serves to
+highlight themes common to Sections \ref{sec:contcons} and
+\ref{sec:sheaf}. It may even indicate the possibility of re-grounding
+conit theory in the principled mathematical framework of sheaf theory.
 
 Section \ref{sec:conclusion} concludes and with a ``big picture''
-perspective and some suggestions for future work. We observe that, at
-least at face value, conit theory and sheaf theory evidently have
-little in common. However, a closer examination reveals that both
-frameworks define a notion of ``relaxed'' consistency without
-sacrificing the ability to provide quantifiable safety guarantees. It
-is no coincidence that both frameworks place particular emphasis on
-the mathematical concept of \emph{continuity}, a somewhat unusual
-characteristic in the context of distributed systems. More deeply
-exploring the connection between the sheaf-theoretic approach to
-consistency with the framework of conits may provide interesting
-avenues for future research.
+perspective and some suggestions for future work.
+
+%We observe that, at
+%least at face value, conit theory and sheaf theory evidently have
+%little in common. However, a closer examination reveals that both
+%frameworks define a notion of ``relaxed'' consistency without
+%sacrificing the ability to provide quantifiable safety guarantees. It
+%is no coincidence that both frameworks place particular emphasis on
+%the mathematical concept of \emph{continuity}, a somewhat unusual
+%characteristic in the context of distributed systems. More deeply
+%exploring the connection between the sheaf-theoretic approach to
+%consistency with the framework of conits may provide interesting
+%avenues for future research.
