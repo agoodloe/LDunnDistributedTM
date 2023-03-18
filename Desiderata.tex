@@ -1,26 +1,34 @@
 \section{Desiderata for distributed applications}
 \label{sec:des}
 
-This section lists three desirable features of distributed systems and
-frameworks for reasoning about or implementing them. We chose this set
-based on the particular details of civil aviation and disaster
-response, where safety is a high priority and usage/communication
-patterns may be unpredictable. These desiderata can be understood
-narrowly for the specific application of data replication, but these
-same considerations can be applied to any distributed application,
-such as the sheaf-theoretic data fusion in Section \ref{sec:sheaf}.
+The CAP theorem, and others like it, place fundamental limitations on
+the consistency of real-world distributed systems. In the absense of a
+``perfect'' system, engineers are forced to make tradeoffs. Ideally,
+these tradeoffs should be tuned for the specific application in
+mind---a protocol that works well in a datacenter might not work well
+in a heterogeneous geodistributed setting. This section lists three
+desirable features of distributed systems and frameworks for reasoning
+about or implementing them. We chose this set based on the particular
+details of civil aviation and disaster response, where safety is a
+high priority and usage/communication patterns may be
+unpredictable.
+
+These desiderata can be understood narrowly for the specific
+application of data replication, but these same considerations can be
+applied to any distributed application, such as the sheaf-theoretic
+data fusion in Section \ref{sec:sheaf}.
 
 \subsubsection*{D1: Quantifiable bounds on inconsistency}
 
-\emph{A distributed application should quantify the amount of consistency
-it delivers. That is, it should (1) provide a mathematical way of
-measuring inconsistency, and (2) bound this value while the system is
-available.}
+\emph{A distributed application should quantify the amount of
+consistency it delivers. That is, it should (1) provide a mathematical
+way of measuring inconsistency between system nodes, and (2) bound
+this value while the system is available.}
 
 The CAP theorem implies that an available data replication application
 cannot bound inconsistency in all circumstances. When bounded
 inconsistency cannot be guaranteed, a system satisfying D1 may become
-unavailable. A reasonable alternative behavior would be to continue
+unavailable. Alternatively, a reasonable behavior would be to continue
 providing some form of availability, but alert the user that due to
 network and system use conditions the requisite level of consisteny
 cannot be guaranteed by the application, leaving the user with the
@@ -39,11 +47,11 @@ wildfires often involve responses from many different fire
 departments, and it must be assumed that they are not always using
 identical systems. Different participants in the system may be solving
 different tasks, with different levels of access to the network, and
-they present different risks. Therefore, one should hope for
-frameworks that are as general as possible to accomodate a wide
-variety of clients.
+they present different risks. With these sorts of factors in mind, one
+should hope for frameworks that are as general as possible to
+accomodate a wide variety of clients.
 
-\subsubsection*{D3: Optimization for an geodistributed wide area network}
+\subsubsection*{D3: Optimization for a geodistributed wide area network}
 
 \emph{An application should be optimized for the sorts of
 communication patterns that occur in geodistributed wide area networks

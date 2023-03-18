@@ -1,7 +1,17 @@
 \section{Sheaf-theoretic data fusion}
 \label{sec:sheaf}
 
-Now we turn from database-level coordination to coordination at the application level. In particular, we look at the question how to integrate noisy, heterogeneous sensor data from different sources to form a global picture of the overall environment as observed by the sensor system. The framework of \emph{sheaf theory}, a category-theoretic abstraction used to reason about potentially different types of data viewed from potentially overlapping points of view, stands out as a candidate for this sort of work. This viewpoint is most prominently echoed in work by Robinson:
+In this section, we turn our attention from low-level algorithms for
+replica consistency to application-level considerations. In
+particular, we look at the question how to integrate noisy,
+heterogeneous sensor data from different sources to form a global
+picture of the overall environment as observed by the sensor
+system. The framework of \emph{sheaf theory}, a category-theoretic
+abstraction used to reason about potentially different types of data
+viewed from potentially overlapping points of view, stands out as a
+candidate for this sort of work. This viewpoint is most prominently
+echoed in work by Robinson:
+
 \begin{quote}
 >   [Sheaves] provide a convenient language for describing how systems composed of interrelated parts can interact. \ldots [They] can naturally represent systems composed of different types of subsystems. \cite{2020robinsonPseudometric}
 \end{quote}
@@ -10,9 +20,27 @@ Now we turn from database-level coordination to coordination at the application 
 \end{quote}
 This section will explore the basic ideas of sheaf theory and relate them to the sensor-integration problem from a somewhat unique perspective, rooted in a computer science rather than topology, that emphasizes the intuition for presheaves first and describes sheaves as presheaves with a sense of overlapping perspectives and the ability to glue overlapping observations together.
 
-\subsection{Introduction to sheaves and presheaves} 
+\subsection{Introduction to presheaves}
 
-TBD
+In Section \ref{sec:distrsys}, (strong) consistency was considered as
+an all-or-nothing proposition. Both consistency models discussed,
+atomic and sequential, attempt to capture the idea of a
+that a distributed system should behave as if all clients are
+connected to a single shared computer. Motivated by the practical
+unworkability of strong consistency models, in Section
+\ref{sec:contcons}, we explored weaker models that allow consistency
+up to some $\epsilon > 0$.
+
+In this section, we consider ways of measuring consistency between
+potentially conflicting sources of information. Beyond merely
+conflicting, we consider scenarious where sensors generate data that
+is not immediately comparable.
+
+\subsection{Poset-indexed families of sets}
+
+A particularly simple class of presheaves is 
+
+
 
 \subsubsection{Presheaves as spaces of observations over viewpoints}
 

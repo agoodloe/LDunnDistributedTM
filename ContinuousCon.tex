@@ -90,6 +90,37 @@ because some scenario leads to an unusually high level of
 communication, straining the network.
 
 
+\subsection{Conit theory}
+
+\begin{itemize}
+
+  \item We think of \emph{read} and \emph{write} requests.
+
+  \item Let $\mathcal{W}$ be a series of \emph{write actions}. Given a write $w \in W$, $\llbracket w \rrbracket : D \to D$ interprets the request as an action the database.
+
+  \item A \emph{conit} $F$ is a function $F : D \mathbb{R}$.
+
+  \item The \emph{observed consistency} of a read request is a three-dimensional real vector:
+
+\end{itemize}
+
+\[ \Delta(F,w,d) = F(\llbracket w_1 \rrbracket d) - F (d)\]
+\[ \textrm{weight}_{\textrm{num}} : W^\ast \times D \to \mathbb{R}\]
+\[ \textrm{weight}_{\textrm{num}} : (\varepsilon, d) = 0 \]
+\[ \textrm{weight}_{\textrm{num}} (w_1 \cdot w, d) = \Delta(F, w_1, d) + \textrm{weight}_{\textrm{num}} \left(w, \llbracket w_1 \rrbracket d\right) \]
+
+Let $R$ be a write request to a client. Per the protocol, there exists
+a ECG history of for which $R$ is the final access. This is called the
+ideal history.
+
+Accordingly, the ideal result is the result that would be returned
+according to the ideal history.
+
+In general, the observed history is the local history present in
+$S_i$, and the observed result is the one returned by $S_i$. The
+question we seek to bound is.
+
+
 \subsection{Consistency metrics for conits}
 
 Similar to how safety and liveness properties can be in tension, its

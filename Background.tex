@@ -102,7 +102,12 @@ handled, both nodes issue read requests for the same value $x$. Client
 $b \in \mathbb{N}$.
 
 \begin{figure}
-  \includegraphics[scale=0.6]{Sequence Diagram.png}
+  \includegraphics[scale=0.6]{images/Distributed.png}
+  \caption{A system with distributed replicas. In comparison to Figure REF, the use of multiple replicas increases system robustness. However, communication delays can lead to inconsistency.}
+\end{figure}
+
+\begin{figure}
+  \includegraphics[scale=0.6]{images/Requests.png}
   \caption{A sequence of read/write requests. A consistency model constrains the possible values of $a$ and $b$.}
 \end{figure}
 
