@@ -1,4 +1,4 @@
-\section{Consistency in distributed systems}
+\section{Introduction to distributed systems}
 \label{sec:distrsys}
 
 A distributed system, broadly construed, is a collection of
@@ -40,6 +40,15 @@ nearby drone to route messages over the ridgeline---requires
 sophisticated distributed applications that can tolerate a chaotic
 operating environment and network.
 
+As manifest in results like Brewer's CAP theorem (Theorem
+\ref{thm:cap}), imperfections in the network impose theoretical and
+practical limitations to how well one can coordinate distributed
+agents. To discuss this topic more formally, we turn to the topic of
+consistency among replicas of data objects.
+
+\subsection{Our system model}
+
+\paragraph{Physical network}
 A highly centralized network topology relying on a small number of
 central nodes to route messages and coordinate betwee nodes would be
 too brittle for our intended use cases. Such a setup could allow, for
@@ -55,11 +64,7 @@ environment. Compared to, say, a datacenter's fiber-optic local area
 network, there are fewer guarantees about how reliably messages can be
 transmitted between any two clients.
 
-As manifest in results like Brewer's CAP theorem, below, the
-imperfections in network impose theoretical and practical limitations
-to how well one can coordinate distributed agents. To discuss this
-topic more formally, we turn to the topic of consistency among
-replicas of data objects.
+\paragraph{Clients and processes}
 
 \subsection{Strong consistency models}
 
@@ -168,6 +173,8 @@ unreliable communications environment, due to performance overheads.
 This phenomenon is partly captured by the so-called CAP theorem, which
 we now turn to.
 
+\subsection{Causal consistency}
+
 \subsection{The consistency/availability tradeoff}
 
 Real-world systems often fall short of behaving as a single perfectly
@@ -213,7 +220,7 @@ guarantees it is meant to provide, in the face of arbitrary partitions
 in the network. Note that partitions may never recover, say if a
 critical communications link is permanently severed.
 
-\begin{theorem}[CAP Theorem]
+\begin{theorem}\label{thm:cap}[CAP Theorem]
 In the presense of indefinite network partitions, a distributed system
 cannot guarantee both atomic consistency and availability.
 \end{theorem}
