@@ -47,26 +47,16 @@ agents. To discuss this topic more formally, we turn to the topic of
 consistency among replicas of data objects.
 
 \subsection{Our system model}
+\label{subsec:system_model}
 
-\paragraph{Physical network}
-A highly centralized network topology relying on a small number of
-central nodes to route messages and coordinate betwee nodes would be
-too brittle for our intended use cases. Such a setup could allow, for
-instance, the failure of a centrally-located node to wreak havoc on
-the rest of the system, potentially even triggering cascading
-failures. Instead our model is that ground-based and airborne agents
-interact as clients over an ad-hoc mesh-style network, say one
-supported by the deployment of portable communication towers. We
-imagine that messages are routed in a somewhat or entirely
-decentralized, peer-to-peer fashion, as such a setup would be more
-more resilient to the challenges of an unpredictable
-environment. Compared to, say, a datacenter's fiber-optic local area
-network, there are fewer guarantees about how reliably messages can be
-transmitted between any two clients.
+We describe our basic distributed system model.
 
 \paragraph{Clients and processes}
 
-\subsection{Strong consistency models}
+We consider a set $\mathcal{P} = \{p_i\}_{i \in I}$ of
+processes. Processes handle read and write requests from clients. A
+request $r$ (which can be either a read or write request) begins at a
+real (wall-clock) time $r.s$. It returns a time $r.t > r.s$.
 
 The basic challenge of a distributed computing system is to provide
 the illusion that many computers act ``as a single coherent computer''
@@ -95,6 +85,31 @@ strictly less than the start time of another request $e_2$, $e_1$ is
 said to precede $e_2$ in external order. This gives a partial (because
 some events may overlap in time) order on system events.
 
+\begin{figure}
+  \includegraphics[scale=0.6]{images/Distributed.png}
+  \caption{A system with distributed replicas. In comparison to Figure REF, the use of multiple replicas increases system robustness. However, communication delays can lead to inconsistency.}
+\end{figure}
+
+
+\paragraph{Physical network}
+
+A highly centralized network topology relying on a small number of
+central nodes to route messages and coordinate betwee nodes would be
+too brittle for our intended use cases. Such a setup could allow, for
+instance, the failure of a centrally-located node to wreak havoc on
+the rest of the system, potentially even triggering cascading
+failures. Instead our model is that ground-based and airborne agents
+interact as clients over an ad-hoc mesh-style network, say one
+supported by the deployment of portable communication towers. We
+imagine that messages are routed in a somewhat or entirely
+decentralized, peer-to-peer fashion, as such a setup would be more
+more resilient to the challenges of an unpredictable
+environment. Compared to, say, a datacenter's fiber-optic local area
+network, there are fewer guarantees about how reliably messages can be
+transmitted between any two clients.
+
+\subsection{Strong consistency models}
+
 The figure below shows a sequence diagram of two clients interacting
 with a distributed system. The vertical axis represents real
 (i.e. wall-clock) time, which increases in the downward
@@ -105,11 +120,6 @@ the first client's request has returned. After both requests are
 handled, both nodes issue read requests for the same value $x$. Client
 1 reads $x$ as having value $a \in \mathbb{N}$, while Client 2 reads
 $b \in \mathbb{N}$.
-
-\begin{figure}
-  \includegraphics[scale=0.6]{images/Distributed.png}
-  \caption{A system with distributed replicas. In comparison to Figure REF, the use of multiple replicas increases system robustness. However, communication delays can lead to inconsistency.}
-\end{figure}
 
 \begin{figure}
   \includegraphics[scale=0.6]{images/Requests.png}
@@ -174,6 +184,9 @@ This phenomenon is partly captured by the so-called CAP theorem, which
 we now turn to.
 
 \subsection{Causal consistency}
+
+\begin{itemize}
+  \item Process $p_i$ maintains a set of values $\{t^i_j\}_{j \in I}$.
 
 \subsection{The consistency/availability tradeoff}
 

@@ -1,58 +1,6 @@
 \section{Continuous consistency}
 \label{sec:contcons}
 
-One relaxed model of consistency, often applied with highly available
-applications, is to consider \emph{optimistic} notions of consistency,
-so named because this model rests on the assumption that partitions
-are relatively rare and the system will provide acceptable levels of
-consistency in its average use case---but the priority is to favor
-high availability rather than to enforce consistency during
-partitions.
-
-\begin{itemize}
-  \item For example, we can consider an optimistic approach for the
-    scenario discussed above is to always provide maximum
-    availability, even during a total partition. We use a mechanism to
-    detect when a partition occurs and when it is recovered
-    from. After, we work to merge information after the partition has
-    passed. For example, we may combine all increments and decrements
-    to a value, saving them in a \emph{write log}. That is, we
-    maintain a history of individual increments or decrements. After a
-    partition, every node broadcasts its entire write log to all other
-    parties, so that every node sees and applies all updates.
-
-  \item The problem with optimistic consistency, and with weak
-    consistency models in general, is that generally they do not
-    provide a way to bound the system's inconsistency, instead
-    emphasizing system performance and providing only as much
-    consistency as operating conditions happen to allow. In our
-    previous example, values may diverge wildly during the
-    partition. For some applications, theoretically unbounded
-    inconsistency is tolerable in practice. For instance, in a
-    datacenter, we could estimate the likelihood and duration of a
-    typical partition, and derive informal bounds on how widely two
-    replicas may diverge in practice. We might find, say, that a
-    typical network partition lasts less than $X$ hours, during which
-    time replicas tend to drift apart by approximately $Y$
-    amount. This may be an acceptable condition until the partition
-    recovers and the divergent replicas re-sychronize.
-
-  \item Unbounded inconsistency is inappropriate for safety-critical
-    systems, however, and particularly given that our operating
-    environment is inherently unpredictable---there is no a priori
-    "typical" network or usage pattern, and no robust way to restrict
-    observable levels of inconsistency. Without such bounds, we cannot
-    rely on the approximate consistency of replicas without comprising
-    safety. This makes optimistic consistency inappropriate for our
-    use cases.
-\end{itemize}
-
-Something better is to provide hard guarantees about consistency,
-without enforcing the overly strict (hence impractical) requirements
-of strong consistency models. This threading of the needle is provided
-by the framework of continuous consistency.
-
-\subsection{Continuous consistency}
 Strong consistency is a discrete proposition: an application provides
 strong consistency or it does not. In many real-world scenarios, it
 makes sense to work with data that is consistent up to some $\epsilon
@@ -89,6 +37,32 @@ change in time. Say, because new network endpoints are added, or
 because some scenario leads to an unusually high level of
 communication, straining the network.
 
+\subsection{The TACT system model}
+
+As in Section \ref{subsec:system_model}, we assume a distributed
+system collaborating to maintain local replicas of a data store. (For
+simplicitly, we shall discuss the data store as a database, but it
+could be something else like a filesystem, persistant data object,
+etc.) Processes accept read and write requests from clients to update
+items in the data store.
+
+TACT is a middleware layer that sits between the application and the
+data store. Processes forward accesses to TACT, which handles
+commiting them to the store. TACT may not immediately process the
+request---instead it may need to coordinate with other processes to
+enforce consistency. When write requests are processed (i.e. when a
+response is sent to the originating client), they are only commited in
+a \emph{tenative} state. Tentative writes eventually become fully
+committed at some point in the future, but when they are commited,
+they may be reordered. After fullying committing, writes are in a
+total order known to all processes.
+
+\begin{itemize}
+\item Diagram of a buffer
+\item Logical clocks/Coverage property
+\end{itemize}
+
+\subsection{Conit theory}
 
 \subsection{Conit theory}
 
@@ -121,7 +95,7 @@ $S_i$, and the observed result is the one returned by $S_i$. The
 question we seek to bound is.
 
 
-\subsection{Consistency metrics for conits}
+\paragraph{Consistency metrics for conits}
 
 Similar to how safety and liveness properties can be in tension, its
 authors point out a tension in replication frameworks between
