@@ -1,4 +1,6 @@
 *
+!images
+!images/*
 !LICENSE
 !nasalogo.pdf
 !*.tex
