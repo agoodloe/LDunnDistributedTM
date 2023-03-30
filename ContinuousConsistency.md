@@ -17,10 +17,10 @@ abstract: |
   consistency. Unlike weak consistency models, continuous consistency
   provides hard upper bounds on the level of inconsistency observable
   by clients.  Unlike strong consistency, it accomodates real-world
-  conditions, providing some amount of liveliness even in the presence
+  conditions, allowing some amount of liveness even in the presence
   of network partitions. We conclude that continuous consistency
-  models are appropriate for analyzing safety-critical systems in
-  real-world environments.
+  models are appropriate for analyzing safety-critical systems that operate
+  without strong network guarantees about network performance.
 ---
 
 # Introduction
@@ -85,8 +85,8 @@ system in the presense of network partitions (P). Partitions, or
 transient drops in network connectivity, are virtually guaranteed to
 occur in the environments under consideration. The CAP theorem
 therefore implies that we cannot use strong consistency to enforce
-safety without sacrificing system liveness, i.e. its timeliness in
-responding to user requests.
+safety without sacrificing system liveness, or the speed with
+which it responds to user requests.
 
 On the other hand, weak consistency models such as *causal* and
 *eventual* consistency can be provided by real-world systems. However,
@@ -102,9 +102,9 @@ distributed systems deployed in the field.  A more nuanced view is
 that the theorem observes a fundamental *tradeoff* between consistency
 and availability; this tradeoff is amplified by suboptimal network
 performance. While the CAP theorem rules out highly idealized systems
-that maintain perfect consistency and high availability under
-realistic conditions, it does not inherently rule out systems that
-typically provide moderate amounts of both.
+that maintain strong consistency and high availability in spite of
+network connectivity issues, it does not inherently rule out systems
+that typically provide moderate amounts of both.
 
 What does it mean to have an "amount" of consistency? This idea is
 made precise by continuous consistency models, i.e. formal measures of
@@ -114,15 +114,14 @@ the literature, both of which measure consistency as an upper bound on
 some measured amount of *inconsistency,* for some flexible and
 quantitative definition and of what it means for objects to be
 mutually inconsistent. One model, the theory of *conits*, comes from
-research into distributed shared memory, e.g. database
-replication. The other, *sheaf-theoretic data fusion*, comes from
-research in data integration and sensor networks. Both define
-consistency as something which, in principle, can vary smoothly. At
-one extreme, both models describe a form of "perfect" consistency that
-cannot usually be expected in real applications. At the other extreme,
-one has no guarantee about the mutual consistency of two objects. In
-the middle, the models place upper bounds on the divergence between
-related data objects.
+research into distributed shared memory. The other, *sheaf-theoretic
+data fusion*, comes from research in data integration and sensor
+networks. Both define consistency as something which, in principle,
+can vary smoothly. At one extreme, both models describe a form of
+"perfect" consistency that cannot usually be expected in real
+applications. At the other extreme, one has no guarantee about the
+mutual consistency of two objects. In the middle, the models place
+upper bounds on the divergence between related data objects.
 
 It stands to reason that quantitative measurements of consistency
 should in turn offer quantiative measurements of safety. One potential
@@ -134,8 +133,8 @@ performance can become so poor that a system cannot provide tolerable
 safety levels while maintaining availability. When adequate safety
 margins cannot be enforced, authorities can decide to take fewer
 risks. What is centrally important is to know *how much* safety one
-has, and that is (hopefully) what is provided by the models in this
-document.
+has, and that is (hopefully) what is provided by the models described
+in this document.
 
 ## Layout of this document
 
@@ -145,17 +144,18 @@ reasonably self-contained and readable to a broad technical
 audience. It is laid out as follows.
 
 Section \ref{sec:background} provides a high-level introduction to
-distributed systems and consistency models. We define two strong
-models, atomic and sequential consistency, both of which provide
-highly desirable safety guarantees; we contrast these with the weaker
-guarantees implied by the causal consistency model. Then we turn our
-attention to the CAP theorem [@2000brewerCAP] [@2002gilbertlynchCAP],
-which captures a fundamental consistency/availability tradeoff in the
-presense of network partitions. We observe that the theorem
-effectively prohibits both forms of strong consistency in our intended
-use case. This raises the question of how, if at all, one can
-rigorously enforce safety properties without compromising system
-performance beyond acceptable levels.
+distributed systems and memory consistency models. We define two
+strong models, atomic and sequential consistency, both of which
+provide highly desirable safety guarantees; we contrast these with the
+weaker guarantees implied by the causal consistency model. Then we
+turn our attention to the CAP theorem [@2000brewerCAP]
+[@2002gilbertlynchCAP], which captures a fundamental
+consistency/availability tradeoff in the presense of network
+partitions. We observe that the theorem effectively prohibits both
+forms of strong consistency in our intended use case. This raises the
+question of how, if at all, one can rigorously enforce safety
+properties without compromising system performance beyond acceptable
+levels.
 
 Informed by the previous discussion, Section \ref{sec:des} offers a
 list of three desiderata of distributed applications in the contexts
@@ -165,37 +165,40 @@ the applicability of frameworks and techniques to overcome the
 apparent limitations imposed by the CAP theorem.
 
 Section \ref{sec:contcons} explains how the \emph{conit} framework
-[@2002tact] quantifies the C/A tradeoff with respect to three
-metrics. Following Yu and Vahdat, we summarize how conit theory can be
-used enforce consistency up to some real-valued $\epsilon \geq
-0$. More precisely, we discuss three different approaches for
-measuring the divergence of data replicas. The semantics of conits are
-defined by applications, while the framework we lay out provides
-general-purpose mechanisms for enforcing conit consistency. At the
-extreme, conits can enforce strong consistency by setting $\epsilon =
-0$. For $\epsilon > 0$, the conits framework offers neither
-CAP-consistency nor CAP-availability. In return, applications provide
-limited amounts of availability, possibly during network partitions,
-while strictly bounding levels of inconsistency. One use case for this
-is to ``smooth out" intermittent fluctuations in network performance,
-a desirable feature for safety-critical systems operating without
-strict assumptions about the network.
+[@2002tact] quantifies the C/A tradeoff with respect to three metrics:
+numerical error, order commit error, and real-time error. We summarize
+how to enforce consistency up to some real-valued $\epsilon \geq 0$
+for each of these metrics separately.  The conit framework allows
+applications to specify their own consistency semantics with respect
+to these measurements, and to mark updates as having a greater or
+lesser impact on consistency. Each replica, indeed each system
+request, can set its own bounds on observable inconsistency, while a
+general-purpose middleware library transparently enforces these
+requirements. At the extreme, the framework can enforce strong
+consistency by setting $\epsilon = 0$ for appropriately-defined
+conits. For $\epsilon > 0$, the framework offers neither
+CAP-consistency nor CAP-availability; in return, applications can
+provide limited amounts of availability, possibly during network
+partitions, while strictly bounding levels of inconsistency. One use
+case for this is to ``smooth out" intermittent fluctuations in network
+performance, a desirable feature for safety-critical systems operating
+without strict assumptions about the network.
 
 Section \ref{sec:sheaf} is an introduction to applied sheaf theory,
 which provides a highly general framework for measuring the mutual
-consistency of "overlapping" observations (i.e. ones which we expect
-to be correlated if not equal, such as the data generated by a sensor
-network). We discuss an simulated example, due to
-[@2017robinsonCanonical], where sheaves are used to integrate
-heterogeneous sensor data, thereby improving an estimated location for
-a crashed aircraft. Unlike many introductions to the subject, we
-emphasize sheaves as "topologically-flavored" presheaves, viewing
-presheaves as highly generalized transition systems. Our expectation
-is that this approach makes the subject more accessible to computer
-scientists and serves to highlight themes common to Sections
-\ref{sec:contcons} and \ref{sec:sheaf}. It may even indicate the
-possibility of re-grounding conit theory in the principled
-mathematical framework of sheaf theory.
+consistency of "overlapping" observations. Intuitively, these are
+observations which we expect to be correlated if not equal, such as
+the data generated by nearby sensors in a sensor network. We discuss
+an simulated example, due to [@2017robinsonCanonical], where sheaves
+are used to integrate heterogeneous sensor data, thereby improving an
+estimated location for a crashed aircraft. Unlike many introductions
+to the subject, we emphasize sheaves as "topologically-flavored"
+presheaves, viewing presheaves as highly generalized transition
+systems. Our expectation is that this approach makes the subject more
+accessible to computer scientists and serves to highlight themes
+common to Sections \ref{sec:contcons} and \ref{sec:sheaf}. It may even
+indicate the possibility of re-grounding conit theory in the
+principled mathematical framework of sheaf theory.
 
 Section \ref{sec:conclusion} concludes with suggestions for future
 work.
@@ -224,11 +227,12 @@ independent computers that cooperate by sending messages over a
 network. This abstraction shields clients and application developers
 from complexity and makes it simpler to reason about system
 behavior. For example, if a client modifies a data structure by
-submitting a *write request* to one system node, a strongly consistent
-system must ensure that other nodes reflect the update as well. If
-different nodes were to reflect inconsistent values, the abstraction
-of a shared world is broken and safety requirements may be violated. A
-few examples of the perils of inconsistency:
+submitting a write request to one system node, a strongly consistent
+system must ensure that other nodes reflect the update as
+well. Otherwise, if different nodes could reflect inconsistent values,
+the abstraction of a shared world would be broken and safety
+requirements may be violated. A few examples of the perils of
+inconsistency:
 
 - A bank client would be unhappy if deposits that appear in their
   account online are not reflected when they check their balance at an
@@ -249,13 +253,13 @@ few examples of the perils of inconsistency:
 What exactly constitutes system consistency? There are different
 consistency models, and the most appropriate model for an application
 depends on the semantics it expects, which must be weighed against
-requirements. All other things being equal, one wants to have as much
-consistency as possible. As will be elaborated on throughout this
+other requirements. All other things being equal, one wants to have as
+much consistency as possible. As will be elaborated on throughout this
 document, \textrm{na\"ive} notions of system coherence are brittle in
 the sense that they generally cannot be guaranteed for theoretical and
 practical reasons; that is, unless one is willing to pay with
-significant performance penalties, potentially including applications
-that fail to respond to users at all. Therefore, real-world
+significant performance penalties, including applications that fail to
+respond to users under some conditions. Therefore, real-world
 applications must tolerate weaker notions of consistency. This makes
 applications more difficult to reason about, as their behavior may
 depend on uncontrollable factors in the environment. As fewer
@@ -275,8 +279,11 @@ silently drop network packets, reorder them, or deliver them several
 times. In some cases the network may even act like a malicious
 adversary (though we will not consider this scenario in this
 document). Imperfections in communications represent obstructions to
-perfect system consistency, which in turn makes it challenging to
-enforce safety requirements.
+system consistency and make it challenging to enforce safety
+requirements.
+
+We shall now make this discussion more precise by introducing formal
+definitions.
 
 ## System model
 
@@ -291,7 +298,7 @@ Figure \ref{fig:request}. At some physical time (i.e. wall-clock time)
 $C.s \in \mathbb{R}$ (client start time), a client sends a message to
 a process. At time $E.s$, which we'll call the *start time* of the
 event, the message is accepted by the process. The request is
-processed until some strictly greater time $A.t > A.s$ when a response
+processed until some strictly greater time $E.t > E.s$ when a response
 is sent back to the client. The value $E.t - E.s$ is the
 \emph{duration} of the event.
 
@@ -309,6 +316,14 @@ to other processes, retrieve up-to-date values from other processes to
 give to the client, or delay handling the client's request in order to
 handle other requests.
 
+To discuss consistency models, we shall be less interested in the
+details of message-passing and more interested just in the responses
+observed by clients. We shall consider the full set of events across a
+distributed system, such as shown in Figure
+\ref{fig:externalorder}. This is called an *execution*. Consistency
+models constrain the set of allowable return values in response to
+clients' requests to read particular shared memory locations.
+
 As is often the case, we shall assume that requests handled by a
 single process do not overlap in time. This can be enforced with local
 serialization methods such as two-phase locking that can be used to
@@ -316,32 +331,35 @@ isolate concurrent transactions from each other, providing the
 abstraction of a system that handles requests one at a time. On the
 other hand, any two processes are allowed to handle events at the same
 physical time, so that there is no obvious total order of events
-across the system. Instead, one has a partial order called external
-order. External order is the order of events that would be witnessed
-by an external observer that can watch the real-time behavior of when
-systems begin and finish responding to requests.
+across the system. Instead, one has a partial order called *external
+order*. This order is the partial order of events that would be
+witnessed by an observer recording the real time at which systems
+begin and finish responding to requests.
 
 \begin{definition}
-
-Let $E$ be an execution. Request $r^1$ \emph{externally precedes}
-request $r^2$ if $r^1.t < r^2.s$. That is, if the first request
+Let $E$ be an execution. Request $E^1$ \emph{externally precedes}
+request $E^2$ if $E^1.t < E^2.s$. That is, if the first request
 terminates before the second request is accepted. This induces an
-irreflexive partial order called external order.
-
+(irreflexive) partial order called \emph{external order}.
 \end{definition}
 
 Because we assume processes handle events one-at-a-time, the events
 handled at any one process are totally ordered by external order---one
-cannot start before another has finished. Events across different
-processes need not be ordered, which will happen exactly when the
-events physically overlap in time. This yields the reflexive and
-symmetric (but non-transitive) relation $||$. If $x || y$, we say the
-events are *physically concurrent.*
+event cannot start before another has finished. Events across
+different processes need not be ordered, which will happen exactly
+when the events physically overlap in time. If this is the case for
+events $E^1$ and $E^2$, we write $E^1 || E^2$ and say $E^1$ and $E^2$
+are physically concurrent. Physical concurrency gives a reflexive and
+symmetric---but non-transitive---binary relation. (Such a structure is
+often called a *compatibility relation.* The general intuition is that
+if $A$ and $B$ are both compatible with $C$, it need not be the case
+that $A$ and $B$ are compatible with each other.)
 
 Figure \ref{fig:externalorder} shows the external order relation for
-an execution. To save space we only show an arrow between two events
-of the same process (which are always totally ordered), nor arrows
-that can be inferred by transitivity of external precedence.
+an execution. To save space we elide arrows between two events of the
+same process (which are always totally ordered) and arrows that can be
+inferred by transitivity. This corresponds to a directed acyclic graph
+structure as shown.
 
 \begin{figure}[h]
      \begin{subfigure}[a]{1\textwidth}
@@ -352,7 +370,7 @@ that can be inferred by transitivity of external precedence.
      \begin{subfigure}[b]{1\textwidth}
          \center
          \includegraphics[scale=0.25]{images/partialorder.png}
-         \caption{A DAG induced by external order}
+         \caption{A directed acyclic graph (DAG) induced by external order}
      \end{subfigure}
      \caption{External order}
 	 \label{fig:externalorder}
@@ -393,8 +411,9 @@ nodes to maintain information about routing, and indirectly the
 position of other nodes in the system, increasing complexity and
 introducing a possible source of inconsistency. However, it may be
 more workable given (i) the geographic mobility of agents in our
-scenarios (ii) the difficult-to-access locations that prohibit setting
-up communications towers (iii) something else.
+scenarios (ii) difficult-to-access locations that prohibit setting up
+communications towers (iii) the inherent need for system flexibility
+during disaster scenarios.
 
 \begin{figure}[h]
      \centering
@@ -415,48 +434,90 @@ up communications towers (iii) something else.
         \label{fig:nettopology}
 \end{figure}
 
-Of course, these are fairly \textrm{na\"ive} descriptions. One can
-consider hybrid models (Figure REF), such as an ad-hoc arrangement
-network of localized cells. In general, one expects more centralized
+One can imagine hybrid models, such as an ad-hoc arrangement network
+of localized cells. In general, one expects more centralized
 topologies to be simpler for application developers to reason about,
 but requires more physical infrastructure and support. On the other
 hand, the ad-hoc model is more fault resistant, but more complicated
-to implement and offering fewer assurancess about performance.
+to implement and potentially offering fewer assurancess about
+performance. In either case, higher-level applications such as shared
+memory abstractions should be tuned for the networking environment. It
+would be even better if this tuning can take place dynamically, with
+applications reconfiguring manually or automatically to the
+particulars of the operating environment. This requires examining the
+relationship between the application and networking layers.
 
-## Atomic consistency
+An interesting possibility is for the *network* to automatically
+configure itself to the quality-of-service needs of the
+application. For example, a client that sends a lot of messages may be
+marked as a preferred client and given higher-priority access to the
+network. If UAV vehicles can be used to route messages by acting as
+mobile transmission base stations, one can imagine selecting a flight
+pattern based on networking needs. For example, if the communication
+between two firefighting teams is obstructed by a geographical
+feature, a UAV could be dispatched to provide communication support.
+
+## Linearizability and the CAP theorem
 \label{sec:atomic}
 
 A fundamental distributed application is the *shared distributed
 memory* abstraction. We shall assume that all processes maintain a
-local replica of a globally shared data object. (For simplicitly, we
+local replica of a globally shared data object, as this sort of
+replication increases system fault tolerance. For simplicitly, we
 shall discuss the data store as a database, but it could be something
-else like a filesystem, persistent data object, etc.).  Replication
-increases fault tolerance. Clients submit two types of operations to
-processes. A *read request* that reads from variable $x$ and returns
-value $a$ is written $R(x,a)$. A *write request*, notation $W(x,a)$
-represents writing value $a$ to the data item (variable) represented
-by $x$.
+else like a filesystem, persistent data object, etc.
+
+Clients submit two types of operations to processes. A *read request*
+that reads from variable $x$ and returns value $a$ is written
+$R(x,a)$. A *write request*, notation $W(x,a)$ represents writing
+value $a$ to the data item (variable) represented by $x$. All
+processes provide access to the same set of shared variables.
 
 A *memory consistency model* formally constrains the allowable system
-responses during executions. In this example, a model constrains the
-possible values of $a$ and $b$. Strong consistency prevents
-divergence.
+responses during executions. *Strong* consistency models are generally
+understood as ones provide the illusion that all clients are accessing
+just one globally shared replica. As we will see, this still leaves
+room for different possible behaviors (i.e. allows non-determinism in
+the execution of a distributed application), but the allowable
+behavior is tightly constrained.
 
-*Atomic consistency* is essentially the strongest feasible consistency
-consistency model. It is also known variously as *strict consistency*,
-*linearizability*, and sometimes *external consistency*. In the
-context of isolated database transactions, the analogous condition is
-called *strict serializability.* It is defined by three features:
+*Linearizability* is essentially the strongest consistency consistency
+model. It is known variously as *atomic consistency*, *strict
+consistency*, and sometimes *external consistency*. In the context of
+database transactions (which come with other guarantees, like
+*isolation*, that are more specific to databases), the analogous
+condition is called *strict serializability.* A linearizable execution
+is defined by three features:
 
 - All processes agree on a single, global total order defined across all accesses
 - That is consistent with external order
 - Where each read request $R(x,a)$ returns the value $a$ of the
   most recent write request $W(x,a)$ to $x$.
 
-Figure \ref{fig:linear_example11} shows a linearizable
-execution. Figure \ref{fig:linearexample12} shows an execution that is
-not linearizable because the read access on $y$ returns stale data
-instead of reflecting the most recent write access to $y$.
+We can also phrase this in terms of *linearizations.*
+
+\begin{definition}
+A \emph{linearization point} $t \in \mathbb{R} \in [E.s, E.t]$ for an
+event $E$ is a time between the event's start and termination. An
+execution is linearizable if and only if there is a choice of
+linearization point for each access, which induces a total order called a \emph{linearization},
+such that $E$ is equivalent to
+the serial execution of events when totally ordered by their
+linearization points.
+\end{definition}
+
+Intuitively, it should appear to an external observer that each access
+instantaneously took effect at some point between its start and end
+time. It is assumed no distinct access can have the same linearization
+point, so that we get a total order. We say an entire system is
+linearizable when all possible executions of the system are
+linearizable.
+
+Assume that all memory locations are initialized to $0$. Figure
+\ref{fig:linear_example11} shows a prototypical example of a
+linearizable execution. Figure \ref{fig:linear_example12} shows an
+execution that is not linearizable because the read access on $y$
+returns stale data instead of reflecting the write access to $y$.
 
 \begin{figure}[h]
      \begin{subfigure}[a]{1\textwidth}
@@ -467,61 +528,55 @@ instead of reflecting the most recent write access to $y$.
      \end{subfigure}
      \begin{subfigure}[b]{1\textwidth}
          \center
-         \includegraphics[scale=0.4]{images/linear3.png}
-		 \caption{\textbf{Fix image.} A non-linearizable execution. The read request $y$ returns a stale value recent update. }
+         \includegraphics[scale=0.4]{images/nonlinear0.png}
+		 \caption{A non-linearizable execution. The request to read $y$ returns a stale value. }
 		 \label{fig:linear_example12}
      \end{subfigure}
   \caption{A linearizable and non-linearizable execution.}
   \label{fig:linear_example1}
 \end{figure}
 
-A **linearization point** $t \in \mathbb{R} \in [E.s, E.t]$ for an
-event $E$ is a time between the event's start and termination. An
-execution is linearizable if and only if there is a choice of
-linearization point for each access (and no distinct access have the
-same linearization point), such that $E$ is semantically equivalent to
-the serial execution of events when totally ordered by their
-linearization points. In other words, it should appear to an external
-order that each access instantaneously took effect at some point
-between its start and end time.
-
-Given an execution such as in Figure REF, linearizability can be
-visualized as follows: At some point, the linearization point, during
-the duration of each access, the access instaneously appears to take
-effect. By definition, no two accesses are allowed to the same
-linearization point, so the points define a total order, the
-linearization order.
+Linearization points are demonstrated in Figure
+\ref{fig:linearization}. The figure shows different linearizable
+behaviors in response to the same underlying set of accesses, which
+demonstrates that linearizability still leaves some room for
+non-determinism in the execution of distributed applications. In this
+example, the requests must both return 1 or 2. The values must
+agree---linearizability forbids the situation in which one request returns $1$ and another reads $2$ (Figure \ref{fig:nonlinearizable}).
 
 \begin{figure}[h]
      \begin{subfigure}[a]{1\textwidth}
          \center
-         \includegraphics[scale=0.4]{images/linear2.png}
-         \caption{A linearizable execution in which both reads return $2$.}
-     \end{subfigure}
-     \begin{subfigure}[b]{1\textwidth}
-         \center
-         \includegraphics[scale=0.4]{images/linear3.png}
-         \caption{A linearizable execution in which both reads return $1$.}
-     \end{subfigure}
-     \begin{subfigure}[b]{1\textwidth}
-         \center
-         \includegraphics[scale=0.4]{images/linear3.png}
-         \caption{\textbf{Fix image}. A non-linearizable execution---the processes ``disagree'' about which write took effect first.}
+         \includegraphics[scale=0.4]{images/linearTemplate.png}
+         \caption{An execution with read responses left unspecified.}
          \label{fig:nonlinear}
      \end{subfigure}
-  \caption{Two linearizable executions returning different values, with possible linearization points shown in red. In \ref{fig:nonlinear},
-  a non-linearizable execution is shown.}
+     \begin{subfigure}[b]{1\textwidth}
+         \center
+         \includegraphics[scale=0.4]{images/linear3.png}
+         \caption{A linearizable execution for which both reads return $1$.}
+     \end{subfigure}
+     \begin{subfigure}[c]{1\textwidth}
+         \center
+         \includegraphics[scale=0.4]{images/linear2.png}
+         \caption{A linearizable execution for which both reads return $2$.}
+     \end{subfigure}
+  \caption{Two linearizable executions of the same underlying events that return different responses. Possible linearization points are shown in red.}
+  \label{fig:linearization}
 \end{figure}
 
-Figure (REF) shows a linearizable history. Red
-dots are drawn to indicate a possible linearization. Figure (REF)
-shows a similar execution, except with different return values from
-some read accesses. This execution is also linearizable, according to
-the linearization shown.
-
-A shared memory system is simply linearizable when all possible
-executions of the system are linearizable. For example, a linearizable
-system admits the events of Figures REF and REF, but not that of REF.
+\begin{figure}[h]
+     \begin{subfigure}[a]{1\textwidth}
+         \center
+         \includegraphics[scale=0.4]{images/nonlinear1.png}
+     \end{subfigure}
+     \begin{subfigure}[b]{1\textwidth}
+         \center
+         \includegraphics[scale=0.4]{images/nonlinear2.png}
+     \end{subfigure}
+  \caption{Two non-linearizable executions of the same events shown above.}
+  \label{fig:nonlinearizable}
+\end{figure}
 
 #### Enforcing linearizability
 
@@ -543,16 +598,6 @@ the client. Executing an accesses only after determining its position
 in the total order ensures that all behavior observed by the client
 (i.e. the return values) are consistent with the behavior of a
 single-replica system.
-
-#### Linearizability vs serializability
-What if one write request is still being executed when the next
-request is issued? Common local serializability (e.g. two-phase
-lockout) mechanisms can be used to ensure the accesses take effect on
-the replica in the same total order they are issued. See ??. This
-Serializability is about isolating several multi-step transactions
-from interfering with each other. Linearizability would be observing
-effects in a way that is consistent with the (partial) order an
-external viewer would infer by examining start and end times.
 
 ### The CAP Theorem
 
