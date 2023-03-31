@@ -203,7 +203,7 @@ principled mathematical framework of sheaf theory.
 Section \ref{sec:conclusion} concludes with suggestions for future
 work.
 
-# Distributed Systems and Consistency Models
+# Distributed systems and consistency models
 \label{sec:background}
 
 A distributed system, broadly construed, is a collection of
@@ -462,10 +462,10 @@ feature, a UAV could be dispatched to provide communication support.
 
 A fundamental distributed application is the *shared distributed
 memory* abstraction. We shall assume that all processes maintain a
-local replica of a globally shared data object, as this sort of
-replication increases system fault tolerance. For simplicitly, we
-shall discuss the data store as a database, but it could be something
-else like a filesystem, persistent data object, etc.
+local replica of a globally shared data object, as replication
+increases system fault tolerance. For simplicitly, we shall discuss
+the data store as a database, but it could be something else like a
+filesystem, persistent data object, etc.
 
 Clients submit two types of operations to processes. A *read request*
 that reads from variable $x$ and returns value $a$ is written
@@ -481,13 +481,14 @@ room for different possible behaviors (i.e. allows non-determinism in
 the execution of a distributed application), but the allowable
 behavior is tightly constrained.
 
-*Linearizability* is essentially the strongest consistency consistency
-model. It is known variously as *atomic consistency*, *strict
-consistency*, and sometimes *external consistency*. In the context of
-database transactions (which come with other guarantees, like
-*isolation*, that are more specific to databases), the analogous
-condition is called *strict serializability.* A linearizable execution
-is defined by three features:
+*Linearizability* [@10.1145/78969.78972] is essentially the strongest
+common consistency model. It is known variously as *atomic
+consistency*, *strict consistency*, and sometimes *external
+consistency*. In the context of database transactions (which come with
+other guarantees, like *isolation*, that are more specific to
+databases), the analogous condition is called *strict
+serializability.* A linearizable execution is defined by three
+features:
 
 - All processes agree on a single, global total order defined across all accesses
 - That is consistent with external order
@@ -542,7 +543,8 @@ behaviors in response to the same underlying set of accesses, which
 demonstrates that linearizability still leaves some room for
 non-determinism in the execution of distributed applications. In this
 example, the requests must both return 1 or 2. The values must
-agree---linearizability forbids the situation in which one request returns $1$ and another reads $2$ (Figure \ref{fig:nonlinearizable}).
+agree---linearizability forbids the situation in which one client
+reads $1$ and another reads $2$ (Figure \ref{fig:nonlinearizable}).
 
 \begin{figure}[h]
      \begin{subfigure}[a]{1\textwidth}
@@ -618,79 +620,76 @@ partition-tolerance. This tradeoff was precisely stated and proved in
 this theorem, we start by defining these terms.
 
 #### Consistency
-Consistency in Gilbert and Lynch is defined as atomic consistency
-(linearizability). The CAP theorem can be also generalized to
-sequential consistency. As discussed in [@2019wideningcap], this
-stronger theorem is essentially already proved by Birman and Friedman
-[@10.5555/866855].
+Consistency in Gilbert and Lynch is defined as linearizability.
 
 #### Availability
 A CAP-available system is one that will definitely respond to every
-client request at some point in the future. In particular, in the
-event of a network partition that prevents messages from being
-delivered, the system cannot indefinitely suspend processing requests
-until the network recovers, as we do not assume partitions eventually
-recover. In real applications we also care about the \emph{speed} with
-which requests are handled, but the CAP theorem demonstrates there are
-already obstacles to ensuring that every request is handled
-\emph{eventually}.
+client request at some point. The system cannot indefinitely suspend
+handling requests waiting for network activity like receiving a
+message. This is because we do not assume the network is guaranteed to
+deliver messages in the first place.
 
 #### Partition tolerance
 A partition tolerant system continues to function, and ensure whatever
 guarantees it is meant to provide, in the face of arbitrary partitions
-in the network. Note that partitions may never recover, say if a
-critical communications link is permanently severed.
+in the network (i.e., an inability for some nodes to communicate with
+others). It is possible that a partition never recovers, say if a
+critical communications cable is permanently severed.
 
 \begin{theorem}[The CAP Theorem]
 	\label{thm:cap}
     In the presense of indefinite network partitions, a distributed system
-    cannot guarantee both atomic consistency and availability.
+    cannot guarantee both linearizability and eventual-availability.
 \end{theorem}
 \begin{proof}
-The proof is not complicated. Indeed, it is almost trivial. We give
-only a sketch here, leaving the interested reader to consult Gilbert
-and Lynch [@2002gilbertlynchCAP]. In the example above, suppose
-the two clients have their requests served by two different system
-nodes, and suppose these nodes cannot pass messages due to an
-indefinite network partition. Linearizability requires that $a$ is $1$
-or $2$ and $b = a$.  Clearly $a$ cannot be $2$ if there is no
-communication between the two clients. But clearly $b$ cannot be $1$
-for the same reason.  To avoid violating the condition $b = a$ we
-could suppose the system indefinitely delays responding to the read
-requests, but this violates our requirement that system nodes
-eventually respond to clients. Therefore, $P$ implies we cannot have
-both $C$ and $A$.
+Technically, the proof is not complicated. Indeed, it is almost
+trivial. We give only a sketch here, leaving the interested reader to
+consult the more formal analysis by Gilbert and Lynch. The key technical assumption is that a processes'
+behavior can only be influenced by the messages it actually
+receives---it cannot be affected by messages that are sent to it but never delivered.
+
+In Figure \ref{fig:linear_example11}, suppose the two processes are on
+opposite sides of a network partition, so that no information can be
+exchanged between them (even indirectly through a third party). If we
+just consider the execution of $P_2$ by itself, without $P_1$,
+linearizability would require it to read the value $2$ for $y$. If we
+do consider $P_1$, linearizability requires that the read access to
+$y$ must return $1$. But if $P_2$ cannot send messages to $P_1$, then
+$P_2$'s behavior cannot be influenced by the write access to $y$, so
+it would still have to return $2$, violating
+consistency. Alternatively, it could delay returning any result until
+it is able to exchange messages with $P_1$. But if the partition never
+recovers, we will wait forever, violating availability.
 \end{proof}
 
-While the proof of the CAP theorem is rather trivial, its
-interpretation is subtle and has been the subject of much discussion
-in the years since [@2012CAP12Years]. It is sometimes assumed that
-the CAP theorem claims that a distributed system can only offer two of
-the properties C, A, and P. In fact, the theorem constrains, but does
-not prohibit the existence of, applications that apply some relaxed
-amount of all three features. The CAP theorem only rules out their
-combination when all three are interpreted in a highly idealized
-sense.
+While the proof of the CAP theorem is simple, its interpretation is
+subtle and has been the subject of much discussion in the years since
+[@2012CAP12Years]. It is sometimes assumed that the CAP theorem claims
+that a distributed system can only offer two of the properties C, A,
+and P. In fact, the theorem constrains, but does not prohibit the
+existence of, applications that apply some relaxed amount of all three
+features. The CAP theorem only rules out their combination when all
+three are interpreted in a highly idealized sense.
 
-One way the the CAP theorem is idealized is that it defines
-consistency as linearizability, a very strong condition. In practice
-one often tolerates weaker levels of consistency. Also, network
-partitions are often not as dramatic as an indefinite total
-communications blackout. Real-world conditions in our context are
-likely more chaotic, featuring many smaller disruptions and delays and
-sometimes larger ones. Communications between different clients may be
-affected differently, with nearby agents generally likely to have
-better communication channels between them than agents that are far
-apart. Finally, CAP-availability is a suprisingly weak condition. It
-only requires that requests are handled eventually. In a truly highly
-available system, we expect requests to be handled quickly almost
-always. Altogether, the extremes of C, A, and P in the CAP theorem are
-not reflective of most real-world applications.
+In practice, applications can tolerate much weaker levels of
+consistency than linearizability. Furthermore, network partitions are
+usually not as dramatic as an indefinite communications blackout. Real
+conditions in our context are likely to be chaotic, featuring many
+smaller disruptions and delays and sometimes larger
+ones. Communications between different clients may be affected
+differently, with nearby agents generally likely to have better
+communication channels between them than agents that are far
+apart. Finally, CAP-availability is a suprisingly weak
+condition. Generally one cares about the actual time it takes to
+handle user requests, but the CAP theorem exposes difficulties just
+ensuring the system handles requests at all. Altogether, the extremes
+of C, A, and P in the CAP theorem are not the appropriate conditions
+to apply to many, perhaps most, real-world applications.
 
-The tension between consistency and availability is well-understood
-[@10.1145/5505.5508]. It is a prototypical example of an even
-broader tension in distributed systems: that between safey and
-liveness properties [@2012perspectivesCAP]. These terms can be
+Broadening our perspective, the tension between consistency and
+availability is a prototypical example of a deeper tension in
+computing: that between safey and liveness properties
+[@10.1145/5505.5508; @2012perspectivesCAP]. These terms can be
 understood as follows.
 
 #### Safety
@@ -708,19 +707,22 @@ without taking any steps to make sure this response is consistent with
 that of other nodes.
 
 Note that in our use cases, one can imagine that an unresponsive
-system could indeed be considered ``unsafe.'' The distinction between
-the two here is that safety constrains a system's allowable responses
-to clients, if one is even given, while liveness requires giving
-responses.
+system could indeed be considered "unsafe." The distinction between
+the terms here is that "safety" constrains a system's allowable
+responses to clients, if one is even given, while liveness requires
+giving responses. The fact that both of these theoretical notions have
+implications for human safety is just one more reason to prefer
+continuous consistency models over CAP-unavailabile models like
+linearizability.
 
 Because of the tension between them, building applications that
-provide both of these features is challenging. The fundamental
-principle is that if we want to increase how quickly a system can
-respond to requests, eventually we must relax our constraints on what
-the system is allowed to return. In light of this deep tradeoff and
-the safety-critical nature of our use cases, the next section
-enumerates three features of distributed applications we consider
-particularly desirable in the contexts under consideration.
+provide both safety and liveness features is challenging. The
+fundamental tradeoff is that if we want to increase how quickly a
+system can respond to requests, eventually we must relax our
+constraints on what the system is allowed to return. In light of this
+and other considerations, the next section enumerates three features
+of distributed systems frameworks we consider particularly desirable
+for our intended scenarios.
 
 ## Sequential consistency
 
@@ -736,40 +738,64 @@ particularly desirable in the contexts under consideration.
          \includegraphics[scale=0.4]{images/sequential2.png}
          \caption{An equivalent serial execution of \ref{fig:sequential1}}
      \end{subfigure}
-     \begin{subfigure}[b]{1\textwidth}
-         \center
-         \includegraphics[scale=0.4]{images/sequential2.png}
-         \caption{\textbf{Fix image}. An non-sequentially consistent execution.}
-     \end{subfigure}
      \caption{Sequentially consistent execution.}
 \end{figure}
 
-At a minimum, enforcing atomic consistency means that an access $E$ at
-process $P_i$ cannot return to the client until every other process
-has been informed about $E$. For many applications this is an
-unacceptably high penalty. A weaker model that is still strong enough
-for all most purposes is *sequential* consistency. Processes in a
+Enforcing atomic consistency means that an access $E$ at process $P_i$
+cannot return to the client until every other process has been
+informed about $E$. For many applications this is an unacceptably high
+penalty. A weaker model that is still strong enough for most purposes
+is *sequential* consistency. This is an appropriate model if a form of
+strong consistency is required, but the system is agnostic about the
+physical time at which events start and finish. Processes in a
 sequentially consistent system are required to agree on a global total
-order of events. However, this order need not be given by external
-order. Instead, the only requirement is that events must be given in
-process order.
-
-Clearly linearizability implies sequential consistency, seeing as
-program order is a subset of external order. The reverse direction is
-not true. Figure (REF) shows a sequentially consistent execution and
-its equivalent serial execution. This example was given earlier as an
-execution that is not linearizable.
-
-FIGURE
+order of events, presenting the illusion of a shared database from an
+application programmer's point of view. However, this order need not
+be given by external order. Instead, the only requirement is that
+sequential history must agree with process order, i.e. the events from
+each process must occur in the same order as in they do in the
+process.
 
 Visually, sequential consistency allows "sliding" events along process
 time axes like beads along a string. Two events on the same process
 cannot cross over each other, but events on different processes may
-freely be commuted.
+freely be commuted. This allows any choice of "interleaving" of
+events.
+
+\begin{figure}[h]
+     \begin{subfigure}[a]{1\textwidth}
+         \center
+         \includegraphics[scale=0.4]{images/nonsequential1.png}
+         \caption{A non-sequentially consistent execution.}
+         \label{fig:sequential1}
+     \end{subfigure}
+     \begin{subfigure}[b]{1\textwidth}
+         \center
+         \includegraphics[scale=0.4]{images/nonsequential_x.png}
+     \end{subfigure}
+     \begin{subfigure}[b]{1\textwidth}
+         \center
+         \includegraphics[scale=0.4]{images/nonsequential_y.png}
+     \end{subfigure}
+     \caption{A non-sequentially consistent execution with sequentially-consistent restricted executions.}
+     \label{fig:sequential}
+\end{figure}
+
+\begin{lemma}
+    A linearizable execution is sequentially consistency.
+\end{lemma}
+\begin{proof}
+This follows because process order is a subset of external order.
+\end{proof}
+
+The reverse direction is not true. Figure \ref{fig:sequential} shows a
+sequentially consistent execution and an equivalent serial
+execution. This example was shown earlier as an execution that is not
+linearizable.
 
 A sequentially consistent system ensures that any execution is
 equivalent to some global serial execution, even if this is serial
-order is not the one suggested by the actual real-time ordering of
+order is not the one suggested by the real-time ordering of
 events. When real-time constraints are not important, this provides
 essentially the same benefits as linearizability. For example, it
 allows programmers to reason about concurrent executions of programs
@@ -779,41 +805,60 @@ program to execute out of order.
 
 ### Enforcing sequential consistency
 
-Requires a total order broadcast mechanism. All requests broadcast in
-such a way that allows all clients to see all write requests in the
-same order, but allow read requests to return immediately.
+Sequential consistency can also be enforced with a total order
+broadcast mechanism. All requests broadcast in such a way that allows
+all clients to see all write requests in the same order. However, each
+replica can process read requests immediately, returning its local
+replica value, instead of waiting for the broadcast mechanism to
+assign a global order to the read request.
 
 ### CAP unavailability
 
+Sequential consistency is a relaxation of atomic consistency. However,
+the model is still to strict to enforce under partition conditions.
+
 \begin{lemma}
     An eventually-available system cannot provide sequential consistency in the presense of network partitions.
-\end{lemma}.
+\end{lemma}
+
 \begin{proof}
-\end{proof}
+The proof is a simple adaptation of Theorem \ref{thm:cap}.  Suppose
+$P_1$ and $P_2$ form of CAP-available distributed system and consider
+the execution shown in Figure REF. (By CAP-availability, we know both
+read requests must return a value at some point.) Now suppose $P_1$
+and $P_2$ are separated by a partition so they cannot read each
+other's writes. For contradiction, suppose the execution is equivalent
+to a serial order.
 
-## Causal consistency
+If $W(y,1)$ precedes $R(y)$ in the sequential order, then $R(y)$ would
+be constrained to return to $1$. But $P_2$ cannot pass information to
+$P_1$, so this is ruled out. To avoid this situation, suppose the
+sequential order places $R(y)$ before $W(y,1)$, in which case $R(y)$
+could correctly return the initial value of $0$. However, by
+transitivity the $R(x)$ event would occur after $W(x,1)$ event, so it
+would have to return $1$. But there is no way to pass this information
+from $P_1$ to $P_2$. Thus, any attempt to sequentially order the
+requests would require commuting $W(y,1)$ and $R(x)$ or $W(x,1)$ and
+$R(y)$.  \end{proof}
 
-\begin{figure}
-  \center
-  \includegraphics[scale=0.4]{images/causal1.png}
-  \caption{A causally consistent, non-sequentially-consistent execution}
-\end{figure}
+As discussed in [@2019wideningcap], this stronger theorem was
+essentially proved by Birman and Friedman [@10.5555/866855], before
+the CAP theorem.
 
-Weak notions of consistency blah foo bar.
+## Causal and FIFO (PRAM) consistency
 
 Causal consistency is that each clients is consistent with a total
 order that contains the happened-before relation. It does not put a
-bound on divergence between replicas.
+bound on divergence between replicas. Violations of causal consistency
+can present clients with deeply counterintuitive behavior.
 
-Violations of causal consistency can present clients with
-counterintuitive, potentially unsafe, system behavior.
-
-- Alice replies to Bob's message. Charlie sees Alice's reply before
-  Bob's original message is delivered.
+- In a group messaing application, Alice posts a message and Bob
+  replies. On Charlie's device, Bob's reply appears before Alice's
+  original message.
 - Alice sees a deposit for $100 made to her bank account and decides
   to withdraw $50. When she refreshes the page, the deposit is gone
   and her account is overdrawn. A little while later, she refreshes
-  the page and the deposit has reappeared.
+  the page and the deposit reappears.
 
 In these scenarios, a system seems to have a split mind about whether
 an event occurred and in what order. Both of these scenarios already
@@ -825,16 +870,11 @@ relationships are estimated very conservatively: two events are
 potentially causally if there is some way that the outcome of one
 could have influenced another.
 
-\begin{lemma}
-	A causally consistent system need not be unavailabile during partitions.
-\end{lemma}
-\begin{proof}
-Note that in this scenario, a client's requests are always routed to
-the same processor. If a client's requests can be routed to any node,
-causal consistency cannot be maintained without losing
-availability. One sometimes says that causal consistency is "sticky
-available" because clients must stick to the same processor during partitions.
-\end{proof}
+\begin{figure}
+  \center
+  \includegraphics[scale=0.4]{images/causal1.png}
+  \caption{A causally consistent, non-sequentially-consistent execution}
+\end{figure}
 
 \begin{lemma}
 	Sequential consistency implies causal consistency.
@@ -849,6 +889,22 @@ causally related. Program order is a subset of causal order, so any
 sequential executions also respects causal order.
 \end{proof}
 
+However, causal consistency is not nearly as strong as sequential
+consistency. This is evident in the fact that the CAP theorem does not
+rule out highly available systems that maintain causal consistency
+even during network partitions.
+
+\begin{lemma}
+	A causally consistent system need not be unavailabile during partitions.
+\end{lemma}
+\begin{proof}
+Note that in this scenario, a client's requests are always routed to
+the same processor. If a client's requests can be routed to any node,
+causal consistency cannot be maintained without losing
+availability. One sometimes says that causal consistency is "sticky
+available" because clients must stick to the same processor during partitions.
+\end{proof}
+
 In general, processes do not need to agree on the order of events with
 no possible causal connection between them, so causal consistency is a
 weaker condition. The fact that causal consistency can be maintained
@@ -856,8 +912,22 @@ during partitions suggests it is too weak. Indeed, there are no
 guarantees about the difference in values for $x$ and $y$ across the
 two replicas.
 
+\begin{definition}
+    FIFO consistency. This also called \emph{pipelined random access memory} or PRAM.
+\end{definition}
+
+It is easy to see that causal consistency already implies FIFO
+consistency. Figure REF demonstrates that the reverse need not
+hold. As a weaker model, FIFO consistency cannot bound the divergence
+between two replicas of a data object.
+
 # Desiderata
 \label{sec:des}
+
+Having discussed some of the fundamental distributed systems issues
+that arise under real-world network conditions, we turn our attention
+to three desiderata we will use to frame and analyze the models
+discussed in Sections \ref{sec:contcons} and \ref{sec:sheaf}.
 
 The CAP theorem, and others like it, place fundamental limitations on
 the consistency of real-world distributed systems. In the absense of a
@@ -920,7 +990,7 @@ often that nodes which are nearby have a stronger need to coordinate
 their actions than nodes which are far away. For example, consider
 manoeauvering airplanes to avoid crash.
 
-# Continuous Continuous and the Conit Framework
+# Continuous consistency and the conit framework
 \label{sec:contcons}
 
 Strong consistency is a discrete proposition: an application provides
@@ -963,86 +1033,68 @@ notion of measuring $\epsilon$, while practicality means enforcing
 consistency in a way that can exploit weakened consistency
 requirements to offer better overall performance.
 
-## TACT system model
 
-- As in Section \ref{subsec:system_model}, we assume a distributed set
-  of processes collaborate to maintain local replicas of a shared data
-  object such as a database. Processes accept read and write requests
-  from clients to update items, and they communicate with each other
-  to ensure to ensure that all replicas remain consistent. Formally,
-  consistency is defined by some *consistency semantics.*
-
-- However, access to the data store is mediated by a middleware
-  library, which sits between the local copy of the replica and the
-  client. At a high level, TACT will allow an operation to take place
-  if it does not violate user-specific consistency bounds. If allowing
-  an operation to proceed would violate consistency constraints, the
-  operation blocks until TACT synchronizes with one or more other
-  remote replicas. The operation remains blocked until TACT ensures
-  that executing it would not violate consistency requirements.
-
-
-$$\textrm{Consistency} = \langle \textrm{Numerical error, \textrm{Order error}, \textrm{Staleness}} \rangle.$$
-
-
-  Processes forward accesses to TACT, which handles commiting them to
-  the store. TACT may not immediately process the request---instead it
-  may need to coordinate with other processes to enforce
-  consistency. When write requests are processed (i.e. when a response
-  is sent to the originating client), they are only commited in a
-  \emph{tenative} state. Tentative writes eventually become fully
-  committed at some point in the future, but when they are commited,
-  they may be reordered. After fullying committing, writes are in a
-  total order known to all processes.
-
-
-- TACT mediates and provides bounds on numerical/order/time
-  consistency. For each read access $R$, for each conit $F$, the
-  consistency of the return value is measured along a
-  three-dimensional vector:
-
-- A write access $W$ can separately quantify its *numerical weight*
-  and *order weight* on conit $F$. Application programmers have
-  multiple forms of control:
-
-- By defining conits
-
-- By defining the weight various updates have on each conit
-
-- Consistency is enforced by the application by setting bounds on the
-  consistency of read accesses. The TACT framework then enforces these
-  consistency levels.
-
-- The *self-determination* property states that TACT correctly
-  enforces the consistency requirements of each read access, i.e. each
-  individual read request can determine its acceptable levels of
-  consistency. In general, all other things being equal, requests with
-  higher consistency constraints will take longer to return.
+- The tradeoff of CAP is a continuous spectrum between linearizability
+  and high-availability. More importantly, it can be tuned in real
+  time.
 
 - TACT captures neither CAP-consistency (i.e. neither atomic nor
   sequential consistency) nor CAP-availability (read and write
   requests may be delayed indefinitely if the system is unable to
   enforce consistency requirements because of network issues).
 
-- The tradeoff of CAP is a continuous spectrum between linearizability
-  and high-availability. More importantly, it can be tuned in real
-  time.
+## TACT system model
+
+As in Section \ref{sec:background}, we assume a distributed set of
+processes collaborate to maintain local replicas of a shared data
+object such as a database. Processes accept read and write requests
+from clients to update items, and they communicate with each other to
+ensure to ensure that all replicas remain consistent.
+
+However, access to the data store is mediated by a middleware library,
+which sits between the local copy of the replica and the client. At a
+high level, TACT will allow an operation to take place if it does not
+violate user-specific consistency bounds. If allowing an operation to
+proceed would violate consistency constraints, the operation blocks
+until TACT synchronizes with one or more other remote replicas. The
+operation remains blocked until TACT ensures that executing it would
+not violate consistency requirements.
+
+$$\textrm{Consistency} = \langle \textrm{Numerical error, \textrm{Order error}, \textrm{Staleness}} \rangle.$$
+
+Processes forward accesses to TACT, which handles commiting them to
+the store. TACT may not immediately process the request---instead it
+may need to coordinate with other processes to enforce
+consistency. When write requests are processed (i.e. when a response
+is sent to the originating client), they are only commited in a
+\emph{tenative} state. Tentative writes eventually become fully
+committed at some point in the future, but when they are commited,
+they may be reordered. After fullying committing, writes are in a
+total order known to all processes.
 
 
-## Enforcing consistency
+\begin{figure}[h]
+  \center
+  \includegraphics[scale=0.4]{images/TACT Logs.png}
+  \caption{Snapshot of two local replicas using TACT}
+  \label{fig:tact_logs}
+\end{figure}
 
-### Numerical consistency
 
-We describe split-weight AE.
+A write access $W$ can separately quantify its *numerical weight* and
+*order weight* on conit $F$. Application programmers have multiple
+forms of control:
 
-Yu and Vahdat also describe two other schemes for bounding numerical
-error. One, compound AE, bounds absolute error trading space for
-communication overhead. In their simulations, they found minimal
-benefits to this tradeoff in general. It is possible that for specific
-applications the savings are worth it. They also consider a scheme,
-Relative NE, which bounds the relative error.
+Consistency is enforced by the application by setting bounds on the
+consistency of read accesses. The TACT framework then enforces these
+consistency levels.
 
-### Order consistency
+## Measuring consistency on conits
+
+#### Numerical consistency
+
+
+#### Order consistency
 
 When the number of tentative (uncommitted) writes is high, TACT
 executes a write commitment algorithm. This is a *pull-based* approach
@@ -1050,7 +1102,24 @@ which pulls information from other processes in order to advance
 $P_i$'s vector clock, raising the watermark and hence allowing $P_i$
 to commit some of its writes.
 
-### Real time consistency
+#### Real time consistency
+
+## Enforcing inconsistency bounds
+
+#### Numerical consistency
+
+We describe split-weight AE.
+Yu and Vahdat also describe two other schemes for bounding numerical
+error. One, compound AE, bounds absolute error trading space for
+communication overhead. In their simulations, they found minimal
+benefits to this tradeoff in general. It is possible that for specific
+applications the savings are worth it. They also consider a scheme,
+Relative NE, which bounds the relative error.
+
+#### Order consistency
+
+
+#### Real time consistency
 
 ## Future work
 
