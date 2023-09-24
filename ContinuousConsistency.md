@@ -9,16 +9,17 @@ abstract: |
   coordination by passing messages over a communication network.
   However, the operating environment will not admit reliable
   high-bandwidth communication between all agents, introducing
-  theoretical and practical obstructions to coordination and therefore
-  to enforcing safety properties. This self-contained memo surveys
+  theoretical and practical obstructions to global consistency that make it more difficult
+  to maintain safety-related invariants. This self-contained memo discusses
   some of the distributed systems challenges involved in system-wide
-  safety and introduces two topics in the literature that may offer
-  solutions. Both topics emphasize *continuous* notions of
-  consistency. Unlike weak consistency models, continuous consistency
-  provides hard upper bounds on the level of inconsistency observable
-  by clients.  Unlike strong consistency, it accomodates real-world
-  conditions, allowing some amount of liveness even in the presence
-  of network partitions. We conclude that continuous consistency
+  safety, focusing on the practical shortcomings of both strong and weak consistency models for shared memory.
+  Then we survey two *continuous* consistency models that come from different parts of the literature.
+  Unlike weak consistency models, continuous consistency models
+  provides hard upper bounds on the "amount'' of inconsistency observable
+  by clients.  Unlike strong consistency, these models are flexible enough to accomodate real-world
+  conditions, such as by providing liveness during brief network partitions or tolerating
+  disagreements between sensors in a sensor network.
+  We conclude that continuous consistency
   models are appropriate for analyzing safety-critical systems that operate
   without strong guarantees about network performance.
 ---
@@ -103,39 +104,39 @@ distributed systems deployed in the field.  A more nuanced view is
 that the theorem observes a fundamental *tradeoff* between consistency
 and availability; this tradeoff is amplified by suboptimal network
 performance. While the CAP theorem rules out highly idealized systems
-that maintain strong consistency and high availability in spite of
-network connectivity issues, it does not inherently rule out systems
-that typically provide moderate amounts of both.
+that maintain strong consistency and high availability except under
+perfect network conditions, it does not inherently rule out systems
+that maintain adequate levels of both consistency and performance under
+realistic conditions.
 
-What does it mean to have an "amount" of consistency? This idea is
-made precise by continuous consistency models, i.e. formal measures of
-consistency as a continuous value rather than a discrete
-proposition. This memo describes two continuous consistency models in
-the literature, both of which measure consistency as an upper bound on
-some measured amount of *inconsistency,* for some flexible and
-quantitative definition and of what it means for objects to be
-mutually inconsistent. One model, the theory of *conits*, comes from
-research into distributed shared memory. The other, *sheaf-theoretic
-data fusion*, comes from research in data integration and sensor
-networks. Both define consistency as something which, in principle,
-can vary smoothly. At one extreme, both models describe a form of
-"perfect" consistency that cannot usually be expected in real
-applications. At the other extreme, one has no guarantee about the
-mutual consistency of two objects. In the middle, the models place
-upper bounds on the divergence between related data objects.
+What does it mean to have an "amount" of consistency? The idea is made
+precise by continuous consistency models, or formal measures of
+(in)consistency as a continuous value rather than a Boolean
+condition. This memo describes two continuous consistency models in
+the literature. Both define consistency as an upper bound on the
+amount of *inconsistency* between objects, though the models are
+concerned with different kinds of objects. One model, the theory of
+*conits*, comes from research into distributed shared memory. The
+other, *sheaf-theoretic data fusion*, comes from research in data
+integration and sensor networks. Both define consistency as something
+which, in principle, varies smoothly. At one extreme, both models
+describe a form of "perfect" consistency that cannot usually be
+expected in real applications. At the other extreme, the models
+enforce no guarantees. In the middle, they place upper bounds on
+the divergence between related data objects.
 
-It stands to reason that quantitative measurements of consistency
-should in turn offer quantitative measurements of safety. One potential
-application of having a continuous consistency model is to evaluate
-objectively whether the amount of safety provided by a distributed
-system is within tolerable limits, despite an inability to maintain
-strong consistency. Of course, the CAP theorem implies that network
-performance can become so poor that a system cannot provide tolerable
-safety levels while maintaining availability. When adequate safety
-margins cannot be enforced, authorities can decide to take fewer
-risks. What is centrally important is to know *how much* safety one
-has, and that is (hopefully) what is provided by the models described
-in this document.
+Broadly speaking, it stands to reason that quantitative measurements
+of consistency should in turn offer quantitative measurements of
+safety. One potential application of having a continuous consistency
+model is therefore to compute the amount of safety provided by a
+deployed system and enforce this value to within tolerable limits.  As
+we see in Section \ref{sec:background}, the CAP theorem implies that
+network performance can become so poor that a system cannot provide
+tolerable safety levels while maintaining availability. When adequate
+safety margins cannot be enforced, authorities can decide to take
+fewer risks. What is centrally important is to know *how much* safety
+one has, and that is (hopefully) what is provided by the models
+described in this document.
 
 ## Layout of this document
 
@@ -266,7 +267,7 @@ weaker notions of consistency. This makes applications more difficult
 to reason about, as their behavior may depend on uncontrollable
 factors in the environment. As fewer behaviors can be ruled out, it
 becomes more difficult to ensure the system maintains safety-related
-constraints.
+invariants.
 
 The difficulty of enforcing strong consistency is that it requires
 system nodes to coordinate by exchanging information. Absence of a
@@ -311,7 +312,7 @@ is sent back to the client. The value $E.t - E.s$ is the
   \label{fig:request}
 \end{figure}
 
-While handling the request, the process may coordinate with with other
+While handling the request, the process may coordinate with other
 processes in the background by sending and receiving more
 messages. For example, the process may propagate the client's request
 to other processes, retrieve up-to-date values from other processes to
@@ -324,8 +325,7 @@ observed by clients. We shall consider the full set of events across a
 distributed system, such as shown in Figure
 \ref{fig:externalorder}. This is called an *execution*. Consistency
 models constrain the set of allowable return values in response to
-clients' requests to read globally-shared values, such as queries to a
-system-wide database.
+clients' requests.
 
 As is often the case, we shall assume that requests handled by a
 single process do not overlap in time. This can be enforced with local
@@ -1090,15 +1090,44 @@ manoeauvering airplanes to avoid crash.
 Strong consistency is a discrete proposition: an application provides
 strong consistency or it does not. For many real-world applications,
 it evidently makes sense to work with data that is consistent up to
-some $\epsilon \in \mathbb{R}^{\geq 0}$, but this requires having some
-more or less application-specific, quantitative notion of divergence
-between replicas. For a weather broadcast, it may be acceptable if
-information about the current weather is 2 minutes out of date, but
-unacceptable if it is 2 hours out of date. For information about the
-current number of available resources, it may be acceptable if the
-user observes a value within $10$ of the actual number, or if the
-value is a conservative estimate (possibly lower but not higher than
-the actual amount).
+some $\epsilon \in \mathbb{R}^{\geq 0}$. Thus, we shift from thinking
+about consistency as an all-or-nothing condition, towards consistency
+as a bound on inconsistency.
+
+The definition of $\epsilon$ evidently requires a more or less
+application-specific notion of divergence between replicas of a shared
+data object. Take, say, an application for disseminating the most
+up-to-date visualization of the location of a fire front. It may be
+acceptable if this information appears 5 minutes out of date to a
+client, but unacceptable if it is 30 minutes out of date. That is, we
+could measure consistency with respect to *time*. One should expect
+the exact tolerance for $\epsilon$ will be depend very much on the
+client, among other things. For example, firefighters who are very
+close to a fire have a lower tolerance for stale information than a
+central client keeping only a birds-eye view of several fire fronts
+simultaneously.
+
+Now suppose many disaster-response agencies coordinate with to update
+and propagate information about the availability of resources. A
+client may want to lookup the number of vehicles of a certain type
+that are available to be dispatched within a certain geographic range.
+We may stipulate that the value read by a client should always be $4$
+of the actual number, i.e. we could measure inconsistency with respect
+to some numerical value.
+
+In the last example, the reader may wonder we should tolerate a client
+to read a value that is incorrect by 4, when clearly it is better to
+be incorrect by 0. Intuitively, the practical benefit of tolerating
+weaker values is to tolerate a greater level of imperfection in
+network communications. For example, suppose Alice and Bob are
+individually authorized to dispatch vehicles from a shared pool. In
+the event that they cannot share a message.
+
+Or, would could ask that the the value is a conservative estimate,
+possibly lower but not higher than the actual amount. In these
+examples, we measure inconsistency in terms of a numerical value.
+
+As a third example,
 
 By varying $\epsilon$, one can imagine consistency as a continuous
 spectrum. In light of the CAP theorem, we should likewise expect that
