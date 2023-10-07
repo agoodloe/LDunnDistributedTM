@@ -1,7 +1,7 @@
 ;; -*- mode: emacs-lisp -*-
 
-;; pandoc-mode local settings file for Outline.md
-;; saved on 2023.03.29 19:20
+;; pandoc-mode local settings file for ContinuousConsistency.md
+;; saved on 2023.10.07 14:23
 
 ((mathml)
  (mathjax)
@@ -240,7 +240,7 @@
   ("tex_math_double_backslash")
   ("tex_math_single_backslash")
   ("yaml_metadata_block"))
- (output)
+ (output . "ContinuousConsistency.tex")
  (data-dir)
  (defaults)
  (extract-media)
