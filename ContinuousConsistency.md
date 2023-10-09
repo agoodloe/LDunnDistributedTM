@@ -27,29 +27,48 @@ abstract: |
 # Introduction
 
 Civil aviation has traditionally focused primarily on the efficient
-and safe transportation of people and goods via the airspace. Owing to
-the application of sound engineering practices and conservative
-operating procedures, flying is today the safest mode of
-transport. The desire not to compromise this safety makes it
-challenging to introduce uncrewed vehicles into the airspace. To that
-end, the NASA Aeronautics' Airspace Operations and Safety Program
+and safe transportation of people and goods via the airspace. Despite
+the inherent risks, the application of sound engineering practices and
+conservative operating procedures has made flying the safest mode of
+transport today. Now the desire not to compromise this safety makes it
+difficult to integrate unmanned vehicles into the airspace, accomodate
+new applications, and keep pace with the rapid growth in aviation. To
+that end, the NASA Aeronautics' Airspace Operations and Safety Program
 (AOSP) System Wide Safety (SWS) project has been investigating how
 crewed and uncrewed aircraft may safely operate in shared
-airspace. Wildfire suppression and hurricane relief are being studied
-as motivating use cases, in part because the rules for operating in
-the US national airspace are typically relaxed during natural
-disasters and relief efforts.
+airspace. This memo surveys some of the particular distributed
+computing challenges raised in this area and the methods that may
+prove useful in overcoming them.
 
-Disaster response scenarios present unique challenges for safe
-operations. Of fundamental importance is the need for system-wide
-coordination in spite of an unpredictable communications
-environment. Designing systems that are resilient to these sorts of
+Our primary motivating use cases have been taken from civil emergency
+response scenarios, especially wildfire suppression and hurricane
+relief. The motivation for this choice is two-fold: first, the rules
+for operating in the US national airspace are typically relaxed during
+natural disasters and relief efforts. Second, these settings are an
+excellent microcosm for the sorts of general challenges faced by
+non-emergency applications. Operations in disaster response are
+hampered by a challenging communications environment, the causes of
+which can be several in number: remote locations, damaged
+infrastructure, harsh weather, and limited battery power, to name a
+few. From a networking perspective, these factors lead to heavy packet
+loss and significant delays. In turn, from a systems perspective,
+unreliable communications present challenges for coordination among
+distributed agents, which typically takes the form of enforcing
+consistency on data that has been replicated across multiple locations
+for efficiency. Finally, from a civil agency perspective, an inability
+to coordinate agents makes it difficult to enforce safety conditions,
+as safe operations typically require agents to act with reasonably
+up-to-date information about the other agents in the system.
+
+Designing systems that are resilient to these sorts of
 environments is a challenge for distributed computing, a subdiscipline
 of computer science. This purpose of this memorandum is to enumerate
 some of the considerations involved in coordinating air- and
 ground-based elements from a distributed computing perspective,
 identifying challenges, potential requirements, and frameworks that
 suggest possible solutions.
+
+## Protocols
 
 Traditionally, civil aviation has employed simple communication
 patterns between airborne and ground-based agents and among
@@ -205,7 +224,7 @@ principled mathematical framework of sheaf theory.
 Section \ref{sec:conclusion} concludes with suggestions for future
 work.
 
-# Distributed systems and consistency models
+# Distributed systems
 \label{sec:background}
 
 A distributed system, broadly construed, is a collection of
@@ -402,83 +421,7 @@ processes may not be comparable. Additionally, even systems that
 enforce linearizable consistency (c.f. Section \ref{sec:atomic}) do not
 necessarily handle requests in order of their physical start times.
 
-### Physical communications
-
-The details of the physical communication between processes is outside
-the scope of this memo. We make just a few high-level observations
-about the possibilities, as the details of the network layer are
-likely to have an impact on distributed applications, such as the
-shared memory abstraction we discuss below and in Section
-\ref{sec:contcons}. For such applications, it may be important to
-optimize for the sorts of usage patterns encountered in real
-scenarios, which are affected by (among other things) the low-level
-details of the network.
-
-The *celluar* model (Figure \ref{fig:centralized}) assumes nodes are
-within range of a powerful, centralized transmission station that
-performs routing functions. Message passing takes place by
-transmitting to the base station (labeled $R$), which routes the
-message to its destination. Such a model could be supported by the
-ad-hoc deployment of portable cellphone towers transported into the
-field, for instance.
-
-The *ad-hoc* model (Figure \ref{fig:decentralized}) assumes nodes
-communicate by passing messages directly to each other. This requires
-nodes to maintain information about things like routing and the
-approximate location of other nodes in the system, increasing
-complexity and introducing a possible source of
-inconsistency. However, it may be more workable given (i) the
-geographic mobility of agents in our scenarios (ii)
-difficult-to-access locations that prohibit setting up communication
-towers (iii) the inherent need for system flexibility during disaster
-scenarios.
-
-\begin{figure}
-     \centering
-     \begin{subfigure}[b]{0.48\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{images/Centralized.png}
-         \caption{Cellular network topology}
-         \label{fig:centralized}
-     \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.48\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{images/Decentralized.png}
-         \caption{Ad-hoc network topology}
-         \label{fig:decentralized}
-     \end{subfigure}
-        \caption{Network topology models for geodistributed agents. Edges represent communication links (bidirectional for simplicity).}
-        \label{fig:nettopology}
-\end{figure}
-
-One can also imagine hybrid models, such as an ad-hoc arrangement of
-localized cells. In general, one expects more centralized topologies
-to be simpler for application developers to reason about, but to
-require more physical infrastructure and support. On the other hand,
-the ad-hoc model is more fault resistant, but more complicated to
-implement and potentially offering fewer assurancess about
-performance. In either case, higher-level applications such as shared
-memory abstractions should be tuned for the networking environment. It
-would be even better if this tuning can take place dynamically, with
-applications reconfiguring manually or automatically to the
-particulars of the operating environment. This requires examining the
-relationship between the application and networking layers, rather
-than treating them as separate blackboxes.
-
-An interesting possibility is for the *network* to automatically
-configure itself to the quality-of-service needs of the
-application. For example, a client that receives a lot of requests may
-be marked as a preferred client and given higher-priority access to
-the network. If UAV vehicles can be used to route messages by acting
-as mobile transmission base stations, one can imagine selecting a
-flight pattern based on networking needs. For example, if the
-communication between two firefighting teams is obstructed by a
-geographical feature, a UAV could be dispatched to provide overhead
-communication support. Such an arrangement could greatly blur the line
-between the networking and application layers.
-
-## Linearizability and the CAP theorem
+## Linearizability and sequential consistency
 \label{sec:atomic}
 
 A fundamental distributed application is the *shared distributed
@@ -626,136 +569,8 @@ the originating replica must not handle its own read requests until
 time they are first submitted to the total order broadcast
 mechanism.
 
-### The CAP Theorem
 
-Real-world systems often fall short of behaving as a single perfectly
-coherent system. The root of this phenomenon is a deep and
-well-understood tradeoff between system coherence and
-performance. Enforcing consistency comes at the cost of additional
-communications, and communications impose overheads, often
-unpredictable ones.
-
-Fox and Brewer [@1999foxbrewer] are crediting with observing a
-particular tension between the three competing goals of consistency,
-availability, and partition-tolerance. This tradeoff was precisely
-stated and proved in 2002 by Gilbert and Lynch
-[@2002gilbertlynchCAP]. The theorem is often somewhat misunderstood,
-as we discuss, so it is worth clarifying the terms used.
-
-#### Consistency
-Gilbert and Lynch define a consistency system as one whose executions
-are always linearizable.
-
-#### Availability
-A CAP-available system is one that will definitely respond to every
-client request at some point.
-
-#### Partition tolerance
-A partition-tolerant system continues to function, and ensure whatever
-guarantees it is meant to provide, in the face of arbitrary partitions
-in the network (i.e., an inability for some nodes to communicate with
-others). It is possible that a partition never recovers, say if a
-critical communications cable is permanently severed.
-
-A partition-tolerant CAP-available system cannot indefinitely suspend
-handling a request to wait for network activity like receiving a
-message. In the event of a partition that never recovers, this would
-mean the process could wait indefinitely for the partition to heal,
-violating availability. On the other hand, a CAP-consistent system is
-not allowed to return anything but the most up-to-date value in
-response to client requests. Keep in mind that any (other) process may
-be the originating replica for an update. Some reflection shows that
-the full set of requirements is unattainable---a partition tolerant
-system simply cannot enforce both consistency and availability.
-
-\begin{theorem}[The CAP Theorem]
-	\label{thm:cap}
-    In the presense of indefinite network partitions, a distributed system
-    cannot guarantee both linearizability and eventual-availability.
-\end{theorem}
-\begin{proof}
-Technically, the proof is almost trivial. We give only the informal
-sketch here, leaving the interested reader to consult the more formal
-analysis by Gilbert and Lynch. The key technical assumption is that a
-processes' behavior can only be influenced by the messages it actually
-receives---it cannot be affected by messages that are sent to it but
-never delivered.
-
-In Figure \ref{fig:linear_example11}, suppose the two processes are on
-opposite sides of a network partition, so that no information can be
-exchanged between them (even indirectly through a third party). If we
-just consider the execution of $P_2$ by itself, without $P_1$,
-linearizability would require it to read the value $2$ for $y$. If we
-do consider $P_1$, linearizability requires that the read access to
-$y$ must return $1$. But if $P_2$ cannot send messages to $P_1$, then
-$P_2$'s behavior cannot be influenced by the write access to $y$, so
-it would still have to return $2$, violating
-consistency. Alternatively, it could delay returning any result until
-it is able to exchange messages with $P_1$. But if the partition never
-recovers, $P_1$ will wait forever, violating availability.
-\end{proof}
-
-While the proof of the CAP theorem is simple, its interpretation is
-subtle and has been the subject of much discussion in the years since
-[@2012CAP12Years]. It is sometimes assumed that the CAP theorem claims
-that a distributed system can only offer two of the properties C, A,
-and P. In fact, the theorem constrains, but does not prohibit the
-existence of, applications that apply some relaxed amount of all three
-features. The CAP theorem only rules out their combination when all
-three are interpreted in a highly idealized sense.
-
-In practice, applications can tolerate much weaker levels of
-consistency than linearizability. Furthermore, network partitions are
-usually not as dramatic as an indefinite communications blackout. Real
-conditions in our context are likely to be chaotic, featuring many
-smaller disruptions and delays and sometimes larger
-ones. Communications between different clients may be affected
-differently, with nearby agents generally likely to have better
-communication channels between them than agents that are far
-apart. Finally, CAP-availability is a suprisingly weak
-condition. Generally one cares about the actual time it takes to
-handle user requests, but the CAP theorem exposes difficulties just
-ensuring the system handles requests at all. Altogether, the extremes
-of C, A, and P in the CAP theorem are not the appropriate conditions
-to apply to many, perhaps most, real-world applications.
-
-Broadening our perspective, the tension between consistency and
-availability is a prototypical example of a deeper tension in
-computing: that between safey and liveness properties
-[@10.1145/5505.5508; @2012perspectivesCAP]. These terms can be
-understood as follows.
-
-- **Safety** properties ensure that a system avoids doing something ``bad''
-like violating a consistency invariant. Taken to the extreme, one way
-to ensure safety is to do nothing. For instance, we could enforce
-safety by never responding to read requests in order to avoid offering
-information that is inconsistent with that of other nodes.
-
-- **Liveness** properties ensure that a system will eventually do something
-``good'', like respond to a client. Taken to the extreme, one very
-lively behavior would be to immediately respond to user requests,
-without taking any steps to make sure this response is consistent with
-that of other nodes.
-
-Note that in our use cases, an unresponsive system could arguably be
-"unsafe." The distinction between the terms in this narrow context is
-that "safety" constrains a system's allowable responses to clients, if
-one is even given, while liveness requires giving responses. The fact
-that both of these have implications for human safety is one more
-reason to prefer continuous consistency models over CAP-unavailabile
-models like linearizability.
-
-Because of the tension between them, building applications that
-provide both safety and liveness features is challenging. The
-fundamental tradeoff is that if we want to increase how quickly a
-system can respond to requests, eventually we must relax our
-constraints on what the system is allowed to return.
-
-Next we consider a slightly more relaxed consistency model that admits
-a greater range of system behaviors while maintaining the total order
-guarantees of atomic consistency.
-
-## Sequential consistency
+### Sequential consistency
 
 \begin{figure}
      \begin{subfigure}[a]{1\textwidth}
@@ -884,7 +699,109 @@ is that each process can handle requests immediately, returning its
 local replica value, instead of waiting for the broadcast mechanism to
 assign a global order to the read request.
 
-#### CAP unavailability
+
+## The CAP Theorem
+
+Real-world systems often fall short of behaving as a single perfectly
+coherent system. The root of this phenomenon is a deep and
+well-understood tradeoff between system coherence and
+performance. Enforcing consistency comes at the cost of additional
+communications, and communications impose overheads, often
+unpredictable ones.
+
+Fox and Brewer [@1999foxbrewer] are crediting with observing a
+particular tension between the three competing goals of consistency,
+availability, and partition-tolerance. This tradeoff was precisely
+stated and proved in 2002 by Gilbert and Lynch
+[@2002gilbertlynchCAP]. The theorem is often somewhat misunderstood,
+as we discuss, so it is worth clarifying the terms used.
+
+#### Consistency
+Gilbert and Lynch define a consistency system as one whose executions
+are always linearizable.
+
+#### Availability
+A CAP-available system is one that will definitely respond to every
+client request at some point.
+
+#### Partition tolerance
+A partition-tolerant system continues to function, and ensure whatever
+guarantees it is meant to provide, in the face of arbitrary partitions
+in the network (i.e., an inability for some nodes to communicate with
+others). It is possible that a partition never recovers, say if a
+critical communications cable is permanently severed.
+
+A partition-tolerant CAP-available system cannot indefinitely suspend
+handling a request to wait for network activity like receiving a
+message. In the event of a partition that never recovers, this would
+mean the process could wait indefinitely for the partition to heal,
+violating availability. On the other hand, a CAP-consistent system is
+not allowed to return anything but the most up-to-date value in
+response to client requests. Keep in mind that any (other) process may
+be the originating replica for an update. Some reflection shows that
+the full set of requirements is unattainable---a partition tolerant
+system simply cannot enforce both consistency and availability.
+
+### CAP theorem for linearizability
+
+\begin{theorem}[The CAP Theorem]
+	\label{thm:cap}
+    In the presense of indefinite network partitions, a distributed system
+    cannot guarantee both linearizability and eventual-availability.
+\end{theorem}
+\begin{proof}
+Technically, the proof is almost trivial. We give only the informal
+sketch here, leaving the interested reader to consult the more formal
+analysis by Gilbert and Lynch. The key technical assumption is that a
+processes' behavior can only be influenced by the messages it actually
+receives---it cannot be affected by messages that are sent to it but
+never delivered.
+
+In Figure \ref{fig:linear_example11}, suppose the two processes are on
+opposite sides of a network partition, so that no information can be
+exchanged between them (even indirectly through a third party). If we
+just consider the execution of $P_2$ by itself, without $P_1$,
+linearizability would require it to read the value $2$ for $y$. If we
+do consider $P_1$, linearizability requires that the read access to
+$y$ must return $1$. But if $P_2$ cannot send messages to $P_1$, then
+$P_2$'s behavior cannot be influenced by the write access to $y$, so
+it would still have to return $2$, violating
+consistency. Alternatively, it could delay returning any result until
+it is able to exchange messages with $P_1$. But if the partition never
+recovers, $P_1$ will wait forever, violating availability.
+\end{proof}
+
+While the proof of the CAP theorem is simple, its interpretation is
+subtle and has been the subject of much discussion in the years since
+[@2012CAP12Years]. It is sometimes assumed that the CAP theorem claims
+that a distributed system can only offer two of the properties C, A,
+and P. In fact, the theorem constrains, but does not prohibit the
+existence of, applications that apply some relaxed amount of all three
+features. The CAP theorem only rules out their combination when all
+three are interpreted in a highly idealized sense.
+
+In practice, applications can tolerate much weaker levels of
+consistency than linearizability. Furthermore, network partitions are
+usually not as dramatic as an indefinite communications blackout. Real
+conditions in our context are likely to be chaotic, featuring many
+smaller disruptions and delays and sometimes larger
+ones. Communications between different clients may be affected
+differently, with nearby agents generally likely to have better
+communication channels between them than agents that are far
+apart. Finally, CAP-availability is a suprisingly weak
+condition. Generally one cares about the actual time it takes to
+handle user requests, but the CAP theorem exposes difficulties just
+ensuring the system handles requests at all. Altogether, the extremes
+of C, A, and P in the CAP theorem are not the appropriate conditions
+to apply to many, perhaps most, real-world applications.
+
+
+### CAP theorem for sequential consistency
+
+Next we consider a slightly more relaxed consistency model that admits
+a greater range of system behaviors while maintaining the total order
+guarantees of atomic consistency.
+
 Sequential consistency is a relaxation of atomic consistency, but not
 by much. The model is still too strict to enforce under partition
 conditions.
@@ -922,7 +839,287 @@ As discussed in [@2019wideningcap], this stronger theorem was
 essentially proved by Birman and Friedman [@10.5555/866855], before
 the CAP theorem.
 
-## Causal and FIFO (PRAM) consistency
+### Fundamental tradeoffs
+
+Broadening our perspective, the tension between consistency and
+availability is a prototypical example of a deeper tension in
+computing: that between safey and liveness properties
+[@10.1145/5505.5508; @2012perspectivesCAP]. These terms can be
+understood as follows.
+
+- **Safety** properties ensure that a system avoids doing something ``bad''
+like violating a consistency invariant. Taken to the extreme, one way
+to ensure safety is to do nothing. For instance, we could enforce
+safety by never responding to read requests in order to avoid offering
+information that is inconsistent with that of other nodes.
+
+- **Liveness** properties ensure that a system will eventually do something
+``good'', like respond to a client. Taken to the extreme, one very
+lively behavior would be to immediately respond to user requests,
+without taking any steps to make sure this response is consistent with
+that of other nodes.
+
+Note that in our use cases, an unresponsive system could arguably be
+"unsafe." The distinction between the terms in this narrow context is
+that "safety" constrains a system's allowable responses to clients, if
+one is even given, while liveness requires giving responses. The fact
+that both of these have implications for human safety is one more
+reason to prefer continuous consistency models over CAP-unavailabile
+models like linearizability.
+
+Because of the tension between them, building applications that
+provide both safety and liveness features is challenging. The
+fundamental tradeoff is that if we want to increase how quickly a
+system can respond to requests, eventually we must relax our
+constraints on what the system is allowed to return.
+
+
+
+## Desiderata for emergency response
+\label{sec:des}
+
+Having discussed some of the fundamental distributed systems issues
+that arise under real-world network conditions, we turn our attention
+to three desiderata we will use to frame and analyze the models
+discussed in Sections \ref{sec:contcons} and \ref{sec:sheaf}.
+
+The CAP theorem, and others like it, place fundamental limitations on
+the consistency of real-world distributed systems. In the absense of a
+"perfect" system, engineers are forced to make tradeoffs. Ideally,
+these tradeoffs should be tuned for the specific application in
+mind---a protocol that works well in a datacenter might not work well
+in a heterogeneous geodistributed setting. This section lists three
+desirable features of distributed systems and frameworks for reasoning
+about or implementing them. We chose this set based on the particular
+details of civil aviation and disaster response, where safety is a
+high priority and usage/communication patterns may be unpredictable.
+
+### D1: Quantifiable bounds on inconsistency
+
+\emph{A distributed application should quantify the amount of
+consistency it delivers. That is, it should (1) provide a mathematical
+way of measuring inconsistency between system nodes, and (2) bound
+this value while the system is available.}
+
+The CAP theorem implies that an available data replication application
+cannot bound inconsistency in all circumstances. When bounded
+inconsistency cannot be guaranteed, a system satisfying D1 may become
+unavailable. Alternatively, a reasonable behavior would be to continue
+providing some form of availability, but alert the user that due to
+network and system use conditions the requisite level of consisteny
+cannot be guaranteed by the application, leaving the user with the
+choice to assess the risk and continue using the system with a weaker
+safety guarantees.
+
+### D2: Accommodation of heterogeneous nodes
+
+\emph{An application should not assume that there is a typical system
+node. Instead, the system should accomdate a diverse range of
+heterogeneous clients presenting different capabilities, tasks, and
+risk-factors.}
+
+One can expect a variety of hardware in the field. For example,
+wildfires often involve responses from many different fire
+departments, and it must be assumed that they are not always using
+identical systems. Different participants in the system may be solving
+different tasks, with different levels of access to the network, and
+they present different risks. With these sorts of factors in mind, one
+should hope for frameworks that are as general as possible to
+accomodate a wide variety of clients.
+
+### D3: Optimization for a geodistributed wide area network
+
+\emph{An application should be optimized for the sorts of
+communication patterns that occur in geodistributed wide area networks
+(WANs) under real-world conditions.}
+
+Consider two incidents. Wouldn't want to enforce needless global
+consistency, particularly if the agents in one area do not have the
+same consistency requirements for another area.
+
+Network throughput has some (perhaps approximately linear)
+relationship with throughput. Communications patterns are likely far
+from uniform too. In fact, these two things likely coincide---it is
+often that nodes which are nearby have a stronger need to coordinate
+their actions than nodes which are far away. For example, consider
+manoeauvering airplanes to avoid crash.
+
+
+# Networks for Civil Emergency Response
+
+<Introduction>
+
+## Ad-hoc networking
+
+### Physical communications
+
+The details of the physical communication between processes is outside
+the scope of this memo. We make just a few high-level observations
+about the possibilities, as the details of the network layer are
+likely to have an impact on distributed applications, such as the
+shared memory abstraction we discuss below and in Section
+\ref{sec:contcons}. For such applications, it may be important to
+optimize for the sorts of usage patterns encountered in real
+scenarios, which are affected by (among other things) the low-level
+details of the network.
+
+The *celluar* model (Figure \ref{fig:centralized}) assumes nodes are
+within range of a powerful, centralized transmission station that
+performs routing functions. Message passing takes place by
+transmitting to the base station (labeled $R$), which routes the
+message to its destination. Such a model could be supported by the
+ad-hoc deployment of portable cellphone towers transported into the
+field, for instance.
+
+The *ad-hoc* model (Figure \ref{fig:decentralized}) assumes nodes
+communicate by passing messages directly to each other. This requires
+nodes to maintain information about things like routing and the
+approximate location of other nodes in the system, increasing
+complexity and introducing a possible source of
+inconsistency. However, it may be more workable given (i) the
+geographic mobility of agents in our scenarios (ii)
+difficult-to-access locations that prohibit setting up communication
+towers (iii) the inherent need for system flexibility during disaster
+scenarios.
+
+\begin{figure}
+     \centering
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{images/Centralized.png}
+         \caption{Cellular network topology}
+         \label{fig:centralized}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{images/Decentralized.png}
+         \caption{Ad-hoc network topology}
+         \label{fig:decentralized}
+     \end{subfigure}
+        \caption{Network topology models for geodistributed agents. Edges represent communication links (bidirectional for simplicity).}
+        \label{fig:nettopology}
+\end{figure}
+
+One can also imagine hybrid models, such as an ad-hoc arrangement of
+localized cells. In general, one expects more centralized topologies
+to be simpler for application developers to reason about, but to
+require more physical infrastructure and support. On the other hand,
+the ad-hoc model is more fault resistant, but more complicated to
+implement and potentially offering fewer assurancess about
+performance. In either case, higher-level applications such as shared
+memory abstractions should be tuned for the networking environment. It
+would be even better if this tuning can take place dynamically, with
+applications reconfiguring manually or automatically to the
+particulars of the operating environment. This requires examining the
+relationship between the application and networking layers, rather
+than treating them as separate blackboxes.
+
+
+## Delay-tolerant networking
+
+## Ad-hoc DTNs
+
+An interesting possibility is for the *network* to automatically
+configure itself to the quality-of-service needs of the
+application. For example, a client that receives a lot of requests may
+be marked as a preferred client and given higher-priority access to
+the network. If UAV vehicles can be used to route messages by acting
+as mobile transmission base stations, one can imagine selecting a
+flight pattern based on networking needs. For example, if the
+communication between two firefighting teams is obstructed by a
+geographical feature, a UAV could be dispatched to provide overhead
+communication support. Such an arrangement could greatly blur the line
+between the networking and application layers.
+
+## Software-defined networking
+
+## Verification of networking protocols
+
+
+# Continuous consistency for shared memory
+\label{sec:contcons}
+
+Strong consistency is a discrete proposition: an application provides
+strong consistency or it does not. For many real-world applications,
+it evidently makes sense to work with data that is consistent up to
+some $\epsilon \in \mathbb{R}^{\geq 0}$. Thus, we shift from thinking
+about consistency as an all-or-nothing condition, towards consistency
+as a bound on inconsistency.
+
+The definition of $\epsilon$ evidently requires a more or less
+application-specific notion of divergence between replicas of a shared
+data object. Take, say, an application for disseminating the most
+up-to-date visualization of the location of a fire front. It may be
+acceptable if this information appears 5 minutes out of date to a
+client, but unacceptable if it is 30 minutes out of date. That is, we
+could measure consistency with respect to *time*. One should expect
+the exact tolerance for $\epsilon$ will be depend very much on the
+client, among other things. For example, firefighters who are very
+close to a fire have a lower tolerance for stale information than a
+central client keeping only a birds-eye view of several fire fronts
+simultaneously.
+
+Now suppose many disaster-response agencies coordinate with to update
+and propagate information about the availability of resources. A
+client may want to lookup the number of vehicles of a certain type
+that are available to be dispatched within a certain geographic range.
+We may stipulate that the value read by a client should always be $4$
+of the actual number, i.e. we could measure inconsistency with respect
+to some numerical value.
+
+In the last example, the reader may wonder we should tolerate a client
+to read a value that is incorrect by 4, when clearly it is better to
+be incorrect by 0. Intuitively, the practical benefit of tolerating
+weaker values is to tolerate a greater level of imperfection in
+network communications. For example, suppose Alice and Bob are
+individually authorized to dispatch vehicles from a shared pool. In
+the event that they cannot share a message.
+
+Or, would could ask that the the value is a conservative estimate,
+possibly lower but not higher than the actual amount. In these
+examples, we measure inconsistency in terms of a numerical value.
+
+As a third example,
+
+By varying $\epsilon$, one can imagine consistency as a continuous
+spectrum. In light of the CAP theorem, we should likewise expect that
+applications with weaker consistency requirements (high $\epsilon$)
+should provide higher availability, all other things being equal.
+
+Yu and Vahdat explored the CAP tradeoff from this perspective in a
+series of papers [@2000tact; @2000tactalgorithms;
+@10.5555/1251229.1251250; @DBLP:conf/icdcs/YuV01; @2002tact]. They
+propose a theory of \emph{conits}, a logical unit of data subject to
+their three metrics for measuring consistency. By controlling the
+threshold of acceptable inconsistency of each conit as a continuous
+quantity, applications can exercise precise control the tradeoff
+between consistency and performance, trading one for the other in a
+gradual fashion.
+
+They built a prototype toolkit called TACT, which allows applications
+to specify precisely their desired levels of consistency for each
+conit. An interesting aspect of this work is that consistency can be
+tuned \emph{dynamically}. This is desirable because one does not know
+a priori how much consistency or availability is acceptable.
+
+The biggest question one must answer is the competing goals of
+generality and practicality. Generality means providing a general
+notion of measuring $\epsilon$, while practicality means enforcing
+consistency in a way that can exploit weakened consistency
+requirements to offer better overall performance.
+
+
+- The tradeoff of CAP is a continuous spectrum between linearizability
+  and high-availability. More importantly, it can be tuned in real
+  time.
+
+- TACT captures neither CAP-consistency (i.e. neither atomic nor
+  sequential consistency) nor CAP-availability (read and write
+  requests may be delayed indefinitely if the system is unable to
+  enforce consistency requirements because of network issues).
+
+  ## Causal and FIFO (PRAM) consistency
 
 Causal consistency is that each clients is consistent with a total
 order that contains the happened-before relation. It does not put a
@@ -1015,157 +1212,6 @@ consistency. Figure REF demonstrates that the reverse need not
 hold. As a weaker model, FIFO consistency cannot bound the divergence
 between two replicas of a data object.
 
-# Desiderata
-\label{sec:des}
-
-Having discussed some of the fundamental distributed systems issues
-that arise under real-world network conditions, we turn our attention
-to three desiderata we will use to frame and analyze the models
-discussed in Sections \ref{sec:contcons} and \ref{sec:sheaf}.
-
-The CAP theorem, and others like it, place fundamental limitations on
-the consistency of real-world distributed systems. In the absense of a
-"perfect" system, engineers are forced to make tradeoffs. Ideally,
-these tradeoffs should be tuned for the specific application in
-mind---a protocol that works well in a datacenter might not work well
-in a heterogeneous geodistributed setting. This section lists three
-desirable features of distributed systems and frameworks for reasoning
-about or implementing them. We chose this set based on the particular
-details of civil aviation and disaster response, where safety is a
-high priority and usage/communication patterns may be unpredictable.
-
-### D1: Quantifiable bounds on inconsistency
-
-\emph{A distributed application should quantify the amount of
-consistency it delivers. That is, it should (1) provide a mathematical
-way of measuring inconsistency between system nodes, and (2) bound
-this value while the system is available.}
-
-The CAP theorem implies that an available data replication application
-cannot bound inconsistency in all circumstances. When bounded
-inconsistency cannot be guaranteed, a system satisfying D1 may become
-unavailable. Alternatively, a reasonable behavior would be to continue
-providing some form of availability, but alert the user that due to
-network and system use conditions the requisite level of consisteny
-cannot be guaranteed by the application, leaving the user with the
-choice to assess the risk and continue using the system with a weaker
-safety guarantees.
-
-### D2: Accommodation of heterogeneous nodes
-
-\emph{An application should not assume that there is a typical system
-node. Instead, the system should accomdate a diverse range of
-heterogeneous clients presenting different capabilities, tasks, and
-risk-factors.}
-
-One can expect a variety of hardware in the field. For example,
-wildfires often involve responses from many different fire
-departments, and it must be assumed that they are not always using
-identical systems. Different participants in the system may be solving
-different tasks, with different levels of access to the network, and
-they present different risks. With these sorts of factors in mind, one
-should hope for frameworks that are as general as possible to
-accomodate a wide variety of clients.
-
-### D3: Optimization for a geodistributed wide area network
-
-\emph{An application should be optimized for the sorts of
-communication patterns that occur in geodistributed wide area networks
-(WANs) under real-world conditions.}
-
-Consider two incidents. Wouldn't want to enforce needless global
-consistency, particularly if the agents in one area do not have the
-same consistency requirements for another area.
-
-Network throughput has some (perhaps approximately linear)
-relationship with throughput. Communications patterns are likely far
-from uniform too. In fact, these two things likely coincide---it is
-often that nodes which are nearby have a stronger need to coordinate
-their actions than nodes which are far away. For example, consider
-manoeauvering airplanes to avoid crash.
-
-# Continuous consistency and the conit framework
-\label{sec:contcons}
-
-Strong consistency is a discrete proposition: an application provides
-strong consistency or it does not. For many real-world applications,
-it evidently makes sense to work with data that is consistent up to
-some $\epsilon \in \mathbb{R}^{\geq 0}$. Thus, we shift from thinking
-about consistency as an all-or-nothing condition, towards consistency
-as a bound on inconsistency.
-
-The definition of $\epsilon$ evidently requires a more or less
-application-specific notion of divergence between replicas of a shared
-data object. Take, say, an application for disseminating the most
-up-to-date visualization of the location of a fire front. It may be
-acceptable if this information appears 5 minutes out of date to a
-client, but unacceptable if it is 30 minutes out of date. That is, we
-could measure consistency with respect to *time*. One should expect
-the exact tolerance for $\epsilon$ will be depend very much on the
-client, among other things. For example, firefighters who are very
-close to a fire have a lower tolerance for stale information than a
-central client keeping only a birds-eye view of several fire fronts
-simultaneously.
-
-Now suppose many disaster-response agencies coordinate with to update
-and propagate information about the availability of resources. A
-client may want to lookup the number of vehicles of a certain type
-that are available to be dispatched within a certain geographic range.
-We may stipulate that the value read by a client should always be $4$
-of the actual number, i.e. we could measure inconsistency with respect
-to some numerical value.
-
-In the last example, the reader may wonder we should tolerate a client
-to read a value that is incorrect by 4, when clearly it is better to
-be incorrect by 0. Intuitively, the practical benefit of tolerating
-weaker values is to tolerate a greater level of imperfection in
-network communications. For example, suppose Alice and Bob are
-individually authorized to dispatch vehicles from a shared pool. In
-the event that they cannot share a message.
-
-Or, would could ask that the the value is a conservative estimate,
-possibly lower but not higher than the actual amount. In these
-examples, we measure inconsistency in terms of a numerical value.
-
-As a third example,
-
-By varying $\epsilon$, one can imagine consistency as a continuous
-spectrum. In light of the CAP theorem, we should likewise expect that
-applications with weaker consistency requirements (high $\epsilon$)
-should provide higher availability, all other things being equal.
-
-Yu and Vahdat explored the CAP tradeoff from this perspective in a
-series of papers [@2000tact; @2000tactalgorithms;
-@10.5555/1251229.1251250; @DBLP:conf/icdcs/YuV01; @2002tact]. They
-propose a theory of \emph{conits}, a logical unit of data subject to
-their three metrics for measuring consistency. By controlling the
-threshold of acceptable inconsistency of each conit as a continuous
-quantity, applications can exercise precise control the tradeoff
-between consistency and performance, trading one for the other in a
-gradual fashion.
-
-They built a prototype toolkit called TACT, which allows applications
-to specify precisely their desired levels of consistency for each
-conit. An interesting aspect of this work is that consistency can be
-tuned \emph{dynamically}. This is desirable because one does not know
-a priori how much consistency or availability is acceptable.
-
-The biggest question one must answer is the competing goals of
-generality and practicality. Generality means providing a general
-notion of measuring $\epsilon$, while practicality means enforcing
-consistency in a way that can exploit weakened consistency
-requirements to offer better overall performance.
-
-
-- The tradeoff of CAP is a continuous spectrum between linearizability
-  and high-availability. More importantly, it can be tuned in real
-  time.
-
-- TACT captures neither CAP-consistency (i.e. neither atomic nor
-  sequential consistency) nor CAP-availability (read and write
-  requests may be delayed indefinitely if the system is unable to
-  enforce consistency requirements because of network issues).
-
 ## TACT system model
 
 As in Section \ref{sec:background}, we assume a distributed set of
@@ -1246,8 +1292,7 @@ Relative NE, which bounds the relative error.
 
 ## Future work
 
-
-# Sheaf theoretic data fusion
+# Data fusion
 \label{sec:sheaf}
 
 Strong consistency models provide the abstraction of an idealized
@@ -1271,11 +1316,13 @@ sensors agree. Ideally, we could use this system to diagnose
 disagreements between sensors, identifying sensors that appear to be
 malfunctioning, or to detect abberations that necessitate a response.
 
-## Data fusion
+## Fusion centers
 
 To be written.
 
-## Presheaves
+## Sheaf theory
+
+### Introduction to presheaves
 
 \begin{definition}
 A \emph{partially order-indexed family of sets} is a family of sets indexed by a partially-ordered set,
@@ -1298,11 +1345,11 @@ A copresheaf is a *category acting on a family of sets*.
 A presheaf is a *category acting covariantly on a family of sets*.
 \end{definition}
 
-## Sheaves and assignments
+### Introduction to sheaves
 
 To be written.
 
-## The consistency radius
+### The consistency radius
 
 To be written.
 

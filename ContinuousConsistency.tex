@@ -304,9 +304,11 @@ framework of sheaf theory.
 
 Section \ref{sec:conclusion} concludes with suggestions for future work.
 
-\hypertarget{distributed-systems-and-consistency-models}{%
-\section{Distributed systems and consistency
-models}\label{distributed-systems-and-consistency-models}}
+\hypertarget{distributed-systems}{%
+\section{Distributed systems}\label{distributed-systems}}
+
+\hypertarget{distributed-systems-1}{%
+\section{Distributed systems}\label{distributed-systems-1}}
 
 \label{sec:background}
 
@@ -508,80 +510,6 @@ synchronized clocks, so timestamps from two different processes may not
 be comparable. Additionally, even systems that enforce linearizable
 consistency (c.f. Section \ref{sec:atomic}) do not necessarily handle
 requests in order of their physical start times.
-
-\hypertarget{physical-communications}{%
-\subsubsection{Physical communications}\label{physical-communications}}
-
-The details of the physical communication between processes is outside
-the scope of this memo. We make just a few high-level observations about
-the possibilities, as the details of the network layer are likely to
-have an impact on distributed applications, such as the shared memory
-abstraction we discuss below and in Section \ref{sec:contcons}. For such
-applications, it may be important to optimize for the sorts of usage
-patterns encountered in real scenarios, which are affected by (among
-other things) the low-level details of the network.
-
-The \emph{celluar} model (Figure \ref{fig:centralized}) assumes nodes
-are within range of a powerful, centralized transmission station that
-performs routing functions. Message passing takes place by transmitting
-to the base station (labeled \(R\)), which routes the message to its
-destination. Such a model could be supported by the ad-hoc deployment of
-portable cellphone towers transported into the field, for instance.
-
-The \emph{ad-hoc} model (Figure \ref{fig:decentralized}) assumes nodes
-communicate by passing messages directly to each other. This requires
-nodes to maintain information about things like routing and the
-approximate location of other nodes in the system, increasing complexity
-and introducing a possible source of inconsistency. However, it may be
-more workable given (i) the geographic mobility of agents in our
-scenarios (ii) difficult-to-access locations that prohibit setting up
-communication towers (iii) the inherent need for system flexibility
-during disaster scenarios.
-
-\begin{figure}
-     \centering
-     \begin{subfigure}[b]{0.48\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{images/Centralized.png}
-         \caption{Cellular network topology}
-         \label{fig:centralized}
-     \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.48\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{images/Decentralized.png}
-         \caption{Ad-hoc network topology}
-         \label{fig:decentralized}
-     \end{subfigure}
-        \caption{Network topology models for geodistributed agents. Edges represent communication links (bidirectional for simplicity).}
-        \label{fig:nettopology}
-\end{figure}
-
-One can also imagine hybrid models, such as an ad-hoc arrangement of
-localized cells. In general, one expects more centralized topologies to
-be simpler for application developers to reason about, but to require
-more physical infrastructure and support. On the other hand, the ad-hoc
-model is more fault resistant, but more complicated to implement and
-potentially offering fewer assurancess about performance. In either
-case, higher-level applications such as shared memory abstractions
-should be tuned for the networking environment. It would be even better
-if this tuning can take place dynamically, with applications
-reconfiguring manually or automatically to the particulars of the
-operating environment. This requires examining the relationship between
-the application and networking layers, rather than treating them as
-separate blackboxes.
-
-An interesting possibility is for the \emph{network} to automatically
-configure itself to the quality-of-service needs of the application. For
-example, a client that receives a lot of requests may be marked as a
-preferred client and given higher-priority access to the network. If UAV
-vehicles can be used to route messages by acting as mobile transmission
-base stations, one can imagine selecting a flight pattern based on
-networking needs. For example, if the communication between two
-firefighting teams is obstructed by a geographical feature, a UAV could
-be dispatched to provide overhead communication support. Such an
-arrangement could greatly blur the line between the networking and
-application layers.
 
 \hypertarget{linearizability-and-the-cap-theorem}{%
 \subsection{Linearizability and the CAP
@@ -1146,6 +1074,84 @@ consistency. Figure REF demonstrates that the reverse need not hold. As
 a weaker model, FIFO consistency cannot bound the divergence between two
 replicas of a data object.
 
+\hypertarget{networks-for-civil-emergency-response}{%
+\section{Networks for Civil Emergency
+Response}\label{networks-for-civil-emergency-response}}
+
+\hypertarget{physical-communications}{%
+\subsubsection{Physical communications}\label{physical-communications}}
+
+The details of the physical communication between processes is outside
+the scope of this memo. We make just a few high-level observations about
+the possibilities, as the details of the network layer are likely to
+have an impact on distributed applications, such as the shared memory
+abstraction we discuss below and in Section \ref{sec:contcons}. For such
+applications, it may be important to optimize for the sorts of usage
+patterns encountered in real scenarios, which are affected by (among
+other things) the low-level details of the network.
+
+The \emph{celluar} model (Figure \ref{fig:centralized}) assumes nodes
+are within range of a powerful, centralized transmission station that
+performs routing functions. Message passing takes place by transmitting
+to the base station (labeled \(R\)), which routes the message to its
+destination. Such a model could be supported by the ad-hoc deployment of
+portable cellphone towers transported into the field, for instance.
+
+The \emph{ad-hoc} model (Figure \ref{fig:decentralized}) assumes nodes
+communicate by passing messages directly to each other. This requires
+nodes to maintain information about things like routing and the
+approximate location of other nodes in the system, increasing complexity
+and introducing a possible source of inconsistency. However, it may be
+more workable given (i) the geographic mobility of agents in our
+scenarios (ii) difficult-to-access locations that prohibit setting up
+communication towers (iii) the inherent need for system flexibility
+during disaster scenarios.
+
+\begin{figure}
+     \centering
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{images/Centralized.png}
+         \caption{Cellular network topology}
+         \label{fig:centralized}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{images/Decentralized.png}
+         \caption{Ad-hoc network topology}
+         \label{fig:decentralized}
+     \end{subfigure}
+        \caption{Network topology models for geodistributed agents. Edges represent communication links (bidirectional for simplicity).}
+        \label{fig:nettopology}
+\end{figure}
+
+One can also imagine hybrid models, such as an ad-hoc arrangement of
+localized cells. In general, one expects more centralized topologies to
+be simpler for application developers to reason about, but to require
+more physical infrastructure and support. On the other hand, the ad-hoc
+model is more fault resistant, but more complicated to implement and
+potentially offering fewer assurancess about performance. In either
+case, higher-level applications such as shared memory abstractions
+should be tuned for the networking environment. It would be even better
+if this tuning can take place dynamically, with applications
+reconfiguring manually or automatically to the particulars of the
+operating environment. This requires examining the relationship between
+the application and networking layers, rather than treating them as
+separate blackboxes.
+
+An interesting possibility is for the \emph{network} to automatically
+configure itself to the quality-of-service needs of the application. For
+example, a client that receives a lot of requests may be marked as a
+preferred client and given higher-priority access to the network. If UAV
+vehicles can be used to route messages by acting as mobile transmission
+base stations, one can imagine selecting a flight pattern based on
+networking needs. For example, if the communication between two
+firefighting teams is obstructed by a geographical feature, a UAV could
+be dispatched to provide overhead communication support. Such an
+arrangement could greatly blur the line between the networking and
+application layers.
+
 \hypertarget{desiderata}{%
 \section{Desiderata}\label{desiderata}}
 
@@ -1223,9 +1229,9 @@ which are nearby have a stronger need to coordinate their actions than
 nodes which are far away. For example, consider manoeauvering airplanes
 to avoid crash.
 
-\hypertarget{continuous-consistency-and-the-conit-framework}{%
-\section{Continuous consistency and the conit
-framework}\label{continuous-consistency-and-the-conit-framework}}
+\hypertarget{continuous-consistency-for-shared-memory}{%
+\section{Continuous consistency for shared
+memory}\label{continuous-consistency-for-shared-memory}}
 
 \label{sec:contcons}
 
@@ -1394,9 +1400,9 @@ consider a scheme, Relative NE, which bounds the relative error.
 \hypertarget{future-work}{%
 \subsection{Future work}\label{future-work}}
 
-\hypertarget{sheaf-theoretic-data-fusion}{%
-\section{Sheaf theoretic data
-fusion}\label{sheaf-theoretic-data-fusion}}
+\hypertarget{integrating-heterogeneous-data}{%
+\section{Integrating heterogeneous
+data}\label{integrating-heterogeneous-data}}
 
 \label{sec:sheaf}
 
