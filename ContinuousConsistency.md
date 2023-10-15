@@ -320,29 +320,28 @@ involved in disaster response efforts. The components of the system
 collectively accomplish goals such as navigating safely in close
 proximity, delivering resources to remote locations, and suppressing
 fires. For example, first responders may communicate over a text
-messaging application. Here, global consistency means different users
-reading their device's local copy of the chat should see the same messages.
+messaging application, and global consistency would mean different
+users reading their device's local copy of the chat should see the
+same messages.
 
-What precisely constitutes consistency? There are different consistency
-models, and the most appropriate model for an application depends on
-the semantics it expects, which must be weighed against other
-requirements. All other things being equal, one wants to have as much
-consistency as possible. Below, we shall see that \textrm{na\"ive}
-notions of system coherence are brittle in the sense that they
-generally cannot be guaranteed for theoretical and practical reasons;
-that is, unless one is willing to pay with significant performance
-penalties, including applications that fail to respond to users under
-some conditions.
+What precisely constitutes consistency? One can choose from multiple
+consistency models, and the most appropriate model depends on the
+semantics expected by the application and its clients, which must be
+weighed against other requirements. All other things being equal, one
+wants to have as much consistency as possible. Below, we shall see
+that \textrm{na\"ive} notions of system coherence are brittle in the
+sense that they generally cannot be guaranteed.
 
-When *strong* notions of consistency are enforced, clients cannot tell
-whether they are all interacting with a single central computer, or a
-complex system of independent computers. Enforcing this condition
-shields clients and application developers from complexity and makes
-it simpler to reason about a system's behavior. In our previous
-example, strong consistency would require that different users see the
-same messages arriving at approximately the same time and always in
-the same order. Consistency is a prerequisite to system-wide safety,
-because bad things can happen when strong consistency is violated:
+When *strong* notions of consistency are enforced, clients are
+presented with the abstraction of a single shared world, i.e. as if
+they are all connected to a central computer rather than a complex
+system of independent computers. This abstraction shields clients and
+application developers from complexity and makes it simpler to reason
+about a system's behavior. In our previous example, strong consistency
+would require that different users see the same messages arriving at
+approximately the same time and always in the same order. Consistency
+is a prerequisite to system-wide safety, because bad things can happen
+when strong consistency is violated:
 
 - Suppose in a message stream two questions $Q_1$ and $Q_2$ are asked
   and responses $A_1$ and $A_2$ are given, respectively. If the
@@ -357,35 +356,40 @@ because bad things can happen when strong consistency is violated:
   information about the trajectory of aircraft, they could potentially
   issue dangerously incorrect instructions to the pilots.
 
-- Resource-tracking systems be used to coordinate resources if, for
-  example, a resource appears to be available but cannot actually be
-  deployed because the information was out of date.
+- Resource-tracking systems are not useful if a resource that appears
+  to be available cannot actually be used because the information is
+  out of date. Alternatively, a resource that is actually available
+  may not be used if clients think it is still unavailable.
 
 In general, violating strong consistency means the abstraction of a
-single shared universe is broken. In extreme cases, violating
-consistency can invalidate clients' mental model of the system, make
-the system's behavior harder to predict, or cause safety requirements
-to be violated. Given this, it seems wise to always build applications
-that provide strong consistency. Unfortuntately, there are a variety
-of conditions where this condition cannot pragmatically be attained,
-as the condition may require a level of network throughput that simply
-cannot be attained. When messages cannot be passed quickly enough,
-agents subject to strong consistency requirements may not be able to
-make progress.
+single shared universe is broken. In extreme cases, this can
+invalidate clients' mental model of the system, make the system's
+behavior harder to predict, or cause safety requirements to be
+violated. Given this, it seems wise to always build applications that
+provide strong consistency. Unfortuntately, there are a variety of
+conditions where this condition cannot pragmatically be attained for
+theoretical and practical reasons; that is, unless one is willing to
+pay with significant performance penalties, including applications
+that fail to respond to users under some conditions.
 
-Therefore, real-world applications must tolerate
-weaker notions of consistency. This makes applications more difficult
-to reason about, as their behavior may depend on uncontrollable
-factors in the environment. As fewer behaviors can be ruled out, it
-becomes more difficult to ensure the system maintains safety-related
-invariants.
+Strong consistency cannot be maintained whenever doing so requires a
+level of communication throughput in excess of what the real-world
+network can provide. Note that distributed agents can *only*
+coordinate by passing messages over the network.[^fn] When messages
+cannot be passed quickly enough, agents subject to strong consistency
+requirements may not be able to make progress. Therefore, real-world
+applications must tolerate weaker notions of consistency. As weaker
+consistency imposes fewer constraints on observable system behavior,
+applications can be more difficult to reason about, safety-related
+invariants more challenging to enforce.
 
-Absence of a common memory implies that inter-agent communication
-takes place over the network (whereas processes on the same machine
-have the option to share data by writing it to a memory location they
-both have access to). A foundational assumption is that the network is
-almost always less than perfectly reliable---this fact can be counted
-on during emergencies. Imperfection means that message delivery is not
+[^fn]: This fact is implied by absence of a common memory, whereas
+processes on the same machine have the option to share data by writing
+it to a memory location both processes have access to.
+
+A foundational assumption is that the network is almost always less
+than perfectly reliable---this fact can be counted on during
+emergencies. Imperfection means that message delivery is not
 instantaneous may be unpredictable. The network may deliver a packet
 zero times (i.e. it may silently delete the packet) or multiple times,
 and furthermore different packets may arrive in any order.[^byzantine]
@@ -1035,6 +1039,7 @@ their actions than nodes which are far away. For example, consider
 manoeauvering airplanes to avoid crash.
 
 
+\newpage
 # Networks for civil emergency response
 
 <Introduction>
@@ -1072,7 +1077,7 @@ difficult-to-access locations that prohibit setting up communication
 towers (iii) the inherent need for system flexibility during disaster
 scenarios.
 
-\begin{figure}
+\begin{figure}[h]
      \centering
      \begin{subfigure}[b]{0.48\textwidth}
          \centering
@@ -1127,6 +1132,7 @@ between the networking and application layers.
 ## Verification of networking protocols
 
 
+\newpage
 # Continuous consistency for shared memory
 \label{sec:contcons}
 
@@ -1209,7 +1215,7 @@ requirements to offer better overall performance.
   requests may be delayed indefinitely if the system is unable to
   enforce consistency requirements because of network issues).
 
-  ## Causal and FIFO (PRAM) consistency
+## Causal consistency
 
 Causal consistency is that each clients is consistent with a total
 order that contains the happened-before relation. It does not put a
@@ -1292,15 +1298,6 @@ partitions.
 The fact that causal consistency can be maintained during partitions
 suggests it is too weak. Indeed, there are no guarantees about the
 difference in values for $x$ and $y$ across the two replicas.
-
-\begin{definition}
-    FIFO consistency. This also called \emph{pipelined random access memory} or PRAM.
-\end{definition}
-
-It is easy to see that causal consistency already implies FIFO
-consistency. Figure REF demonstrates that the reverse need not
-hold. As a weaker model, FIFO consistency cannot bound the divergence
-between two replicas of a data object.
 
 ## TACT system model
 
