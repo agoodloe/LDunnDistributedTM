@@ -101,6 +101,12 @@ solutions.
 
 ## Disaster response networking: present and future
 
+- Talk about some technologies (radio) and difficulties
+- Give example of firefighter's heart rate monitor thing
+- In the future, talk about sensor data from firefighters and agencies
+- Talk about routing information above a drone
+- Plan to aggressively attack fires from air and possibly automate this
+
 As background, we discuss some of the technical details of disaster
 response communication today and some possible developments for the
 future. The reader may be surprised to learn the state of the art in
@@ -110,32 +116,81 @@ budget of a volunteer fire department with that of a typical military
 unit. Indeed, the need to support commercial, off-the-shelf (COTS)
 components, is one of our general assumptions in this memo.
 
-- Give example of real-world partition
-- Talk about some technologies (radio) and difficulties
-- Give example of firefighter's heart rate monitor thing
-- In the future, talk about sensor data from firefighters and agencies
-- Talk about routing information above a drone
-- Plan to aggressively attack fires from air and possibly automate this
+Communication between firefighters in the field is often facilitated
+by handheld radios, which are inherently limited in their battery
+life, bandwidth, effective range, and ability to work around
+environmental factors like foliage and smoke. As we watched interviews
+with experienced wildland firefighters, we found an interview with a
+volunteer firefighter who relayed a story of Ironside repeater station
+destroyed by fire. (CITE, CITE). This repeater had strategic
+importance, between located on a tall ridge, and its loss prevented
+communication between operators on different sides of it. This
+communication partition continued until agents could ascend the ridge
+to deploy a temporary station, a difficult challenge that may have
+diverted operators from other duties. This story demonstrates the
+potential for widespread system failure due to the loss of a single
+system component.
 
-Traditionally, civil aviation has employed simple communication
-patterns between airborne and ground-based agents and among
-aircraft. For instance, aircraft equipped with Automatic Dependent
+Some firefighters have described using the low-technology solution of
+simply shouting messages to each other, as this approach can be
+cheaper, quicker, and more lightweight than radio-based methods. While
+simple, this actually illustrates an exploitable kind of *spatial
+locality* principle that generalizes to other parts of the system: in
+general, agents with a higher need to coordinate their actions will
+tend to be located more closely to each other, which in turn raises
+the likelihood they will be able to communicate. For instance, this
+kind of principle motivates the discussion of ad-hoc networking
+protocols in Chapter CITE.
+
+Turning now towards the sky, civil aviation has also traditionally
+employed simple communication patterns between airborne agents. For
+instance, aircraft equipped with Automatic Dependent
 Surveillance-Broadcast (ADS-B) monitor their location using GPS and
 periodically broadcast this information to air traffic controllers and
 nearby aircraft. This sort of scheme has worked well in traditional
 applications, where pilots typically only monitor the general
-locations of a few nearby aircraft. In our setting, a large number of
-aircraft (possibly 10-12 operating within X range) may need to operate
-in a small area, near complex terrain, and at times operating at an
-altitude of less than 1000 ft.---in other words the demands are many
-and the margins for error are small. This sort of use case demands
-more sophisticated coordination schemes between airborne and
-ground-based elements than ADS-B provides by itself.
+locations of a few nearby aircraft. It is another example of locality:
+aircraft have the highest need to coordinate when they are physically
+close, and therefore in range of each other's ADS-B broadcasts.
 
+As aircraft generally have better line-of-site to ground crews than
+ground crews have to each other, firefighters sometimes relaying
+messages to air-based units over radio, which in turn is relayed back
+down to other ground units. Locality comes into play here, too: this
+simply relay scheme allows messages to travel farther, but this reach
+comes at the cost of introducing delays and possible degradation of
+message quality (as in the classic telephone game).
 
+### Disaster response in the future
 
+Strategic decisions are increasingly relying on high-quality data.
 
+At the individual level, firefighters may be equipped with local
+sensors---for instance, NIST has found that fatal cardiac events in
+firefighters can be accurately predicted, and future efforts in this
+direction may lead to body-worn sensors. Given the ubiquity of
+inexpensive GPS devices---this could be as simple as an application
+running on a personal smartphone.
 
+Sensors may be deployed to monitor everything from air quality to
+temperature.
+
+https://www.nist.gov/news-events/news/2023/07/ai-can-accurately-predict-potentially-fatal-cardiac-events-firefighters
+
+At the strategic level, decision makers may rely on computer-generated
+forecasts of firefront[^firefront] behavior that take into account
+weather, topography, fuel conditions, and observed fire behavior. Such
+predictions may be
+
+[^firefront]: The leading edge where a wildfire is actively burning.
+
+In our setting, a large number of aircraft (perhaps as many as 10) may
+need to operate in a small area, near complex terrain, and at times
+operating at an altitude of less than 1000 ft.---in other words the
+demands are many and the margins for error are small. This sort of use
+case demands more sophisticated coordination schemes between airborne
+and ground-based elements than ADS-B and comparable schemes provide by
+themselves.
 
 We envision a system that responds gracefully to a challenging
 environment, flexibly coordinates a dynamic ensemble of heterogeneous
