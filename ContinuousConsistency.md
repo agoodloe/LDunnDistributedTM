@@ -27,16 +27,17 @@ abstract: |
 # Introduction
 
 Civil aviation has traditionally focused primarily on the efficient
-and safe transportation of people and goods via the airspace. Despite
-the inherent risks, the application of sound engineering practices and
-conservative operating procedures has made flying the safest mode of
-transport today. Now the desire not to compromise this safety makes it
-difficult to integrate unmanned vehicles into the airspace, accomodate
-new applications, and keep pace with the rapid growth in commercial
-aviation. To that end, the NASA Aeronautics' Airspace Operations and
-Safety Program (AOSP) System Wide Safety (SWS) project has been
-investigating how crewed and uncrewed aircraft may safely operate in
-shared airspace.
+and safe transportation of people and goods via the airspace to a
+regular destination, typically an airport. Despite the inherent risks,
+the application of sound engineering practices and conservative
+operating procedures has made flying the safest mode of transport
+today. Now the desire not to compromise this safety makes it difficult
+to integrate unmanned vehicles into the airspace, accomodate new
+applications like package delivery, and keep pace with the rapid
+growth in commercial aviation. To that end, the NASA Aeronautics'
+Airspace Operations and Safety Program (AOSP) System Wide Safety (SWS)
+project has been investigating new technologies and methods by which
+crewed and uncrewed aircraft may safely operate in shared airspace.
 
 This memo surveys some of the distributed computing challenges
 generally encountered in this setting and methods that may prove
@@ -49,25 +50,26 @@ efforts. Second, these settings are an excellent microcosm for the
 sorts of general challenges faced by other, non-emergency
 applications.
 
-Operations in disaster response are often encumbered by a challenging
-communications environment, the causes of which are several in number:
-remote locations, difficult terrain, damaged infrastructure, harsh
-weather, and limited battery power, to name a few. From a networking
-perspective, these factors lead to heavy packet loss and significant
-delays in message-passing. From a systems perspective, an unreliable
-network obstructs various kinds of protocols for coordination among
-distributed agents. Typically, coordination requires enforcing some
-notion of consistency across replicas of data maintained by multiple
-agents cooperatively, and stronger notions of consistency generally
-require a greater ability to propagate updates to other agents quickly
-if system availability is not to be sacrificed.  Finally, from a civil
-agency perspective, an inability to coordinate the actions of
-distributed agents makes it difficult to enforce safety conditions, as
-safe operations typically require agents to act with reasonably
-up-to-date information about other agents in the system.
+Operations in disaster response scenarios are often encumbered by a
+challenging communications environment, the causes of which are
+several in number: remote locations, difficult terrain, damaged
+infrastructure, harsh weather, and limited battery power, to name a
+few. From a networking perspective, these factors lead to heavy packet
+loss and significant delays in message-passing. From a systems
+perspective, an unreliable network obstructs various kinds of
+protocols for coordination among distributed agents. Typically,
+coordination requires enforcing some notion of consistency across
+replicas of data maintained by multiple agents cooperatively, and
+stronger notions of consistency generally require a greater ability to
+propagate updates to other agents quickly if system availability is
+not to be sacrificed.  Finally, from a civil agency perspective, an
+inability to coordinate the actions of distributed agents makes it
+difficult to enforce safety conditions, as safe operations typically
+require agents to act with reasonably up-to-date information about
+other agents in the system.
 
 To give an example of these tradeoffs, consider firefighting
-airtankers, the largest examples of which (Very Large Airtankers,
+airtankers, the largest examples of which (Very Large Airtankers, or
 VLATs) can deposit more than 10,000 gallons of fire retardant at once
 with enough force to crush a car. [^carcrush] This manoeauver is known
 to pose a danger to ground crews,[^killed] so one potential policy
@@ -75,10 +77,15 @@ would be to disallow this action if a pilot does not have up-to-date
 information about the location of agents on the ground. However,
 sharing this information with the pilot may not be possible if heavy
 smoke or a tall mountain ridge prevents radio communications. This
-scenario is just one example of an inherent tradeoff between
-safety (the aircraft should only operate with reliable information)
-and system availability (if the policy is enforced, either the
-ground crew or the pilot's operations may be delayed).[^note]
+scenario is just one example of an inherent tradeoff between safety
+and system availability. To achieve safety, the pilot should only
+operate with reliable information. However, if the policy is enforced,
+the pilot's operations could be delayed until this information can be
+obtained, leaving the aircraft unavailable for useful work in the
+meantime. We emphasize that it is not enough that there *aren't any*
+ground crews in the way---an agent's actions are restricted whenever
+the agent does not *know* that an action is safe, even if it is in
+fact safe.
 
 [^carcrush]: [Link](https://www.youtube.com/watch?v=ONdSoiI4zIA)
 
@@ -111,10 +118,10 @@ As background, we discuss some of the technical details of disaster
 response communication today and some possible developments for the
 future. The reader may be surprised to learn the state of the art in
 wildland firefighting communication is often simple, even primitive, a
-fact explained partly by contrasting, for instance, the relative
-budget of a volunteer fire department with that of a typical military
-unit. Indeed, the need to support commercial, off-the-shelf (COTS)
-components, is one of our general assumptions in this memo.
+fact explained partly by contrasting the relative budget of a
+volunteer fire department with that of a comparably sized military
+unit. Indeed, the need to support commercial off-the-shelf (COTS)
+components is one of our general assumptions in this memo.
 
 Communication between firefighters in the field is often facilitated
 by handheld radios, which are inherently limited in their battery
@@ -126,21 +133,21 @@ destroyed by fire. (CITE, CITE). This repeater had strategic
 importance, between located on a tall ridge, and its loss prevented
 communication between operators on different sides of it. This
 communication partition continued until agents could ascend the ridge
-to deploy a temporary station, a difficult challenge that may have
-diverted operators from other duties. This story demonstrates the
-potential for widespread system failure due to the loss of a single
-system component.
+to deploy a temporary station, a challenge that presumably diverted
+operators from other duties. This story demonstrates the potential for
+fairly widespread system failure due to the loss of a single system
+component when it is shared by multiple users.
 
 Some firefighters have described using the low-technology solution of
 simply shouting messages to each other, as this approach can be
 cheaper, quicker, and more lightweight than radio-based methods. While
-simple, this actually illustrates an exploitable kind of *spatial
-locality* principle that generalizes to other parts of the system: in
+simple, this actually illustrates an exploitable kind of spatial
+locality principle that generalizes to other parts of the system: in
 general, agents with a higher need to coordinate their actions will
-tend to be located more closely to each other, which in turn raises
-the likelihood they will be able to communicate. For instance, this
-kind of principle motivates the discussion of ad-hoc networking
-protocols in Chapter CITE.
+tend to be located closer to each other, which in turn will tend to
+increase the likelihood they will be able to communicate. This kind of
+principle is a fundamental motivation for the sort of decentralized,
+ad-hoc networking protocols considered in Chapter CITE.
 
 Turning now towards the sky, civil aviation has also traditionally
 employed simple communication patterns between airborne agents. For
@@ -149,17 +156,19 @@ Surveillance-Broadcast (ADS-B) monitor their location using GPS and
 periodically broadcast this information to air traffic controllers and
 nearby aircraft. This sort of scheme has worked well in traditional
 applications, where pilots typically only monitor the general
-locations of a few nearby aircraft. It is another example of locality:
-aircraft have the highest need to coordinate when they are physically
-close, and therefore in range of each other's ADS-B broadcasts.
+locations of a few nearby aircraft. It is another example of
+exploiting spatial locality: aircraft have the highest need to
+coordinate when they are physically close, and therefore in range of
+each other's ADS-B broadcasts.
 
 As aircraft generally have better line-of-site to ground crews than
 ground crews have to each other, firefighters sometimes relaying
 messages to air-based units over radio, which in turn is relayed back
-down to other ground units. Locality comes into play here, too: this
-simply relay scheme allows messages to travel farther, but this reach
-comes at the cost of introducing delays and possible degradation of
-message quality (as in the classic telephone game).
+down to other ground units. The locality principle comes into play
+here, too, this time in the unfortunate reverse direction: this simple
+relay scheme allows messages to travel farther, but the extended
+reach comes at the cost of introducing delays and possible degradation
+of message quality, as in the classic telephone game.
 
 ### Disaster response in the future
 
@@ -167,15 +176,15 @@ Strategic decisions are increasingly relying on high-quality data.
 
 At the individual level, firefighters may be equipped with local
 sensors---for instance, NIST has found that fatal cardiac events in
-firefighters can be accurately predicted, and future efforts in this
+firefighters can be accurately predicted,[^cardiac] and future efforts in this
 direction may lead to body-worn sensors. Given the ubiquity of
 inexpensive GPS devices---this could be as simple as an application
 running on a personal smartphone.
 
+[^cardiac]: https://www.nist.gov/news-events/news/2023/07/ai-can-accurately-predict-potentially-fatal-cardiac-events-firefighters
+
 Sensors may be deployed to monitor everything from air quality to
 temperature.
-
-https://www.nist.gov/news-events/news/2023/07/ai-can-accurately-predict-potentially-fatal-cardiac-events-firefighters
 
 At the strategic level, decision makers may rely on computer-generated
 forecasts of firefront[^firefront] behavior that take into account
@@ -198,55 +207,30 @@ mobile agents, and intelligently gathers, fuses, and disseminates the
 right information to decision-makers at the right time. When parts of
 the system fail---perhaps because some agents are too far away to
 contact, or become some sensors are generating conflicting data, or
-because a repeater is destroyed by fire---the system should respond
-gracefully. The system should ignore no opportunity to communicate
-agents---an overhead drone surveying a fire may opportunistically act
-as a mobile base station to ground crews, possibly allowing them to
-route messages past a mountain ridge, for instance.
+because a repeater is destroyed by fire---the system should fail no
+more than it must.
+
+The system should exploit every opportunity to facilitate
+communication between agents. For instance, an overhead drone
+surveying a fire may opportunistically act as a mobile base station to
+ground crews, allowing them to route messages past a mountain
+ridge---a high-tech modernization of the sort of informal relay scheme
+operating today over traditional radio channels.
 
 
 ## Layout of this document
 
-This document proceeds in multiple layers, generally proceeding from
-examining lower-level details (memory models and network protocols) to
-higher-level ones (database replication and application-level data
-fusion). A common albeit fairly abstract theme is to emphasize notions
-of *continuity*---preferring to make fine-tined, balanced tradeoffs
-where possible, in order to build systems that offer a favorable
-balance of desirable properties while accommodating a range of
-unfavorable real-world behavior. This document aims to be reasonably
-self-contained and readable to a broad technical audience. It is laid
-out as follows.
+This document aims to be reasonably self-contained and readable to a
+broad technical audience. We proceed from lower-level details (memory
+models and network protocols) to higher-level ones (database
+replication and data fusion). A common albeit abstract theme is to
+emphasize notions of *continuity*---a preference to make flexible and
+balanced tradeoffs rather than committing to extremes, in order to
+build systems that offer a favorable balance of desirable properties
+while tolerating a range of unfavorable real-world behavior. The
+sections are as follows.
 
-Our vision of future emergency networks integrates software-defined,
-delay/disruption-tolerant, and mobile ad-hoc networking concepts to
-provide communications that are robust to their harsh operating
-environment. This is the subject of Chapter whatever.
-
-One foundational application run over our hypothetical network, and
-the subject of Chapter whatever, is a data-replication service that is
-attuned for the particulars of a chaotic network, built on Yu and
-Vahdat's theory of *conits*. Unlike some shared memory frameworks,
-this *continuous consistency* framework provides neither idealized
-consistency (linearizability) nor guaranteed high-availability, but
-rather a dynamically-tuned "amount" of both, allowing the system to
-weigh the differing importance of various kinds of updates and adjust
-its behavior in response to real network conditions. This idea rests
-on the observation that many high-level applications can tolerate some
-inconsistency among replicas, particularly if one can enforce a hard
-limit on how far apart replicas may diverge during periods of network
-unavailability.
-
-Finally. Information may come from sensors in the
-environment, personal area networks (PANs) associated with individual
-first responders (e.g. a Bluetooth-enabled heartrate monitor). One
-must avoid "swimming in data and drowning in noise." Data integration
-is the subject of Chapter whatever.
-
-
-### Layout of this document (previous version)
-
-Section \ref{sec:background} provides a high-level introduction to
+is a breif introduction to
 distributed systems and memory consistency models. We define two
 strong models, atomic and sequential consistency, both of which
 provide highly desirable safety guarantees; we contrast these with the
@@ -258,66 +242,60 @@ partitions. We observe that the theorem effectively prohibits both
 forms of strong consistency in our intended use case. This raises the
 question of how, if at all, one can rigorously enforce safety
 properties without compromising system performance beyond acceptable
-levels.
+levels. This section concludes with a list of three desiderata of
+distributed applications in the contexts under consideration.
 
-Informed by the previous discussion, Section \ref{sec:des} offers a
-list of three desiderata of distributed applications in the contexts
-under consideration. These have been selected as especially desirable
-and relevant for our use cases, and they provide a basis for assessing
-the applicability of frameworks and techniques to overcome the
-apparent limitations imposed by the CAP theorem.
 
-Section \ref{sec:contcons} explains how the \emph{conit} framework
-[@2002tact] quantifies the C/A tradeoff with respect to three metrics:
-numerical error, order commit error, and real-time error. We summarize
-how to enforce consistency up to some real-valued $\epsilon \geq 0$
-for each of these metrics separately.  The conit framework allows
-applications to specify their own consistency semantics with respect
-to these measurements, and to mark updates as having a greater or
-lesser impact on consistency. Each replica, indeed each system
-request, can set its own bounds on observable inconsistency, while a
-general-purpose middleware library transparently enforces these
-requirements. At the extreme, the framework can enforce either atomic
-or sequential consistency by setting $\epsilon = 0$ for
-appropriately-defined conits. For $\epsilon > 0$, the framework offers
-neither CAP-consistency nor CAP-availability; in return, applications
-can provide limited amounts of availability, possibly during network
-partitions, while strictly bounding levels of inconsistency. One use
-case for this is to ``smooth out" intermittent fluctuations in network
-performance, a desirable feature for safety-critical systems operating
-without strict assumptions about the network.
+Section \ref{sec:background} presents general background information
+on distributed systems, strict consistency models, and proves Brewer's
+fundamental "CAP" theorem (Theorem CITE) that a distributed system
+cannot enforce strict consistency without going offline during network
+partitions, i.e. without making network performance an upper bound on
+overall system performance. Read pessimistically, a mild
+generalization (Theorem CITE) proves a realistic distributed system
+for emergency response network cannot provide global sequential
+consistency, a fact that will later motivate Section CITE.
 
-Section \ref{sec:sheaf} is an introduction to applied sheaf theory,
-which provides a highly general framework for measuring the mutual
-consistency of "overlapping" observations. Intuitively, these are
-observations which we expect to be correlated if not equal, such as
-the data generated by nearby sensors in a sensor network. We discuss
-an simulated example, due to [@2017robinsonCanonical], where sheaves
-are used to integrate heterogeneous sensor data, thereby improving an
-estimated location for a crashed aircraft. Unlike many introductions
-to the subject, we emphasize sheaves as "topologically-flavored"
-presheaves, viewing presheaves as highly generalized transition
-systems. Our expectation is that this approach makes the subject more
-accessible to computer scientists and serves to highlight themes
-common to Sections \ref{sec:contcons} and \ref{sec:sheaf}. It may even
-indicate the possibility of re-grounding conit theory in the
-principled mathematical framework of sheaf theory.
+Section \ref{sec:networks} examines networking considerations. Our
+vision of future emergency networks integrates
+delay/disruption-tolerant and mobile ad-hoc networking concepts to
+provide communications that are robust to their harsh operating
+environment. We also feel that software-defined networking (SDN)
+offers a plausible path towards deploying sophisticated networking
+schemes without requiring all involved parties to purchase
+special-purpose, one-off equipment, as SDN-based equipment can be
+reprogrammed without replacing the hardware.
 
-Section \ref{sec:conclusion} concludes with suggestions for future
-work.
+Chapter whatever describes a foundational application run over our
+hypothetical network: a data-replication service that is attuned for
+the particulars of a chaotic network, built on Yu and Vahdat's theory
+of *conits*. Unlike some shared memory frameworks, this *continuous
+consistency* framework provides neither idealized consistency
+(linearizability) nor guaranteed high-availability, but rather a
+dynamically-tuned "amount" of both, allowing the system to weigh the
+differing importance of various kinds of updates and adjust its
+behavior in response to real network conditions. This idea rests on
+the observation that many high-level applications can tolerate some
+inconsistency among replicas, particularly if one can enforce a hard
+limit on how far apart replicas may diverge during periods of network
+unavailability.
 
+Finally, nformation may come from sensors in the environment, personal
+area networks (PANs) associated with individual first responders
+(e.g. a Bluetooth-enabled heartrate monitor). One must avoid "swimming
+in data and drowning in noise." Data integration is the subject of
+Chapter whatever. This section contains a brief introduction to
+applied sheaf theory, which provides a highly general framework for
+measuring the mutual consistency of "overlapping"
+observations. Intuitively, these are observations which we expect to
+be correlated if not equal, such as the data generated by nearby
+sensors in a sensor network.
+
+Section \ref{sec:conclusion} concludes.
+
+\newpage
 # Distributed systems
 \label{sec:background}
-
-This section presents general background information on distributed
-systems, strict consistency models, and a fundamental result (Brewer's
-CAP theorem, Theorem CITE) that a distributed system cannot enforce
-strict consistency without going offline during network partitions,
-i.e. without making network performance an upper bound on overall
-system performance. Read pessimistically, this theorem proves a
-realistic distributed system for emergency response networks cannot
-provide sequential consistency (a fact that will later motivate
-Section CITE).
 
 A distributed system, broadly construed, is a collection of
 independent entities that cooperate to solve a problem that cannot be
@@ -338,24 +316,33 @@ state of a globally-maintained database, to system clients.
 In our scenarios, system nodes typically represent various computers,
 routers, sensors, and communication devices, while the clients would
 typically be firefighters using these devices and other persons
-involved in disaster response efforts. Generally, the components of
-the system collectively accomplish goals such as navigating safely in
-close proximity, delivering resources to remote locations, and
-suppressing fires. For example, if first responders are communicating
-over a text-messaging application, consistency is the condition that
-different users see the same messages arriving at approximately the
-same time and in the same order. Consistency is clearly a prerequisite
-to system-wide coordination.
+involved in disaster response efforts. The components of the system
+collectively accomplish goals such as navigating safely in close
+proximity, delivering resources to remote locations, and suppressing
+fires. For example, first responders may communicate over a text
+messaging application. Here, global consistency means different users
+reading their device's local copy of the chat should see the same messages.
+
+What precisely constitutes consistency? There are different consistency
+models, and the most appropriate model for an application depends on
+the semantics it expects, which must be weighed against other
+requirements. All other things being equal, one wants to have as much
+consistency as possible. Below, we shall see that \textrm{na\"ive}
+notions of system coherence are brittle in the sense that they
+generally cannot be guaranteed for theoretical and practical reasons;
+that is, unless one is willing to pay with significant performance
+penalties, including applications that fail to respond to users under
+some conditions.
 
 When *strong* notions of consistency are enforced, clients cannot tell
 whether they are all interacting with a single central computer, or a
 complex system of independent computers. Enforcing this condition
 shields clients and application developers from complexity and makes
 it simpler to reason about a system's behavior. In our previous
-example, strong consistency would allow absolutely no user to witness
-messages arriving in the wrong order, so it appears they are all
-reading the same stream of messages. Bad things can happen when strong
-consistency is violated:
+example, strong consistency would require that different users see the
+same messages arriving at approximately the same time and always in
+the same order. Consistency is a prerequisite to system-wide safety,
+because bad things can happen when strong consistency is violated:
 
 - Suppose in a message stream two questions $Q_1$ and $Q_2$ are asked
   and responses $A_1$ and $A_2$ are given, respectively. If the
@@ -375,53 +362,40 @@ consistency is violated:
   deployed because the information was out of date.
 
 In general, violating strong consistency means the abstraction of a
-single source of truth is broken. This can invalidate clients' mental
-model of the system, whose behavior may then be hard to predict, and
-safety requirements may consequently be violated.
+single shared universe is broken. In extreme cases, violating
+consistency can invalidate clients' mental model of the system, make
+the system's behavior harder to predict, or cause safety requirements
+to be violated. Given this, it seems wise to always build applications
+that provide strong consistency. Unfortuntately, there are a variety
+of conditions where this condition cannot pragmatically be attained,
+as the condition may require a level of network throughput that simply
+cannot be attained. When messages cannot be passed quickly enough,
+agents subject to strong consistency requirements may not be able to
+make progress.
 
-Given all this, it seems wise to always require applications to
-provide strong consistency. However, Theorems CITE and CITE prove
-there are a variety of conditions where this condition cannot
-pragmatically be attained, as the condition may place undue burden on
-a network that cannot supply enough bandwidth, i.e. messages cannot be
-passed quickly enough, compromising system performance.
-
-
-
-What exactly constitutes consistency? There are different consistency
-models, and the most appropriate model for an application depends on
-the semantics it expects, which must be weighed against other
-requirements. All other things being equal, one wants to have as much
-consistency as possible. Below, we shall see that \textrm{na\"ive}
-notions of system coherence are brittle in the sense that they
-generally cannot be guaranteed for theoretical and practical reasons;
-that is, unless one is willing to pay with significant performance
-penalties, including applications that fail to respond to users under
-some conditions. Therefore, real-world applications must tolerate
+Therefore, real-world applications must tolerate
 weaker notions of consistency. This makes applications more difficult
 to reason about, as their behavior may depend on uncontrollable
 factors in the environment. As fewer behaviors can be ruled out, it
 becomes more difficult to ensure the system maintains safety-related
 invariants.
 
-The difficulty of enforcing strong consistency is that it requires
-system nodes to coordinate by exchanging information. Absence of a
-common memory implies that inter-process communication takes place
-over the network (whereas processes on the same machine have the
-option to share data by writing it to a common memory location). A
-foundational assumption of distributed systems, and an especially apt
-one in the context of disaster response scenarios, is that the network
-is less than perfectly reliable. Message delivery is not
-instantaneous, and delivery times may be unpredictable. The network
-may be allowed to silently drop network packets, reorder them, or
-deliver them several times. In the case of *Byzantine faults* (CITE)
-the network may even act like a malicious adversary (though we will
-not consider this scenario in this document). Imperfections in
-communications represent obstructions to system consistency and make
-it challenging to enforce safety requirements.
+Absence of a common memory implies that inter-agent communication
+takes place over the network (whereas processes on the same machine
+have the option to share data by writing it to a memory location they
+both have access to). A foundational assumption is that the network is
+almost always less than perfectly reliable---this fact can be counted
+on during emergencies. Imperfection means that message delivery is not
+instantaneous may be unpredictable. The network may deliver a packet
+zero times (i.e. it may silently delete the packet) or multiple times,
+and furthermore different packets may arrive in any order.[^byzantine]
+All of these behaviors represent obstructions to consistency and make
+it challenging to enforce safety requirements. We shall now make this
+discussion more precise.
 
-We shall now make this discussion more precise by introducing formal
-definitions.
+[^byzantine]: In the case of *Byzantine faults* (CITE) the network may
+even act like a malicious adversary, though we will not consider this
+scenario in this document.
 
 ## System model
 
@@ -1061,7 +1035,7 @@ their actions than nodes which are far away. For example, consider
 manoeauvering airplanes to avoid crash.
 
 
-# Networks for Civil Emergency Response
+# Networks for civil emergency response
 
 <Introduction>
 
