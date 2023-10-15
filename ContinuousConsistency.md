@@ -32,43 +32,80 @@ the inherent risks, the application of sound engineering practices and
 conservative operating procedures has made flying the safest mode of
 transport today. Now the desire not to compromise this safety makes it
 difficult to integrate unmanned vehicles into the airspace, accomodate
-new applications, and keep pace with the rapid growth in aviation. To
-that end, the NASA Aeronautics' Airspace Operations and Safety Program
-(AOSP) System Wide Safety (SWS) project has been investigating how
-crewed and uncrewed aircraft may safely operate in shared
-airspace. This memo surveys some of the particular distributed
-computing challenges raised in this area and the methods that may
-prove useful in overcoming them.
+new applications, and keep pace with the rapid growth in commercial
+aviation. To that end, the NASA Aeronautics' Airspace Operations and
+Safety Program (AOSP) System Wide Safety (SWS) project has been
+investigating how crewed and uncrewed aircraft may safely operate in
+shared airspace.
 
-Our primary motivating use cases have been taken from civil emergency
-response scenarios, especially wildfire suppression and hurricane
-relief. The motivation for this choice is two-fold: first, the rules
-for operating in the US national airspace are typically relaxed during
-natural disasters and relief efforts. Second, these settings are an
-excellent microcosm for the sorts of general challenges faced by
-non-emergency applications. Operations in disaster response are
-hampered by a challenging communications environment, the causes of
-which can be several in number: remote locations, damaged
-infrastructure, harsh weather, and limited battery power, to name a
-few. From a networking perspective, these factors lead to heavy packet
-loss and significant delays. In turn, from a systems perspective,
-unreliable communications present challenges for coordination among
-distributed agents, which typically takes the form of enforcing
-consistency on data that has been replicated across multiple locations
-for efficiency. Finally, from a civil agency perspective, an inability
-to coordinate agents makes it difficult to enforce safety conditions,
-as safe operations typically require agents to act with reasonably
-up-to-date information about the other agents in the system.
+This memo surveys some of the distributed computing challenges
+generally encountered in this setting and methods that may prove
+useful in overcoming them. Our primary motivating use cases have been
+taken from civil emergency response scenarios, especially wildfire
+suppression and hurricane relief. The motivation for this choice is
+two-fold. First, the rules for operating in the US national airspace
+are typically relaxed during natural disasters and relief
+efforts. Second, these settings are an excellent microcosm for the
+sorts of general challenges faced by other, non-emergency
+applications.
 
-Designing systems that are resilient to these sorts of
-environments is a challenge for distributed computing, a subdiscipline
-of computer science. This purpose of this memorandum is to enumerate
-some of the considerations involved in coordinating air- and
-ground-based elements from a distributed computing perspective,
-identifying challenges, potential requirements, and frameworks that
-suggest possible solutions.
+Operations in disaster response are often encumbered by a challenging
+communications environment, the causes of which can be several in
+number: remote locations, difficult terrain, damaged infrastructure,
+harsh weather, and limited battery power, to name a few. From a
+networking perspective, these factors lead to heavy packet loss and
+significant delays in message-passing. From a systems perspective, an
+unreliable network obstructs various kinds of protocols for
+coordination among distributed agents. Typically, coordination
+requires enforcing some notion of consistency across replicas of data
+maintained by multiple agents cooperatively, and stronger notions of
+consistency generally require a greater ability to propagate updates
+to other agents quickly if system availability is not to be
+sacrificed.  Finally, from a civil agency perspective, an inability to
+coordinate the actions of distributed agents makes it difficult to
+enforce safety conditions, as safe operations typically require agents
+to act with reasonably up-to-date information about the other agents
+in the system.
 
-## Protocols
+To give an example of these tradeoffs, consider a firefighting
+aircraft, the largest examples of which deposit nearly 10,000 gallons
+of fire retardant at once (enough to crush an SUV
+https://www.youtube.com/watch?v=ONdSoiI4zIA).  This manoeauver is
+known to pose a great danger to ground crews, so in an ideal world an
+aircraft would not perform this action without up-to-date information
+about the location of such crew. However, sharing the location of
+firefighters on the ground with the pilot may not be possible if heavy
+smoke or a tall mountain ridge prevents radio communications. This
+scenario is one of many examples of an inherent tradeoff between
+safety (the aircraft should only operate with reliable information)
+and system availability (if strict safety is enforced, the pilot's
+operations may have to be delayed, allowing the fire to burn in the
+mean time). As fires typically become greater each year, with more
+aircraft deployed in dangerous environments with little room to
+manoeauver, it becomes imperative to support reliable agent
+coordination in spite of the environmental obstacles.
+[https://www.firerescue1.com/flame-retardants/articles/utah-battalion-chiefs-death-may-have-been-linked-to-airplane-retardant-drop-zWKw179u1IXBB8p9/](Link)
+
+These tradeoffs are manifest throughout the design and implementation
+of distributed systems, and the tradeoff becomes especially stark as
+the reliability of the network deteriorates---a fact manifest in
+Brewer's CAP Theorem (CITE). Designing systems that are resilient to
+these sorts of environments is therefore a fundamental challenge for
+distributed computing, and that is the topic we attempt to briefly
+survey herein. This purpose of this memorandum is to enumerate some of
+the considerations involved in coordinating air- and ground-based
+elements from a distributed computing perspective, identifying
+challenges, potential requirements, and frameworks that suggest
+possible solutions.
+
+## Disaster response networking: present and future
+
+- Give example of real-world partition
+- Talk about some technologies (radio) and difficulties
+- Give example of firefighter's heart rate monitor thing
+- In the future, talk about sensor data from firefighters and agencies
+- Talk about routing information above a drone
+- Plan to aggressively attack fires from air and possibly automate this
 
 Traditionally, civil aviation has employed simple communication
 patterns between airborne and ground-based agents and among
@@ -159,10 +196,16 @@ described in this document.
 
 ## Layout of this document
 
-This memo focuses on two (prima facie unrelated) notions of continuous
-consistency developed in the literature. This document aims to be
-reasonably self-contained and readable to a broad technical
-audience. It is laid out as follows.
+This document proceeds in multiple layers, generally proceeding from
+examining lower-level details (memory models and network protocols) to
+higher-level ones (database replication and application-level data
+fusion). A common albeit fairly abstract theme is to emphasize notions
+of *continuity*---preferring to make fine-tined, balanced tradeoffs
+where possible, in order to build systems that offer a favorable
+balance of desirable properties while accommodating a range of
+unfavorable real-world behavior. This document aims to be reasonably
+self-contained and readable to a broad technical audience. It is laid
+out as follows.
 
 Section \ref{sec:background} provides a high-level introduction to
 distributed systems and memory consistency models. We define two
