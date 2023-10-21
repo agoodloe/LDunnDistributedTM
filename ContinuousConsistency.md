@@ -1,5 +1,5 @@
 ---
-title: Continuous consistency in the coordination of airborne and ground-based agents.
+title: Challenges for Distributed Coordination of Airborne and Ground-Based Agents in Civil Disaster Response
 author: Lawrence Dunn
 abstract: |
   The System Wide Safety (SWS) program has been investigating how
@@ -32,12 +32,12 @@ regular destination, typically an airport. Despite the inherent risks,
 the application of sound engineering practices and conservative
 operating procedures has made flying the safest mode of transport
 today. Now the desire not to compromise this safety makes it difficult
-to integrate unmanned vehicles into the airspace, accomodate new
-applications like package delivery, and keep pace with the rapid
-growth in commercial aviation. To that end, the NASA Aeronautics'
-Airspace Operations and Safety Program (AOSP) System Wide Safety (SWS)
-project has been investigating new technologies and methods by which
-crewed and uncrewed aircraft may safely operate in shared airspace.
+to integrate unmanned vehicles into the airspace, accomodate emerging
+applications, and keep pace with the rapid growth in commercial
+aviation. To that end, the NASA Aeronautics' Airspace Operations and
+Safety Program (AOSP) System Wide Safety (SWS) project has been
+investigating new technologies and methods by which crewed and
+uncrewed aircraft may safely operate in shared airspace.
 
 This memo surveys some of the distributed computing challenges
 generally encountered in this setting and methods that may prove
@@ -71,26 +71,52 @@ other agents in the system.
 To give an example of these tradeoffs, consider firefighting
 airtankers, the largest examples of which (Very Large Airtankers, or
 VLATs) can deposit more than 10,000 gallons of fire retardant at once
-with enough force to crush a car. [^carcrush] This manoeauver is known
-to pose a danger to ground crews,[^killed] so one potential policy
-would be to disallow this action if a pilot does not have up-to-date
+with enough force to crush a ground vehicle,[^carcrush] or more than
+enough to dislodge tree limbs, creating a hazardous situation for
+ground crews. One potential policy would be to disallow this action if
+a pilot (or say, the pilot's computer) does not have up-to-date
 information about the location of agents on the ground. However,
-sharing this information with the pilot may not be possible if heavy
-smoke or a tall mountain ridge prevents radio communications. This
-scenario is just one example of an inherent tradeoff between safety
-and system availability. To achieve safety, the pilot should only
-operate with reliable information. However, if the policy is enforced,
-the pilot's operations could be delayed until this information can be
-obtained, leaving the aircraft unavailable for useful work in the
-meantime. We emphasize that it is not enough that there *aren't any*
-ground crews in the way---an agent's actions are restricted whenever
-the agent does not *know* that an action is safe, even if it is in
-fact safe.
+sharing this information with the pilot may be difficult or even
+impossible if heavy smoke, a damaged radio tower, or a tall ridge
+prevents communications. A pilot's actions might be restricted in
+these scenarios, leading to potentially dangerous inefficiencies.
 
 [^carcrush]: [Link](https://www.youtube.com/watch?v=ONdSoiI4zIA)
-
 [^killed]: [Link](https://www.firerescue1.com/flame-retardants/articles/utah-battalion-chiefs-death-may-have-been-linked-to-airplane-retardant-drop-zWKw179u1IXBB8p9/)
 
+The previous scenario presents a classic tradeoff between opposing
+goals: system *safety* and system *availability* (or *liveness*). To
+achieve safety, the pilot should only operate with reliable
+information. If this safety is strictly enforced, the pilot's
+operations could be delayed until this information can be obtained,
+leaving the aircraft unavailable for useful work in the meantime. We
+emphasize that it is not enough that there *aren't any* ground
+personnel in the way---an agent's actions are restricted whenever the
+agent does not *know* that an action would be safe, even if it would
+in fact pose no danger. The fundamental problem is that propagating
+knowledge requires communication, and the amount of communication is
+necessarily limited to what the available communication network(s) can
+provide. Therefore, efficient use of a potentially chaotic and
+congested network in these situations is paramount.
+
+Taking a broader view, agents in this environment will typically be
+both producers and consumers of data, and will need to process this
+data in order to make informed and coordinated decisions. Information
+shared by agents could include the following:
+
+- The location of agents, vehicles, hazards, victims, etc.
+- Free-form communication (e.g. voice or text messages)
+- Information about current and predicted weather
+- Other information about terrain, fire behavior
+- Availability of resources, e.g. ambulances or firetankers on standby
+
+In a perfect environment, such information would be shared with all
+necessary agents in whole and instantly. In reality, agents will be
+presented with information that is sometimes incomplete, out of date,
+or contradictory---all problems that are further exacerbated by an
+unreliable network. We feel that application of principles from
+distributed computing are necessary in order to make sense out of all
+this inherent noise.
 
 [^note]: In the systems literature, a "safe" system avoids bad behaviors that violate some condition, such as performing a dangerous action without knowing the location of other agents. However, delaying operations may itself be a "safety" problem in the everyday sense of the word.
 
@@ -98,9 +124,13 @@ This sort of tradeoff is manifest throughout the design and
 implementation of distributed systems, and the tension between the two
 ideals becomes especially stark as the reliability of the network
 deteriorates---a fact manifest in Brewer's CAP Theorem
-(CITE). Designing systems that are resilient to these sorts of
+(CITE).
+
+Designing systems that are resilient to these sorts of
 environments is therefore a fundamental challenge for distributed
-computing. This purpose of this memorandum is to enumerate some of the
+computing.
+
+This purpose of this memorandum is to enumerate some of the
 considerations involved in coordinating air- and ground-based elements
 from a distributed computing perspective, identifying challenges,
 potential requirements, and frameworks that suggest possible
