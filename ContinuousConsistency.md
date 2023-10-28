@@ -84,19 +84,16 @@ systems for our use case. We use these points to frame the discussion
 of systems and protocols in subsequent sections.
 
 Section \ref{sec:networking} examines networking considerations. Our
-vision of future emergency networks integrates concepts from
-delay/disruption-tolerant networks (DTN) and mobile ad-hoc networks
-(MANET) to provide digital communications that are robust to a
-turbulent operational environment. We also look at software-defined
-networking (SDN) as a plausible path towards deploying sophisticated
-networking schemes in the field without requiring all parties to
-invest in overly specialized or experimental equipment. This is
-because SDN-based networking equipment can be reprogrammed (e.g. to
-support new versions of protocols) without replacing the underlying
-hardware. Potential benefits of an SDN approach include easier
-experimentation, rapid iteration, better interoperability between
-vendors, and enhanced opportunities for simulation and formal
-verification of protocols.
+vision of future emergency communication networks integrates concepts
+from delay/disruption-tolerant networks (DTN) and mobile ad-hoc
+networks (MANET) to provide digital communications that are robust to
+a turbulent operational environment. We also examine the state of
+software-defined networking (SDN), which allows networking equipment
+to be reprogrammed (e.g. to support new versions of protocols) without
+replacing the underlying hardware. Potential benefits of SDN include
+easier experimentation, reduced special-purpose infrastructure, rapid
+iteration, better interoperability between vendors, and better
+opportunities for simulation and formal verification of protocols.
 
 Section \ref{sec:continuous-consistency} describes a hypothetical
 application of the sort that might be used in a disruption- or
@@ -105,15 +102,14 @@ Vahdat's theory of *conits* (short for "consistency unit"). Unlike
 some shared memory frameworks, the conit framework provides neither
 idealized consistency nor guaranteed high-availability, but rather
 some quantifiable tradeoff between both ideals. In this sense it is a
-*continuous* consistency model. This idea rests on the observation
-that many distributed applications can tolerate inconsistency among
-replicas if a hard upper bound on the divergence between replicas can
-be assumed. A database replication middleware designed around the
-conit framework would allow developers to semantically define
-consistency units, enforce policies bounding application-defined
-measurements of (in)consistency between replicas of these units, and
-even dynamically tune these policies on the fly, say in response to
-network conditions or usage patterns.
+*continuous* model. The idea rests on the observation that many
+applications can tolerate inconsistency among replicas if a hard upper
+bound on the divergence between replicas can be assumed. A database
+replication middleware designed around the conit framework would allow
+developers to semantically define consistency units, enforce policies
+bounding application-defined measurements of (in)consistency between
+replicas of these units, and even dynamically tune these policies on
+the fly, say in response to network conditions or usage patterns.
 
 Section \ref{sec:data-fusion} concerns data fusion. Now and in the
 future, agents in disaster scenarios will make decisions informed by
@@ -124,7 +120,7 @@ CITE), information reported by agents and civilians, civil agencies
 few. Efficient integration, processing, filtering, and dissimination
 of this data is necessary to avoid the familiar problem of "swimming
 in data and drowning in noise" (CITE). This task is especially
-challenging in our setting because agents will tend to have only
+challenging in our setting because agents will often work with
 incomplete or out of date information, and different sources of the
 same data may be contradictory, e.g. first responders may receive
 contradictory reports about whether a structure is occupied. One
@@ -174,34 +170,38 @@ from one agent to the group. At a high level, any kind of coordinated
 action requires enforcing some kind of consistency across replicas of
 data shared between agents, e.g. the history of text messages in a
 chat application.  Stronger notions of consistency generally require a
-greater ability to propagate updates to other agents quickly if system
-availability is not to be sacrificed. Because the network will always
-be less than perfect, tradeoffs will have to be made *somewhere*, so
-it is necessary to understand where this happens and make choices
-informed by the particulars of the real environment.
+greater ability to communicate with other agents quickly---otherwise
+the system may have to wait for the network, delaying the processing
+of requests from clients in the meantime. In practical applications
+this implies that tradeoffs will have to be made *somewhere*, so it is
+necessary to understand where this happens and make choices informed
+by the particulars of the real environment.
 
 ## Communication as a Safety Challenge
-From a civil agency perspective, an inability to coordinate the
-actions of distributed agents makes it difficult to enforce safety
-conditions, as safety requires agents to act with reasonably
-up-to-date information about other agents. Consider firefighting
-airtankers for example. The largest examples of these, Very Large
-Airtankers (VLATs), in some scenarios can deposit more than 10,000
-gallons of fire retardant at once with enough force to crush a ground
-vehicle,[^carcrush] or more than enough to dislodge tree limbs,
-creating a hazardous situation for ground crews. In response, one
-potential policy would be to disallow this action if a pilot (or the
-pilot's computer) does not have up-to-date information about the
-location of agents on the ground. However, sharing this information
-with the pilot may be difficult or impossible if heavy smoke, a
-damaged radio tower, or a tall ridge prevents communications. In these
-scenarios a pilot's actions might be restricted, leading to
-potentially dangerous inefficiencies.
+The difficulty of coordinating the actions of distributed agents over
+an unreliable network makes it difficult to maintain safety, as safety
+requires agents to act with reasonably up-to-date information about
+the world. Very often this information is received from sensors and
+other agents in the environment, who send it over the network, making
+the network a bottleneck.
+
+Consider firefighting airtankers for example. The largest examples of
+these, Very Large Airtankers (VLATs), can deposit more than 10,000
+gallons of fire retardant at once, or more than enough to dislodge
+tree limbs (indeed, in some cases enough to crush a ground
+vehicle[^carcrush]), creating a hazardous situation for ground
+crews. One potential policy would be to disallow this action if a
+pilot (or the pilot's computer) does not have up-to-date information
+about the location of agents on the ground. However, sharing this
+information with the pilot may be difficult or impossible if heavy
+smoke, a damaged radio tower, or a tall ridge prevents
+communications. In these scenarios a pilot's actions might be
+restricted, leading to potentially dangerous inefficiencies.
 
 [^carcrush]: [Link](https://www.youtube.com/watch?v=ONdSoiI4zIA)
 [^killed]: [Link](https://www.firerescue1.com/flame-retardants/articles/utah-battalion-chiefs-death-may-have-been-linked-to-airplane-retardant-drop-zWKw179u1IXBB8p9/)
 
-The previous scenario shows a classic tradeoff between opposing goals:
+This scenario exemplifies a classic tradeoff between opposing goals:
 system *safety* and system *availability* (or *liveness*). In the
 distributed computing context, safety properties guarantee that a
 system will not perform an action that violates some constraint. Here,
@@ -209,54 +209,47 @@ the constraint might be, "all ground agents are known to be outside
 some perimeter, and this information is current to within some time
 bound, before performing a drop." Liveness properties stipulate that
 the system will certainly perform requested actions, perhaps within a
-fixed time bound. In our scenario, an informal liveness property might
-be, "pilots will perform a drop within 15 minutes of receiving a
-request." Unfortunately, safety and liveness are dual mandates that
-are often in tension. Here, if a group of ground agents is for any
-reason unable to broadcast their locations to the pilot, the pilot's
-actions may be restricted, perhaps at the cost of allowing a dangerous
-fire to continue spreading.
+time bound. In our scenario, an informal liveness property might be,
+"pilots will perform a drop within 15 minutes of receiving a request."
+Unfortunately, safety and liveness are dual mandates that typically
+cannot be guaranteed simultaneously. Such is the case in this example:
+if a group of ground agents is unable to broadcast their locations to
+the pilot, the pilot's actions may be delayed, perhaps at the cost of
+allowing a dangerous fire to spread further.
 
-We emphasize a point here: in this previous scenario, it is not enough
-that there aren't any ground personnel in the danger area---perhaps
-firefighters were previously in the area and left, so no danger is
-present, but for some reason this information is not known to the
-pilot. To enforce safety properties, an agent's actions must be
-restricted whenever they do not *know* that an action would be
-safe. Propagating knowledge requires communication, which is
-necessarily limited to what the available communication network(s) can
-provide. Efficient use of a potentially chaotic and congested network
-in these situations is therefore paramount.
+We emphasize a point here: it is not enough that there are no ground
+personnel in danger from a drop. For example, perhaps firefighters
+were previously in the area and since left, so no danger is present,
+but the fact of them leaving is not conveyed to the pilot. To enforce
+safety properties, an agent's actions must be restricted when they do
+not *know* that an action would be safe. Propagating knowledge
+requires communication, which is necessarily limited to what the
+available communication network(s) can provide. Efficient use of a
+chaotic and congested network in these situations is therefore
+paramount.
 
-## Networking Technologies
-The reader may be surprised to learn the state of the art in wildland
-firefighting communication is often simple, even primitive. (This is
-not so surprising. Contrast the budget of a volunteer fire department
-with that of a comparably sized military unit.) Indeed, the need to
-support commercial off-the-shelf (COTS) components is one of our
-general assumptions in this memo.
+##  Communication and Locality
 
 Communication between firefighters in the field is often facilitated
 by handheld radios, which are inherently limited in their battery
 life, bandwidth, effective range, and ability to work around
-environmental factors like foliage and smoke. As we watched interviews
-with experienced wildland firefighters, we found an interview with a
-volunteer firefighter who relayed a story of Ironside repeater station
-destroyed by fire. (CITE, CITE). This repeater had strategic
-importance, between located on a tall ridge, and its loss prevented
-communication between operators on different sides of it. This
-communication partition continued until agents could ascend the ridge
-to deploy a temporary station, a challenge that presumably diverted
-operators from other duties. This story demonstrates the potential for
-fairly widespread system failure due to the loss of a single system
-component when it is shared by multiple users.
+environmental factors like foliage and smoke.
 
-In the field, firefighters sometimes employ the low-technology
-solution of simply shouting messages to each other, noting this
-approach can be cheaper, quicker, and more lightweight than
-radio-based methods. Besides highlighting the fact that sometimes
-simple things work, there is a distributed computing lesson here, as
-it demonstrates an exploitable kind of spatial locality. We partly
+In our background research, we found an interview with a volunteer
+firefighter who relayed a story the Ironside repeater station, which
+was destroyed by fire in YEAR (CITE). This repeater had strategic
+importance, being located on a tall ridge, and its loss prevented
+communication between operators on different sides of the ridge, in
+other words creating a network partition. The partition continued
+until firefighters could ascend the ridge to deploy a temporary
+station, presumably diverting operators from other duties. This story
+demonstrates the potential for widespread system failure due to the
+loss of a single system component when it is shared by multiple users.
+
+In the field, it is common for firefighters to shout messages instead
+of using a radio. Besides highlighting the fact that sometimes simple
+things work, there is a distributed computing lesson here, as it
+demonstrates an exploitable kind of spatial locality. We partly
 conjecture, and partly merely observe, that agents with a higher need
 to coordinate their actions will tend to be located closer to each
 other, which in turn tends to correlate with their ability to
@@ -264,35 +257,53 @@ communicate successfully. This kind of principle motivates the sort of
 decentralized, ad-hoc networking protocols considered in Section
 \ref{sec:networking}.
 
-Turning now towards the sky, civil aviation has also traditionally
-employed simple communication patterns between airborne agents. For
-instance, aircraft equipped with Automatic Dependent
-Surveillance-Broadcast (ADS-B) monitor their location using GPS and
-periodically broadcast this information to air traffic controllers and
-nearby aircraft. This sort of scheme has worked well in traditional
-applications, where pilots typically only monitor the general
-locations of a few nearby aircraft. It is another example of
-exploiting spatial locality: aircraft have the highest need to
-coordinate when they are physically close, and therefore in range of
+Civil aviation has also traditionally employed simple communication
+patterns between airborne agents. For instance, aircraft equipped with
+Automatic Dependent Surveillance-Broadcast (ADS-B) monitor their
+location using GPS and periodically broadcast this information to air
+traffic controllers and nearby aircraft. This sort of scheme has
+worked well in traditional applications, where pilots typically only
+monitor the general locations of a few nearby aircraft. It is another
+example of exploiting spatial locality: aircraft have the highest need
+to coordinate when they are physically close and therefore in range of
 each other's ADS-B broadcasts.
 
+In our setting, a large number of aircraft may need to operate in a
+small area, near complex terrain, and at times operating at an
+altitude of less than 1000 ft. (CITE). In other words, the demands are
+many and the margins for error are small. This sort of use case
+demands more sophisticated coordination schemes between airborne and
+ground-based elements than solutions like ADS-B provide by themselves.
+
 As aircraft generally have better line-of-site to ground crews than
-ground crews have to each other, firefighters sometimes relaying
-messages to air-based units over radio, which in turn is relayed back
-down to other ground units. The locality principle comes into play
-here, too, this time in the unfortunate reverse direction: this simple
-relay scheme allows messages to travel farther, but the extended
-reach comes at the cost of introducing delays and possible degradation
-of message quality, as in the classic telephone game.
+ground crews have to each other, firefighters sometimes relay messages
+to air-based units over radio, which in turn is relayed back down to
+other ground units. The locality principle comes into play here too,
+this time in the unfortunate reverse direction: this simple relay
+scheme allows messages to travel farther, but the extended reach comes
+at the cost of introducing delays and possible degradation of message
+quality, as in the classic telephone game. The common principle in
+these examples is that communication over short distances is easy, and
+the system should be able to take advantage of this fact when it works
+to the advantage of clients. Communication over long distances is
+harder. When the amount of communication demanded by clients exceeds
+what the system can actually provide, the should be prudent in
+allocating scarce bandwidth.
 
-- Talk about some technologies (radio) and difficulties
-- Give example of firefighter's heart rate monitor thing
-- In the future, talk about sensor data from firefighters and agencies
-- Talk about routing information above a drone
-- Plan to aggressively attack fires from air and possibly automate this
-
+A future communication system should also be opportunistic in
+exploiting every available opportunity to facilitate communication
+between agents. For instance, an overhead drone surveying a fire may
+opportunistically act as a mobile base station (i.e. cell tower) to
+ground crews, routing digital messages through the network on their
+behalf, taking advantage of the drone's (presumably) better ability to
+send and receive messages over long distances. In effect, this would
+be a high-tech modernization of the sort of informal relay scheme
+operating today over traditional radio channels. This should be done
+as transparently as possible, meaning without requiring special action
+from the ground crew.
 
 ## Data-driven Decision Making
+
 Taking a broader view, agents in this environment will typically be
 both producers and consumers of data, and will need to process this
 data in order to make informed and coordinated decisions. Information
@@ -312,71 +323,10 @@ unreliable network. We feel that application of principles from
 distributed computing are necessary in order to make sense out of all
 this inherent noise.
 
-[^note]: In the systems literature, a "safe" system avoids bad behaviors that violate some condition, such as performing a dangerous action without knowing the location of other agents. However, delaying operations may itself be a "safety" problem in the everyday sense of the word.
-
 This sort of tradeoff is manifest throughout the design and
 implementation of distributed systems, and the tension between the two
 ideals becomes especially stark as the reliability of the network
-deteriorates---a fact manifest in Brewer's CAP Theorem
-(CITE).
-
-Designing systems that are resilient to these sorts of
-environments is therefore a fundamental challenge for distributed
-computing.
-
-This purpose of this memorandum is to enumerate some of the
-considerations involved in coordinating air- and ground-based elements
-from a distributed computing perspective, identifying challenges,
-potential requirements, and frameworks that suggest possible
-solutions.
-
-## Expectations for the Future
-
-Strategic decisions are increasingly relying on high-quality data.
-
-At the individual level, firefighters may be equipped with local
-sensors---for instance, NIST has found that fatal cardiac events in
-firefighters can be accurately predicted,[^cardiac] and future efforts in this
-direction may lead to body-worn sensors. Given the ubiquity of
-inexpensive GPS devices---this could be as simple as an application
-running on a personal smartphone.
-
-[^cardiac]: https://www.nist.gov/news-events/news/2023/07/ai-can-accurately-predict-potentially-fatal-cardiac-events-firefighters
-
-Sensors may be deployed to monitor everything from air quality to
-temperature.
-
-At the strategic level, decision makers may rely on computer-generated
-forecasts of firefront[^firefront] behavior that take into account
-weather, topography, fuel conditions, and observed fire behavior. Such
-predictions may be
-
-[^firefront]: The leading edge where a wildfire is actively burning.
-
-In our setting, a large number of aircraft (perhaps as many as 10) may
-need to operate in a small area, near complex terrain, and at times
-operating at an altitude of less than 1000 ft.---in other words the
-demands are many and the margins for error are small. This sort of use
-case demands more sophisticated coordination schemes between airborne
-and ground-based elements than ADS-B and comparable schemes provide by
-themselves.
-
-We envision a system that responds gracefully to a challenging
-environment, flexibly coordinates a dynamic ensemble of heterogeneous
-mobile agents, and intelligently gathers, fuses, and disseminates the
-right information to decision-makers at the right time. When parts of
-the system fail---perhaps because some agents are too far away to
-contact, or become some sensors are generating conflicting data, or
-because a repeater is destroyed by fire---the system should fail no
-more than it must.
-
-The system should exploit every opportunity to facilitate
-communication between agents. For instance, an overhead drone
-surveying a fire may opportunistically act as a mobile base station to
-ground crews, allowing them to route messages past a mountain
-ridge---a high-tech modernization of the sort of informal relay scheme
-operating today over traditional radio channels.
-
+deteriorates---a fact manifest in Brewer's CAP Theorem (CITE).
 
 
 \newpage
