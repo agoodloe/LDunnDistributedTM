@@ -27,57 +27,64 @@ abstract: |
 # Introduction
 
 Civil aviation has traditionally focused primarily on the efficient
-and safe transportation of people and goods via the airspace, usually
-to and from airports. Despite the inherent risks, the application of
-sound engineering practices and conservative operating procedures has
-made flying the safest mode of transport today. Now the desire not to
-compromise this safety makes it difficult to integrate unmanned
-vehicles into the airspace, accomodate emerging applications, and keep
-pace with rapid growth in commercial aviation. To that end, the
-NASA Aeronautics' Airspace Operations and Safety Program (AOSP) System
-Wide Safety (SWS) project has been investigating new technologies and
-methods by which crewed and uncrewed aircraft may safely operate in
-shared airspace.
+and safe transportation of people and goods via the airspace. Despite
+the inherent risks, the application of sound engineering practices and
+conservative operating procedures has made flying the safest mode of
+transport today. Now the desire not to compromise this safety makes it
+difficult to integrate unmanned vehicles into the airspace, accomodate
+emerging applications, and keep pace with rapid growth in commercial
+aviation. To that end, the NASA Aeronautics' Airspace Operations and
+Safety Program (AOSP) System Wide Safety (SWS) project has been
+investigating new technologies and methods by which crewed and
+uncrewed aircraft may safely operate in shared airspace.
 
-This memo surveys some of the distributed computing challenges
-generally encountered in this setting and methods that may prove
-useful in overcoming them. Our primary motivating use cases have been
-taken from civil emergency response scenarios, especially wildfire
-suppression and hurricane relief. The motivation for this choice is
-two-fold. First, the rules for operating in the US national airspace
-are typically relaxed during natural disasters and relief
-efforts. Second, these settings are an excellent microcosm for the
-sorts of general challenges faced by other, non-emergency
-applications.
+This memo surveys topics in distributed computing that are relevant to
+the \mbox{challenge} of maintaining system-wide safety. Our primary
+motivating use cases have been taken from civil emergency response
+scenarios, especially wildfire suppression and hurricane relief. The
+motivation for this choice is two-fold. First, the rules for operating
+in the US national airspace are typically relaxed during natural
+disasters and relief efforts. Second, these settings are an excellent
+microcosm for the sorts of general challenges faced by other,
+non-emergency applications. We summarize a range of diverse topics in
+the literature that may prove useful in overcoming these challenges.
+
+A common albeit abstract theme is the notion of *continuity*, as in
+topology. Designing a system that is robust to real-world environments
+is an exercise in making tradeoffs, and it is of particular importance
+in this setting to exercise fine control over these tradeoffs. To
+build a system that is predictable---clearly a prerequisite for
+safety---changes in network conditions, usage patterns, etc. should
+generate (only) a proportional change in system behavior as observed
+by its users. In other words, the behavior of a safe system should in
+some sense be a continuous function of its inputs and operational
+environment.
 
 ## Layout of this document
 
 This document aims to be self-contained and accessible to a broad
-technical audience. Section \ref{sec:disaster-response} starts with a
-pragmatic summary of disaster response and some of the relevant
-computing challenges in that setting. Subsequent sections analyze
-these challenges further, proceeding from lower-level details (memory
-models and network protocols) to higher-level ones (database
-replication and data fusion). A common albeit abstract theme is the
-notion of *continuity*---a preference to make flexible and balanced
-tradeoffs rather than committing to extremes, in order to build
-systems that offer a balance of desirable properties while tolerating
-real-world environments.
+technical audience.
 
-Section \ref{sec:background} presents general background on
-distributed systems, consistency, and a classic and fundamental
-result: the "CAP" theorem(s) for the atomic and sequential consistency
-models (Theorems \ref{thm:cap} and \ref{thm:cap-sequential},
-respectively). The CAP theorem is a negative result, proving that a
-distributed system cannot enforce strong consistency without going
-offline during network partitions. More generally, the result implies
-that maintaining strong consistency makes systemwide network
-performance an upper bound on the availability of a system to do
-useful work for clients, an unacceptable restriction. The practical
-importance of this result is that in realistic emergency response
-environments, agents will almost always act with less than perfect
-global information, a fact that will later motivate Section
-\ref{sec:continuous-consistency}.
+Section \ref{sec:disaster-response} starts with a pragmatic summary of
+disaster response and some of the relevant computing challenges in
+that setting. The rest of the document analyzes these issues further,
+proceeding from lower-level details (memory models and network
+protocols) to higher-level ones (database replication and data
+fusion).
+
+Section \ref{sec:background} is an introduction to distributed
+systems, consistency, and a classic and fundamental result: the "CAP"
+theorem(s) for the atomic and sequential consistency models (Theorems
+\ref{thm:cap} and \ref{thm:cap-sequential}, respectively). The CAP
+theorem is a negative result, proving that a distributed system cannot
+enforce strong consistency without going offline during network
+partitions. More generally, the result implies that maintaining strong
+consistency makes systemwide network performance an upper bound on the
+availability of a system to do useful work for clients, an
+unacceptable restriction. The practical importance of this result is
+that in realistic emergency response environments, agents will almost
+always act with less than perfect global information, a fact that will
+later motivate Section \ref{sec:continuous-consistency}.
 
 Section \ref{sec:desiderata} identifies a few desirable properties of
 systems for our use case. We use these points to frame the discussion
@@ -103,13 +110,14 @@ some shared memory frameworks, the conit framework provides neither
 idealized consistency nor guaranteed high-availability, but rather
 some quantifiable tradeoff between both ideals. In this sense it is a
 *continuous* model. The idea rests on the observation that many
-applications can tolerate inconsistency among replicas if a hard upper
-bound on the divergence between replicas can be assumed. A database
-replication middleware designed around the conit framework would allow
-developers to semantically define consistency units, enforce policies
-bounding application-defined measurements of (in)consistency between
-replicas of these units, and even dynamically tune these policies on
-the fly, say in response to network conditions or usage patterns.
+applications can tolerate inconsistency among replicas of a data item
+if a hard upper bound on the divergence between replicas can be
+assumed. A database replication middleware designed around the conit
+framework would allow developers to semantically define consistency
+units, enforce policies bounding application-defined measurements of
+(in)consistency between replicas of these units, and even dynamically
+tune these policies on the fly, say in response to network conditions
+or usage patterns.
 
 Section \ref{sec:data-fusion} concerns data fusion. Now and in the
 future, agents in disaster scenarios will make decisions informed by
@@ -124,11 +132,12 @@ challenging in our setting because agents will often work with
 incomplete or out of date information, and different sources of the
 same data may be contradictory, e.g. first responders may receive
 contradictory reports about whether a structure is occupied. One
-promising trend in data fusion, which we briefly survey in this
-section, is the use of applied sheaf theory, arguably the "canonical"
-mathematical model for data fusion (CITE). Sheaf theory provides a
-rigorous framework for discussing how heterogeneous sources of noisy
-data can be integrated into a coherent picture.
+promising trend in this space, which we briefly introduce in this
+section, is the development of sheaf theory as arguably the
+"canonical" mathematical model for data fusion (CITE). Sheaf theory
+provides a rigorous framework for discussing how heterogeneous sources
+of noisy data can be integrated into a coherent picture, and can
+quantify and measure how well this task is achieved.
 
 We conclude in Section \ref{sec:conclusion} by recapping some of the
 main themes in this document and highlighting areas where design
@@ -151,9 +160,9 @@ communications challenges. The causes of this fundamental reality are
 several in number: remote locations, difficult terrain, damaged
 infrastructure, harsh weather, and limited battery power, to name a
 few. Other complications follow from this basic fact, as it forces
-agents to choose between suffering long delays or acting with only
-limited knowledge, or both. Both choices are problematic and can
-present safety challenges.
+agents to choose between suffering long delays in sending or
+receiving information, or acting with only limited knowledge, or
+both. Both choices are problematic and can present safety challenges.
 
 From a networking perspective, environmental and operational factors
 tend to cause agents (e.g. first responders) to experience heavy
@@ -161,42 +170,43 @@ packet loss and significant delays in message-passing. This can happen
 at particularly inopportune times, e.g. when weather or fire
 conditions are at their worst, as in some cases the conditions which
 prompt urgent communication will correlate with those that make
-communication difficult. (Tautologically, a communications network is
-most \mbox{congested} precisely when everyone needs to use it!)
+communication difficult.[^pithy]
+
+[^pithy]: Consider that, tautologically, a communications network is
+most \mbox{congested} precisely when everyone needs to use it.
 
 From a systems perspective, an unreliable network obstructs protocols
 for coordination among distributed agents, say to broadcast a message
 from one agent to the group. At a high level, any kind of coordinated
-action requires enforcing some kind of consistency across replicas of
-data shared between agents, e.g. the history of text messages in a
+action requires enforcing some notion of consistency across replicas
+of data shared between agents, e.g. the history of text messages in a
 chat application.  Stronger notions of consistency generally require a
-greater ability to communicate with other agents quickly---otherwise
+greater ability to communicate with other agents quickly. Otherwise
 the system may have to wait for the network, delaying the processing
 of requests from clients in the meantime. In practical applications
 this implies that tradeoffs will have to be made *somewhere*, so it is
 necessary to understand where this happens and make choices informed
 by the particulars of the real environment.
 
-## Communication as a Safety Challenge
-The difficulty of coordinating the actions of distributed agents over
-an unreliable network makes it difficult to maintain safety, as safety
-requires agents to act with reasonably up-to-date information about
-the world. Very often this information is received from sensors and
-other agents in the environment, who send it over the network, making
-the network a bottleneck.
+## Communication and Safety
+An unreliable network is a safety challenge, as safety requires agents
+to act with up-to-date information about the world. Generally this
+information is received from sensors and other agents in the
+environment, who send it over the network(s), making the network a
+major bottleneck.
 
 Consider firefighting airtankers for example. The largest examples of
 these, Very Large Airtankers (VLATs), can deposit more than 10,000
 gallons of fire retardant at once, or more than enough to dislodge
-tree limbs (indeed, in some cases enough to crush a ground
-vehicle[^carcrush]), creating a hazardous situation for ground
+tree limbs---indeed, in some cases enough to crush a ground
+vehicle[^carcrush]). This creates a hazardous situation for ground
 crews. One potential policy would be to disallow this action if a
-pilot (or the pilot's computer) does not have up-to-date information
-about the location of agents on the ground. However, sharing this
-information with the pilot may be difficult or impossible if heavy
-smoke, a damaged radio tower, or a tall ridge prevents
-communications. In these scenarios a pilot's actions might be
-restricted, leading to potentially dangerous inefficiencies.
+airtanker's pilots do not have up-to-date information about the
+location of agents on the ground. However, sharing this information
+may be difficult or impossible if heavy smoke, a damaged radio tower,
+or a tall ridge prevents communications. In these scenarios, our
+hypothetical policy may prevent airtankers from operating, leading to
+potentially dangerous inefficiencies.
 
 [^carcrush]: [Link](https://www.youtube.com/watch?v=ONdSoiI4zIA)
 [^killed]: [Link](https://www.firerescue1.com/flame-retardants/articles/utah-battalion-chiefs-death-may-have-been-linked-to-airplane-retardant-drop-zWKw179u1IXBB8p9/)
@@ -204,36 +214,57 @@ restricted, leading to potentially dangerous inefficiencies.
 This scenario exemplifies a classic tradeoff between opposing goals:
 system *safety* and system *availability* (or *liveness*). In the
 distributed computing context, safety properties guarantee that a
-system will not perform an action that violates some constraint. Here,
-the constraint might be, "all ground agents are known to be outside
-some perimeter, and this information is current to within some time
-bound, before performing a drop." Liveness properties stipulate that
-the system will certainly perform requested actions, perhaps within a
-time bound. In our scenario, an informal liveness property might be,
-"pilots will perform a drop within 15 minutes of receiving a request."
-Unfortunately, safety and liveness are dual mandates that typically
-cannot be guaranteed simultaneously. Such is the case in this example:
-if a group of ground agents is unable to broadcast their locations to
-the pilot, the pilot's actions may be delayed, perhaps at the cost of
-allowing a dangerous fire to spread further.
+system will not perform an action that violates a constraint. In
+our example, a reasonable safety property could look like the following:
+\begin{quote}
+    $\textbf{P}_\textrm{safe}$: All ground agents are
+known to be at least 300 meters outside the drop zone, and this
+information is current to within 30 seconds, or airtankers will not perform a
+drop.
+\end{quote}
+\noindent By contrast, liveness properties stipulate that the system will certainly
+perform requested actions, typically within some time bound. In our
+scenario, an expected liveness property might be the following:
+\begin{quote}
+    $\textbf{P}_\textrm{live}$:
+    Airtankers will perform a drop within 15 minutes of receiving a request.
+\end{quote}
 
-We emphasize a point here: it is not enough that there are no ground
-personnel in danger from a drop. For example, perhaps firefighters
-were previously in the area and since left, so no danger is present,
-but the fact of them leaving is not conveyed to the pilot. To enforce
-safety properties, an agent's actions must be restricted when they do
-not *know* that an action would be safe. Propagating knowledge
-requires communication, which is necessarily limited to what the
-available communication network(s) can provide. Efficient use of a
-chaotic and congested network in these situations is therefore
-paramount.
+Unfortunately, safety and liveness can be dual mandates: safety (in
+the sense used here) requires a system **never** to perform certain
+actions, while liveness requires a system to **always** perform
+certain actions. The tension between them, which will be further
+explored in Section \ref{sec:background}, means the two often cannot
+be guaranteed simultaneously. Such is the case in our example: if a
+group of ground agents is unable to broadcast their locations to the
+pilot, then the pilot's actions may have to be delayed to maintain
+$\textbf{P}_\textrm{safe}$ at the cost of
+$\textbf{P}_\textrm{live}$. This inaction could even come at the cost
+of allowing a dangerous fire to spread.[^clarity]
 
-##  Communication and Locality
+[^clarity]: A slight linguistic idiosyncrasy exhibited here is that liveness properties---not just "safety" properties---can also be relevant to human safety. Thus, the narrow technical meaning of safety properties for distributed systems fails to capture the entirety of the meaning of System Wide Safety.
 
-Communication between firefighters in the field is often facilitated
-by handheld radios, which are inherently limited in their battery
-life, bandwidth, effective range, and ability to work around
-environmental factors like foliage and smoke.
+We emphasize a point here: the issue in the previous example does not
+simply disappear if no ground personnel are actually within 300 meters
+of a drop zone. For example, perhaps firefighters were previously in
+the danger area and since left, so no danger is actually present, but
+the fact of them leaving is not conveyed to the pilot. To ensure
+$\textbf{P}_\textrm{safe}$, an airtanker's actions must be restricted
+when pilots do not *know* whether an action would violate
+$\textbf{P}_\textrm{safe}$---the knowledge of this fact, and not
+merely the fact of it, is the crucial part. Propagating knowledge
+between agents fundamentally requires communication, and communication
+is necessarily limited to what the available communication network(s)
+can provide. Thus, efficient use of a chaotic and congested network in
+these situations is paramount.
+
+##  Communication in Practice
+
+In the field, communication between firefighters and other agents in
+disaster response scenarios is often facilitated by handheld radios,
+which are inherently limited in their battery life, bandwidth,
+effective range, and ability to work around environmental factors like
+foliage and smoke.
 
 In our background research, we found an interview with a volunteer
 firefighter who relayed a story the Ironside repeater station, which
@@ -244,18 +275,22 @@ other words creating a network partition. The partition continued
 until firefighters could ascend the ridge to deploy a temporary
 station, presumably diverting operators from other duties. This story
 demonstrates the potential for widespread system failure due to the
-loss of a single system component when it is shared by multiple users.
+loss of a central system component. It is also exactly the kind of
+scenario considered by Brewer's CAP theorem in Section
+\ref{sec:background}.
 
-In the field, it is common for firefighters to shout messages instead
-of using a radio. Besides highlighting the fact that sometimes simple
-things work, there is a distributed computing lesson here, as it
-demonstrates an exploitable kind of spatial locality. We partly
-conjecture, and partly merely observe, that agents with a higher need
-to coordinate their actions will tend to be located closer to each
-other, which in turn tends to correlate with their ability to
-communicate successfully. This kind of principle motivates the sort of
-decentralized, ad-hoc networking protocols considered in Section
-\ref{sec:networking}.
+In the field, it is common for firefighters to shout messages as an
+alternative to using a radio. Besides highlighting the fact that
+sometimes simple things work, there is a distributed computing lesson
+here, as it exemplifies a kind of "geospatial locality of reference"
+that system designers ought to take into account. We expect, generally
+speaking, that agents with a higher need to coordinate their actions
+will tend to be located closer to each other, which in turn correlates
+with an ability to communicate quickly and reliably. This kind of
+principle motivates the sort of decentralized, ad-hoc networking
+protocols considered in Section \ref{sec:networking}. It can also
+affect the design of higher-level applications like the one in Section
+\ref{sec:continuous-consistency}.
 
 Civil aviation has also traditionally employed simple communication
 patterns between airborne agents. For instance, aircraft equipped with
@@ -263,9 +298,9 @@ Automatic Dependent Surveillance-Broadcast (ADS-B) monitor their
 location using GPS and periodically broadcast this information to air
 traffic controllers and nearby aircraft. This sort of scheme has
 worked well in traditional applications, where pilots typically only
-monitor the general locations of a few nearby aircraft. It is another
-example of exploiting spatial locality: aircraft have the highest need
-to coordinate when they are physically close and therefore in range of
+monitor the general locations of a few nearby aircraft. The locality
+principle is exhibited here, too: aircraft have the highest need to
+coordinate when they are physically close and therefore in range of
 each other's ADS-B broadcasts.
 
 In our setting, a large number of aircraft may need to operate in a
@@ -279,110 +314,83 @@ As aircraft generally have better line-of-site to ground crews than
 ground crews have to each other, firefighters sometimes relay messages
 to air-based units over radio, which in turn is relayed back down to
 other ground units. The locality principle comes into play here too,
-this time in the unfortunate reverse direction: this simple relay
+but this time in the unfortunate reverse direction. This simple relay
 scheme allows messages to travel farther, but the extended reach comes
 at the cost of introducing delays and possible degradation of message
-quality, as in the classic telephone game. The common principle in
-these examples is that communication over short distances is easy, and
-the system should be able to take advantage of this fact when it works
-to the advantage of clients. Communication over long distances is
-harder. When the amount of communication demanded by clients exceeds
-what the system can actually provide, the should be prudent in
-allocating scarce bandwidth.
+quality, as in the classic game of telephone.
 
-A future communication system should also be opportunistic in
-exploiting every available opportunity to facilitate communication
-between agents. For instance, an overhead drone surveying a fire may
-opportunistically act as a mobile base station (i.e. cell tower) to
-ground crews, routing digital messages through the network on their
-behalf, taking advantage of the drone's (presumably) better ability to
-send and receive messages over long distances. In effect, this would
-be a high-tech modernization of the sort of informal relay scheme
-operating today over traditional radio channels. This should be done
-as transparently as possible, meaning without requiring special action
-from the ground crew.
+A common principle in these examples is that communication over short
+distances is easy, so applications should take advantage of this fact
+when possible. Communication over long distances is harder. When the
+amount of communication demanded by clients exceeds what the network
+can actually provide, the system should be prudent in allocating
+scarce bandwidth to the most important messages.
 
-## Data-driven Decision Making
+## Towards the Future
 
-Taking a broader view, agents in this environment will typically be
-both producers and consumers of data, and will need to process this
-data in order to make informed and coordinated decisions. Information
-shared by agents could include the following:
+- CITE developed a prototype application for firefighters in the field.
+- Talk about other applications
+
+Taking a broader view, agents in disaster response environments will
+often be both producers and consumers of data, and this data will need
+to processed for agents to make informed decisions. Information shared
+by agents could include the following:
 
 - The location of agents, vehicles, hazards, victims, etc.
 - Free-form communication (e.g. voice or text messages)
-- Information about current and predicted weather
-- Other information about terrain, fire behavior
+- Medical information collected from e.g. digital triage tags (CITE)
+- Data about current and predicted weather patterns
+- Topographic information about the terrain
 - Availability of resources, e.g. ambulances or firetankers on standby
 
 In a perfect environment, such information would be shared with all
 necessary agents in whole and instantly. In reality, agents will be
 presented with information that is sometimes incomplete, out of date,
 or contradictory---all problems that are further exacerbated by an
-unreliable network. We feel that application of principles from
-distributed computing are necessary in order to make sense out of all
-this inherent noise.
+unreliable network.
 
-This sort of tradeoff is manifest throughout the design and
-implementation of distributed systems, and the tension between the two
-ideals becomes especially stark as the reliability of the network
-deteriorates---a fact manifest in Brewer's CAP Theorem (CITE).
+At the network level, a future communication system should be
+opportunistic in exploiting every available opportunity to facilitate
+communication between agents in a transparent manner. For instance, an
+overhead drone surveying a fire may opportunistically act as a mobile
+base station (i.e. cell tower) to ground crews, routing digital
+messages through the network on their behalf, taking advantage of the
+drone's better ability to send and receive messages over long
+distances. In effect, this would be a high-tech modernization of the
+sort of informal relay scheme operating today over traditional radio
+channels.
+
+
+
 
 
 \newpage
 # Introduction to Distributed Systems
 \label{sec:background}
 
-A distributed system, broadly construed, is a collection of
+A distributed system, in the most general sense, is a collection of
 independent entities that cooperate to solve a problem that cannot be
-individually solved [@kshemkalyani_singhal_2008]. In the context
-of computing, [@10.5555/562065] offer the following definition.
+individually solved [@kshemkalyani_singhal_2008]. [@10.5555/562065]
+offer the following definition of a distributed (computing) system:
 
 > "A collection of computers that do not share common memory or a
 > common physical clock, that communicate by message passing over a
 > communication network, and where each computer has its own memory
 > and runs its own operating system."
 
+In our scenarios, system nodes typically represent computers, routers,
+sensors, and communication devices, while the clients would typically
+be firefighters using these devices and other persons involved in
+disaster response efforts. The components of the system collectively
+accomplish goals such as navigating safely in close proximity,
+delivering resources to remote locations, and suppressing fires.
+
 A fundamental goal for distributed computing systems is to "[appear]
 to the users of the system as a single coherent computer"
 [@TanenbaumSteen07]. This can be understood as the requirement that
 all nodes present a *mutually-consistent* view of the world, e.g. the
-state of a globally-maintained database, to system clients.
-
-In our scenarios, system nodes typically represent various computers,
-routers, sensors, and communication devices, while the clients would
-typically be firefighters using these devices and other persons
-involved in disaster response efforts. The components of the system
-collectively accomplish goals such as navigating safely in close
-proximity, delivering resources to remote locations, and suppressing
-fires. For example, first responders may communicate over a text
-messaging application, and global consistency would mean different
-users reading their device's local copy of the chat should see the
-same messages.
-
-What precisely constitutes consistency? One can choose from multiple
-consistency models, and the most appropriate model depends on the
-semantics expected by the application and its clients, which must be
-weighed against other requirements. All other things being equal, one
-wants to have as much consistency as possible. Below, we shall see
-that \textrm{na\"ive} notions of system coherence are brittle in the
-sense that they generally cannot be guaranteed.
-
-When *strong* notions of consistency are enforced, clients are
-presented with the abstraction of a single shared world, i.e. as if
-they are all connected to a central computer rather than a complex
-system of independent computers. This abstraction shields clients and
-application developers from complexity and makes it simpler to reason
-about a system's behavior. In our previous example, strong consistency
-would require that different users see the same messages arriving at
-approximately the same time and always in the same order. Consistency
-is a prerequisite to system-wide safety, because bad things can happen
-when strong consistency is violated:
-
-- Suppose in a message stream two questions $Q_1$ and $Q_2$ are asked
-  and responses $A_1$ and $A_2$ are given, respectively. If the
-  answers arrive in the wrong order, i.e. $A_2$ appears as the answer
-  to $Q_1$ and vice versa, the potential for confusion can be severe.
+state of a globally-maintained database, to system clients. Bad things
+happen when consistency is violated:
 
 - A bank client would be unhappy if deposits that appear in their
   account online are not reflected when they check their balance at an
@@ -397,31 +405,33 @@ when strong consistency is violated:
   out of date. Alternatively, a resource that is actually available
   may not be used if clients think it is still unavailable.
 
-In general, violating strong consistency means the abstraction of a
-single shared universe is broken. In extreme cases, this can
-invalidate clients' mental model of the system, make the system's
-behavior harder to predict, or cause safety requirements to be
-violated. Given this, it seems wise to always build applications that
-provide strong consistency. Unfortuntately, there are a variety of
-conditions where this condition cannot pragmatically be attained for
-theoretical and practical reasons; that is, unless one is willing to
-pay with significant performance penalties, including applications
-that fail to respond to users under some conditions.
+In general, violating consistency means the abstraction of a single
+shared universe is broken. In extreme cases, this can invalidate
+clients' mental model of the system, make the system's behavior harder
+to predict, or cause safety requirements to be violated. Clearly, all
+other things being equal, one wants to have as much consistency as
+possible.
 
-Strong consistency cannot be maintained whenever doing so requires a
-level of communication throughput in excess of what the real-world
-network can provide. Note that distributed agents can *only*
-coordinate by passing messages over the network.[^fn] When messages
-cannot be passed quickly enough, agents subject to strong consistency
-requirements may not be able to make progress. Therefore, real-world
-applications must tolerate weaker notions of consistency. As weaker
-consistency imposes fewer constraints on observable system behavior,
-applications can be more difficult to reason about, safety-related
-invariants more challenging to enforce.
+When *strong* notions of consistency are enforced, clients are
+presented with the abstraction of a single shared world, i.e. as if
+they are all connected to a central computer rather than a complex
+system of independent computers. This abstraction shields clients and
+application developers from complexity and makes it simpler to reason
+about a system's behavior. However, we shall see that strong notions
+of consistency are brittle in the sense that they generally cannot be
+achieved for the kinds of systems we consider in this document.
 
+## Message Passing
+
+A distributed system consists of a set $\mathcal{P} = \{P_i\}_{i\in
+I}$ of *processes*, which we think of these as executing on
+independent, often geographically dispersed computers that communicate
+by message-passing. Processes can *only* coordinate by passing
+messages over the network.[^fn]
 [^fn]: This fact is implied by absence of a common memory, whereas
 processes on the same machine have the option to share data by writing
 it to a memory location both processes have access to.
+
 
 A foundational assumption is that the network is almost always less
 than perfectly reliable---this fact can be counted on during
@@ -437,12 +447,7 @@ discussion more precise.
 even act like a malicious adversary, though we will not consider this
 scenario in this document.
 
-## System model
-
-A distributed system consists of a set $\mathcal{P} = \{P_i\}_{i\in
-I}$ of *processes*, which we think of these as executing on
-independent, often geographically dispersed computers that communicate
-by message-passing.
+### Client-server architecture
 
 Process take requests from clients, such as to read or write a value
 in a database. The lifecycle of a typical request is depicted in
@@ -454,7 +459,7 @@ processed until some strictly greater time $E.t > E.s$ when a response
 is sent back to the client. The value $E.t - E.s$ is the
 \emph{duration} of the event.
 
-\begin{figure}
+\begin{figure}[h]
   \center
   \includegraphics[scale=0.4]{images/request.png}
   \caption{Lifetime of a client request}
@@ -468,13 +473,9 @@ to other processes, retrieve up-to-date values from other processes to
 give to the client, or delay handling the client's request in order to
 handle other requests.
 
-To discuss consistency models, we shall be less interested in the
-details of message-passing and more interested just in the responses
-observed by clients. We shall consider the full set of events across a
-distributed system, such as shown in Figure
-\ref{fig:externalorder}. This is called an *execution*. Consistency
-models constrain the set of allowable return values in response to
-clients' requests.
+### Measuring time
+
+### Causal order/external order
 
 As is often the case, we shall assume that requests handled by a
 single process do not overlap in time. This can be enforced with local
@@ -551,8 +552,22 @@ processes may not be comparable. Additionally, even systems that
 enforce linearizable consistency (c.f. Section \ref{sec:atomic}) do not
 necessarily handle requests in order of their physical start times.
 
-## Linearizability and sequential consistency
+
+## Memory Consistency Models
 \label{sec:atomic}
+
+What precisely constitutes consistency? One can choose from multiple
+consistency models, and the most appropriate model depends on the
+semantics expected by the application and its clients, which must be
+weighed against other requirements.
+
+To discuss consistency models, we shall be less interested in the
+details of message-passing and more interested just in the responses
+observed by clients. We shall consider the full set of events across a
+distributed system, such as shown in Figure
+\ref{fig:externalorder}. This is called an *execution*. Consistency
+models constrain the set of allowable return values in response to
+clients' requests.
 
 A fundamental distributed application is the *shared distributed
 memory* abstraction. We shall assume that all processes maintain a
@@ -577,6 +592,9 @@ room for different possible behaviors (i.e. allows non-determinism in
 the execution of a distributed application), but the allowable
 behavior is tightly constrained.
 
+### Linearizability/atomic consistency
+
+
 *Linearizability* [@10.1145/78969.78972] is essentially the strongest
 common consistency model. It is known variously as atomic consistency,
 strict consistency, and sometimes external consistency. In the context
@@ -591,7 +609,30 @@ is defined by three features:
 - Responses are semantically correct, meaning a read request $R(x, a)$
   returns the value of the most recent write request $W(x, a)$ to $x$.
 
-We can also phrase this in terms of *linearizations.*
+\begin{figure} \begin{subfigure}[a]{1\textwidth} \center
+     \includegraphics[scale=0.4]{images/linear1.png} \caption{A
+     linearizable execution. Any choice of linearization works here.}
+     \label{fig:linear_example11} \end{subfigure}
+     \begin{subfigure}[b]{1\textwidth} \center
+     \includegraphics[scale=0.4]{images/nonlinear0.png} \caption{A
+     non-linearizable execution. The request to read $y$ returns a
+     stale value. } \label{fig:linear_example12} \end{subfigure}
+     \caption{A linearizable and non-linearizable execution.}
+     \label{fig:linear_example1} \end{figure}
+
+Figure \ref{fig:linear_example11} shows a prototypical example of a
+linearizable execution. We assume that all memory locations are
+initialized to $0$ at the system start time. Intuitively, it should
+appear to an external observer that each access instantaneously took
+effect at some point between its start and end time. Hence, the
+request to read the value of $y$ returns $1$, because at some point
+between $W(y,1).s$ and $W(y,1).t$ that change took effect. If client
+on $P_1$ read a stale value, we would say the execution is not
+linearizable. Figure \ref{fig:linear_example12} shows an
+non-linearizable execution that returns stale data instead of
+reflecting the write access to $y$ on $P2$.
+
+Linearizability can be precisely defined in terms of *linearizations.*
 
 \begin{definition}
 A \emph{linearization point} $t \in \mathbb{R} \in [E.s, E.t]$ for an
@@ -603,48 +644,7 @@ the serial execution of events when totally ordered by their
 linearization points.
 \end{definition}
 
-Intuitively, it should appear to an external observer that each access
-instantaneously took effect at some point between its start and end
-time. It is assumed no distinct access can have the same linearization
-point, so that we get a total order. We say an entire system is
-linearizable when all possible executions of the system are
-linearizable.
-
-Figure \ref{fig:linear_example11} shows a prototypical example of a
-linearizable execution. We assume that all memory locations are
-initialized to $0$ at the system start time.  Figure
-\ref{fig:linear_example12} shows an execution that is not linearizable
-because the read access on $y$ on $P1$ returns stale data instead of
-reflecting the write access to $y$ on $P2$.
-
-\begin{figure}
-     \begin{subfigure}[a]{1\textwidth}
-		 \center
-		 \includegraphics[scale=0.4]{images/linear1.png}
-		 \caption{A linearizable execution. Any choice of linearization works here.}
-		 \label{fig:linear_example11}
-     \end{subfigure}
-     \begin{subfigure}[b]{1\textwidth}
-         \center
-         \includegraphics[scale=0.4]{images/nonlinear0.png}
-		 \caption{A non-linearizable execution. The request to read $y$ returns a stale value. }
-		 \label{fig:linear_example12}
-     \end{subfigure}
-  \caption{A linearizable and non-linearizable execution.}
-  \label{fig:linear_example1}
-\end{figure}
-
-Linearization points are demonstrated in Figure
-\ref{fig:linearization}. The figure shows different linearizable
-behaviors in response to the same underlying set of accesses. This
-demonstrates that linearizability still leaves some room for
-non-determinism in the execution of distributed applications. In this
-example, the requests must both return 1 or 2. The constraint is that
-the values must agree---linearizability forbids the situation in which
-one client reads $1$ and another reads $2$ (Figure
-\ref{fig:nonlinearizable}).
-
-\begin{figure}
+\begin{figure}[p]
      \begin{subfigure}[a]{1\textwidth}
          \center
          \includegraphics[scale=0.4]{images/linearTemplate.png}
@@ -665,7 +665,7 @@ one client reads $1$ and another reads $2$ (Figure
   \label{fig:linearization}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[p]
      \begin{subfigure}[a]{1\textwidth}
          \center
          \includegraphics[scale=0.4]{images/nonlinear1.png}
@@ -682,42 +682,23 @@ one client reads $1$ and another reads $2$ (Figure
   \label{fig:nonlinearizable}
 \end{figure}
 
-#### Enforcing linearizability
+Linearization points are demonstrated in Figure
+\ref{fig:linearization}. The figure shows different linearizable
+behaviors in response to the same underlying set of accesses. It is
+assumed no distinct access can have the same linearization point, so
+that we get a total order. This demonstrates that linearizability
+still leaves some room for non-determinism in the execution of
+distributed applications. In this example, the requests must both
+return 1 or 2. The constraint is that the values must
+agree---linearizability forbids the situation in which one client
+reads $1$ and another reads $2$ (Figure \ref{fig:nonlinearizable}).
 
-Linearizability can be enforced with a total order broadcast mechanism
-(CITE). Total order broadcast is a means for processes to come to a
-consensus about the order of a set of events. One can imagine that the
-total order broadcast API implements a routine that accepts a message
-and notifies all other processes of this message in such a way that
-all processes see all messages in the same order. To maintain
-linearizability, it suffices that each replica applies database
-actions in the order they are announced in the total order broadcast.
-A subtle point is that a process does not need to handle read requests
-originally sent to other clients, so these may be ignored. However,
-the originating replica must not handle its own read requests until
-*after* they appear in the total order broadcast, rather than at the
-time they are first submitted to the total order broadcast
-mechanism.
-
+\begin{definition}
+We say an entire system is linearizable when all
+possible executions of the system are linearizable.
+\end{definition}
 
 ### Sequential consistency
-
-\begin{figure}
-     \begin{subfigure}[a]{1\textwidth}
-         \center
-         \includegraphics[scale=0.4]{images/sequential1.png}
-         \caption{A non-linearizable, sequentially consistent execution.}
-         \label{fig:sequential1}
-     \end{subfigure}
-     \begin{subfigure}[b]{1\textwidth}
-         \center
-         \includegraphics[scale=0.4]{images/sequential2.png}
-         \caption{An equivalent interleaving of \ref{fig:sequential1}.}
-         \label{fig:interleaving1}
-     \end{subfigure}
-     \caption{A sequentially consistent execution and a possible interleaving.}
-	 \label{fig:sequential}
-\end{figure}
 
 Enforcing atomic consistency means that an access $E$ at process $P_i$
 cannot return to the client until every other process has been
@@ -738,14 +719,6 @@ because the result is always guaranteed to represent some possible
 interleaving of instructions, never allowing instructions from one
 program to execute out of order.
 
-Processes in a sequentially consistent system are required to agree on
-a total order of events, presenting the illusion of a shared database
-from an application programmer's point of view. However, this order
-need not be given by external order. Instead, the only requirement is
-that sequential history must agree with process order, i.e. the events
-from each process must occur in the same order as in they do in the
-process.
-
 \begin{definition}
 \label{def:sequentiallyconsistent}
 A \emph{sequentially consistent} execution is
@@ -758,9 +731,15 @@ characterized by three features:
 \end{itemize}
 \end{definition}
 
-This is nearly the definition of linearizability, except that external
-order has been replaced with merely program order. We immediately get
-the following lemma.
+Processes in a sequentially consistent system are required to agree on
+a total order of events, presenting the illusion of a shared database
+from an application programmer's point of view. However, this order
+need not be given by external order. Instead, the only requirement is
+that sequential history must agree with process order, i.e. the events
+from each process must occur in the same order as in they do in the
+process. This is nearly the definition of linearizability, except that
+external order has been replaced with merely program order. We
+immediately get the following lemma.
 
 \begin{lemma}
 \label{lem:linearsequential}
@@ -769,6 +748,23 @@ the following lemma.
 \begin{proof}
 This follows because process order is a subset of external order.
 \end{proof}
+
+\begin{figure}
+     \begin{subfigure}[a]{1\textwidth}
+         \center
+         \includegraphics[scale=0.4]{images/sequential1.png}
+         \caption{A non-linearizable, sequentially consistent execution.}
+         \label{fig:sequential1}
+     \end{subfigure}
+     \begin{subfigure}[b]{1\textwidth}
+         \center
+         \includegraphics[scale=0.4]{images/sequential2.png}
+         \caption{An equivalent interleaving of \ref{fig:sequential1}.}
+         \label{fig:interleaving1}
+     \end{subfigure}
+     \caption{A sequentially consistent execution and a possible interleaving.}
+	 \label{fig:sequential}
+\end{figure}
 
 Visually, sequential consistency allows reordering an execution by
 sliding events along each process' time axis like beads along a
@@ -811,23 +807,14 @@ past each other.
 	 \label{fig:nonsequential}
 \end{figure}
 
-#### Enforcing sequential consistency
+### Causal consistency
 
-Notably, to enforce sequential consistency for the whole system, it is
-not enough to enforce it at the level of individual variables. Figure
-\ref{fig:nonsequential1} shows a history that is not sequentially
-consistent. However, the histories of accesses to individual variables
-(Figures \ref{fig:sequentialx} and \ref{fig:sequentialy}) *are*
-sequentially consistent. This is a key difference from linearizability
-(CITE).
 
-Like linearizability, sequential consistency can also be enforced with
-a total order broadcast mechanism. All write requests are first
-broadcast, and replicas only apply updates in the order they appear in
-the total order broadcast. The crucial difference from linearizability
-is that each process can handle requests immediately, returning its
-local replica value, instead of waiting for the broadcast mechanism to
-assign a global order to the read request.
+Suppose in a message stream two questions $Q_1$ and $Q_2$ are asked
+and responses $A_1$ and $A_2$ are given, respectively. If the answers
+arrive in the wrong order, i.e. $A_2$ appears as the answer to $Q_1$
+and vice versa, the potential for confusion can be severe.
+
 
 
 ## The CAP Theorem
@@ -838,6 +825,40 @@ well-understood tradeoff between system coherence and
 performance. Enforcing consistency comes at the cost of additional
 communications, and communications impose overheads, often
 unpredictable ones.
+
+### Safety/Liveness
+
+The tension between consistency and availability is a prototypical
+example of a deeper tension in computing: that between safey and
+liveness properties [@10.1145/5505.5508; @2012perspectivesCAP]. These
+terms can be understood as follows.
+
+- **Safety** properties ensure that a system avoids doing something ``bad''
+like violating a consistency invariant. Taken to the extreme, one way
+to ensure safety is to do nothing. For instance, we could enforce
+safety by never responding to read requests in order to avoid offering
+information that is inconsistent with that of other nodes.
+
+- **Liveness** properties ensure that a system will eventually do something
+``good'', like respond to a client. Taken to the extreme, one very
+lively behavior would be to immediately respond to user requests,
+without taking any steps to make sure this response is consistent with
+that of other nodes.
+
+Liveness and safety are both good. Note that "safety" is narrow sense,
+meaning a constraint on a system's allowable responses to clients,
+while liveness properties require the system to "do" something instead
+of delaying forever. Clearly, it is important for systems in
+safety-related applications to have some amount of liveness, and not
+just "safety" properties.
+
+Because of the tension between them, building applications that
+provide both safety and liveness features is challenging. The
+fundamental principle is that if we want to increase how quickly a
+system can respond to requests, eventually we must relax our
+constraints on what the system is allowed to return.
+
+### The Cap Theorem
 
 Fox and Brewer [@1999foxbrewer] are crediting with observing a
 particular tension between the three competing goals of consistency,
@@ -872,8 +893,6 @@ be the originating replica for an update. Some reflection shows that
 the full set of requirements is unattainable---a partition tolerant
 system simply cannot enforce both consistency and availability.
 
-### CAP theorem for linearizability
-
 \begin{theorem}[The CAP Theorem]
 	\label{thm:cap}
     In the presense of indefinite network partitions, a distributed system
@@ -901,36 +920,7 @@ it is able to exchange messages with $P_1$. But if the partition never
 recovers, $P_1$ will wait forever, violating availability.
 \end{proof}
 
-While the proof of the CAP theorem is simple, its interpretation is
-subtle and has been the subject of much discussion in the years since
-[@2012CAP12Years]. It is sometimes assumed that the CAP theorem claims
-that a distributed system can only offer two of the properties C, A,
-and P. In fact, the theorem constrains, but does not prohibit the
-existence of, applications that apply some relaxed amount of all three
-features. The CAP theorem only rules out their combination when all
-three are interpreted in a highly idealized sense.
-
-In practice, applications can tolerate much weaker levels of
-consistency than linearizability. Furthermore, network partitions are
-usually not as dramatic as an indefinite communications blackout. Real
-conditions in our context are likely to be chaotic, featuring many
-smaller disruptions and delays and sometimes larger
-ones. Communications between different clients may be affected
-differently, with nearby agents generally likely to have better
-communication channels between them than agents that are far
-apart. Finally, CAP-availability is a suprisingly weak
-condition. Generally one cares about the actual time it takes to
-handle user requests, but the CAP theorem exposes difficulties just
-ensuring the system handles requests at all. Altogether, the extremes
-of C, A, and P in the CAP theorem are not the appropriate conditions
-to apply to many, perhaps most, real-world applications.
-
-
-### CAP theorem for sequential consistency
-
-Next we consider a slightly more relaxed consistency model that admits
-a greater range of system behaviors while maintaining the total order
-guarantees of atomic consistency.
+### CAP for sequential consistency
 
 Sequential consistency is a relaxation of atomic consistency, but not
 by much. The model is still too strict to enforce under partition
@@ -970,39 +960,31 @@ As discussed in [@2019wideningcap], this stronger theorem was
 essentially proved by Birman and Friedman [@10.5555/866855], before
 the CAP theorem.
 
-## Fundamental tradeoffs
+### Interpretation
 
-Broadening our perspective, the tension between consistency and
-availability is a prototypical example of a deeper tension in
-computing: that between safey and liveness properties
-[@10.1145/5505.5508; @2012perspectivesCAP]. These terms can be
-understood as follows.
+While the proof of the CAP theorem is simple, its interpretation is
+subtle and has been the subject of much discussion in the years since
+[@2012CAP12Years]. It is sometimes assumed that the CAP theorem claims
+that a distributed system can only offer two of the properties C, A,
+and P. In fact, the theorem constrains, but does not prohibit the
+existence of, applications that apply some relaxed amount of all three
+features. The CAP theorem only rules out their combination when all
+three are interpreted in a highly idealized sense.
 
-- **Safety** properties ensure that a system avoids doing something ``bad''
-like violating a consistency invariant. Taken to the extreme, one way
-to ensure safety is to do nothing. For instance, we could enforce
-safety by never responding to read requests in order to avoid offering
-information that is inconsistent with that of other nodes.
-
-- **Liveness** properties ensure that a system will eventually do something
-``good'', like respond to a client. Taken to the extreme, one very
-lively behavior would be to immediately respond to user requests,
-without taking any steps to make sure this response is consistent with
-that of other nodes.
-
-Note that in our use cases, an unresponsive system could arguably be
-"unsafe." The distinction between the terms in this narrow context is
-that "safety" constrains a system's allowable responses to clients, if
-one is even given, while liveness requires giving responses. The fact
-that both of these have implications for human safety is one more
-reason to prefer continuous consistency models over CAP-unavailabile
-models like linearizability.
-
-Because of the tension between them, building applications that
-provide both safety and liveness features is challenging. The
-fundamental tradeoff is that if we want to increase how quickly a
-system can respond to requests, eventually we must relax our
-constraints on what the system is allowed to return.
+In practice, applications can tolerate much weaker levels of
+consistency than linearizability. Furthermore, network partitions are
+usually not as dramatic as an indefinite communications blackout. Real
+conditions in our context are likely to be chaotic, featuring many
+smaller disruptions and delays and sometimes larger
+ones. Communications between different clients may be affected
+differently, with nearby agents generally likely to have better
+communication channels between them than agents that are far
+apart. Finally, CAP-availability is a suprisingly weak
+condition. Generally one cares about the actual time it takes to
+handle user requests, but the CAP theorem exposes difficulties just
+ensuring the system handles requests at all. Altogether, the extremes
+of C, A, and P in the CAP theorem are not the appropriate conditions
+to apply to many, perhaps most, real-world applications.
 
 \newpage
 # Desiderata
@@ -1076,7 +1058,7 @@ manoeauvering airplanes to avoid crash.
 
 
 \newpage
-# Networking Technologies for Disaster Response
+# Resilient Network Architectures
 \label{sec:networking}
 
 ## Ad-hoc networking
@@ -1168,7 +1150,7 @@ between the networking and application layers.
 
 
 \newpage
-# Continuous Consistency for Shared Memory
+# Continuous Consistency
 \label{sec:continuous-consistency}
 
 Strong consistency is a discrete proposition: an application provides
