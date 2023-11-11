@@ -116,15 +116,15 @@ self-contained and accessible to a broad technical audience. Our
 primary motivating use cases have been taken from civil emergency
 response scenarios, especially wildfire suppression and hurricane
 relief. The motivation for this choice is three-fold. First, improved
-technology for wildfire suppression is frequently cited as an
-important priority \cite{pcast2023}.  Second, the rules for operating
+technology for wildfire suppression is frequently cited as a
+national priority \cite{pcast2023}.  Second, the rules for operating
 in the US national airspace are typically relaxed during natural
-disasters and relief efforts. Finally, these settings are an excellent
+disasters and relief efforts, so this is a suitable setting for testing new technologies. Finally, this setting is an excellent
 microcosm for the sorts of general challenges faced by other,
 non-emergency applications.
 
 If there is a central theme to this manuscript, it is
-\emph{continuity} in the sense considered by topology\footnote{For a
+\emph{continuity} in the sense considered by topology.\footnote{For a
 typical introductory textbook see \cite{mendelson2012introduction}.}
 Designing a system that is robust to real-world environments is an
 exercise in making tradeoffs, and it is of particular importance in
@@ -180,9 +180,9 @@ opportunities for simulation and formal verification of protocols.
 
 Section \ref{sec:continuous-consistency} describes a hypothetical
 application that might be used in a disruption-heavy network: a data
-replication service built on Yu and Vahdat's theory of \emph{conits}
-(short for ``consistency unit'') \cite{2002tact}. This framework is a
-continuous consistency model in the sense that, as typically
+replication service built on Yu and Vahdat's theory of ``conits" \cite{2002tact}
+(short for ``consistency unit'') . This framework is a
+\emph{continuous} consistency model in the sense that, as typically
 configured, it provides neither idealized consistency nor guaranteed
 high-availability, but rather some quantifiable tradeoff between both
 ideals, the idea being that many applications can tolerate
@@ -196,16 +196,12 @@ in response to operational conditions.
 
 Section \ref{sec:data-fusion} concerns data fusion. Now and in the
 future, agents in disaster scenarios will make decisions informed by
-many different kinds of data. This data may come from sensors in the
-environment, sensors attached to agents (e.g.~a heartrate monitor
-CITE), information reported by agents and civilians, civil agencies
-(e.g.~the U.S. National Weather Service), to name just a
-few. Efficient integration, processing, filtering, and dissemination
-of this information is necessary to avoid ``swimming in sensors and
+many different kinds of data. Efficient integration, processing, filtering, and dissemination
+of this information will be necessary to avoid ``swimming in sensors and
 drowning in data'' \cite{2010:magnuson}.  This task is especially
 challenging because agents will often work with incomplete or out of
 date information, and different sources of the same data may be
-contradictory, e.g.~first responders may receive contradictory reports
+contradictory, e.g. first responders may receive contradictory reports
 about whether a structure is occupied. One promising trend in this
 space, which we briefly introduce in this section, is the development
 of sheaf theory as a natural mathematical model for data fusion
@@ -216,8 +212,7 @@ well this task has been achieved.
 
 We conclude in Section \ref{sec:conclusion} by recapping some of the
 main themes in this document and highlighting areas where design
-decisions at various levels must be made, ideally based on data
-collected from real-world conditions.
+decisions at various levels must be made, ideally tuned to real-world conditions.
 
 \newpage
 
@@ -237,8 +232,8 @@ communications challenges. It is not surprising that a 2023 report on
 wildland firefighting modernization by the President’s Council of
 Advisors on Science and Technology (PCAST) cites ``the
 vulnerabilities and shortfalls in wildland firefighter communications,
-connectivity, and technology interoperability'' in their first
-recommendation \cite{pcast2023}. The causes of this fundamental
+connectivity, and technology interoperability'' in their first of five
+recommendations \cite{pcast2023}. The causes of this fundamental
 reality are several in number: remote locations, difficult terrain,
 damaged infrastructure, harsh weather, and limited battery power, to
 name a few.  From a networking perspective, environmental and
@@ -279,22 +274,22 @@ agents, who send it over the network(s), a flaky network quickly
 becomes a major challenge.
 
 Consider firefighting airtankers for example, the largest class of which
-are the Very Large Airtankers (VLATs), commonly deployed to large fires.
+are the Very Large Airtankers (VLATs), commonly deployed to large wildfires.
 The largest VLATs can deposit up to 20,000 gallons of fire retardant, or
 about 170,000 pounds' worth, in a single drop, often dislodging heavy
 tree limbs and posing a danger to firefighters. When performed at a low
-altitude, a VLAT drop can crush a ground vehicle \cite{2019:stickney}
-and a 2018 accident led to the death of one firefighter and injury to
-three others when an 85-foot tree was knocked down \cite{2018:calfire}.
+altitude, this manoeuvre can crush a ground vehicle \cite{2019:stickney}.
+A 2018 accident led to the death of one firefighter and the injury of
+three others when an 87-foot Douglas Fir tree was knocked down by an unexpectedly forceful drop from a Boeing 747-400 configured as a VLAT \cite{2018:calfire}.
 
 Suppose that in the future, firefighters are equipped with GPS sensors
-and digital transmitters. Then a seemingly reasonable policy would be to
+and digital transmitters, perhaps by running an application on their personal cell phones. Then a seemingly reasonable policy would be to
 prohibit a VLAT from performing a drop if its computers do not have
 up-to-date information about the location of agents on the ground. The
 problem is that obtaining this information may be difficult or
 impossible if heavy smoke, a damaged radio tower, or a tall ridge
 prevents communications between the air and ground. In these scenarios,
-our policy might prevent airtankers from operating, leading to
+such a policy might prevent airtankers from operating, leading to
 potentially dangerous inefficiencies.
 
 This scenario exemplifies a classic tradeoff between opposing goals:
@@ -344,8 +339,8 @@ leaving is not conveyed to the pilot. To guarantee
 \(\textbf{P}_\textrm{safe}\), an airtanker's actions must be restricted
 when pilots do not \emph{know} whether an action would violate
 \(\textbf{P}_\textrm{safe}\)---knowledge of the fact, and not merely the
-fact of it, is the crucial part \footnote{In other words, the logic of
-  distributed agents is inherently an \emph{epistemic} one (CITE).}.
+fact of it, is the crucial part.\footnote{In other words, the logic of
+  distributed agents is inherently an \emph{epistemic} one (CITE).}
 Propagating knowledge between agents necessarily requires communication,
 and this is limited to what the available network(s) can provide, making
 the efficient use of a chaotic and congested network in these situations
@@ -354,13 +349,13 @@ paramount.
 \begin{figure}[h]
 \centering
 \includegraphics[scale=0.4]{images/dc10.jpg}
-\caption{A DC 10 airtanker drops retardant above Greer, Arizona. The DC-10 drops about 9,400 gallons of retardant.}
+\caption{A DC-10 airtanker, tail number T-911, drops retardant above Greer, Arizona. The DC-10 has a capacity of 9,400 gallons.}
 \end{figure}
 
 \begin{figure}[h]
 \centering
 \includegraphics[scale=0.085]{images/ironside.jpg}
-\caption{The Ironside Mountain lookout station, destroyed in 2021, shown with protective foil on August 10th, 2015, during the 2015 River Complex fires. This particular fire burned 77,077 acres over 77 days.}
+\caption{The Ironside Mountain lookout station, destroyed in the 2021 Monument fire, shown with protective foil on August 10th, 2015, during the 2015 River Complex fire. This particular fire burned 77,077 acres over 77 days.}
 \end{figure}
 
 \subsection{Communication in Practice}\label{communication-in-practice}
@@ -396,12 +391,10 @@ geolocality of reference: firefighters mostly need to communicate when
 they are working near each other, in some cases so nearby they can
 communicate without network infrastructure.
 
-Communicating over a long distance requires infrastructural support,
-such the use of cell towers and repeater stations. Typically, disaster
-response environments have scarce permanent infrastructure, perhaps in
-the form of a repeater mounted to a fire watch tower. Ad-hoc
+Communicating over a long distance typically requires infrastructural support, such as the use of cell towers and repeater stations. Typically, disaster
+response environments have scarce permanent infrastructure: perhaps a few repeaters mounted to a watch tower for a wildland fire setting. Ad-hoc
 infrastructure, such as a cell on wheels (COW) or cell on light truck
-(COLT), can be deployed on an as-needed basis if the location allows for
+(COLT), can sometimes be deployed on an as-needed basis if the location allows for
 it. A common issue is making sure that all equipment is properly
 configured, for instance that all radios are listening on the correct
 frequencies, particularly when different agencies and groups need to
