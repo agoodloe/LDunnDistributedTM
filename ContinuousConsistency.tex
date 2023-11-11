@@ -112,27 +112,29 @@ aircraft may safely operate in shared airspace.
 
 This memo surveys topics in distributed computing that are relevant to
 the \mbox{challenge} of maintaining system-wide safety; it aims to be
-self-contained and accessible to a broad technical audience. Our primary
-motivating use cases have been taken from civil emergency response
-scenarios, especially wildfire suppression and hurricane relief. The
-motivation for this choice is three-fold. First, improved technology for
-wildfire suppression has been recognized as a national priority (CITE).
-Second, the rules for operating in the US national airspace are
-typically relaxed during natural disasters and relief efforts. Finally,
-these settings are an excellent microcosm for the sorts of general
-challenges faced by other, non-emergency applications.
+self-contained and accessible to a broad technical audience. Our
+primary motivating use cases have been taken from civil emergency
+response scenarios, especially wildfire suppression and hurricane
+relief. The motivation for this choice is three-fold. First, improved
+technology for wildfire suppression is frequently cited as an
+important priority \cite{pcast2023}.  Second, the rules for operating
+in the US national airspace are typically relaxed during natural
+disasters and relief efforts. Finally, these settings are an excellent
+microcosm for the sorts of general challenges faced by other,
+non-emergency applications.
 
-If there is a central theme to this manuscript, it is \emph{continuity}
-in the sense considered by topology (CITE). Designing a system that is
-robust to real-world environments is an exercise in making tradeoffs,
-and it is of particular importance in this setting to exercise fine
-control over these tradeoffs. To build a system that is
-predictable---clearly a prerequisite for safety---deteriorations in
-operational conditions, usage patterns, data quality, etc. should bring
-about at most a proportionate degradation in system behavior as observed
-by users. In other words, the behavior of a safe system should in some
-sense be a continuous function of its inputs and operational
-environment.
+If there is a central theme to this manuscript, it is
+\emph{continuity} in the sense considered by topology\footnote{For a
+typical introductory textbook see \cite{mendelson2012introduction}.}
+Designing a system that is robust to real-world environments is an
+exercise in making tradeoffs, and it is of particular importance in
+this setting to exercise fine control over these tradeoffs. To build a
+system that is predictable---clearly a prerequisite for
+safety---deteriorations in operational conditions, usage patterns,
+data quality, etc. should bring about at most a proportionate
+degradation in system behavior as observed by users. In other words,
+the behavior of a safe system should in some sense be a continuous
+function of its inputs and operational environment.
 
 \subsection{Summaries of the sections}\label{summaries-of-the-sections}
 
@@ -179,36 +181,38 @@ opportunities for simulation and formal verification of protocols.
 Section \ref{sec:continuous-consistency} describes a hypothetical
 application that might be used in a disruption-heavy network: a data
 replication service built on Yu and Vahdat's theory of \emph{conits}
-(short for ``consistency unit'') (CITE). This framework is a continuous
-consistency model in the sense that, as typically configured, it
-provides neither idealized consistency nor guaranteed high-availability,
-but rather some quantifiable tradeoff between both ideals, the idea
-being that many applications can tolerate inconsistency among replicas
-of a data item if an upper bound on the divergence between replicas is
-enforced. A database replication middleware designed around the conit
-framework would allow developers to semantically define consistency
-units, enforce policies bounding application-defined measurements of
-inconsistency between replicas of these units, and even dynamically tune
-these policies on the fly, say in response to operational conditions.
+(short for ``consistency unit'') \cite{2002tact}. This framework is a
+continuous consistency model in the sense that, as typically
+configured, it provides neither idealized consistency nor guaranteed
+high-availability, but rather some quantifiable tradeoff between both
+ideals, the idea being that many applications can tolerate
+inconsistency among replicas of a data item if an upper bound on the
+divergence between replicas is enforced. A database replication
+middleware designed around the conit framework would allow developers
+to semantically define consistency units, enforce policies bounding
+application-defined measurements of inconsistency between replicas of
+these units, and even dynamically tune these policies on the fly, say
+in response to operational conditions.
 
 Section \ref{sec:data-fusion} concerns data fusion. Now and in the
 future, agents in disaster scenarios will make decisions informed by
 many different kinds of data. This data may come from sensors in the
-environment, sensors attached to agents (e.g.~a heartrate monitor CITE),
-information reported by agents and civilians, civil agencies (e.g.~the
-U.S. National Weather Service), to name just a few. Efficient
-integration, processing, filtering, and dissimination of this data is
-necessary to avoid ``swimming in data and drowning in noise'' (CITE).
-This task is especially challenging because agents will often work with
-incomplete or out of date information, and different sources of the same
-data may be contradictory, e.g.~first responders may receive
-contradictory reports about whether a structure is occupied. One
-promising trend in this space, which we briefly introduce in this
-section, is the development of sheaf theory as arguably the
-``canonical'' mathematical model for data fusion (CITE). Sheaf theory
-provides a rigorous framework for discussing how heterogeneous sources
-of noisy data can be integrated into a coherent picture, and can
-formally measure how well this task has been achieved.
+environment, sensors attached to agents (e.g.~a heartrate monitor
+CITE), information reported by agents and civilians, civil agencies
+(e.g.~the U.S. National Weather Service), to name just a
+few. Efficient integration, processing, filtering, and dissemination
+of this information is necessary to avoid ``swimming in sensors and
+drowning in data'' \cite{2010:magnuson}.  This task is especially
+challenging because agents will often work with incomplete or out of
+date information, and different sources of the same data may be
+contradictory, e.g.~first responders may receive contradictory reports
+about whether a structure is occupied. One promising trend in this
+space, which we briefly introduce in this section, is the development
+of sheaf theory as a natural mathematical model for data fusion
+\cite{2017robinsonCanonical}. Sheaf theory provides a rigorous
+framework for discussing how heterogeneous sources of noisy data can
+be integrated into a coherent picture, and can formally measure how
+well this task has been achieved.
 
 We conclude in Section \ref{sec:conclusion} by recapping some of the
 main themes in this document and highlighting areas where design
@@ -229,32 +233,37 @@ with the sound application of distributed computing principles.
 
 The operational environment of wildfire suppression, hurricane relief,
 and other disaster scenarios is generally characterized by systemic
-communications challenges. The causes of this fundamental reality are
-several in number: remote locations, difficult terrain, damaged
-infrastructure, harsh weather, and limited battery power, to name a few.
-From a networking perspective, environmental and operational factors
-tend to cause agents (e.g.~first responders) to experience heavy packet
-loss and unpredictable latency in message-passing. This can happen at
-particularly inopportune times, e.g.~when weather or fire conditions are
-at their worst, as in some cases the conditions which prompt urgent
-communication will correlate with those that make communication
-difficult.\footnote{Consider that, tautologically, a communications
-  network is most \mbox{congested} precisely when everyone needs to use
-  it.}
+communications challenges. It is not surprising that a 2023 report on
+wildland firefighting modernization by the President’s Council of
+Advisors on Science and Technology (PCAST) cites ``the
+vulnerabilities and shortfalls in wildland firefighter communications,
+connectivity, and technology interoperability'' in their first
+recommendation \cite{pcast2023}. The causes of this fundamental
+reality are several in number: remote locations, difficult terrain,
+damaged infrastructure, harsh weather, and limited battery power, to
+name a few.  From a networking perspective, environmental and
+operational factors tend to cause agents (e.g.~first responders) to
+experience heavy packet loss and unpredictable latency in
+message-passing. This can happen at particularly inopportune times,
+e.g.~when weather or fire conditions are at their worst, as in some
+cases the conditions which prompt urgent communication will correlate
+with those that make communication difficult.\footnote{Consider that,
+tautologically, a communications network is most \mbox{congested}
+precisely when everyone needs to use it.}
 
 From a systems perspective, an unreliable network obstructs protocols
-for coordination among distributed agents. At a high level, coordinated
-action requires enforcing some notion of consistency, i.e.~agreement,
-across replicas of data shared between agents. For instance, it is
-important that everyone agree which firetrucks have been dispatched to
-which scenes, or which radios have been reserved from the National
-Interagency Incident Communications Division (NIICD) radio cache, and
-for whom.\footnote{https://www.nifc.gov/about-us/what-is-nifc/radio-cache}
-Stronger notions of consistency are generally more difficult to
-maintain, meaning they require a greater ability to communicate with
-other agents quickly. When the network is slow, system nodes may have to
-wait for network to deliver their messages, delaying the processing of
-requests from clients in the meantime.
+for coordination among distributed agents. At a high level,
+coordinated action requires enforcing some notion of consistency,
+i.e.~agreement, across replicas of data shared between agents. For
+instance, it is important that everyone agree which firetrucks have
+been dispatched to which scenes, or which radios have been reserved
+from the National Interagency Incident Communications Division (NIICD)
+radio cache \cite{radiocache}, and for whom. Stronger notions of
+consistency are generally more difficult to maintain, meaning they
+require a greater ability to communicate with other agents
+quickly. When the network is slow, system nodes may have to wait for
+network to deliver their messages, delaying the processing of requests
+from clients in the meantime.
 
 \hypertarget{communication-and-safety}{%
 \subsection{Communication and Safety}\label{communication-and-safety}}
@@ -264,19 +273,19 @@ network is unreliable. This unreliability forces agents to choose
 between suffering long delays in sending or receiving information, or
 acting with only limited knowledge, or both. Both choices are
 problematic and can present safety challenges, because safety
-fundamentally requires agents to act with up-to-date knowledge about the
-world. Since this information is received from sensors and other agents,
-who send it over the network(s), a flaky network quickly becomes a major
-challenge.
+fundamentally requires agents to act with up-to-date knowledge about
+the world. Since this information is received from sensors and other
+agents, who send it over the network(s), a flaky network quickly
+becomes a major challenge.
 
 Consider firefighting airtankers for example, the largest class of which
 are the Very Large Airtankers (VLATs), commonly deployed to large fires.
 The largest VLATs can deposit up to 20,000 gallons of fire retardant, or
 about 170,000 pounds' worth, in a single drop, often dislodging heavy
 tree limbs and posing a danger to firefighters. When performed at a low
-altitude, a VLAT drop can crush a ground vehicle \footnote{\href{https://www.youtube.com/watch?v=ONdSoiI4zIA}{Link}},
+altitude, a VLAT drop can crush a ground vehicle \cite{2019:stickney}
 and a 2018 accident led to the death of one firefighter and injury to
-three others when an 85-foot tree was knocked down \footnote{\href{https://www.firerescue1.com/flame-retardants/articles/utah-battalion-chiefs-death-may-have-been-linked-to-airplane-retardant-drop-zWKw179u1IXBB8p9/}{Link}}.
+three others when an 85-foot tree was knocked down \cite{2018:calfire}.
 
 Suppose that in the future, firefighters are equipped with GPS sensors
 and digital transmitters. Then a seemingly reasonable policy would be to
@@ -1627,7 +1636,9 @@ consider a scheme, Relative NE, which bounds the relative error.
 \subsection{Future work}\label{future-work}}
 
 \hypertarget{data-fusion}{%
-\section{Data Fusion}\label{data-fusion}}
+  \section{Data Fusion}\label{data-fusion}}
+
+\cite{1999:lucien-datafusion}
 
 \label{sec:data-fusion}
 
