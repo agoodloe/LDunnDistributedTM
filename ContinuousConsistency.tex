@@ -34,32 +34,6 @@
 }
 \urlstyle{same}
 
-% Pandoc stuff
-\newlength{\cslhangindent}
-\setlength{\cslhangindent}{1.5em}
-\newlength{\csllabelwidth}
-\setlength{\csllabelwidth}{3em}
-\newlength{\cslentryspacingunit} % times entry-spacing
-\setlength{\cslentryspacingunit}{\parskip}
-\newenvironment{CSLReferences}[2] % #1 hanging-ident, #2 entry spacing
- {% don't indent paragraphs
-  \setlength{\parindent}{0pt}
-  % turn on hanging indent if param 1 is 1
-  \ifodd #1
-  \let\oldpar\par
-  \def\par{\hangindent=\cslhangindent\oldpar}
-  \fi
-  % set entry spacing
-  \setlength{\parskip}{#2\cslentryspacingunit}
- }%
- {}
-\usepackage{calc}
-\newcommand{\CSLBlock}[1]{#1\hfill\break}
-\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{#1}}
-\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{#1}\break}
-\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
-
-
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}{Corollary}[theorem]
 \newtheorem{lemma}[theorem]{Lemma}
@@ -122,8 +96,7 @@ scenarios and challenges we expect from our use case.}
 \tableofcontents
 \newpage
 
-\hypertarget{introduction}{%
-\section{Introduction}\label{introduction}}
+\section{Introduction}\label{introduction}
 
 Civil aviation has traditionally focused primarily on the efficient and
 safe transportation of people and goods via the airspace. Despite the
@@ -161,8 +134,7 @@ by users. In other words, the behavior of a safe system should in some
 sense be a continuous function of its inputs and operational
 environment.
 
-\hypertarget{summaries-of-the-sections}{%
-\subsection{Summaries of the sections}\label{summaries-of-the-sections}}
+\subsection{Summaries of the sections}\label{summaries-of-the-sections}
 
 Sections \ref{sec:disaster-response}--\ref{sec:desiderata} contain
 background material on distributed systems and our considered use cases.
@@ -245,9 +217,8 @@ collected from real-world conditions.
 
 \newpage
 
-\hypertarget{coordination-challenges-in-disaster-response}{%
 \section{Coordination Challenges in Disaster
-Response}\label{coordination-challenges-in-disaster-response}}
+Response}\label{coordination-challenges-in-disaster-response}
 
 \label{sec:disaster-response}
 
@@ -383,8 +354,7 @@ paramount.
 \caption{The Ironside Mountain lookout station, destroyed in 2021, shown with protective foil on August 10th, 2015, during the 2015 River Complex fires. This particular fire burned 77,077 acres over 77 days.}
 \end{figure}
 
-\hypertarget{communication-in-practice}{%
-\subsection{Communication in Practice}\label{communication-in-practice}}
+\subsection{Communication in Practice}\label{communication-in-practice}
 
 Communication patterns in modern wildland firefighting are mostly
 simple, even primitive in comparison to what laymen often expect.
@@ -506,8 +476,7 @@ devices, temporary structure, an devices attached to overhead aircraft.
 In effect, this would be a high-tech modernization of the sort of
 informal relay schemes operating today over traditional radio channels.
 
-\hypertarget{towards-the-future}{%
-\subsection{Towards the Future}\label{towards-the-future}}
+\subsection{Towards the Future}\label{towards-the-future}
 
 \begin{itemize}
 \tightlist
@@ -566,17 +535,16 @@ enough information to make the most prudent use of limited resources.
 
 \newpage
 
-\hypertarget{introduction-to-distributed-systems}{%
 \section{Introduction to Distributed
-Systems}\label{introduction-to-distributed-systems}}
+Systems}\label{introduction-to-distributed-systems}
 
 \label{sec:background}
 
 A distributed system, in the most general sense, is a collection of
 independent entities that cooperate to solve a problem that cannot be
-individually solved (Kshemkalyani and Singhal 2008). (Singhal and
-Shivaratri 1994) offer the following definition of a distributed
-(computing) system:
+individually solved \cite{kshemkalyani_singhal_2008}. Singhal and
+Shivaratri \cite{10.5555/562065} offer the following definition of a
+distributed (computing) system:
 
 \begin{quote}
 ``A collection of computers that do not share common memory or a common
@@ -595,7 +563,7 @@ conditions.
 
 A fundamental goal for distributed computing systems is to
 ``{[}appear{]} to the users of the system as a single coherent
-computer'' (Tanenbaum and Steen 2007). This can be understood as the
+computer'' \cite{TanenbaumSteen07}. This can be understood as the
 requirement that all nodes present a \emph{mutually-consistent} view of
 the world, e.g.~the state of a globally-maintained database, to system
 clients. Bad things happen when consistency is violated:
@@ -637,8 +605,7 @@ have to be made \emph{somewhere}, so it is necessary to understand where
 this happens and make choices informed both by general systems theory
 and the particulars of the real environment and use case.
 
-\hypertarget{message-passing}{%
-\subsection{Message Passing}\label{message-passing}}
+\subsection{Message Passing}\label{message-passing}
 
 A distributed system consists of a set
 \(\mathcal{P} = \{P_i\}_{i\in I}\) of \emph{processes}, which we think
@@ -689,9 +656,8 @@ processes, retrieve up-to-date values from other processes to give to
 the client, or delay handling the client's request in order to handle
 other requests.
 
-\hypertarget{causal-precedencehappens-beforeexternal-order}{%
 \subsubsection{Causal precedence/``happens before''/external
-order}\label{causal-precedencehappens-beforeexternal-order}}
+order}\label{causal-precedencehappens-beforeexternal-order}
 
 As is often the case, we shall assume that requests handled by a single
 process do not overlap in time. This can be enforced with local
@@ -769,8 +735,7 @@ be comparable. Additionally, even systems that enforce linearizable
 consistency (c.f. Section \ref{sec:atomic}) do not necessarily handle
 requests in order of their physical start times.
 
-\hypertarget{memory-consistency-models}{%
-\subsection{Memory Consistency Models}\label{memory-consistency-models}}
+\subsection{Memory Consistency Models}\label{memory-consistency-models}
 
 \label{sec:atomic}
 
@@ -1050,12 +1015,13 @@ well-understood tradeoff between system coherence and performance.
 Enforcing consistency comes at the cost of additional communications,
 and communications impose overheads, often unpredictable ones.
 
-Fox and Brewer (Fox and Brewer 1999) are crediting with observing a
+Fox and Brewer \cite{1999foxbrewer} are crediting with observing a
 particular tension between the three competing goals of consistency,
 availability, and partition-tolerance. This tradeoff was precisely
-stated and proved in 2002 by Gilbert and Lynch (Gilbert and Lynch 2002).
-The theorem is often somewhat misunderstood, as we discuss, so it is
-worth clarifying the terms used.
+stated and proved in 2002 by Gilbert and Lynch
+\cite{2002gilbertlynchCAP}.  The theorem is often somewhat
+misunderstood, as we discuss, so it is worth clarifying the terms
+used.
 
 \paragraph{Consistency}
 
@@ -1149,9 +1115,6 @@ requests would require commuting $W(y,1)$ with $R(x)$ or $W(x,1)$ with
 $R(y)$, which would violate program order.
 \end{proof}
 
-As discussed in (Muñoz-Escoí et al. 2019), this stronger theorem was
-essentially proved by Birman and Friedman (Friedman and Birman 1996),
-before the CAP theorem.
 
 \hypertarget{interpretation-of-the-cap-theorem}{%
 \subsubsection{Interpretation of the CAP
@@ -1159,7 +1122,7 @@ Theorem}\label{interpretation-of-the-cap-theorem}}
 
 While the proof of the CAP theorem is simple, its interpretation is
 subtle and has been the subject of much discussion in the years since
-(Brewer 2012). It is sometimes assumed that the CAP theorem claims that
+\cite{2012CAP12Years}. It is sometimes assumed that the CAP theorem claims that
 a distributed system can only offer two of the properties C, A, and P.
 In fact, the theorem constrains, but does not prohibit the existence of,
 applications that apply some relaxed amount of all three features. The
@@ -1184,8 +1147,7 @@ perhaps most, real-world applications.
 
 The tension between consistency and availability is a prototypical
 example of a deeper tension in computing: that between safey and
-liveness properties (Davidson, Garcia-Molina, and Skeen 1985; Gilbert
-and Lynch 2012). These terms can be understood as follows.
+liveness properties \cite{10.1145/5505.5508 2012perspectivesCAP}. These terms can be understood as follows.
 
 \begin{itemize}
 \item
@@ -1459,7 +1421,7 @@ applications with weaker consistency requirements (high \(\epsilon\))
 should provide higher availability, all other things being equal.
 
 Yu and Vahdat explored the CAP tradeoff from this perspective in a
-series of papers (Yu and Vahdat 2000a, 2000c, 2000b, 2001, 2002). They
+series of papers \cite{2000tact 2000tactalgorithms 10.5555/1251229.1251250 DBLP:conf/icdcs/YuV01 2002tact}
 propose a theory of \emph{conits}, a logical unit of data subject to
 their three metrics for measuring consistency. By controlling the
 threshold of acceptable inconsistency of each conit as a continuous
@@ -1739,105 +1701,12 @@ To be written.
 
 \label{sec:conclusion}
 
-To be written
+To be written.
 
-\hypertarget{bibliography}{%
-\section*{Bibliography}\label{bibliography}}
+\section*{Bibliography}\label{bibliography}
 \addcontentsline{toc}{section}{Bibliography}
-
-\hypertarget{refs}{}
-\begin{CSLReferences}{1}{0}
-\leavevmode\vadjust pre{\hypertarget{ref-2012CAP12Years}{}}%
-Brewer, Eric. 2012. {``CAP Twelve Years Later: How the "Rules" Have
-Changed.''} \emph{Computer} 45 (2): 23--29.
-\url{https://doi.org/10.1109/MC.2012.37}.
-
-\leavevmode\vadjust pre{\hypertarget{ref-10.1145ux2f5505.5508}{}}%
-Davidson, Susan B., Hector Garcia-Molina, and Dale Skeen. 1985.
-{``Consistency in a Partitioned Network: A Survey.''} \emph{ACM Comput.
-Surv.} 17 (3): 341--70. \url{https://doi.org/10.1145/5505.5508}.
-
-\leavevmode\vadjust pre{\hypertarget{ref-1999foxbrewer}{}}%
-Fox, A., and E. A. Brewer. 1999. {``Harvest, Yield, and Scalable
-Tolerant Systems.''} In \emph{Proceedings of the Seventh Workshop on Hot
-Topics in Operating Systems}, 174--78.
-\url{https://doi.org/10.1109/HOTOS.1999.798396}.
-
-\leavevmode\vadjust pre{\hypertarget{ref-10.5555ux2f866855}{}}%
-Friedman, Roy, and Ken Birman. 1996. {``Trading Consistency for
-Availability in Distributed Systems.''} USA: Cornell University.
-
-\leavevmode\vadjust pre{\hypertarget{ref-2002gilbertlynchCAP}{}}%
-Gilbert, Seth, and Nancy A. Lynch. 2002. {``Brewer's Conjecture and the
-Feasibility of Consistent, Available, Partition-Tolerant Web
-Services.''} \emph{SIGACT News} 33 (2): 51--59.
-\url{https://doi.org/10.1145/564585.564601}.
-
-\leavevmode\vadjust pre{\hypertarget{ref-2012perspectivesCAP}{}}%
----------. 2012. {``Perspectives on the CAP Theorem.''} \emph{Computer}
-45 (02): 30--36. \url{https://doi.org/10.1109/MC.2011.389}.
-
-\leavevmode\vadjust pre{\hypertarget{ref-10.1145ux2f78969.78972}{}}%
-Herlihy, Maurice P., and Jeannette M. Wing. 1990. {``Linearizability: A
-Correctness Condition for Concurrent Objects.''} \emph{ACM Trans.
-Program. Lang. Syst.} 12 (3): 463--92.
-\url{https://doi.org/10.1145/78969.78972}.
-
-\leavevmode\vadjust pre{\hypertarget{ref-kshemkalyani_singhal_2008}{}}%
-Kshemkalyani, Ajay D., and Mukesh Singhal. 2008. \emph{Distributed
-Computing: Principles, Algorithms, and Systems}. Cambridge University
-Press. \url{https://doi.org/10.1017/CBO9780511805318}.
-
-\leavevmode\vadjust pre{\hypertarget{ref-2019wideningcap}{}}%
-Muñoz-Escoí, Francesc D, Rubén de Juan-Marín, José-Ramón García-Escrivá,
-J R González de Mendívil, and José M Bernabéu-Aubán. 2019. {``CAP
-Theorem: Revision of Its Related Consistency Models.''} \emph{The
-Computer Journal} 62 (6): 943--60.
-\url{https://doi.org/10.1093/comjnl/bxy142}.
-
-\leavevmode\vadjust pre{\hypertarget{ref-10.5555ux2f562065}{}}%
-Singhal, Mukesh, and Niranjan G. Shivaratri. 1994. \emph{Advanced
-Concepts in Operating Systems}. USA: McGraw-Hill, Inc.
-
-\leavevmode\vadjust pre{\hypertarget{ref-TanenbaumSteen07}{}}%
-Tanenbaum, Andrew S., and Maarten van Steen. 2007. \emph{Distributed
-Systems: Principles and Paradigms}. 2nd ed. Upper Saddle River, NJ:
-Pearson Prentice Hall.
-
-\leavevmode\vadjust pre{\hypertarget{ref-2000tact}{}}%
-Yu, Haifeng, and Amin Vahdat. 2000a. {``Building Replicated Internet
-Services Using TACT: A Toolkit for Tunable Availability and Consistency
-Tradeoffs.''} In \emph{Proceedings Second International Workshop on
-Advanced Issues of e-Commerce and Web-Based Information Systems. WECWIS
-2000}, 75--84. \url{https://doi.org/10.1109/WECWIS.2000.853861}.
-
-\leavevmode\vadjust pre{\hypertarget{ref-10.5555ux2f1251229.1251250}{}}%
----------. 2000b. {``Design and Evaluation of a Continuous Consistency
-Model for Replicated Services.''} In \emph{{Proceedings of the 4th
-Conference on Symposium on Operating System Design and Implementation -
-Volume 4}}. OSDI'00. USA: USENIX Association.
-
-\leavevmode\vadjust pre{\hypertarget{ref-2000tactalgorithms}{}}%
----------. 2000c. {``Efficient Numerical Error Bounding for Replicated
-Network Services.''} In \emph{Proceedings of the 26th International
-Conference on Very Large Data Bases}, 123--33. VLDB '00. San Francisco,
-CA, USA: Morgan Kaufmann Publishers Inc.
-
-\leavevmode\vadjust pre{\hypertarget{ref-DBLP:confux2ficdcsux2fYuV01}{}}%
----------. 2001. {``Combining Generality and Practicality in a
-Conit-Based Continuous Consistency Model for Wide-Area Replication.''}
-In \emph{Proceedings of the 21st International Conference on Distributed
-Computing Systems {(ICDCS} 2001), Phoenix, Arizona, USA, April 16-19,
-2001}, 429--38. {IEEE} Computer Society.
-\url{https://doi.org/10.1109/ICDSC.2001.918973}.
-
-\leavevmode\vadjust pre{\hypertarget{ref-2002tact}{}}%
----------. 2002. {``Design and Evaluation of a Conit-Based Continuous
-Consistency Model for Replicated Services.''} \emph{ACM Trans. Comput.
-Syst.} 20 (3): 239--82. \url{https://doi.org/10.1145/566340.566342}.
-
-\end{CSLReferences}
 
 \bibliographystyle{abbrv}
 \bibliography{bibliography}
+
 \end{document}
