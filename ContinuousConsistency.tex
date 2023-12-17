@@ -114,7 +114,7 @@ which crewed and uncrewed aircraft may safely operate in shared
 airspace.
 
 This memo surveys topics in distributed computing that are relevant to
-the \mbox{challenge} of maintaining system-wide safety; it aims to be
+the \mbox{challenge} of maintaining system-wide safety. It aims to be
 self-contained and accessible to a broad technical audience. Our
 primary motivating use cases have been taken from civil emergency
 response scenarios, especially wildfire suppression and hurricane
@@ -237,72 +237,77 @@ wildland firefighting modernization by the President’s Council of
 Advisors on Science and Technology (PCAST) cites ``the vulnerabilities
 and shortfalls in wildland firefighter communications, connectivity,
 and technology interoperability'' in their first of five
-recommendations \cite{pcast2023}. The causes of this fundamental
-reality are several in number: remote locations, difficult terrain,
-damaged infrastructure, harsh weather, and limited battery power, to
-name a few.  From a networking perspective, environmental and
-operational factors tend to cause agents (e.g.~first responders) to
-experience packet loss, high error rates, and unpredictable latencies in
-message-passing. This can happen at particularly inopportune times,
+recommendations \cite{pcast2023}. These shortfalls can be attributed
+to many factors inherent to disaster response: remote locations,
+difficult terrain, damaged infrastructure, harsh weather, and limited
+battery power, to name a few.
 
-e.g. when fire conditions are at their worst, as in some cases
-conditions that prompt urgent communication can correlate with those
-that make communication difficult.\footnote{Consider that,
-tautologically, a communications network is most \mbox{congested}
-precisely when everyone needs to use it.}
+Agents in the field, such as first responders, generally experience
+high packet loss, high error rates, and unpredictable latencies in
+message-passing over the communication network(s). A conservative view
+suggests expecting the worst performance at particularly inopportune
+times. This is because conditions that prompt urgent communication can
+be expected to correlate with those that make communication
+difficult. For example, tautologically, a communications network is
+the most \mbox{congested}, and therefore the least available,
+precisely when everyone needs to use it. This phenomenon was most
+famously exhibited in the aftermath of the September $11^\textrm{th}$
+terrorist attacks, where the sudden demand on the networks virtually
+brought them all to a halt (CITE).
 
-From a systems perspective, an unreliable network obstructs protocols
-for coordination among distributed agents. At a high level,
+From a systems perspective, an unreliable network presents a challenge
+for protocols used to coordinate distributed agents. At a high level,
 coordinated action requires enforcing some notion of consistency,
 i.e.~agreement, across replicas of data shared between agents. For
 instance, it is important that everyone agree which firetrucks have
 been dispatched to which scenes, or which radios have been reserved
-from the radio cache of the National Interagency Incident
-Communications Division {\mbox{(NIICD)}} \cite{radiocache}, and for
-whom. Stronger consistency requirements are generally more difficult
-to maintain than more relaxed requirements, meaning they require
-exchanging more information with other agents quickly and put a
-heavier burden on the network. When the network is slow, nodes that
-need to communicate may have to wait for network to deliver their
-messages, delaying the processing of requests from clients in the
-meantime, diminishing the efficacy of the overall system.
+from the {\mbox{NIICD}} radio cache \cite{radiocache} and for
+whom. Stronger consistency requirements are of course more difficult
+to maintain than relaxed requirements because they require exchanging
+more information with other agents quickly, putting a heavier burden
+on the network. When the network is slow, nodes that need to
+communicate may have to wait for network to deliver their messages,
+delaying the handling of user requests in the meantime, diminishing
+the efficacy of the overall system.
 
 \hypertarget{communication-and-safety}{%
   \subsection{Communication and Safety}\label{communication-and-safety}}
 
-Numerous complications in the field arise from the basic fact that the
-network is unreliable. This unreliability forces agents to choose
-between suffering long delays in sending or receiving information, or
-acting with only limited knowledge, or both. Both choices are
-problematic and present safety challenges because safety, by nature,
-requires agents to gather information about their environment and
-react to it. Since this information is received from distant sensors
-and other agents, who send it over the network(s), a flaky network
-quickly becomes a fundamental problem.
+Many complications in the field are exacerbated by the basic fact that
+the network is unreliable. The fundamental cause is that when faced
+with a poor communications environment, agents must choose between
+long delays in sending or receiving information, or acting with only
+limited knowledge, or typically some amount of both. Both options are
+problematic and present safety challenges because operational safety,
+by nature, requires agents to gather information about their
+environment and react to it. This information is received from distant
+sensors and other agents, who send it over the network(s), so poor
+network performance is a safety problem.
 
 Consider firefighting airtankers for example, the largest class of
-which are the Very Large Airtankers (VLATs), defined as those carrying
-more than 8,000 gallons of water or fire retardant (CITE). VLATs are
-commonly deployed to large wildfires in California, and the largest
-can deposit up to 20,000 gallons of fire retardant, weighing about
-170,000 pounds, in a single drop. Performed at a low altitude, a drop
-from a VLAT can easily crush a ground vehicle \cite{2019:stickney},
-posing a serious danger to firefighters. A 2018 accident led to the
-death of one firefighter and the injury of three others when an
-87-foot Douglas Fir tree was knocked down by an unexpectedly forceful
-drop from a Boeing 747-400 Supertanker \cite{2018:calfire}.
+which are the Very Large Airtankers (VLATs), generally defined as
+those carrying more than 8,000 gallons of water or fire retardant
+(CITE). VLATs are commonly deployed to large wildfires in California,
+and the largest can deposit around 20,000 gallons of fire retardant,
+weighing about 170,000 pounds, in a single drop. Performed at a low
+altitude, a drop from a VLAT can easily crush a ground vehicle
+\cite{2019:stickney}, posing a serious danger to firefighters. A 2018
+accident led to the death of one firefighter and the injury of three
+others when an 87-foot Douglas Fir tree was knocked down by an
+unexpectedly forceful drop from a Boeing 747-400 Supertanker
+\cite{2018:calfire}.
 
 Suppose that in the future, firefighters are equipped with GPS sensors
-and digital transmitters, perhaps by running an application on their
-personal cell phones. Then a seemingly reasonable policy would be to
-prohibit a VLAT from performing a drop if its computers do not have
-up-to-date information about the location of agents on the ground. The
-problem is that obtaining this information may be difficult or
-impossible if heavy smoke, a damaged radio tower, or a tall ridge
-prevents communications between the air and ground. In these
-scenarios, rigid enforcement of the safety policy might prevent
-airtankers from operating, reducing their effectiveness and
-potentially creating dangerous inefficiencies.
+and digital transmitters---this could be an application on their
+personal cell phones, or something running on dedicated equipment. A
+seemingly reasonable policy would be to prohibit a VLAT from
+performing a drop if its computers do not have up-to-date information
+about the location of firefighters on the ground. The problem is that
+obtaining this information may be difficult or impossible if heavy
+smoke, a damaged radio tower, or a tall ridge prevents communications
+between the air and ground. In these scenarios, rigid enforcement of
+the safety policy would prevent airtankers from operating, making them
+ineffective.
 
 This scenario exemplifies a classic tradeoff between opposing goals:
 system \emph{safety} and system \emph{availability} (or
@@ -328,39 +333,66 @@ following:
   Airtankers will perform a drop within 20 minutes of receiving a request.\footnote{20 minutes was cited as the response time within designated responsibility areas by the Chief of Flight Operations for Cal Fire https://www.youtube.com/watch?v=CWjfpMORGSQ}
 \end{quote}
 
-Unfortunately, safety and liveness can be dual mandates: safety, in the
-sense used here, requires a system \textbf{never} to perform certain
+Safety and liveness are frequently dual mandates: safety, in the sense
+used here, requires a system \textbf{never} to perform certain
 actions, while liveness requires a system to \textbf{always} perform
 certain actions. The tension between these ideals means the two often
-cannot be guaranteed simultaneously. Such is the case in our example: if
-a group of ground agents is unable to broadcast their locations to the
-pilot, then the pilot's actions may have to be delayed to maintain
-\(\textbf{P}_\textrm{safe}\) at the cost of
-\(\textbf{P}_\textrm{live}\). This inaction could even come at the cost
-of allowing a fire to spread.\footnote{A slight linguistic idiosyncrasy
+cannot be guaranteed simultaneously, as in our example: if
+firefighters are unable to broadcast their locations to the pilot,
+then the pilot's are impeded to maintain \(\textbf{P}_\textrm{safe}\)
+at the cost of \(\textbf{P}_\textrm{live}\), allowing the fire to
+spread in the meantime. \footnote{A slight linguistic idiosyncrasy
 exhibited here is that liveness properties---not just ``safety''
 properties---can also be relevant to human safety. Thus, the narrow
-technical meaning of safety properties for distributed systems fails
-to capture the entirety of the meaning of System Wide Safety.}
+technical meaning of safety properties for distributed systems does
+not capture the whole meaning of System Wide Safety.}
 
-We emphasize a point here: the issue in the previous example does not
-simply disappear if no ground personnel are actually within 100 meters
-of a drop zone. Perhaps firefighters were previously within this area
-and since left, so no danger is actually present, but the fact of them
-leaving is not conveyed to the pilot. To guarantee
-\(\textbf{P}_\textrm{safe}\), an airtanker's actions must be restricted
-when pilots do not \emph{know} whether an action would violate
-\(\textbf{P}_\textrm{safe}\)---knowledge of the fact, and not merely the
-fact of it, is the crucial part.\footnote{In other words, the logic of
-distributed agents is inherently an \emph{epistemic} one (CITE).}
-Propagating knowledge between agents necessarily requires communication,
-and this is limited to what the available network(s) can provide, making
-the efficient use of a chaotic and congested network in these situations
-paramount.
+Besides the safety/liveness tradeoff, the previous example exhibits
+two other aspects that are highly pertinent to reasoning about
+distributed systems. We pause to draw attention to them.
 
-\paragraph{Discontinuity} Besides the safety/liveness tradeoff, the previous scenario exhibits the phenomenon of \emph{discontinuity}. The properties $\mathbf{P}_\textrm{safe}$ and $\mathbf{P}_\textrm{live}$, interpreted literally, are Boolean-valued, all-or-nothing propositions. That is, they are discrete. Let us see what is wrong by consider what happens if they are implemented as-is.
+\paragraph{Epistemology}
+Observe that the issue in the VLAT example does not simply disappear
+if no ground personnel are actually within 100 meters of a drop
+zone. That is, it is not simply a matter of whether a danger is
+actually present. To guarantee \(\textbf{P}_\textrm{safe}\), an
+airtanker's actions must be restricted when its computers do not
+\emph{know} whether an action would violate
+\(\textbf{P}_\textrm{safe}\)---\emph{knowledge} of the fact, and not
+merely the fact of it, is the crucial part. In philosophical terms,
+the logic of distributed agents is inherently an \emph{epistemic} one
+(CITE), meaning it must take into account not just what is true but
+what is known. The need to share knowledge is what drives
+communication and puts a burden on the network.
 
-In this scenario, we imagine an onboard computer process whose task is tracking the GPS locations of firefighters on the ground. Suppose the environment is such that the network is only able to receive updated information every $31$, instead of $30$, seconds. If $\mathbf{P}_\textrm{safe}$ is rigidly enforced, then under these conditions the airtanker would not able to function at all: it does not have precise enough information to satisfy its safety requirements. In reality, a human controller would likely decide that the computer \emph{does} have enough information, and decide to override the policy. However, it is difficult to make assurances about a system if external actors are frequently in the habit of overruling its decisions.
+\paragraph{Discontinuity}
+The properties $\mathbf{P}_\textrm{safe}$ and
+$\mathbf{P}_\textrm{live}$ are Boolean-valued, i.e. they are discrete,
+all-or-nothing propositions. The complexity of the operational
+environment demands considering more flexible kinds of
+properties. Suppose that agents are known to be $500$ feet outside the
+drop zone, the extra margin meaning they are well away from any
+danger, but this information is only current to within 45
+seconds. Clearly this is good enough information to authorize a drop,
+but strictly speaking it is a violation of
+$\mathbf{P}_\textrm{safe}$. To make the example more extreme,
+$\mathbf{P}_\textrm{safe}$ is violated even if the information is
+current to within 31 seconds, so a mere extra second of delay makes
+all the difference between whether the VLAT can operate, even though
+the firefighters in question are clearly far outside the drop
+zone. This is precisely the kind of \emph{discontinuity} in system
+behavior that we aim to prevent, as it makes the system's behavior
+difficult to predict, being so sensitive to the particulars of the
+environment. Preventing this kind of discontinuity can be difficult
+because we still want to provide rigorous guarantees about the
+system's behavior, i.e. we cannot forgo enforcing properties like
+$\mathbf{P}_\textrm{safe}$ altogether.
+
+%In reality, a human controller would likely decide that
+%the computer \emph{does} have enough information, and decide to
+%override the policy. However, it is difficult to make assurances about
+%a system if external actors are frequently in the habit of overruling
+%its decisions.
 
 \begin{figure}[h]
   \centering
@@ -390,7 +422,7 @@ correlates with an ability to communicate quickly and reliably. This
 kind of principle motivates the sort of decentralized, ad-hoc networking
 protocols considered in Section \ref{sec:networking}. It can also affect
 the design of higher-level applications like the one in Section
-\ref{sec:continuous-consistency}
+\ref{sec:continuous-consistency}.
 
 \paragraph{Communication on the ground}
 
@@ -410,14 +442,16 @@ geolocality of reference: firefighters mostly need to communicate when
 they are working near each other, in some cases so nearby they can
 communicate without network infrastructure.
 
-Communicating over a long distance typically requires infrastructural support, such as the use of cell towers and repeater stations. Typically, disaster
-response environments have scarce permanent infrastructure: perhaps a few repeaters mounted to a watch tower for a wildland fire setting. Ad-hoc
-infrastructure, such as a cell on wheels (COW) or cell on light truck
-(COLT), can sometimes be deployed on an as-needed basis if the location allows for
-it. A common issue is making sure that all equipment is properly
-configured, for instance that all radios are listening on the correct
-frequencies, particularly when different agencies and groups need to
-interoperate.
+Communicating over a long distance typically requires infrastructural
+support, such as the use of cell towers and repeater
+stations. Typically, disaster response environments have scarce
+permanent infrastructure: perhaps a few repeaters mounted to a watch
+tower for a wildland fire setting. Ad-hoc infrastructure, such as a
+cell on wheels (COW) or cell on light truck (COLT), can sometimes be
+deployed on an as-needed basis if the location allows for it. A common
+issue is making sure that all equipment is properly configured, for
+instance that all radios are listening on the correct frequencies,
+particularly when different agencies and groups need to interoperate.
 
 Use of centralized infrastructure comes at the cost of potential
 widespread failure when the infrastructure fails. For example, in
@@ -441,6 +475,7 @@ scenario considered by Brewer's CAP theorem in Section
   radio crews could go back up there and set up a temporary radio tower.
 \end{quote}
 
+\paragraph{Vehicles on the ground}
 Large numbers of ground vehicles are involved in wildfire
 suppression. A large wildfire response can involve more than 50--100
 firetrucks distributed over a large geographical area. Bulldozers and
