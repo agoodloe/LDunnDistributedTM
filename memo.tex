@@ -13,17 +13,15 @@
 \usepackage{hyperref}
 \usepackage{amsthm}
 \usepackage[english]{babel}
-\usepackage{proof}
-
-\newtheorem{example}{Example}
-
-\newcommand{\B}{\mathbf{B}}
-\newcommand{\w}{\mathbf{w}}
+\usepackage{stmaryrd}
 \usepackage{proof}
 \usepackage{tikz-cd}
 \tikzcdset{scale cd/.style={every label/.append style={scale=#1},
     cells={nodes={scale=#1}}}}
-\usepackage{stmaryrd}
+% Added for subfigures
+\usepackage{caption}
+\usepackage{subcaption}
+
 \hypersetup{
   colorlinks=true,
   linkcolor=blue,
@@ -37,12 +35,16 @@
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}{Corollary}[theorem]
 \newtheorem{lemma}[theorem]{Lemma}
-
+\newtheorem{example}{Example}
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
 
+\newcommand{\B}{\mathbf{B}}
+\newcommand{\w}{\mathbf{w}}
+
 \title{A Survey of Distributed Systems Challenges for Wildland
   Firefighting and Disaster Response}
+
 \author{Lawrence Dunn and Alwyn E. Goodloe}
 
 \AuthorAffiliation{Lawrence Dunn \\ Department of Computer and Information
@@ -71,9 +73,7 @@
 %Added for Pandoc
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
-% Added for subfigures
-\usepackage{caption}
-\usepackage{subcaption}
+
 
 \abstract{The System Wide Safety (SWS) program has been investigating
   how crewed and uncrewed aircraft can safely operate in shared
@@ -1208,7 +1208,7 @@ perhaps most, real-world applications.
 
 The tension between consistency and availability is a prototypical
 example of a deeper tension in computing: that between safey and
-liveness properties \cite{10.1145/5505.5508 2012perspectivesCAP}. These terms can be understood as follows.
+liveness properties \cite{10.1145/5505.5508,2012perspectivesCAP}. These terms can be understood as follows.
 
 \begin{itemize}
 \item
@@ -1491,7 +1491,7 @@ applications with weaker consistency requirements (high \(\epsilon\))
 should provide higher availability, all other things being equal.
 
 Yu and Vahdat explored the CAP tradeoff from this perspective in a
-series of papers \cite{2000tact 2000tactalgorithms 10.5555/1251229.1251250 DBLP:conf/icdcs/YuV01 2002tact}
+series of papers \cite{2000tact,2000tactalgorithms,10.5555/1251229.1251250,DBLP:conf/icdcs/YuV01,2002tact}
 propose a theory of \emph{conits}, a logical unit of data subject to
 their three metrics for measuring consistency. By controlling the
 threshold of acceptable inconsistency of each conit as a continuous
