@@ -22,15 +22,15 @@
 \usepackage{proof}
 \usepackage{tikz-cd}
 \tikzcdset{scale cd/.style={every label/.append style={scale=#1},
-		cells={nodes={scale=#1}}}}
+    cells={nodes={scale=#1}}}}
 \usepackage{stmaryrd}
 \hypersetup{
-	colorlinks=true,
-	linkcolor=blue,
-	filecolor=magenta,
-	urlcolor=cyan,
-	pdftitle={Overleaf Example},
-	pdfpagemode=FullScreen,
+  colorlinks=true,
+  linkcolor=blue,
+  filecolor=magenta,
+  urlcolor=cyan,
+  pdftitle={Overleaf Example},
+  pdfpagemode=FullScreen,
 }
 \urlstyle{same}
 
@@ -42,11 +42,11 @@
 \newtheorem{definition}{Definition}[section]
 
 \title{A Survey of Distributed Systems Challenges for Wildland
-Firefighting and Disaster Response}
+  Firefighting and Disaster Response}
 \author{Lawrence Dunn and Alwyn E. Goodloe}
 
 \AuthorAffiliation{Lawrence Dunn \\ Department of Computer and Information
-Science \\ University of Pennsylvania \\ Philadelphia, PA \\ Alwyn Goodloe\\                                          % for cover page
+  Science \\ University of Pennsylvania \\ Philadelphia, PA \\ Alwyn Goodloe\\                                          % for cover page
   NASA Langley Research Center, Hampton, Virginia
 }
 \NasaCenter{Langley Research Center\\Hampton, Virginia 23681-2199}
@@ -76,19 +76,21 @@ Science \\ University of Pennsylvania \\ Philadelphia, PA \\ Alwyn Goodloe\\    
 \usepackage{subcaption}
 
 \abstract{The System Wide Safety (SWS) program has been investigating
-how crewed and uncrewed aircraft can safely operate in shared airspace,
-taking disaster response scenarios as a motivating use case. Enforcing
-safety requirements for distributed agents requires coordination by
-passing messages over a communication network. However, the operational
-environment will not admit reliable high-bandwidth communication between
-all agents, introducing theoretical and practical obstructions to global
-consistency that make it more difficult to maintain safety-related
-invariants. This self-contained memo discusses some of the distributed
-systems challenges involved in system-wide safety through a pragmatic
-lens. We survey topics ranging from consistency models and network
-architectures to data replication and data fusion, in each case focusing
-on the practical relevance of topics in the literature to the sorts of
-scenarios and challenges we expect from our use case.}
+  how crewed and uncrewed aircraft can safely operate in shared
+  airspace. Enforcing safety requirements for distributed agents
+  requires coordination by passing messages over a communication
+  network. Unfortunately, the operational environment will not admit
+  reliable high-bandwidth communication between all agents,
+  introducing theoretical and practical obstructions to global
+  consistency that make it more difficult to maintain safety-related
+  invariants. Taking disaster response scenarios, particularly
+  wildfire suppression, as a motivating use case, this self-contained
+  memo discusses some of the distributed systems challenges involved
+  in system-wide safety through a pragmatic lens. We survey topics
+  ranging from consistency models and network architectures to data
+  replication and data fusion, in each case focusing on the practical
+  relevance of topics in the literature to the sorts of scenarios and
+  challenges we expect from our use case.  }
 
 \begin{document}
 \newpage
@@ -98,30 +100,32 @@ scenarios and challenges we expect from our use case.}
 
 \section{Introduction}\label{introduction}
 
-Civil aviation has traditionally focused primarily on the efficient and
-safe transportation of people and goods via the airspace. Despite the
-inherent risks, the application of sound engineering practices and
+Civil aviation has traditionally focused primarily on the efficient
+and safe transportation of people and goods via the airspace. Despite
+the inherent risks, the application of sound engineering practices and
 conservative operating procedures has made flying the safest mode of
 transport today. Now the desire not to compromise this safety makes it
 difficult to integrate unmanned vehicles into the airspace, accomodate
-emerging applications, and keep pace with rapid growth in commercial
-aviation. To that end, the System Wide Safety (SWS) project of the NASA
-Aeronautics' Airspace Operations and Safety Program (AOSP) has been
-investigating technologies and methods by which crewed and uncrewed
-aircraft may safely operate in shared airspace.
+emerging applications, and keep pace with unprecedented recent growth
+in commercial aviation. To that end, the System Wide Safety (SWS)
+project of the NASA Aeronautics' Airspace Operations and Safety
+Program (AOSP) has been investigating technologies and methods by
+which crewed and uncrewed aircraft may safely operate in shared
+airspace.
 
 This memo surveys topics in distributed computing that are relevant to
 the \mbox{challenge} of maintaining system-wide safety; it aims to be
 self-contained and accessible to a broad technical audience. Our
 primary motivating use cases have been taken from civil emergency
 response scenarios, especially wildfire suppression and hurricane
-relief. The motivation for this choice is three-fold. First, improved
-technology for wildfire suppression is frequently cited as a
-national priority \cite{pcast2023}.  Second, the rules for operating
-in the US national airspace are typically relaxed during natural
-disasters and relief efforts, so this is a suitable setting for testing new technologies. Finally, this setting is an excellent
-microcosm for the sorts of general challenges faced by other,
-non-emergency applications.
+relief, primarily for three reasons. First, improved technology for
+wildfire suppression, especially related to communications and data
+sharing, is frequently cited as a national priority \cite{pcast2023}.
+Second, the rules for operating in the US national airspace are
+typically relaxed during natural disasters and relief efforts, so this
+is a suitable setting for testing new technologies. Finally, this
+setting is an excellent microcosm for the sorts of general challenges
+faced by other, non-emergency applications.
 
 If there is a central theme to this manuscript, it is
 \emph{continuity} in the sense considered by topology.\footnote{For a
@@ -157,7 +161,7 @@ atomic and sequential consistency models (Theorems \ref{thm:cap} and
 proving that strong consistency for a distributed system makes
 systemwide network performance an upper bound on the availability of a
 system to do useful work for clients. For our purposes, this is an
-unacceptable restriction. The practical significance is that in
+unacceptable restriction. The practical significance of CAP is that in
 emergency response environments, agents will virtually always act with
 less than perfect global information, a key motivation for Section
 \ref{sec:continuous-consistency}.
@@ -217,7 +221,7 @@ decisions at various levels must be made, ideally tuned to real-world conditions
 \newpage
 
 \section{Coordination Challenges in Disaster
-Response}\label{coordination-challenges-in-disaster-response}
+  Response}\label{coordination-challenges-in-disaster-response}
 
 \label{sec:disaster-response}
 
@@ -230,19 +234,20 @@ The operational environment of wildfire suppression, hurricane relief,
 and other disaster scenarios is generally characterized by systemic
 communications challenges. It is not surprising that a 2023 report on
 wildland firefighting modernization by the President’s Council of
-Advisors on Science and Technology (PCAST) cites ``the
-vulnerabilities and shortfalls in wildland firefighter communications,
-connectivity, and technology interoperability'' in their first of five
+Advisors on Science and Technology (PCAST) cites ``the vulnerabilities
+and shortfalls in wildland firefighter communications, connectivity,
+and technology interoperability'' in their first of five
 recommendations \cite{pcast2023}. The causes of this fundamental
 reality are several in number: remote locations, difficult terrain,
 damaged infrastructure, harsh weather, and limited battery power, to
 name a few.  From a networking perspective, environmental and
 operational factors tend to cause agents (e.g.~first responders) to
-experience heavy packet loss and unpredictable latency in
+experience packet loss, high error rates, and unpredictable latencies in
 message-passing. This can happen at particularly inopportune times,
-e.g.~when weather or fire conditions are at their worst, as in some
-cases the conditions which prompt urgent communication will correlate
-with those that make communication difficult.\footnote{Consider that,
+
+e.g. when fire conditions are at their worst, as in some cases
+conditions that prompt urgent communication can correlate with those
+that make communication difficult.\footnote{Consider that,
 tautologically, a communications network is most \mbox{congested}
 precisely when everyone needs to use it.}
 
@@ -252,45 +257,52 @@ coordinated action requires enforcing some notion of consistency,
 i.e.~agreement, across replicas of data shared between agents. For
 instance, it is important that everyone agree which firetrucks have
 been dispatched to which scenes, or which radios have been reserved
-from the National Interagency Incident Communications Division (NIICD)
-radio cache \cite{radiocache}, and for whom. Stronger notions of
-consistency are generally more difficult to maintain, meaning they
-require a greater ability to communicate with other agents
-quickly. When the network is slow, system nodes may have to wait for
-network to deliver their messages, delaying the processing of requests
-from clients in the meantime.
+from the radio cache of the National Interagency Incident
+Communications Division {\mbox{(NIICD)}} \cite{radiocache}, and for
+whom. Stronger consistency requirements are generally more difficult
+to maintain than more relaxed requirements, meaning they require
+exchanging more information with other agents quickly and put a
+heavier burden on the network. When the network is slow, nodes that
+need to communicate may have to wait for network to deliver their
+messages, delaying the processing of requests from clients in the
+meantime, diminishing the efficacy of the overall system.
 
 \hypertarget{communication-and-safety}{%
-\subsection{Communication and Safety}\label{communication-and-safety}}
+  \subsection{Communication and Safety}\label{communication-and-safety}}
 
 Numerous complications in the field arise from the basic fact that the
 network is unreliable. This unreliability forces agents to choose
 between suffering long delays in sending or receiving information, or
 acting with only limited knowledge, or both. Both choices are
-problematic and can present safety challenges, because safety
-fundamentally requires agents to act with up-to-date knowledge about
-the world. Since this information is received from sensors and other
-agents, who send it over the network(s), a flaky network quickly
-becomes a major challenge.
+problematic and present safety challenges because safety, by nature,
+requires agents to gather information about their environment and
+react to it. Since this information is received from distant sensors
+and other agents, who send it over the network(s), a flaky network
+quickly becomes a fundamental problem.
 
-Consider firefighting airtankers for example, the largest class of which
-are the Very Large Airtankers (VLATs), commonly deployed to large wildfires.
-The largest VLATs can deposit up to 20,000 gallons of fire retardant, or
-about 170,000 pounds' worth, in a single drop, often dislodging heavy
-tree limbs and posing a danger to firefighters. When performed at a low
-altitude, this manoeuvre can crush a ground vehicle \cite{2019:stickney}.
-A 2018 accident led to the death of one firefighter and the injury of
-three others when an 87-foot Douglas Fir tree was knocked down by an unexpectedly forceful drop from a Boeing 747-400 configured as a VLAT \cite{2018:calfire}.
+Consider firefighting airtankers for example, the largest class of
+which are the Very Large Airtankers (VLATs), defined as those carrying
+more than 8,000 gallons of water or fire retardant (CITE). VLATs are
+commonly deployed to large wildfires in California, and the largest
+can deposit up to 20,000 gallons of fire retardant, weighing about
+170,000 pounds, in a single drop. Performed at a low altitude, a drop
+from a VLAT can easily crush a ground vehicle \cite{2019:stickney},
+posing a serious danger to firefighters. A 2018 accident led to the
+death of one firefighter and the injury of three others when an
+87-foot Douglas Fir tree was knocked down by an unexpectedly forceful
+drop from a Boeing 747-400 Supertanker \cite{2018:calfire}.
 
 Suppose that in the future, firefighters are equipped with GPS sensors
-and digital transmitters, perhaps by running an application on their personal cell phones. Then a seemingly reasonable policy would be to
+and digital transmitters, perhaps by running an application on their
+personal cell phones. Then a seemingly reasonable policy would be to
 prohibit a VLAT from performing a drop if its computers do not have
 up-to-date information about the location of agents on the ground. The
 problem is that obtaining this information may be difficult or
 impossible if heavy smoke, a damaged radio tower, or a tall ridge
-prevents communications between the air and ground. In these scenarios,
-such a policy might prevent airtankers from operating, leading to
-potentially dangerous inefficiencies.
+prevents communications between the air and ground. In these
+scenarios, rigid enforcement of the safety policy might prevent
+airtankers from operating, reducing their effectiveness and
+potentially creating dangerous inefficiencies.
 
 This scenario exemplifies a classic tradeoff between opposing goals:
 system \emph{safety} and system \emph{availability} (or
@@ -300,10 +312,10 @@ will not perform an action that violates a constraint. In this example,
 a reasonable safety property could look like the following.
 
 \begin{quote}
-    $\textbf{P}_\textrm{safe}$: All ground agents are
-known to be at least 100 meters outside the drop zone, and this
-information is current to within 30 seconds, or airtankers will not perform a
-drop.
+  $\textbf{P}_\textrm{safe}$: All ground agents are known to be at
+  least 100 ft.\footnote{This figure comes from a recommendation
+  (CITE).} outside the drop zone, and this information is current to
+  within 30 seconds, or airtankers will not perform a drop.
 \end{quote}
 
 \noindent By contrast, liveness properties stipulate that the system
@@ -312,8 +324,8 @@ bound. In our scenario, an expected liveness property might be the
 following:
 
 \begin{quote}
-    $\textbf{P}_\textrm{live}$:
-    Airtankers will perform a drop within 15 minutes of receiving a request.
+  $\textbf{P}_\textrm{live}$:
+  Airtankers will perform a drop within 20 minutes of receiving a request.\footnote{20 minutes was cited as the response time within designated responsibility areas by the Chief of Flight Operations for Cal Fire https://www.youtube.com/watch?v=CWjfpMORGSQ}
 \end{quote}
 
 Unfortunately, safety and liveness can be dual mandates: safety, in the
@@ -326,10 +338,10 @@ pilot, then the pilot's actions may have to be delayed to maintain
 \(\textbf{P}_\textrm{safe}\) at the cost of
 \(\textbf{P}_\textrm{live}\). This inaction could even come at the cost
 of allowing a fire to spread.\footnote{A slight linguistic idiosyncrasy
-  exhibited here is that liveness properties---not just ``safety''
-  properties---can also be relevant to human safety. Thus, the narrow
-  technical meaning of safety properties for distributed systems fails
-  to capture the entirety of the meaning of System Wide Safety.}
+exhibited here is that liveness properties---not just ``safety''
+properties---can also be relevant to human safety. Thus, the narrow
+technical meaning of safety properties for distributed systems fails
+to capture the entirety of the meaning of System Wide Safety.}
 
 We emphasize a point here: the issue in the previous example does not
 simply disappear if no ground personnel are actually within 100 meters
@@ -340,22 +352,29 @@ leaving is not conveyed to the pilot. To guarantee
 when pilots do not \emph{know} whether an action would violate
 \(\textbf{P}_\textrm{safe}\)---knowledge of the fact, and not merely the
 fact of it, is the crucial part.\footnote{In other words, the logic of
-  distributed agents is inherently an \emph{epistemic} one (CITE).}
+distributed agents is inherently an \emph{epistemic} one (CITE).}
 Propagating knowledge between agents necessarily requires communication,
 and this is limited to what the available network(s) can provide, making
 the efficient use of a chaotic and congested network in these situations
 paramount.
 
+\paragraph{Discontinuity} Besides the safety/liveness tradeoff, the previous scenario exhibits the phenomenon of \emph{discontinuity}. The properties $\mathbf{P}_\textrm{safe}$ and $\mathbf{P}_\textrm{live}$, interpreted literally, are Boolean-valued, all-or-nothing propositions. That is, they are discrete. Let us see what is wrong by consider what happens if they are implemented as-is.
+
+In this scenario, we imagine an onboard computer process whose task is tracking the GPS locations of firefighters on the ground. Suppose the environment is such that the network is only able to receive updated information every $31$, instead of $30$, seconds. If $\mathbf{P}_\textrm{safe}$ is rigidly enforced, then under these conditions the airtanker would not able to function at all: it does not have precise enough information to satisfy its safety requirements. In reality, a human controller would likely decide that the computer \emph{does} have enough information, and decide to override the policy. However, it is difficult to make assurances about a system if external actors are frequently in the habit of overruling its decisions.
+
 \begin{figure}[h]
-\centering
-\includegraphics[scale=0.4]{images/dc10.jpg}
-\caption{A DC-10 airtanker, tail number T-911, drops retardant above Greer, Arizona. The DC-10 has a capacity of 9,400 gallons.}
+  \centering
+  \includegraphics[scale=0.4]{images/dc10.jpg}
+  \caption{A DC-10 airtanker, rated for 9,400 gallons, drops retardant above Greer, Arizona.}
 \end{figure}
 
 \begin{figure}[h]
-\centering
-\includegraphics[scale=0.085]{images/ironside.jpg}
-\caption{The Ironside Mountain lookout station, destroyed in the 2021 Monument fire, shown with protective foil on August 10th, 2015, during the 2015 River Complex fire. This particular fire burned 77,077 acres over 77 days.}
+  \centering
+  \includegraphics[scale=0.085]{images/ironside.jpg}
+  \caption{The Ironside Mountain lookout station, destroyed in the 2021
+    Monument fire, shown with protective foil on August
+    $10^\textrm{th}$, 2015 during the 2015 River Complex fire. This
+    particular fire burned 77,077 acres over 77 days.}
 \end{figure}
 
 \subsection{Communication in Practice}\label{communication-in-practice}
@@ -377,10 +396,10 @@ the design of higher-level applications like the one in Section
 
 In the field, communication between firefighters and other agents in
 disaster response scenarios is often facilitated by handheld (analog)
-radios, which are inherently limited in their battery life\footnote{A
-  coordinator for NIFS reported that during peak demand, wildland
-  firefighters in the United States go through upwards of a combined
-  350,000 ``AA'' batteries in a day.}, bandwidth, effective range, and
+radios, which are inherently limited in their battery life,\footnote{A
+coordinator for NIFS reported that during peak demand, wildland
+firefighters in the United States go through upwards of a combined
+350,000 ``AA'' batteries in a day.} bandwidth, effective range, and
 ability to work around environmental factors like foliage and smoke.
 
 As an alternative to using a radio, it is common for wildland
@@ -403,7 +422,7 @@ interoperate.
 Use of centralized infrastructure comes at the cost of potential
 widespread failure when the infrastructure fails. For example, in
 California, the Ironside Mountain lookout/repeater station was destroyed
-during the 2021 Monument Fire\footnote{https://www.fire.ca.gov/incidents/2021/7/30/monument-fire/},
+during the 2021 Monument Fire,\footnote{https://www.fire.ca.gov/incidents/2021/7/30/monument-fire/}
 which burned approximately 184,142 acres over 88 days. The Ironside
 Mountain station had strategic importance, being located on a tall
 ridge. According to a video blog from a volunteer firefighter involved
@@ -415,21 +434,23 @@ scenario considered by Brewer's CAP theorem in Section
 \ref{sec:background}.
 
 \begin{quote}
-When {[}the Ironside Mountain lookout station{]} burned down the radio
-repeater went with it. And so communications were lost across the
-fire\ldots{} one side of the fire couldn't talk to the other side\ldots.
-So it was kind of a critical job to get that road cleared so that the
-radio crews could go back up there and set up a temporary radio tower.
+  When {[}the Ironside Mountain lookout station{]} burned down the radio
+  repeater went with it. And so communications were lost across the
+  fire\ldots{} one side of the fire couldn't talk to the other side\ldots.
+  So it was kind of a critical job to get that road cleared so that the
+  radio crews could go back up there and set up a temporary radio tower.
 \end{quote}
 
-Many vehicles are involved wildfire suppression. A large incident can
-involve more than 50 firetrucks. Bulldozers and similar vehicles are
-commonly used to control the landscape and perimeter of the fire. An
-advantage of vehicles is that they can carry more, which is to say
-better, communications equipment than a human. For instance, a vehicle
-could be equipped with a satellite link as well as a local wireless area
-network (WLAN) base station, serving as a bridge between agents in the
-field and central coordinators.
+Large numbers of ground vehicles are involved in wildfire
+suppression. A large wildfire response can involve more than 50--100
+firetrucks distributed over a large geographical area. Bulldozers and
+similar vehicles are commonly used to control the landscape and
+perimeter of the fire. An advantage of vehicles is that they can carry
+heavier, which is to say better, communications equipment than a
+human. For instance, a vehicle could be equipped with a satellite link
+as well as a local wireless area network (WLAN) base station, serving
+as a bridge between agents in the field and central coordinators
+(e.g. incident commanders).
 
 \paragraph{Communication in the air}
 
@@ -445,11 +466,12 @@ The locality principle is exhibited here, too: aircraft have the highest
 need to coordinate when they are physically close and therefore in range
 of each other's ADS-B broadcasts.
 
-In our setting, a large number or aircraft, easily a half dozen or more,
-may need to operate in a small area, near complex terrain, during
-adverse conditions, often at a low altitude (an airtanker drop is
-typically performed near an altitude of 200 ft above vegetation (CITE)).
-In other words, the demands are many and the margins for error are
+In our setting, a large number or aircraft, easily a half dozen or
+more, may need to operate in a small area, near complex terrain,
+during adverse conditions, often at a low altitude.\footnote{Current
+recommendations (WHOSE) call for VLATs to perform drops at 250
+ft. above the tree canopy, while smaller aircraft may go lower.} In
+other words, the demands are many and the margins for error are
 small. This sort of use case requires more sophisticated coordination
 schemes between airborne and ground-based elements than solutions like
 ADS-B provide by themselves.
@@ -464,7 +486,7 @@ introducing delays and possible degradation of message quality, as in
 the classic game of telephone.
 
 In some cases, planes from the Civil Air Patrol\footnote{A civil
-  auxiliary of the U.S. Air Force. https://www.gocivilairpatrol.com/}
+auxiliary of the U.S. Air Force. https://www.gocivilairpatrol.com/}
 (CITE) have been equipped with radio repeaters and dispatched to
 wildfires to provide service to ground-based units. In the future, this
 sort of service could be provided, perhaps autonomously, by base
@@ -481,7 +503,7 @@ informal relay schemes operating today over traditional radio channels.
 \subsection{Towards the Future}\label{towards-the-future}
 
 \begin{itemize}
-\tightlist
+  \tightlist
 \item
   CITE developed a prototype application for firefighters in the field.
 \item
@@ -495,7 +517,7 @@ research indicated many different kinds of data that could be valuable
 for responders. To give just a glimpse:
 
 \begin{itemize}
-\tightlist
+  \tightlist
 \item
   Free-form communication, especially recorded voice messages to be
   broadcast to many firefighters at once.
@@ -510,7 +532,7 @@ for responders. To give just a glimpse:
   Topographic information about the terrain, highlighting for instance
   the location of rivers and roads that could form a fire control line
 \item
-  Planned escape routes, rendevous locations, and landing zones
+  Planned escape routes, safety zones, and landing zones
 \item
   Availability and dispatching of resources, e.g.~ambulances,
   airtankers, or crews on standby
@@ -531,6 +553,8 @@ firefighter may not need the minute GPS position of every other
 firefighter in the field: perhaps the exact location of teammates, and
 the general location of other crews.
 
+Warn firefighters when they are too far from an escape route or safety zone.
+
 For developers, it is clear that this requires some coordination between
 the application and the networking layers, as the latter must be given
 enough information to make the most prudent use of limited resources.
@@ -538,7 +562,7 @@ enough information to make the most prudent use of limited resources.
 \newpage
 
 \section{Introduction to Distributed
-Systems}\label{introduction-to-distributed-systems}
+  Systems}\label{introduction-to-distributed-systems}
 
 \label{sec:background}
 
@@ -549,10 +573,10 @@ Shivaratri \cite{10.5555/562065} offer the following definition of a
 distributed (computing) system:
 
 \begin{quote}
-``A collection of computers that do not share common memory or a common
-physical clock, that communicate by message passing over a communication
-network, and where each computer has its own memory and runs its own
-operating system.''
+  ``A collection of computers that do not share common memory or a common
+  physical clock, that communicate by message passing over a communication
+  network, and where each computer has its own memory and runs its own
+  operating system.''
 \end{quote}
 
 In our scenarios, system nodes typically represent computers, routers,
@@ -624,15 +648,15 @@ Imperfection means that message delivery is not instantaneous may be
 unpredictable. The network may deliver a packet zero times (i.e.~it may
 silently delete the packet) or multiple times, and furthermore different
 packets may arrive in any order.\footnote{In the case of \emph{Byzantine
-  faults} (CITE) the network may even act like a malicious adversary,
-  though we will not consider this scenario in this document.} All of
+faults} (CITE) the network may even act like a malicious adversary,
+though we will not consider this scenario in this document.} All of
 these behaviors represent obstructions to consistency and make it
 challenging to enforce safety requirements. We shall now make this
 discussion more precise.
 
 \hypertarget{client-server-architecture}{%
-\subsubsection{Client-server
-architecture}\label{client-server-architecture}}
+  \subsubsection{Client-server
+    architecture}\label{client-server-architecture}}
 
 Process take requests from clients, such as to read or write a value in
 a database. The lifecycle of a typical request is depicted in Figure
@@ -659,7 +683,7 @@ the client, or delay handling the client's request in order to handle
 other requests.
 
 \subsubsection{Causal precedence/``happens before''/external
-order}\label{causal-precedencehappens-beforeexternal-order}
+  order}\label{causal-precedencehappens-beforeexternal-order}
 
 As is often the case, we shall assume that requests handled by a single
 process do not overlap in time. This can be enforced with local
@@ -674,10 +698,10 @@ by an observer recording the real time at which systems begin and finish
 responding to requests.
 
 \begin{definition}
-Let $E$ be an execution. Request $E1$ \emph{externally precedes}
-request $E2$ if $E1.t < E2.s$. That is, if the first request
-terminates before the second request is accepted. This induces an
-irreflexive partial order called \emph{external order}.
+  Let $E$ be an execution. Request $E1$ \emph{externally precedes}
+  request $E2$ if $E1.t < E2.s$. That is, if the first request
+  terminates before the second request is accepted. This induces an
+  irreflexive partial order called \emph{external order}.
 \end{definition}
 
 Recall that an irreflexive partial order is a binary relation \(<\) such
@@ -692,9 +716,9 @@ external order, i.e.~neither \(E1.t < E2.s\) nor \(E2.t < E1.s\), making
 them \emph{physically concurrent}.
 
 \begin{definition}
-If two events overlap in physical time
-(equivalently, if they are not comparable by external order), we call the events \emph{physically concurrent} and
-write $E1 || E2$.
+  If two events overlap in physical time
+  (equivalently, if they are not comparable by external order), we call the events \emph{physically concurrent} and
+  write $E1 || E2$.
 \end{definition}
 
 Physical concurrency is a reflexive and symmetric---but usually not
@@ -712,20 +736,20 @@ corresponds to the directed acyclic graph structure shown in
 \ref{fig:externalorderdag}.
 
 \begin{figure}
-     \begin{subfigure}[a]{1\textwidth}
-         \center
-         \includegraphics[scale=0.4]{images/externalorder.png}
-         \caption{Depiction of external order between concurrent events across three processes. Intra-process and transitive edges are not depicted.}
-         \label{fig:externalorderexec}
-     \end{subfigure}
-     \begin{subfigure}[b]{1\textwidth}
-         \center
-         \includegraphics[scale=0.25]{images/partialorder.png}
-         \caption{The directed acyclic graph (DAG) induced by external order.}
-         \label{fig:externalorderdag}
-     \end{subfigure}
-     \caption{External order}
-     \label{fig:externalorder}
+  \begin{subfigure}[a]{1\textwidth}
+    \center
+    \includegraphics[scale=0.4]{images/externalorder.png}
+    \caption{Depiction of external order between concurrent events across three processes. Intra-process and transitive edges are not depicted.}
+    \label{fig:externalorderexec}
+  \end{subfigure}
+  \begin{subfigure}[b]{1\textwidth}
+    \center
+    \includegraphics[scale=0.25]{images/partialorder.png}
+    \caption{The directed acyclic graph (DAG) induced by external order.}
+    \label{fig:externalorderdag}
+  \end{subfigure}
+  \caption{External order}
+  \label{fig:externalorder}
 \end{figure}
 
 The reader may wonder if we can consider events to be totally ordered,
@@ -777,8 +801,8 @@ non-determinism in the execution of a distributed application), but the
 allowable behavior is tightly constrained.
 
 \hypertarget{linearizabilityatomic-consistency}{%
-\subsubsection{Linearizability/atomic
-consistency}\label{linearizabilityatomic-consistency}}
+  \subsubsection{Linearizability/atomic
+    consistency}\label{linearizabilityatomic-consistency}}
 
 \emph{Linearizability} (Herlihy and Wing 1990) is essentially the
 strongest common consistency model. It is known variously as atomic
@@ -789,7 +813,7 @@ condition is called strict serializability. A linearizable execution is
 defined by three features:
 
 \begin{itemize}
-\tightlist
+  \tightlist
 \item
   All processes act like they agree on a single, global total order
   defined across all accesses.
@@ -802,15 +826,15 @@ defined by three features:
 \end{itemize}
 
 \begin{figure} \begin{subfigure}[a]{1\textwidth} \center
-     \includegraphics[scale=0.4]{images/linear1.png} \caption{A
-     linearizable execution. Any choice of linearization works here.}
-     \label{fig:linear_example11} \end{subfigure}
-     \begin{subfigure}[b]{1\textwidth} \center
-     \includegraphics[scale=0.4]{images/nonlinear0.png} \caption{A
-     non-linearizable execution. The request to read $y$ returns a
-     stale value. } \label{fig:linear_example12} \end{subfigure}
-     \caption{A linearizable and non-linearizable execution.}
-     \label{fig:linear_example1} \end{figure}
+    \includegraphics[scale=0.4]{images/linear1.png} \caption{A
+      linearizable execution. Any choice of linearization works here.}
+    \label{fig:linear_example11} \end{subfigure}
+  \begin{subfigure}[b]{1\textwidth} \center
+    \includegraphics[scale=0.4]{images/nonlinear0.png} \caption{A
+      non-linearizable execution. The request to read $y$ returns a
+      stale value. } \label{fig:linear_example12} \end{subfigure}
+  \caption{A linearizable and non-linearizable execution.}
+  \label{fig:linear_example1} \end{figure}
 
 Figure \ref{fig:linear_example11} shows a prototypical example of a
 linearizable execution. We assume that all memory locations are
@@ -828,49 +852,49 @@ Linearizability can be precisely defined in terms of
 \emph{linearizations.}
 
 \begin{definition}
-A \emph{linearization point} $t \in \mathbb{R} \in [E.s, E.t]$ for an
-event $E$ is a time between the event's start and termination. An
-execution is \emph{linearizable} if and only if there is a choice of
-linearization point for each access, which induces a total order called a \emph{linearization},
-such that $E$ is equivalent to
-the serial execution of events when totally ordered by their
-linearization points.
+  A \emph{linearization point} $t \in \mathbb{R} \in [E.s, E.t]$ for an
+  event $E$ is a time between the event's start and termination. An
+  execution is \emph{linearizable} if and only if there is a choice of
+  linearization point for each access, which induces a total order called a \emph{linearization},
+  such that $E$ is equivalent to
+  the serial execution of events when totally ordered by their
+  linearization points.
 \end{definition}
 
 \begin{figure}[p]
-     \begin{subfigure}[a]{1\textwidth}
-         \center
-         \includegraphics[scale=0.4]{images/linearTemplate.png}
-         \caption{An execution with read responses left unspecified.}
-         \label{fig:nonlinear}
-     \end{subfigure}
-     \begin{subfigure}[b]{1\textwidth}
-         \center
-         \includegraphics[scale=0.4]{images/linear3.png}
-         \caption{A linearizable execution for which both reads return $1$.}
-     \end{subfigure}
-     \begin{subfigure}[c]{1\textwidth}
-         \center
-         \includegraphics[scale=0.4]{images/linear2.png}
-         \caption{A linearizable execution for which both reads return $2$.}
-     \end{subfigure}
+  \begin{subfigure}[a]{1\textwidth}
+    \center
+    \includegraphics[scale=0.4]{images/linearTemplate.png}
+    \caption{An execution with read responses left unspecified.}
+    \label{fig:nonlinear}
+  \end{subfigure}
+  \begin{subfigure}[b]{1\textwidth}
+    \center
+    \includegraphics[scale=0.4]{images/linear3.png}
+    \caption{A linearizable execution for which both reads return $1$.}
+  \end{subfigure}
+  \begin{subfigure}[c]{1\textwidth}
+    \center
+    \includegraphics[scale=0.4]{images/linear2.png}
+    \caption{A linearizable execution for which both reads return $2$.}
+  \end{subfigure}
   \caption{Two linearizable executions of the same underlying events that return different responses. Possible linearization points are shown in red.}
   \label{fig:linearization}
 \end{figure}
 
 \begin{figure}[p]
-     \begin{subfigure}[a]{1\textwidth}
-         \center
-         \includegraphics[scale=0.4]{images/nonlinear1.png}
-         \caption{A nonlinearizable execution with the read access returning disagreeing values. We will see later (Figure \ref{fig:sequential}) that this execution is still sequentially consistent. }
-         \label{fig:nonlinear1}
-     \end{subfigure}
-     \begin{subfigure}[b]{1\textwidth}
-         \center
-         \includegraphics[scale=0.4]{images/nonlinear2.png}
-         \caption{Another nonlinearizable execution with read access values swapped. This execution is not sequentially consistent.}
-         \label{fig:nonlinear2}
-     \end{subfigure}
+  \begin{subfigure}[a]{1\textwidth}
+    \center
+    \includegraphics[scale=0.4]{images/nonlinear1.png}
+    \caption{A nonlinearizable execution with the read access returning disagreeing values. We will see later (Figure \ref{fig:sequential}) that this execution is still sequentially consistent. }
+    \label{fig:nonlinear1}
+  \end{subfigure}
+  \begin{subfigure}[b]{1\textwidth}
+    \center
+    \includegraphics[scale=0.4]{images/nonlinear2.png}
+    \caption{Another nonlinearizable execution with read access values swapped. This execution is not sequentially consistent.}
+    \label{fig:nonlinear2}
+  \end{subfigure}
   \caption{Two non-linearizable executions of the same events shown in Figure \ref{fig:linearization}.}
   \label{fig:nonlinearizable}
 \end{figure}
@@ -887,12 +911,12 @@ one client reads \(1\) and another reads \(2\) (Figure
 \ref{fig:nonlinearizable}).
 
 \begin{definition}
-We say an entire system is linearizable when all
-possible executions of the system are linearizable.
+  We say an entire system is linearizable when all
+  possible executions of the system are linearizable.
 \end{definition}
 
 \hypertarget{sequential-consistency}{%
-\subsubsection{Sequential consistency}\label{sequential-consistency}}
+  \subsubsection{Sequential consistency}\label{sequential-consistency}}
 
 Enforcing atomic consistency means that an access \(E\) at process
 \(P_i\) cannot return to the client until every other process has been
@@ -914,15 +938,15 @@ instructions, never allowing instructions from one program to execute
 out of order.
 
 \begin{definition}
-\label{def:sequentiallyconsistent}
-A \emph{sequentially consistent} execution is
-characterized by three features:
-\begin{itemize}
-\item All processes act like they agree on a single, global total order
-  defined across all accesses.
-\item This sequential order is consistent with the program order of each process.
-\item Responses are semantically correct, meaning reads return the most recent writes (as determined by the global order)
-\end{itemize}
+  \label{def:sequentiallyconsistent}
+  A \emph{sequentially consistent} execution is
+  characterized by three features:
+  \begin{itemize}
+  \item All processes act like they agree on a single, global total order
+    defined across all accesses.
+  \item This sequential order is consistent with the program order of each process.
+  \item Responses are semantically correct, meaning reads return the most recent writes (as determined by the global order)
+  \end{itemize}
 \end{definition}
 
 Processes in a sequentially consistent system are required to agree on a
@@ -936,28 +960,28 @@ order has been replaced with merely program order. We immediately get
 the following lemma.
 
 \begin{lemma}
-\label{lem:linearsequential}
-    A linearizable execution is sequentially consistent.
+  \label{lem:linearsequential}
+  A linearizable execution is sequentially consistent.
 \end{lemma}
 \begin{proof}
-This follows because process order is a subset of external order.
+  This follows because process order is a subset of external order.
 \end{proof}
 
 \begin{figure}
-     \begin{subfigure}[a]{1\textwidth}
-         \center
-         \includegraphics[scale=0.4]{images/sequential1.png}
-         \caption{A non-linearizable, sequentially consistent execution.}
-         \label{fig:sequential1}
-     \end{subfigure}
-     \begin{subfigure}[b]{1\textwidth}
-         \center
-         \includegraphics[scale=0.4]{images/sequential2.png}
-         \caption{An equivalent interleaving of \ref{fig:sequential1}.}
-         \label{fig:interleaving1}
-     \end{subfigure}
-     \caption{A sequentially consistent execution and a possible interleaving.}
-     \label{fig:sequential}
+  \begin{subfigure}[a]{1\textwidth}
+    \center
+    \includegraphics[scale=0.4]{images/sequential1.png}
+    \caption{A non-linearizable, sequentially consistent execution.}
+    \label{fig:sequential1}
+  \end{subfigure}
+  \begin{subfigure}[b]{1\textwidth}
+    \center
+    \includegraphics[scale=0.4]{images/sequential2.png}
+    \caption{An equivalent interleaving of \ref{fig:sequential1}.}
+    \label{fig:interleaving1}
+  \end{subfigure}
+  \caption{A sequentially consistent execution and a possible interleaving.}
+  \label{fig:sequential}
 \end{figure}
 
 Visually, sequential consistency allows reordering an execution by
@@ -978,30 +1002,30 @@ sequentially consistent, as evidenced by the interleaving in Figure
 past each other.
 
 \begin{figure}
-     \begin{subfigure}[a]{1\textwidth}
-         \center
-         \includegraphics[scale=0.4]{images/nonsequential1.png}
-         \caption{A non-sequentially consistent execution.}
-         \label{fig:nonsequential1}
-     \end{subfigure}
-     \begin{subfigure}[b]{1\textwidth}
-         \center
-         \includegraphics[scale=0.4]{images/nonsequential_x.png}
-         \caption{The sequentially consistent history of $x$.}
-         \label{fig:sequentialx}
-     \end{subfigure}
-     \begin{subfigure}[b]{1\textwidth}
-         \center
-         \includegraphics[scale=0.4]{images/nonsequential_y.png}
-         \caption{The sequentially consistent history of $y$.}
-         \label{fig:sequentialy}
-     \end{subfigure}
-     \caption{A non-sequentially consistent execution with sequentially-consistent executions at each variable.}
-     \label{fig:nonsequential}
+  \begin{subfigure}[a]{1\textwidth}
+    \center
+    \includegraphics[scale=0.4]{images/nonsequential1.png}
+    \caption{A non-sequentially consistent execution.}
+    \label{fig:nonsequential1}
+  \end{subfigure}
+  \begin{subfigure}[b]{1\textwidth}
+    \center
+    \includegraphics[scale=0.4]{images/nonsequential_x.png}
+    \caption{The sequentially consistent history of $x$.}
+    \label{fig:sequentialx}
+  \end{subfigure}
+  \begin{subfigure}[b]{1\textwidth}
+    \center
+    \includegraphics[scale=0.4]{images/nonsequential_y.png}
+    \caption{The sequentially consistent history of $y$.}
+    \label{fig:sequentialy}
+  \end{subfigure}
+  \caption{A non-sequentially consistent execution with sequentially-consistent executions at each variable.}
+  \label{fig:nonsequential}
 \end{figure}
 
 \hypertarget{causal-consistency}{%
-\subsubsection{Causal consistency}\label{causal-consistency}}
+  \subsubsection{Causal consistency}\label{causal-consistency}}
 
 Suppose in a message stream two questions \(Q_1\) and \(Q_2\) are asked
 and responses \(A_1\) and \(A_2\) are given, respectively. If the
@@ -1009,7 +1033,7 @@ answers arrive in the wrong order, i.e.~\(A_2\) appears as the answer to
 \(Q_1\) and vice versa, the potential for confusion can be severe.
 
 \hypertarget{the-cap-theorem}{%
-\subsection{The CAP Theorem}\label{the-cap-theorem}}
+  \subsection{The CAP Theorem}\label{the-cap-theorem}}
 
 Real-world systems often fall short of behaving as a single perfectly
 coherent system. The root of this phenomenon is a deep and
@@ -1055,30 +1079,30 @@ set of requirements is unattainable---a partition tolerant system simply
 cannot enforce both consistency and availability.
 
 \begin{theorem}[The CAP Theorem]
-    \label{thm:cap}
-    In the presense of indefinite network partitions, a distributed system
-    cannot guarantee both linearizability and eventual-availability.
+  \label{thm:cap}
+  In the presense of indefinite network partitions, a distributed system
+  cannot guarantee both linearizability and eventual-availability.
 \end{theorem}
 \begin{proof}
-Technically, the proof is almost trivial. We give only the informal
-sketch here, leaving the interested reader to consult the more formal
-analysis by Gilbert and Lynch. The key technical assumption is that a
-processes' behavior can only be influenced by the messages it actually
-receives---it cannot be affected by messages that are sent to it but
-never delivered.
+  Technically, the proof is almost trivial. We give only the informal
+  sketch here, leaving the interested reader to consult the more formal
+  analysis by Gilbert and Lynch. The key technical assumption is that a
+  processes' behavior can only be influenced by the messages it actually
+  receives---it cannot be affected by messages that are sent to it but
+  never delivered.
 
-In Figure \ref{fig:linear_example11}, suppose the two processes are on
-opposite sides of a network partition, so that no information can be
-exchanged between them (even indirectly through a third party). If we
-just consider the execution of $P_2$ by itself, without $P_1$,
-linearizability would require it to read the value $2$ for $y$. If we
-do consider $P_1$, linearizability requires that the read access to
-$y$ must return $1$. But if $P_2$ cannot send messages to $P_1$, then
-$P_2$'s behavior cannot be influenced by the write access to $y$, so
-it would still have to return $2$, violating
-consistency. Alternatively, it could delay returning any result until
-it is able to exchange messages with $P_1$. But if the partition never
-recovers, $P_1$ will wait forever, violating availability.
+  In Figure \ref{fig:linear_example11}, suppose the two processes are on
+  opposite sides of a network partition, so that no information can be
+  exchanged between them (even indirectly through a third party). If we
+  just consider the execution of $P_2$ by itself, without $P_1$,
+  linearizability would require it to read the value $2$ for $y$. If we
+  do consider $P_1$, linearizability requires that the read access to
+  $y$ must return $1$. But if $P_2$ cannot send messages to $P_1$, then
+  $P_2$'s behavior cannot be influenced by the write access to $y$, so
+  it would still have to return $2$, violating
+  consistency. Alternatively, it could delay returning any result until
+  it is able to exchange messages with $P_1$. But if the partition never
+  recovers, $P_1$ will wait forever, violating availability.
 \end{proof}
 
 \paragraph{CAP for Sequential Consistency}
@@ -1088,39 +1112,39 @@ much. The model is still too strict to enforce under partition
 conditions.
 
 \begin{lemma}[CAP for sequential consistency]
-    \label{thm:cap-sequential}
-    An eventually-available system cannot provide sequential consistency in the presense of network partitions.
+  \label{thm:cap-sequential}
+  An eventually-available system cannot provide sequential consistency in the presense of network partitions.
 \end{lemma}
 \begin{proof}
 
-The proof is an adaptation of Theorem \ref{thm:cap}. Suppose $P_1$ and
-$P_2$ form of CAP-available distributed system and consider the
-following execution: $P_1$ reads $x$, then assigns $y$ the value
-$1$. $P_2$ reads $y$, then assigns $x$ the value $1$. (Note that this
-is the sequence of requests shown in Figure \ref{fig:nonsequential1},
-but we make no assumptions about the values returned by the read
-requests). By availability, we know the requests will be handled (with
-responses sent back to clients) after a finite amount of time. Now
-suppose $P_1$ and $P_2$ are separated by a partition so they cannot
-read each other's writes during this process. For contradiction,
-suppose the execution is equivalent to a sequential order.
+  The proof is an adaptation of Theorem \ref{thm:cap}. Suppose $P_1$ and
+  $P_2$ form of CAP-available distributed system and consider the
+  following execution: $P_1$ reads $x$, then assigns $y$ the value
+  $1$. $P_2$ reads $y$, then assigns $x$ the value $1$. (Note that this
+  is the sequence of requests shown in Figure \ref{fig:nonsequential1},
+  but we make no assumptions about the values returned by the read
+  requests). By availability, we know the requests will be handled (with
+  responses sent back to clients) after a finite amount of time. Now
+  suppose $P_1$ and $P_2$ are separated by a partition so they cannot
+  read each other's writes during this process. For contradiction,
+  suppose the execution is equivalent to a sequential order.
 
-If $W(y,1)$ precedes $R(y)$ in the sequential order, then $R(y)$ would
-be constrained to return to $1$. But $P_2$ cannot pass information to
-$P_1$, so this is ruled out. To avoid this situation, suppose the
-sequential order places $R(y)$ before $W(y,1)$, in which case $R(y)$
-could correctly return the initial value of $0$. However, by
-transitivity the $R(x)$ event would occur after $W(x,1)$ event, so it
-would have to return $1$. But there is no way to pass this information
-from $P_1$ to $P_2$. Thus, any attempt to consistently order the
-requests would require commuting $W(y,1)$ with $R(x)$ or $W(x,1)$ with
-$R(y)$, which would violate program order.
+  If $W(y,1)$ precedes $R(y)$ in the sequential order, then $R(y)$ would
+  be constrained to return to $1$. But $P_2$ cannot pass information to
+  $P_1$, so this is ruled out. To avoid this situation, suppose the
+  sequential order places $R(y)$ before $W(y,1)$, in which case $R(y)$
+  could correctly return the initial value of $0$. However, by
+  transitivity the $R(x)$ event would occur after $W(x,1)$ event, so it
+  would have to return $1$. But there is no way to pass this information
+  from $P_1$ to $P_2$. Thus, any attempt to consistently order the
+  requests would require commuting $W(y,1)$ with $R(x)$ or $W(x,1)$ with
+  $R(y)$, which would violate program order.
 \end{proof}
 
 
 \hypertarget{interpretation-of-the-cap-theorem}{%
-\subsubsection{Interpretation of the CAP
-Theorem}\label{interpretation-of-the-cap-theorem}}
+  \subsubsection{Interpretation of the CAP
+    Theorem}\label{interpretation-of-the-cap-theorem}}
 
 While the proof of the CAP theorem is simple, its interpretation is
 subtle and has been the subject of much discussion in the years since
@@ -1183,7 +1207,16 @@ the system is allowed to return.
 \newpage
 
 \hypertarget{desiderata}{%
-\section{Desiderata}\label{desiderata}}
+  \section{Desiderata}\label{desiderata}}
+
+\subsection{Assumptions}
+
+\begin{itemize}
+\item Only very loose clock synchronization. However, we may fairly assume that nodes can measure the passage of time. Real timestamps may be collected on data (for example, for later analysis), but the correct configuration of these clocks cannot be relied upon, particularly at lower levels of abstraction.
+\item
+\end{itemize}
+
+\subsection{Desiderata}
 
 \label{sec:desiderata}
 
@@ -1204,8 +1237,8 @@ civil aviation and disaster response, where safety is a high priority
 and usage/communication patterns may be unpredictable.
 
 \hypertarget{d1-quantifiable-bounds-on-inconsistency}{%
-\subsubsection{D1: Quantifiable bounds on
-inconsistency}\label{d1-quantifiable-bounds-on-inconsistency}}
+  \subsubsection{D1: Quantifiable bounds on
+    inconsistency}\label{d1-quantifiable-bounds-on-inconsistency}}
 
 \emph{A distributed application should quantify the amount of
 consistency it delivers. That is, it should (1) provide a mathematical
@@ -1223,8 +1256,8 @@ choice to assess the risk and continue using the system with a weaker
 safety guarantees.
 
 \hypertarget{d2-accommodation-of-heterogeneous-nodes}{%
-\subsubsection{D2: Accommodation of heterogeneous
-nodes}\label{d2-accommodation-of-heterogeneous-nodes}}
+  \subsubsection{D2: Accommodation of heterogeneous
+    nodes}\label{d2-accommodation-of-heterogeneous-nodes}}
 
 \emph{An application should not assume that there is a typical system
 node. Instead, the system should accomdate a diverse range of
@@ -1241,8 +1274,8 @@ for frameworks that are as general as possible to accomodate a wide
 variety of clients.
 
 \hypertarget{d3-optimization-for-a-geodistributed-wide-area-network}{%
-\subsubsection{D3: Optimization for a geodistributed wide area
-network}\label{d3-optimization-for-a-geodistributed-wide-area-network}}
+  \subsubsection{D3: Optimization for a geodistributed wide area
+    network}\label{d3-optimization-for-a-geodistributed-wide-area-network}}
 
 \emph{An application should be optimized for the sorts of
 communication patterns that occur in geodistributed wide area networks
@@ -1262,25 +1295,25 @@ to avoid crash.
 \newpage
 
 \hypertarget{resilient-network-architectures}{%
-\section{Resilient Network
-Architectures}\label{resilient-network-architectures}}
+  \section{Resilient Network
+    Architectures}\label{resilient-network-architectures}}
 
 \label{sec:networking}
 
 \hypertarget{state-of-the-art}{%
-\subsection{State of the art}\label{state-of-the-art}}
+  \subsection{State of the art}\label{state-of-the-art}}
 
 \begin{itemize}
-\tightlist
+  \tightlist
 \item
   COWs and COLTs
 \end{itemize}
 
 \hypertarget{ad-hoc-networking}{%
-\subsection{Ad-hoc networking}\label{ad-hoc-networking}}
+  \subsection{Ad-hoc networking}\label{ad-hoc-networking}}
 
 \hypertarget{physical-communications}{%
-\subsubsection{Physical communications}\label{physical-communications}}
+  \subsubsection{Physical communications}\label{physical-communications}}
 
 The details of the physical communication between processes is outside
 the scope of this memo. We make just a few high-level observations about
@@ -1310,22 +1343,22 @@ communication towers (iii) the inherent need for system flexibility
 during disaster scenarios.
 
 \begin{figure}[h]
-     \centering
-     \begin{subfigure}[b]{0.48\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{images/Centralized.png}
-         \caption{Cellular network topology}
-         \label{fig:centralized}
-     \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.48\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{images/Decentralized.png}
-         \caption{Ad-hoc network topology}
-         \label{fig:decentralized}
-     \end{subfigure}
-        \caption{Network topology models for geodistributed agents. Edges represent communication links (bidirectional for simplicity).}
-        \label{fig:nettopology}
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/Centralized.png}
+    \caption{Cellular network topology}
+    \label{fig:centralized}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/Decentralized.png}
+    \caption{Ad-hoc network topology}
+    \label{fig:decentralized}
+  \end{subfigure}
+  \caption{Network topology models for geodistributed agents. Edges represent communication links (bidirectional for simplicity).}
+  \label{fig:nettopology}
 \end{figure}
 
 One can also imagine hybrid models, such as an ad-hoc arrangement of
@@ -1343,10 +1376,10 @@ the application and networking layers, rather than treating them as
 separate blackboxes.
 
 \hypertarget{delay-tolerant-networking}{%
-\subsection{Delay-tolerant networking}\label{delay-tolerant-networking}}
+  \subsection{Delay-tolerant networking}\label{delay-tolerant-networking}}
 
 \hypertarget{ad-hoc-dtns}{%
-\subsection{Ad-hoc DTNs}\label{ad-hoc-dtns}}
+  \subsection{Ad-hoc DTNs}\label{ad-hoc-dtns}}
 
 An interesting possibility is for the \emph{network} to automatically
 configure itself to the quality-of-service needs of the application. For
@@ -1361,17 +1394,17 @@ arrangement could greatly blur the line between the networking and
 application layers.
 
 \hypertarget{software-defined-networking}{%
-\subsection{Software-defined
-networking}\label{software-defined-networking}}
+  \subsection{Software-defined
+    networking}\label{software-defined-networking}}
 
 \hypertarget{verification-of-networking-protocols}{%
-\subsection{Verification of networking
-protocols}\label{verification-of-networking-protocols}}
+  \subsection{Verification of networking
+    protocols}\label{verification-of-networking-protocols}}
 
 \newpage
 
 \hypertarget{continuous-consistency}{%
-\section{Continuous Consistency}\label{continuous-consistency}}
+  \section{Continuous Consistency}\label{continuous-consistency}}
 
 \label{sec:continuous-consistency}
 
@@ -1455,7 +1488,7 @@ to offer better overall performance.
 \end{itemize}
 
 \hypertarget{causal-consistency-1}{%
-\subsection{Causal consistency}\label{causal-consistency-1}}
+  \subsection{Causal consistency}\label{causal-consistency-1}}
 
 Causal consistency is that each clients is consistent with a total order
 that contains the happened-before relation. It does not put a bound on
@@ -1463,7 +1496,7 @@ divergence between replicas. Violations of causal consistency can
 present clients with deeply counterintuitive behavior.
 
 \begin{itemize}
-\tightlist
+  \tightlist
 \item
   In a group messaing application, Alice posts a message and Bob
   replies. On Charlie's device, Bob's reply appears before Alice's
@@ -1501,15 +1534,15 @@ that the outcome of one could have influenced another.
 \end{figure}
 
 \begin{lemma}
-    Sequential consistency implies causal consistency.
+  Sequential consistency implies causal consistency.
 \end{lemma}
 \begin{proof}
-This is immediate from the definitions. Sequential consistency
-requires all processes to observe the same total order of events,
-where this total order must respect program order. Causal consistency
-only requires processes to agree on events that are potentially
-causally related. Program order is a subset of causal order, so any
-sequential executions also respects causal order.
+  This is immediate from the definitions. Sequential consistency
+  requires all processes to observe the same total order of events,
+  where this total order must respect program order. Causal consistency
+  only requires processes to agree on events that are potentially
+  causally related. Program order is a subset of causal order, so any
+  sequential executions also respects causal order.
 \end{proof}
 
 However, causal consistency is not nearly as strong as sequential
@@ -1519,18 +1552,18 @@ fact that the CAP theorem does not rule out highly available systems
 that maintain causal consistency even during network partitions.
 
 \begin{lemma}
-    A causally consistent system need not be unavailabile during partitions.
+  A causally consistent system need not be unavailabile during partitions.
 \end{lemma}
 \begin{proof}
 
-Suppose $P_1$ and $P_2$ maintain replicas of a key-value store, as
-before, and suppose they are separated by a partition. The strategy is
-simple: each process immediately handles read requests by reading from
-its local replica, and handles write requests by applying the update
-to its local replica. It is easy to see this leads to causally
-consistent histories. Intuitively, the fact that no information flows
-between the processes also means the events of each process are not
-related by causality, so causality is not violated.  \end{proof}
+  Suppose $P_1$ and $P_2$ maintain replicas of a key-value store, as
+  before, and suppose they are separated by a partition. The strategy is
+  simple: each process immediately handles read requests by reading from
+  its local replica, and handles write requests by applying the update
+  to its local replica. It is easy to see this leads to causally
+  consistent histories. Intuitively, the fact that no information flows
+  between the processes also means the events of each process are not
+  related by causality, so causality is not violated.  \end{proof}
 
 Note that in this scenario, a client's requests are always routed to the
 same processor. If a client's requests can be routed to any node, causal
@@ -1543,7 +1576,7 @@ suggests it is too weak. Indeed, there are no guarantees about the
 difference in values for \(x\) and \(y\) across the two replicas.
 
 \hypertarget{tact-system-model}{%
-\subsection{TACT system model}\label{tact-system-model}}
+  \subsection{TACT system model}\label{tact-system-model}}
 
 As in Section \ref{sec:background}, we assume a distributed set of
 processes collaborate to maintain local replicas of a shared data object
@@ -1587,14 +1620,14 @@ consistency of read accesses. The TACT framework then enforces these
 consistency levels.
 
 \hypertarget{measuring-consistency-on-conits}{%
-\subsection{Measuring consistency on
-conits}\label{measuring-consistency-on-conits}}
+  \subsection{Measuring consistency on
+    conits}\label{measuring-consistency-on-conits}}
 
 \hypertarget{numerical-consistency}{%
-\paragraph{Numerical consistency}\label{numerical-consistency}}
+  \paragraph{Numerical consistency}\label{numerical-consistency}}
 
 \hypertarget{order-consistency}{%
-\paragraph{Order consistency}\label{order-consistency}}
+  \paragraph{Order consistency}\label{order-consistency}}
 
 When the number of tentative (uncommitted) writes is high, TACT executes
 a write commitment algorithm. This is a \emph{pull-based} approach which
@@ -1603,14 +1636,14 @@ vector clock, raising the watermark and hence allowing \(P_i\) to commit
 some of its writes.
 
 \hypertarget{real-time-consistency}{%
-\paragraph{Real time consistency}\label{real-time-consistency}}
+  \paragraph{Real time consistency}\label{real-time-consistency}}
 
 \hypertarget{enforcing-inconsistency-bounds}{%
-\subsection{Enforcing inconsistency
-bounds}\label{enforcing-inconsistency-bounds}}
+  \subsection{Enforcing inconsistency
+    bounds}\label{enforcing-inconsistency-bounds}}
 
 \hypertarget{numerical-consistency-1}{%
-\paragraph{Numerical consistency}\label{numerical-consistency-1}}
+  \paragraph{Numerical consistency}\label{numerical-consistency-1}}
 
 We describe split-weight AE. Yu and Vahdat also describe two other
 schemes for bounding numerical error. One, compound AE, bounds absolute
@@ -1620,13 +1653,13 @@ that for specific applications the savings are worth it. They also
 consider a scheme, Relative NE, which bounds the relative error.
 
 \hypertarget{order-consistency-1}{%
-\paragraph{Order consistency}\label{order-consistency-1}}
+  \paragraph{Order consistency}\label{order-consistency-1}}
 
 \hypertarget{real-time-consistency-1}{%
-\paragraph{Real time consistency}\label{real-time-consistency-1}}
+  \paragraph{Real time consistency}\label{real-time-consistency-1}}
 
 \hypertarget{future-work}{%
-\subsection{Future work}\label{future-work}}
+  \subsection{Future work}\label{future-work}}
 
 \hypertarget{data-fusion}{%
   \section{Data Fusion}\label{data-fusion}}
@@ -1657,51 +1690,51 @@ between sensors, identifying sensors that appear to be malfunctioning,
 or to detect abberations that necessitate a response.
 
 \hypertarget{fusion-centers}{%
-\subsection{Fusion centers}\label{fusion-centers}}
+  \subsection{Fusion centers}\label{fusion-centers}}
 
 To be written.
 
 \hypertarget{sheaf-theory}{%
-\subsection{Sheaf theory}\label{sheaf-theory}}
+  \subsection{Sheaf theory}\label{sheaf-theory}}
 
 \hypertarget{introduction-to-presheaves}{%
-\subsubsection{Introduction to
-presheaves}\label{introduction-to-presheaves}}
+  \subsubsection{Introduction to
+    presheaves}\label{introduction-to-presheaves}}
 
 \begin{definition}
-A \emph{partially order-indexed family of sets} is a family of sets indexed by a partially-ordered set,
-such that orders between the indices correspond to functions between the sets.
+  A \emph{partially order-indexed family of sets} is a family of sets indexed by a partially-ordered set,
+  such that orders between the indices correspond to functions between the sets.
 \end{definition}
 
 We can also set \((P, \leq)\) \emph{acts on} the set
 \(\{S_i\}_{i \in I}\).
 
 \begin{definition}
-A \emph{semiautomaton} is a monoid paired with a set.
+  A \emph{semiautomaton} is a monoid paired with a set.
 \end{definition}
 
 This is also called a \emph{monoid action} on the set.
 
 \begin{definition}
-A copresheaf is a *category acting on a family of sets*.
+  A copresheaf is a *category acting on a family of sets*.
 \end{definition}
 
 \begin{definition}
-A presheaf is a *category acting covariantly on a family of sets*.
+  A presheaf is a *category acting covariantly on a family of sets*.
 \end{definition}
 
 \hypertarget{introduction-to-sheaves}{%
-\subsubsection{Introduction to sheaves}\label{introduction-to-sheaves}}
+  \subsubsection{Introduction to sheaves}\label{introduction-to-sheaves}}
 
 To be written.
 
 \hypertarget{the-consistency-radius}{%
-\subsubsection{The consistency radius}\label{the-consistency-radius}}
+  \subsubsection{The consistency radius}\label{the-consistency-radius}}
 
 To be written.
 
 \hypertarget{conclusion}{%
-\section{Conclusion}\label{conclusion}}
+  \section{Conclusion}\label{conclusion}}
 
 \label{sec:conclusion}
 
