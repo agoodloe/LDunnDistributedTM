@@ -220,9 +220,7 @@ decisions at various levels must be made, ideally tuned to real-world conditions
 
 \newpage
 
-\section{Coordination Challenges in Disaster
-  Response}\label{coordination-challenges-in-disaster-response}
-
+\section{Coordination Challenges in Disaster Response}
 \label{sec:disaster-response}
 
 This section explains some aspects of disaster response scenarios that
@@ -409,7 +407,8 @@ $\mathbf{P}_\textrm{safe}$ altogether.
     particular fire burned 77,077 acres over 77 days.}
 \end{figure}
 
-\subsection{Communication in Practice}\label{communication-in-practice}
+\subsection{Communication Patterns in the Field}
+\label{communication-in-practice}
 
 Communication patterns in modern wildland firefighting are mostly
 simple, even primitive in comparison to what laymen often expect.
@@ -595,17 +594,30 @@ the application and the networking layers, as the latter must be given
 enough information to make the most prudent use of limited resources.
 
 \newpage
-
-\section{Introduction to Distributed
-  Systems}\label{introduction-to-distributed-systems}
-
+\section{Introduction to Distributed Systems}
 \label{sec:background}
 
 A distributed system, in the most general sense, is a collection of
 independent entities that cooperate to solve a problem that cannot be
-individually solved \cite{kshemkalyani_singhal_2008}. Singhal and
-Shivaratri \cite{10.5555/562065} offer the following definition of a
-distributed (computing) system:
+individually solved \cite{kshemkalyani_singhal_2008}. This memo is
+concerned with distributed computing systems used by firefighters and
+other disaster response agents. The components of the system could be
+computers, smartphones, or other communication devices. These may be
+personal devices carried by individuals, mounted to ground or
+air-based vehicles, or be deployed as temporary or permanent
+infrastructure. The clients of these devices could be civilians,
+firefighters, or other agents involved in disaster response
+efforts. The components of the system coordinate to solve such tasks
+as navigating safely in close proximity, delivering resources to
+remote locations, suppressing fires, and collecting, processing, and
+disseminating data about the environment.
+
+
+\subsection{Message Passing and Logical Time}
+\label{ssec:message-passing}
+
+Singhal and Shivaratri \cite{10.5555/562065} offer the following
+definition of a distributed computing system:
 
 \begin{quote}
   ``A collection of computers that do not share common memory or a common
@@ -614,93 +626,80 @@ distributed (computing) system:
   operating system.''
 \end{quote}
 
-In our scenarios, system nodes typically represent computers, routers,
-sensors, and communication devices, while the clients would typically be
-firefighters using these devices and other persons involved in disaster
-response efforts. The components of the system coordinate to solve such
-tasks as navigating safely in close proximity, delivering resources to
-remote locations, suppressing fires, or measuring environmental
-conditions.
+We shall consider a system consisting of a set \(\mathcal{P} =
+\{P_i\}_{i\in I}\) of \emph{processes} executing on independent,
+probably geographically dispersed computing and communication devices,
+which we shall refer to simply as ``nodes.'' A notable aspect of what
+makes the system \emph{distributed} is that the nodes must communicate
+by message-passing, which must be facilitated by some kind of
+network. This restriction is implied by absence of a common memory
+(whereas processes running on the same machine have the option to
+share data by writing it to a shared memory location).
 
-A fundamental goal for distributed computing systems is to
-``{[}appear{]} to the users of the system as a single coherent
-computer'' \cite{TanenbaumSteen07}. This can be understood as the
-requirement that all nodes present a \emph{mutually-consistent} view of
-the world, e.g.~the state of a globally-maintained database, to system
-clients. Bad things happen when consistency is violated:
+A foundational assumption is that the network is unreliable---Section
+\ref{sec:disaster-response} explained why this is certainly true in
+disaster scenarios.  Message delivery is not instantaneous, so
+messages are passed with some unpredictable latency. The latency need
+not be finite, as the network may deliver a packet zero times, i.e.~it
+may silently delete the packet without alerting the sender. A message
+may be also be delivered multiple times, and different messages may
+arrive in any order. In the case of \emph{Byzantine faults} (CITE) the
+network may even act like a malicious adversary, though we will not
+consider this scenario in this document. The main challenge presented
+to the system nodes is to coordinate their actions despite this
+turbulent environment.
+
+\begin{figure}[h]
+  \center \includegraphics[width=\textwidth]{images/messages.png}
+  \caption{Time diagram for messages}
+  \label{fig:messages}
+\end{figure}
+
+
+To focus on higher-level considerations, we shall abstract away from
+the chaotic details of the network and assume that messages are
+delivered exactly once, but with an unpredictable delay that cannot be
+directly controlled.\footnote{Network transport protocols such as TCP
+(CITE) and LTP (CITE) can provide reliable message delivery, so one
+could say we are working at a level abstraction above such low-level
+protocols.} Figure \ref{fig:messages} shows a time diagram for a
+series of four messages sent between three processes. The $x$-axis of
+the diagram shows the flow of physical time. Each process consists of
+a worldline. Each message $m_n$ starts off as a message \emph{send}
+event $m_n.s$ indicating the moment in time the message is sent over
+the network by its originating process. The four arrows depict the
+temporal delay occurring before the message is received.
+
+\subsubsection{Causality and logical clocks}
 
 \begin{itemize}
-\item
-  If two air traffic controllers were presented with conflicting
-  information about the trajectory of aircraft, they could potentially
-  issue dangerously incongruous instructions to pilots.
-\item
-  Messages between users that are delivered in the wrong order can lead
-  to misunderstandings.
-\item
-  A bank client would be unhappy if deposits that appear in their
-  account online are not reflected when they check their balance at an
-  ATM, or if they seem to disappear after refreshing the webpage.
-\item
-  Resource-tracking systems are not useful if a resource that appears to
-  be available cannot be used because the information is out of date, or
-  a resource that is actually available cannot be used because clients
-  think it is still unavailable.
+  \item Difficulty of synchronization
+  \item The ``happens before'' relation
+  \item Lamport and vector clocks
 \end{itemize}
 
-Enforcing consistency means clients are presented with the abstraction
-of a shared world, as if they are all connected to a central computer
-rather than a complex system of loosely coupled independent computers.
-This abstraction shields users and developers from complexity and makes
-it simpler to reason about a system's behavior. Violating consistency
-means the abstraction of a shared universe is broken, which can
-invalidate clients' mental model of the system, make the system's
-behavior harder to predict, or cause safety requirements to be violated.
 
-Clearly, all other things being equal, one wants distributed systems to
-have as much consistency as possible. However, we shall see that strong
-notions of consistency are brittle in the sense that they generally
-cannot be achieved for the kinds of systems we consider in this
-document. In practical applications this implies that tradeoffs will
-have to be made \emph{somewhere}, so it is necessary to understand where
-this happens and make choices informed both by general systems theory
-and the particulars of the real environment and use case.
+\subsection{Shared Memory}
 
-\subsection{Message Passing}\label{message-passing}
+A fundamental distributed application is the \emph{shared distributed
+memory} abstraction. We shall assume that all processes maintain a local
+replica of a globally shared data object, as replication increases
+system fault tolerance. For simplicitly, we shall discuss the data store
+as a simple key-value store, but it could be something else like a
+database, filesystem, persistent object, etc.
 
-A distributed system consists of a set
-\(\mathcal{P} = \{P_i\}_{i\in I}\) of \emph{processes}, which we think
-of these as executing on independent, often geographically dispersed
-computers that communicate by message-passing. Processes can \emph{only}
-coordinate by passing messages over the network. This fact is implied by
-absence of a common memory, whereas processes on the same machine have
-the option to share data by writing it to a memory location both
-processes have access to.
+\subsubsection{Client-server model}
+\label{ssec:client-server-model}
 
-A foundational assumption is that the network is almost always less than
-perfectly reliable---this fact can be counted on during emergencies.
-Imperfection means that message delivery is not instantaneous may be
-unpredictable. The network may deliver a packet zero times (i.e.~it may
-silently delete the packet) or multiple times, and furthermore different
-packets may arrive in any order.\footnote{In the case of \emph{Byzantine
-faults} (CITE) the network may even act like a malicious adversary,
-though we will not consider this scenario in this document.} All of
-these behaviors represent obstructions to consistency and make it
-challenging to enforce safety requirements. We shall now make this
-discussion more precise.
 
-\hypertarget{client-server-architecture}{%
-  \subsubsection{Client-server
-    architecture}\label{client-server-architecture}}
-
-Process take requests from clients, such as to read or write a value in
-a database. The lifecycle of a typical request is depicted in Figure
-\ref{fig:request}. At some physical time (i.e.~wall-clock time)
-\(C.s \in \mathbb{R}\) (client start time), a client sends a message to
-a process. At time \(E.s\), which we'll call the \emph{start time} of
-the event, the message is accepted by the process. The request is
-processed until some strictly greater time \(E.t > E.s\) when a response
-is sent back to the client. The value \(E.t - E.s\) is the
+Process take requests from clients, such as to read or write a value
+in a database. The lifecycle of a typical request is depicted in
+Figure \ref{fig:request}. At some physical time (i.e.~wall-clock time)
+\(C.s \in \mathbb{R}\) (client start time), a client sends a message
+to a process. At time \(E.s\), which we'll call the \emph{start time}
+of the event, the message is accepted by the process. The request is
+processed until some strictly greater time \(E.t > E.s\) when a
+response is sent back to the client. The value \(E.t - E.s\) is the
 \emph{duration} of the event.
 
 \begin{figure}[h]
@@ -717,20 +716,40 @@ processes, retrieve up-to-date values from other processes to give to
 the client, or delay handling the client's request in order to handle
 other requests.
 
-\subsubsection{Causal precedence/``happens before''/external
-  order}\label{causal-precedencehappens-beforeexternal-order}
+We assume clients submit two types of requests to processes. A
+\emph{read request} is a request to lookup the current value of a
+variable. A request to read the variable \(x\) that returns value
+\(a\) is written \(R(x,a)\). A \emph{write request} is a request to
+set the current value of a variable. Notation \(W(x,a)\) represents
+writing value \(a\) to \(x\). We assume all processes provide access
+to the same set of shared variables.
 
-As is often the case, we shall assume that requests handled by a single
-process do not overlap in time. This can be enforced with local
-serialization methods such as two-phase locking (CITE) that can be used
-to isolate concurrent transactions from each other, providing the
-abstraction of a system that handles requests one at a time. On the
-other hand, any two processes may handle two events at the same physical
-time, so that there is no obvious total order of events across the
-system. Instead, one has a partial order called \emph{external order}.
-Intuitively, it is the partial order of events that would be witnessed
-by an observer recording the real time at which systems begin and finish
-responding to requests.
+\subsubsection{Causal precedence/external order}
+\label{causal-precedencehappens-beforeexternal-order}
+
+We shall consider the full set of events across a distributed system,
+such as shown in Figure \ref{fig:externalorderexec}.  This is called an
+\emph{execution}. Consistency models constrain the set of allowable
+return values in response to clients' requests.
+
+\begin{figure}[h]
+  \center
+  \includegraphics[scale=0.4]{images/externalorder.png}
+  \caption{Depiction of external order between concurrent events across three processes. Intra-process and transitive edges are not depicted.}
+  \label{fig:externalorderexec}
+\end{figure}
+
+We shall assume that requests handled by a single process do not
+overlap in time. This can be enforced with local serialization methods
+such as two-phase locking (CITE) that can be used to isolate
+concurrent transactions from each other, providing the abstraction of
+a system that handles requests one at a time. On the other hand, any
+two processes may handle two events at the same physical time, so that
+there is no obvious total order of events across the system. Instead,
+one has a partial order called \emph{external order}.  Intuitively, it
+is the partial order of events that would be witnessed by an observer
+recording the real time at which systems begin and finish responding
+to requests.
 
 \begin{definition}
   Let $E$ be an execution. Request $E1$ \emph{externally precedes}
@@ -751,9 +770,9 @@ external order, i.e.~neither \(E1.t < E2.s\) nor \(E2.t < E1.s\), making
 them \emph{physically concurrent}.
 
 \begin{definition}
-  If two events overlap in physical time
-  (equivalently, if they are not comparable by external order), we call the events \emph{physically concurrent} and
-  write $E1 || E2$.
+  If two events overlap in physical time (equivalently, if they are
+  not comparable by external order), we call the events
+  \emph{physically concurrent} and write $E1 || E2$.
 \end{definition}
 
 Physical concurrency is a reflexive and symmetric---but usually not
@@ -761,30 +780,20 @@ transitive--- binary relation. Such structures are often called
 \emph{compatibility relations.} The general intuition is that anything
 is compatabile with itself (reflexivity), and the compatibility of two
 objects does not depend on their order (symmetry). But if \(A\) and
-\(B\) are compatible with \(C\), it need not be the case that \(A\) and
-\(B\) are compatible with each other.
+\(B\) are compatible with \(C\), it need not be the case that \(A\)
+and \(B\) are compatible with each other.
 
-Figure \ref{fig:externalorderexec} shows the external order relation for
-an execution. To save space we elide arrows between two events of the
-same process and arrows that can be inferred by transitivity. This
+Figure \ref{fig:externalorderexec} shows the external order relation
+for an execution. To save space we elide arrows between two events of
+the same process and arrows that can be inferred by transitivity. This
 corresponds to the directed acyclic graph structure shown in
 \ref{fig:externalorderdag}.
 
-\begin{figure}
-  \begin{subfigure}[a]{1\textwidth}
-    \center
-    \includegraphics[scale=0.4]{images/externalorder.png}
-    \caption{Depiction of external order between concurrent events across three processes. Intra-process and transitive edges are not depicted.}
-    \label{fig:externalorderexec}
-  \end{subfigure}
-  \begin{subfigure}[b]{1\textwidth}
+\begin{figure}[h]
     \center
     \includegraphics[scale=0.25]{images/partialorder.png}
     \caption{The directed acyclic graph (DAG) induced by external order.}
     \label{fig:externalorderdag}
-  \end{subfigure}
-  \caption{External order}
-  \label{fig:externalorder}
 \end{figure}
 
 The reader may wonder if we can consider events to be totally ordered,
@@ -796,48 +805,64 @@ be comparable. Additionally, even systems that enforce linearizable
 consistency (c.f. Section \ref{sec:atomic}) do not necessarily handle
 requests in order of their physical start times.
 
-\subsection{Memory Consistency Models}\label{memory-consistency-models}
+\subsection{Consistency Models}
+\label{memory-consistency-models}
 
-\label{sec:atomic}
+A fundamental goal for distributed computing systems is to
+``{[}appear{]} to the users of the system as a single coherent
+computer'' \cite{TanenbaumSteen07}. Enforcing consistency means
+clients are presented with the abstraction of a shared world, as if
+they are all connected to a central computer rather than than the
+complex system of loosely coupled computers they are actually using.
 
-What precisely constitutes consistency? One can choose from multiple
-consistency models, and the most appropriate model depends on the
+Considering the shared memory abstraction, the requirement is that all
+nodes present a \emph{mutually-consistent} view of the shared memory
+to system clients. That is, as far as clients are concerned, it should
+appear there is a single source of truth that all system nodes have
+instantaneous access to. Bad things can happen when consistency is
+violated:
+
+\begin{itemize}
+\item If two air traffic controllers were presented with conflicting
+  information about the trajectory of aircraft, they could potentially
+  issue dangerously incongruous instructions to pilots.
+\item Messages between users that are delivered in the wrong order can
+  lead to misunderstandings. For instance, it may be appear to Bob
+  that Alice is responding to a different question than the one she
+  meant to if her messages arrive in the wrong order.
+\item A bank client would be unhappy if deposits that appear in their
+  account online are not reflected when they check their balance at an
+  ATM, or if they seem to disappear after refreshing the webpage.
+\item Resource-dispatching systems are not useful if a resource that
+  appears to be available cannot be used because the information is
+  out of date. Conversely, inefficiencies result if clients think
+  available resources are actually unavailable.
+\end{itemize}
+
+Strongly consistent systems are easier to understand and reason
+about. Violating consistency means the abstraction of a shared
+universe is broken, which can invalidate clients' mental model of the
+system, make the system's behavior harder to predict, or cause safety
+requirements to be violated. Clearly, all other things being equal,
+one wants distributed systems to have as much consistency as
+possible. However, we shall see that strong notions of consistency are
+brittle in the sense that they generally cannot be achieved for the
+kinds of systems we consider in this document.
+
+What precisely constitutes consistency? A \emph{memory consistency
+model} formally constrains the allowable system responses during
+executions. ``Strong'' models are generally understood as ones
+providing the illusion that all clients are accessing a single global
+database. As we will see, this still leaves room for different
+possible behaviors (i.e.~allows non-determinism in the execution of a
+distributed application), but the allowable behavior is tightly
+constrained.  Weaker models tolerate deviation from this standard. For
+a given application, the most appropriate model depends on the
 semantics expected by the application and its clients, which must be
 weighed against other requirements.
 
-To discuss consistency models, we shall be less interested in the
-details of message-passing and more interested just in the responses
-observed by clients. We shall consider the full set of events across a
-distributed system, such as shown in Figure \ref{fig:externalorder}.
-This is called an \emph{execution}. Consistency models constrain the set
-of allowable return values in response to clients' requests.
-
-A fundamental distributed application is the \emph{shared distributed
-memory} abstraction. We shall assume that all processes maintain a local
-replica of a globally shared data object, as replication increases
-system fault tolerance. For simplicitly, we shall discuss the data store
-as a simple key-value store, but it could be something else like a
-database, filesystem, persistent object, etc.
-
-We assume clients submit two types of requests to processes. A
-\emph{read request} is a request to lookup the current value of a
-variable. A request to read the variable \(x\) that returns value \(a\)
-is written \(R(x,a)\). A \emph{write request} is a request to set the
-current value of a variable. Notation \(W(x,a)\) represents writing
-value \(a\) to \(x\). We assume all processes provide access to the same
-set of shared variables.
-
-A \emph{memory consistency model} formally constrains the allowable
-system responses during executions. \emph{Strong} consistency models are
-generally understood as ones provide the illusion that all clients are
-accessing just one globally shared replica. As we will see, this still
-leaves room for different possible behaviors (i.e.~allows
-non-determinism in the execution of a distributed application), but the
-allowable behavior is tightly constrained.
-
-\hypertarget{linearizabilityatomic-consistency}{%
-  \subsubsection{Linearizability/atomic
-    consistency}\label{linearizabilityatomic-consistency}}
+\subsubsection{Linearizability/atomic consistency}
+\label{sssec:linearizability}
 
 \emph{Linearizability} (Herlihy and Wing 1990) is essentially the
 strongest common consistency model. It is known variously as atomic
@@ -860,7 +885,7 @@ defined by three features:
   \(x\).
 \end{itemize}
 
-\begin{figure} \begin{subfigure}[a]{1\textwidth} \center
+\begin{figure}\begin{subfigure}[a]{1\textwidth} \center
     \includegraphics[scale=0.4]{images/linear1.png} \caption{A
       linearizable execution. Any choice of linearization works here.}
     \label{fig:linear_example11} \end{subfigure}
@@ -950,8 +975,8 @@ one client reads \(1\) and another reads \(2\) (Figure
   possible executions of the system are linearizable.
 \end{definition}
 
-\hypertarget{sequential-consistency}{%
-  \subsubsection{Sequential consistency}\label{sequential-consistency}}
+\subsubsection{Sequential consistency}
+\label{sequential-consistency}
 
 Enforcing atomic consistency means that an access \(E\) at process
 \(P_i\) cannot return to the client until every other process has been
@@ -1059,16 +1084,15 @@ past each other.
   \label{fig:nonsequential}
 \end{figure}
 
-\hypertarget{causal-consistency}{%
-  \subsubsection{Causal consistency}\label{causal-consistency}}
+\subsubsection{Causal consistency}
+\label{causal-consistency}
 
-Suppose in a message stream two questions \(Q_1\) and \(Q_2\) are asked
-and responses \(A_1\) and \(A_2\) are given, respectively. If the
-answers arrive in the wrong order, i.e.~\(A_2\) appears as the answer to
-\(Q_1\) and vice versa, the potential for confusion can be severe.
+\emph{Causal} consistency (CITE) is a weak (i.e. non-strong)
+consistency model
 
-\hypertarget{the-cap-theorem}{%
-  \subsection{The CAP Theorem}\label{the-cap-theorem}}
+
+\subsection{The CAP Theorem}
+\label{the-cap-theorem}
 
 Real-world systems often fall short of behaving as a single perfectly
 coherent system. The root of this phenomenon is a deep and
@@ -1140,7 +1164,7 @@ cannot enforce both consistency and availability.
   recovers, $P_1$ will wait forever, violating availability.
 \end{proof}
 
-\paragraph{CAP for Sequential Consistency}
+\subsubsection{CAP for Sequential Consistency}
 
 Sequential consistency is a relaxation of atomic consistency, but not by
 much. The model is still too strict to enforce under partition
@@ -1177,9 +1201,8 @@ conditions.
 \end{proof}
 
 
-\hypertarget{interpretation-of-the-cap-theorem}{%
-  \subsubsection{Interpretation of the CAP
-    Theorem}\label{interpretation-of-the-cap-theorem}}
+\subsubsection{Consequences of CAP}
+\label{interpretation-of-the-cap-theorem}
 
 While the proof of the CAP theorem is simple, its interpretation is
 subtle and has been the subject of much discussion in the years since
@@ -1240,9 +1263,8 @@ respond to requests, eventually we must relax our constraints on what
 the system is allowed to return.
 
 \newpage
-
-\hypertarget{desiderata}{%
-  \section{Desiderata}\label{desiderata}}
+\section{Desiderata and assumptions}
+\label{desiderata}
 
 \subsection{Assumptions}
 
