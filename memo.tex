@@ -139,28 +139,34 @@ performance and consistency, the topic of Section
 \subsection{Summaries of the sections}\label{summaries-of-the-sections}
 
 Sections \ref{sec:disaster-response}--\ref{sec:desiderata} contain
-background material on distributed systems and our considered use cases.
-Sections \ref{sec:networking}--\ref{sec:data-fusion} survey particular
-topics from the distributed systems literature, generally proceeding
-from lower- to higher-level considerations, and may be read
-independently of each other.
+background material on disaster response, distributed systems, and the
+specifics of our use case. The critical takeaway of these sections is
+that system-wide safety is, at least in part, a computer science
+problem, indeed a software problem, and not ``just'' a matter of
+engineering better hardware. Sections
+\ref{sec:networking}--\ref{sec:data-fusion} survey particular topics
+from the distributed systems literature, proceeding from lower-level
+considerations to higher-level ones; these sections may be read
+independently of each other. Below we summarize each section.
 
 Section \ref{sec:disaster-response} starts with a pragmatic summary of
-disaster response and some of the relevant computing challenges in that
-setting. We aim to justify and explain the role of distributed systems
-theory in system-wide safety.
+disaster response and some of the relevant computing challenges in
+that setting. We aim to justify and explain the role of distributed
+systems theory in system-wide safety by citing real examples
+encountered in disaster response scenarios.
 
-Section \ref{sec:background} is an introduction to distributed systems,
-culminating in a illustrative result: the ``CAP'' theorem(s) for the
-atomic and sequential consistency models (Theorems \ref{thm:cap} and
-\ref{thm:cap-sequential}, respectively). CAP is a negative result,
-proving that strong consistency for a distributed system makes
-systemwide network performance an upper bound on the availability of a
-system to do useful work for clients. For our purposes, this is an
-unacceptable restriction. The practical significance of CAP is that in
-emergency response environments, agents will virtually always act with
-less than perfect global information, a key motivation for Section
-\ref{sec:continuous-consistency}.
+Section \ref{sec:background} is an introduction to distributed
+systems, culminating in a illustrative result: the ``CAP'' theorem(s)
+for the atomic and sequential consistency models (Theorems
+\ref{thm:cap} and \ref{thm:cap-sequential}, respectively). CAP is
+considered a ``negative'' result, meaning it proves something cannot
+be done. Specifically it proves that strong consistency for a
+distributed system makes systemwide network performance an upper bound
+on the availability of a system to do useful work for clients. For our
+purposes, this is an unacceptable restriction. The practical
+significance of CAP is that in emergency response environments, agents
+will always act with less than perfect global information, a key
+motivation for Section \ref{sec:continuous-consistency}.
 
 Section \ref{sec:desiderata} refines our assumptions and identifies
 desirable properties of systems for our use case. We use these points to
@@ -168,43 +174,47 @@ frame the discussion of systems and protocols in subsequent sections.
 
 Section \ref{sec:networking} examines networking considerations. Our
 vision of future emergency communication networks integrates concepts
-from delay/disruption-tolerant networks (DTN) and mobile ad-hoc networks
-(MANET) to provide digital communications that are robust to a turbulent
-operational environment. We also examine the state of software-defined
-networking (SDN), which allows networking equipment to be reprogrammed
-(e.g.~to support new versions of protocols) without replacing the
-underlying hardware. Potential benefits of SDN include easier
-experimentation, reduced special-purpose infrastructure, rapid
-iteration, better interoperability between vendors, and better
-opportunities for simulation and formal verification of protocols.
+from delay/disruption-tolerant networks (DTN) and mobile ad-hoc
+networks (MANET) to provide digital communications that are robust to
+a turbulent operational environment. We also examine the state of
+software-defined networking (SDN). SDN is an emerging field that puts
+networking protocols on the same footing as ordinary computer
+programs. In theory, this should furnish computer networking with all
+the benefits of modern software engineering, such as reprogrammable
+hardware, rapid iteration, version control, and especially formal
+verification.
 
 Section \ref{sec:continuous-consistency} describes a hypothetical
 application that might be used in a disruption-heavy network: a data
-replication service built on Yu and Vahdat's theory of ``conits" \cite{2002tact}
-(short for ``consistency unit'') . This framework is a
-\emph{continuous} consistency model in the sense that, as typically
-configured, it provides neither idealized consistency nor guaranteed
-high-availability, but rather some quantifiable tradeoff between both
-ideals, the idea being that many applications can tolerate
-inconsistency among replicas of a data item if an upper bound on the
-divergence between replicas is enforced. A database replication
-middleware designed around the conit framework would allow developers
-to semantically define consistency units, enforce policies bounding
-application-defined measurements of inconsistency between replicas of
-these units, and even dynamically tune these policies on the fly, say
-in response to operational conditions.
+replication service built on Yu and Vahdat's theory of ``conits"
+(short for ``consistency unit'') \cite{2002tact}. This framework
+realizes a \emph{continuous} consistency model in the sense that, as
+typically configured, it provides neither strong consistency nor
+guaranteed high-availability, but rather a quantifiable and
+controllable tradeoff between the two. The key idea is that many
+applications can tolerate inconsistency among replicas of a data item
+if an upper bound on the divergence between replicas is enforced. A
+conit-based database replication framework would allow system
+designers to define units of replicated data whose consistency is of
+interest, enforce policies bounding inconsistency between replicas of
+these items, and even dynamically tune these policies on the fly. We
+believe that only a conit-based replication infrastructure can provide
+the strict guarantees required for safety-related systems while also
+tolerating the adverse environments and real-world limitations of the
+systems we have in mind.
 
 Section \ref{sec:data-fusion} concerns data fusion. Now and in the
 future, agents in disaster scenarios will make decisions informed by
-many different kinds of data. Efficient integration, processing, filtering, and dissemination
-of this information will be necessary to avoid ``swimming in sensors and
-drowning in data'' \cite{2010:magnuson}.  This task is especially
-challenging because agents will often work with incomplete or out of
-date information, and different sources of the same data may be
-contradictory, e.g. first responders may receive contradictory reports
-about whether a structure is occupied. One promising trend in this
-space, which we briefly introduce in this section, is the development
-of sheaf theory as a natural mathematical model for data fusion
+many different kinds of information. Efficient integration,
+processing, filtering, and dissemination of this information will be
+necessary to avoid ``swimming in sensors and drowning in data''
+\cite{2010:magnuson}.  This task is especially challenging because
+agents will often work with incomplete or out of date information, and
+different sources of the same data may be contradictory, e.g. first
+responders may receive contradictory reports about whether a structure
+is occupied. One promising trend in this space, which we briefly
+introduce in this section, is the development of sheaf theory as a
+natural mathematical model for data fusion
 \cite{2017robinsonCanonical}. Sheaf theory provides a rigorous
 framework for discussing how heterogeneous sources of noisy data can
 be integrated into a coherent picture, and can formally measure how
@@ -212,9 +222,10 @@ well this task has been achieved.
 
 We conclude in Section \ref{sec:conclusion} by recapping some of the
 main themes in this document and highlighting areas where design
-decisions at various levels must be made, ideally tuned to real-world conditions.
-
-\newpage
+decisions at various levels must be made to build a system that is
+tuned to the exact conditions we can expect from real-world
+scenarios. Such decisions might be informed by a combination of
+simulation and experimentation in the field.
 
 \section{Coordination Challenges in Disaster Response}
 \label{sec:disaster-response}
@@ -1260,9 +1271,10 @@ the system is allowed to return.
 
 \newpage
 \section{Desiderata and assumptions}
-\label{desiderata}
+\label{sec:desiderata}
 
 \subsection{Assumptions}
+\label{ssec:assumptions}
 
 \begin{itemize}
 \item Only very loose clock synchronization. However, we may fairly assume that nodes can measure the passage of time. Real timestamps may be collected on data (for example, for later analysis), but the correct configuration of these clocks cannot be relied upon, particularly at lower levels of abstraction.
@@ -1270,8 +1282,7 @@ the system is allowed to return.
 \end{itemize}
 
 \subsection{Desiderata}
-
-\label{sec:desiderata}
+\label{ssec:desiderata}
 
 Having discussed some of the fundamental distributed systems issues that
 arise under real-world network conditions, we turn our attention to
