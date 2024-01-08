@@ -103,32 +103,38 @@ Program (AOSP) has been investigating technologies and methods by
 which crewed and uncrewed aircraft may safely operate in shared
 airspace.
 
-This memo surveys topics in distributed computing that are relevant to
-the \mbox{challenge} of maintaining system-wide safety. It aims to be
-self-contained and accessible to a broad technical audience. Our
-primary motivating use cases have been taken from civil emergency
-response scenarios, especially wildfire suppression and hurricane
-relief, primarily for three reasons. First, improved technology for
-wildfire suppression, especially related to communications and data
-sharing, is frequently cited as a national priority \cite{pcast2023}.
-Second, the rules for operating in the US national airspace are
-typically relaxed during natural disasters and relief efforts, so this
-is a suitable setting for testing new technologies. Finally, this
-setting is an excellent microcosm for the sorts of general challenges
-faced by other, non-emergency applications.
+This memo surveys topics in computing that are relevant to maintaining
+system-wide safety across large, physically distributed data and
+communication systems. It aims to be self-contained and accessible to
+a technical audience without a deep background in distributed
+systems. Our primary motivating use cases have been taken from civil
+emergency response scenarios, especially wildfire suppression and
+hurricane relief, primarily for three reasons. First, improved
+technology for wildfire suppression, especially related to
+communications and data sharing, is frequently cited as a national
+priority \cite{pcast2023}.  Second, the rules for operating in the US
+national airspace are typically relaxed during natural disasters and
+relief efforts, so this is a suitable setting for testing new
+technologies. Finally, this setting is an excellent microcosm for the
+sorts of general challenges faced by other, non-emergency
+applications.
 
-If there is a central theme to this manuscript, it is
-\emph{continuity} in the sense considered by topology.\footnote{For a
-typical introductory textbook see \cite{mendelson2012introduction}.}
-Designing a system that is robust to real-world environments is an
-exercise in making tradeoffs, and it is of particular importance in
-this setting to exercise fine control over these tradeoffs. To build a
-system that is predictable---clearly a prerequisite for
-safety---deteriorations in operational conditions, usage patterns,
-data quality, etc. should bring about at most a proportionate
-degradation in system behavior as observed by users. In other words,
-the behavior of a safe system should in some sense be a continuous
-function of its inputs and operational environment.
+If there is a central theme uniting the sections of this manuscript,
+it is \emph{continuity} in the sense considered by
+topology.\footnote{For a typical introductory textbook see
+\cite{mendelson2012introduction}.} The systems we consider will be
+subject to harsh operating conditions that limit how well they can
+perform---for example, wireless communication is typically less
+reliable during inclement weather. To build a system that is
+predictable (clearly a prerequisite for safety), one must ensure the
+system can perform reasonably well under a wide variety of adverse
+conditions. In other words, the behavior of a safe system should in
+some sense be a \emph{continuous} function of its inputs and
+environment. This sort of robust design is challenging due to the fact
+that distributed systems designers are forced to make delicate
+tradeoffs between competing objectives, most famously between
+performance and consistency, the topic of Section
+\ref{sec:background}.
 
 \subsection{Summaries of the sections}\label{summaries-of-the-sections}
 
