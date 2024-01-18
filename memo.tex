@@ -299,15 +299,16 @@ network(s), so poor network performance is a real problem.
 
 Consider firefighting airtankers for example, the largest class of
 which are the Very Large Airtankers (VLATs), generally defined as
-those carrying more than 8,000 gallons of water or fire retardant
-(CITE). VLATs are commonly deployed to large wildfires in California,
-and the largest can deposit around 20,000 gallons of fire retardant,
-weighing about 170,000 pounds, in a single drop. Performed at a low
-altitude, a drop from a VLAT can easily crush a ground vehicle
-\cite{2019:stickney}, posing a danger to firefighters. A 2018 accident
-led to the death of one firefighter and the injury of three others
-when an 87-foot Douglas Fir tree was knocked down by an unexpectedly
-forceful drop from a Boeing 747-400 Supertanker \cite{2018:calfire}.
+those carrying more than 8,000 gallons of water or fire
+retardant\citationneeded. VLATs are commonly deployed to large
+wildfires in California, and the largest can deposit around 20,000
+gallons of fire retardant, weighing about 170,000 pounds, in a single
+drop. Performed at a low altitude, a drop from a VLAT can easily crush
+a ground vehicle \cite{2019:stickney}, posing a danger to
+firefighters. A 2018 accident led to the death of one firefighter and
+the injury of three others when an 87-foot Douglas Fir tree was
+knocked down by an unexpectedly forceful drop from a Boeing 747-400
+Supertanker \cite{2018:calfire}.
 
 Suppose that in the future, firefighters are equipped with GPS sensors
 and digital transmitters---this could be an application on their
@@ -330,9 +331,8 @@ a reasonable safety property could look like the following.
 
 \begin{quote}
   $\textbf{P}_\textrm{safe}$: All ground agents are known to be at
-  least 100 ft.\footnote{This figure comes from a recommendation
-  (CITE).} outside the drop zone, and this information is current to
-  within 30 seconds, or airtankers will not perform a drop.
+  least 100 feet outside the drop zone, and this information is
+  current to within 30 seconds, or airtankers will not perform a drop.
 \end{quote}
 
 \noindent By contrast, liveness properties stipulate that the system
@@ -372,7 +372,7 @@ airtanker's actions must be restricted when its computers do not
 \emph{know} whether an action would violate
 \(\textbf{P}_\textrm{safe}\)---knowledge of the fact, and not merely
 the fact of it, is the crucial part. In philosophical terms, the logic
-of distributed agents is inherently an \emph{epistemic} one (CITE),
+of distributed agents is inherently an \emph{epistemic} one\citationneeded,
 meaning it must take into account not just what is true but what is
 known. The need to share knowledge is what drives communication and
 puts a burden on the network.
@@ -409,7 +409,7 @@ $\mathbf{P}_\textrm{safe}$ altogether.
 \begin{figure}[h]
   \centering
   \includegraphics[scale=0.4]{images/dc10.jpg}
-  \caption{A DC-10 airtanker, rated for 9,400 gallons, drops retardant above Greer, Arizona.}
+  \caption{A DC-10 airtanker, rated for 9,400 gallons, drops retardant above Greer, Arizona.\textbf{CITATION NEEDED}}
 \end{figure}
 
 \begin{figure}[h]
@@ -418,7 +418,7 @@ $\mathbf{P}_\textrm{safe}$ altogether.
   \caption{The Ironside Mountain lookout station, destroyed in the 2021
     Monument fire, shown with protective foil on August
     $10^\textrm{th}$, 2015 during the 2015 River Complex fire. This
-    particular fire burned 77,077 acres over 77 days.}
+    particular fire burned 77,077 acres over 77 days. \textbf{CITATION NEEDED}}
 \end{figure}
 
 \subsection{Communication Patterns in the Field}
@@ -473,7 +473,7 @@ during the 2021 Monument Fire,\footnote{https://www.fire.ca.gov/incidents/2021/7
 which burned approximately 184,142 acres over 88 days. The Ironside
 Mountain station had strategic importance, being located on a tall
 ridge. According to a video blog from a volunteer firefighter involved
-in the incident (CITE), its loss prevented communication between
+in the incident\citationneeded, its loss prevented communication between
 operators on different sides of the ridge, in networking parlance
 creating a \emph{partition} that lasted until crews could ascend the
 ridge to deploy a temporary station. This is exactly the kind of
@@ -533,20 +533,21 @@ to travel farther, but the extended reach comes at the cost of
 introducing delays and possible degradation of message quality, as in
 the classic game of telephone.
 
-In some cases, planes from the Civil Air Patrol\footnote{A civil
-auxiliary of the U.S. Air Force. https://www.gocivilairpatrol.com/}
-(CITE) have been equipped with radio repeaters and dispatched to
-wildfires to provide service to ground-based units. In the future, this
-sort of service could be provided, perhaps autonomously, by base
-stations mounted to unmanned aerial vehicles (UAVs), which might perform
-additional functions such as tracking the fire perimeter. More
-generally, a future communication system should exploit every pass
-messages between agents, even in the event of infrastructure failure, in
-a transparent and decentralized fashion. For instance, firefighters may
-use an ad-hoc network built from handheld devices, vehicle-mounted
-devices, temporary structure, an devices attached to overhead aircraft.
-In effect, this would be a high-tech modernization of the sort of
-informal relay schemes operating today over traditional radio channels.
+In some cases, planes from the Civil Air
+Patrol\citationneeded\footnote{A civil auxiliary of the U.S. Air
+Force. https://www.gocivilairpatrol.com/} have been equipped with
+radio repeaters and dispatched to wildfires to provide service to
+ground-based units. In the future, this sort of service could be
+provided, perhaps autonomously, by base stations mounted to unmanned
+aerial vehicles (UAVs), which might perform additional functions such
+as tracking the fire perimeter. More generally, a future communication
+system should exploit every pass messages between agents, even in the
+event of infrastructure failure, in a transparent and decentralized
+fashion. For instance, firefighters may use an ad-hoc network built
+from handheld devices, vehicle-mounted devices, temporary structure,
+an devices attached to overhead aircraft.  In effect, this would be a
+high-tech modernization of the sort of informal relay schemes
+operating today over traditional radio channels.
 
 \subsection{Towards the Future}\label{towards-the-future}
 
