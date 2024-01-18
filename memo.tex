@@ -32,6 +32,7 @@
 
 \newcommand{\B}{\mathbf{B}}
 \newcommand{\w}{\mathbf{w}}
+\newcommand{\citationneeded}{\footnote{\textbf{CITATION NEEDED}}}
 
 \title{A Survey of Distributed Systems Challenges for Wildland
   Firefighting and Disaster Response}
@@ -646,54 +647,56 @@ definition of a distributed computing system:
 We shall consider a system consisting of a set \(\mathcal{P} =
 \{P_i\}_{i\in I}\) of \emph{processes} executing on independent,
 probably geographically dispersed computing and communication
-devices. We shall consolidate all these kinds of devices under the
-name ``nodes.'' It is important to note that different kinds of system
+devices. We consolidate the various kinds of devices under the generic
+term \emph{nodes}. It is important to note that different kinds of
 nodes can have different characteristics, such as capabilities and
-intended uses, but for now we take a high-level view.
-
-A notable aspect of what makes the system ``distributed'' is that the
-nodes must communicate by message-passing, which must be facilitated
-by some kind of network. This restriction is implied by absence of a
-common memory (whereas processes running on the same machine can share
-information by writing it to a common memory location).
+intended uses, but for now we take a high-level view. A notable aspect
+of what makes the system ``distributed'' is that the nodes must
+communicate by message-passing, which must be facilitated by some kind
+of network. This restriction is implied by absence of a common memory
+(whereas processes running on the same machine can share information
+by writing it to a common memory location).
 
 A foundational assumption is that the network is unreliable. Section
 \ref{sec:disaster-response} explained why this is certainly expected
 in disaster scenarios. Delivering messages over the network is not
 instantaneous---message packets must be sent over the air or through a
 cable, and typically processed and forwarded by any number of
-intermediate networking devices, all of which takes time. This means
-that messages are passed with some unpredictable latency. In this
-section, our main challenge is to provide ways for agents to
+intermediate networking devices, and retransmitted in case of
+unrecoverable errors during transit, all of which takes time. This
+means that messages are passed with some unpredictable latency. In
+this section, our main challenge is to provide ways for agents to
 coordinate their actions despite the uncontrollable delays in
 communication caused by the network and environment, which is to say
 by the ``distributed'' aspect of the system.
 
-\paragraph{Network reliability}
-In general, the latency involved in sending message need not even be
-finite, meaning the network may not deliver a packet at all, i.e.~it
-may silently discard the packet without alerting the sender. The same
-message may be also be delivered multiple times, and different
-messages may arrive in any order. Information corruption,
-e.g. flipping a 1 to a 0, is also expected for some fraction of total
-transmissions. In the case of \emph{Byzantine faults} (CITE) the
-network might even act like a malicious adversary. In this section,
-being focused on higher-level considerations, we shall assume that
-messages are delivered exactly once, uncorrupted, but with an
-unpredictable delay. Some, but not all, common so-called ``transport''
-protocols like TCP (CITE) and LTP (CITE) can provide this sort of
-semi-reliable message delivery over a less reliable network. For
-example, these protocols might tag messages with unique identifiers
-that allow the receiver to detect duplicates and arrange messages in
-the ordered intended by the sender. For now, one could say we are
-working at a level of abstraction above the network transport
-layer. (We shall take a closer look at low-level networking details in
-Section \ref{sec:network}, where we relax these assumptions.) Note
-that these reliability mechanisms contribute to the latencies involved
-in message passing, so they do not solve the problems under
+\paragraph{Network Reliability}
+In full generality, the latency involved in sending messages need not
+even be finite, meaning the network may not deliver a packet at all,
+i.e.~it may silently discard the packet without alerting the
+sender. The same message may be also be delivered multiple times, and
+different messages may arrive in any order. In the case of
+\emph{Byzantine faults}\citationneeded, the network might even act
+like a malicious adversary. In this section, being focused on
+higher-level considerations, we shall assume that messages are
+delivered exactly once, uncorrupted, but with an unpredictable
+delay. Some, but not all, common so-called ``transport'' protocols
+like TCP\citationneeded and LTP\citationneeded can provide this sort
+of semi-reliable message delivery over a less reliable network. For
+example, these protocols might tag outgoing messages with an sequence
+of unique identifiers that allow the receiver to detect duplicates and
+arrange messages in the ordered intended by the sender; commonly they
+also add checksums used to verify message integrity, and transparently
+handle retranmission when messages become corrupted. For now, one
+could say we are working at a level of abstraction above the network
+transport layer. (We shall take a closer look at these kinds of
+low-level details in Section \ref{sec:networking}, where we relax our
+assumptions about network reliability.) Note that reliability
+mechanisms in transport-level protocols contribute to the latencies
+involved in message passing, so they do not solve the problems under
 consideration here, namely the difficulty of coordination when
-messages are unpredictably delayed and without access to sychronized
-clocks.
+messages are unpredictably delayed and when nodes do not have access
+to sychronized clocks.
 
 \subsubsection{FIFO and causal ordering}
 
@@ -746,15 +749,15 @@ messages sent by $P_2$ delivered earlier despite being sent
 later. This may correspond to a scenario where $P_2$ has moved closer
 to $P_1$ while $P_3$ has moved further away.
 
-At this level of abstraction it is reasonable to assume that
-messages from the same sender to the same recipient arrive in the
-correct order, an assumption known as the FIFO (first-in, first-out)
-network model (CITE). A violation of the FIFO assumption would
-correspond to two crossing lines that have \emph{the same
-sender-receiver pair}. All figures in this section satisfy FIFO, as no
-two intersecting lines are originate at the same process and end at
-the same receiver. FIFO ordering is one of the basic services that
-might be provided by the network transport protocol.
+At this level of abstraction it is reasonable to assume that messages
+from the same sender to the same recipient arrive in the correct
+order, an assumption known as the FIFO (first-in, first-out) network
+model. A violation of the FIFO assumption would correspond to two
+crossing lines that have \emph{the same sender-receiver pair}. All
+figures in this section satisfy FIFO, as no two intersecting lines are
+originate at the same process and end at the same receiver. FIFO
+ordering is one of the basic services that might be provided by the
+network transport protocol.
 
 Unfortunately, things can go wrong for distributed applications even
 assuming the FIFO networking model. Namely, messages can violate
@@ -842,8 +845,8 @@ the time or date incorrectly, and they require an always-on battery to
 track time when the device is powered off, say when sitting in a
 storage. While in some cases one may assume access to clocks that are
 only approximately synchronized, perhaps by employing special-purpose
-protocols like NTP (CITE), in general we cannot assume access to
-physical clocks that are so precise as to fundamentally solve the
+protocols like NTP\citationneeded, in general we cannot assume access
+to physical clocks that are so precise as to fundamentally solve the
 problems discussed in this section. It is also not the case that
 merely timestamping messages is enough to answer every question we
 could ask about causal precedence. For example, it is especially
@@ -875,7 +878,7 @@ middle. We provide a brief description of each paradigm, with the
 obligatory note that variants of these schemes also exist.
 
 \paragraph{Scalar clocks}
-Scalar clocks, also called Lamport clocks after their inventor (CITE),
+Scalar clocks, also called Lamport clocks after their inventor\citationneeded,
 require each process $P_i$ to maintain a single scalar value $C_i$, a
 non-negative integer, which we assume is initialized two $1$. There
 are two update rules:
