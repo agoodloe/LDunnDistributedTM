@@ -2,7 +2,8 @@
 !*.md
 !*.pandoc
 !images
-!images/*
+!images/**
+images/old/**
 !LICENSE
 !nasalogo.pdf
 !*.tex

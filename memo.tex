@@ -21,6 +21,7 @@
 % Added for subfigures
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{afterpage}
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}{Corollary}[theorem]
@@ -130,8 +131,8 @@ predictable (clearly a prerequisite for safety), one must ensure the
 system can perform reasonably well under a wide variety of adverse
 conditions. In other words, the behavior of a safe system should in
 some sense be a \emph{continuous} function of its inputs and
-environment. This sort of robust design is challenging due to the fact
-that distributed systems designers are forced to make delicate
+environment. This sort of robust design is particularly challenging
+because distributed systems designers are forced to make delicate
 tradeoffs between competing objectives, most famously between
 performance and consistency, the topic of Section
 \ref{sec:background}.
@@ -160,13 +161,13 @@ systems, culminating in a illustrative result: the ``CAP'' theorem(s)
 for the atomic and sequential consistency models (Theorems
 \ref{thm:cap} and \ref{thm:cap-sequential}, respectively). CAP is
 considered a ``negative'' result, meaning it proves something cannot
-be done. Specifically it proves that strong consistency for a
+be done. The CAP theorem proves that strong consistency for a
 distributed system makes systemwide network performance an upper bound
-on the availability of a system to do useful work for clients. For our
-purposes, this is an unacceptable restriction. The practical
+on the availability of a system to do useful work for clients, which
+for our purposes is an unacceptable restriction. The practical
 significance of CAP is that in emergency response environments, agents
-will always act with less than perfect global information, a key
-motivation for Section \ref{sec:continuous-consistency}.
+will always act with incomplete information about the global system, a
+key motivation for Section \ref{sec:continuous-consistency}.
 
 Section \ref{sec:desiderata} refines our assumptions and identifies
 desirable properties of systems for our use case. We use these points to
@@ -230,10 +231,13 @@ simulation and experimentation in the field.
 \section{Coordination Challenges in Disaster Response}
 \label{sec:disaster-response}
 
-This section explains some aspects of disaster response scenarios that
-motivate the other sections of this document. We describe how real-world
-environments give rise to fundamental challenges that are best addressed
-with the sound application of distributed computing principles.
+This section explains aspects of disaster response scenarios that
+motivate the other sections of this document. We describe how
+real-world environments give rise to foundational challenges that must
+be addressed through the application of distributed computing
+principles. Even deploying the best communications equipment cannot
+realistically avoid the fundamental problems raised when many agents
+try to coordinate their actions over a widespread geographical area.
 
 The operational environment of wildfire suppression, hurricane relief,
 and other disaster scenarios is generally characterized by systemic
@@ -248,46 +252,49 @@ difficult terrain, damaged infrastructure, harsh weather, and limited
 battery power, to name a few.
 
 Agents in the field, such as first responders, generally experience
-high packet loss, high error rates, and unpredictable latencies in
-message-passing over the communication network(s). A conservative view
-suggests expecting the worst performance at particularly inopportune
-times. This is because conditions that prompt urgent communication can
-be expected to correlate with those that make communication
-difficult. For example, tautologically, a communications network is
-the most \mbox{congested}, and therefore the least available,
-precisely when everyone needs to use it. This phenomenon was most
-famously exhibited in the aftermath of the September $11^\textrm{th}$
-terrorist attacks, where the sudden demand on the networks virtually
-brought them all to a halt (CITE).
+high packet loss, high error rates, and unpredictable latencies when
+passing messages over the communication network(s). A conservative
+view suggests expecting the worst performance at particularly
+inopportune times. This is because conditions that prompt urgent
+communication can be expected to correlate with those that make
+communication difficult. For example, tautologically, a communications
+network is the most \mbox{congested}, and therefore the least
+available, precisely when everyone needs to use it. This phenomenon
+was famously exhibited in the immediate aftermath of the September
+$11^\textrm{th}$ terrorist attacks, where the sudden demand on
+multiple communications networks virtually brought them all to a halt
+(NEED CITATION).
 
 From a systems perspective, an unreliable network presents a challenge
-for protocols used to coordinate distributed agents. At a high level,
-coordinated action requires enforcing some notion of consistency,
-i.e.~agreement, across replicas of data shared between agents. For
-instance, it is important that everyone agree which firetrucks have
-been dispatched to which scenes, or which radios have been reserved
-from the {\mbox{NIICD}} radio cache \cite{radiocache} and for
-whom. Stronger consistency requirements are of course more difficult
-to maintain than relaxed requirements because they require exchanging
-more information with other agents quickly, putting a heavier burden
-on the network. When the network is slow, nodes that need to
+for protocols used to coordinate distributed agents. Coordinated
+action requires enforcing some notion of consistency, i.e.~agreement,
+across replicas of data shared between agents. We shall make this
+somewhat vague notion more precise in Section \ref{sec:background},
+but a simple example is that it is very important for everyone to
+agree which firetrucks have been dispatched to which scenes, or which
+radios have been reserved from the {\mbox{NIICD}} radio cache
+\cite{radiocache} and for whom. The exact meaning of ``consistency''
+can vary between applications. Generally, stronger consistency
+requirements are more difficult to maintain than relaxed ones because
+they require exchanging more information with other agents quickly,
+putting a heavier burden on the network. When the network is slow,
+system nodes (i.e. users or the devices they are using) that need to
 communicate may have to wait for network to deliver their messages,
-delaying the handling of user requests in the meantime, diminishing
-the efficacy of the overall system.
+diminishing the efficacy of the system.
 
-\hypertarget{communication-and-safety}{%
-  \subsection{Communication and Safety}\label{communication-and-safety}}
+\subsection{Communication and Safety}
+\label{communication-and-safety}
 
 Many complications in the field are exacerbated by the basic fact that
-the network is unreliable. The fundamental cause is that when faced
-with a poor communications environment, agents must choose between
-long delays in sending or receiving information, or acting with only
-limited knowledge, or typically some amount of both. Both options are
-problematic and present safety challenges because operational safety,
-by nature, requires agents to gather information about their
-environment and react to it. This information is received from distant
-sensors and other agents, who send it over the network(s), so poor
-network performance is a safety problem.
+the network is never perfectly reliable. Faced with a poor
+communications environment, agents must choose between long delays in
+sending or receiving information, or acting with only limited
+knowledge. Typically they will experience some amount of both. Both
+options are problematic and present safety challenges because
+operational safety, by nature, requires agents to gather information
+about their environment and react to it. This information is received
+from distant sensors and other agents, who send it over the
+network(s), so poor network performance is a real problem.
 
 Consider firefighting airtankers for example, the largest class of
 which are the Very Large Airtankers (VLATs), generally defined as
@@ -296,11 +303,10 @@ those carrying more than 8,000 gallons of water or fire retardant
 and the largest can deposit around 20,000 gallons of fire retardant,
 weighing about 170,000 pounds, in a single drop. Performed at a low
 altitude, a drop from a VLAT can easily crush a ground vehicle
-\cite{2019:stickney}, posing a serious danger to firefighters. A 2018
-accident led to the death of one firefighter and the injury of three
-others when an 87-foot Douglas Fir tree was knocked down by an
-unexpectedly forceful drop from a Boeing 747-400 Supertanker
-\cite{2018:calfire}.
+\cite{2019:stickney}, posing a danger to firefighters. A 2018 accident
+led to the death of one firefighter and the injury of three others
+when an 87-foot Douglas Fir tree was knocked down by an unexpectedly
+forceful drop from a Boeing 747-400 Supertanker \cite{2018:calfire}.
 
 Suppose that in the future, firefighters are equipped with GPS sensors
 and digital transmitters---this could be an application on their
@@ -342,33 +348,33 @@ Safety and liveness are frequently dual mandates: safety, in the sense
 used here, requires a system \textbf{never} to perform certain
 actions, while liveness requires a system to \textbf{always} perform
 certain actions. The tension between these ideals means the two often
-cannot be guaranteed simultaneously, as in our example: if
-firefighters are unable to broadcast their locations to the pilot,
+cannot be guaranteed simultaneously. Such is the case in our example:
+if firefighters are unable to broadcast their locations to the pilot,
 then the pilot's are impeded to maintain \(\textbf{P}_\textrm{safe}\)
 at the cost of \(\textbf{P}_\textrm{live}\), allowing the fire to
-spread in the meantime. \footnote{A slight linguistic idiosyncrasy
+spread in the meantime.\footnote{A slight linguistic idiosyncrasy
 exhibited here is that liveness properties---not just ``safety''
 properties---can also be relevant to human safety. Thus, the narrow
 technical meaning of safety properties for distributed systems does
 not capture the whole meaning of System Wide Safety.}
 
 Besides the safety/liveness tradeoff, the previous example exhibits
-two other aspects that are highly pertinent to reasoning about
-distributed systems. We pause to draw attention to them.
+two other aspects of reasoning about distributed systems. We pause to
+draw attention to them.
 
 \paragraph{Epistemology}
 Observe that the issue in the VLAT example does not simply disappear
-if no ground personnel are actually within 100 meters of a drop
+if no ground personnel are actually within 100 feet of a drop
 zone. That is, it is not simply a matter of whether a danger is
 actually present. To guarantee \(\textbf{P}_\textrm{safe}\), an
 airtanker's actions must be restricted when its computers do not
 \emph{know} whether an action would violate
-\(\textbf{P}_\textrm{safe}\)---\emph{knowledge} of the fact, and not
-merely the fact of it, is the crucial part. In philosophical terms,
-the logic of distributed agents is inherently an \emph{epistemic} one
-(CITE), meaning it must take into account not just what is true but
-what is known. The need to share knowledge is what drives
-communication and puts a burden on the network.
+\(\textbf{P}_\textrm{safe}\)---knowledge of the fact, and not merely
+the fact of it, is the crucial part. In philosophical terms, the logic
+of distributed agents is inherently an \emph{epistemic} one (CITE),
+meaning it must take into account not just what is true but what is
+known. The need to share knowledge is what drives communication and
+puts a burden on the network.
 
 \paragraph{Discontinuity}
 The properties $\mathbf{P}_\textrm{safe}$ and
@@ -600,25 +606,30 @@ For developers, it is clear that this requires some coordination between
 the application and the networking layers, as the latter must be given
 enough information to make the most prudent use of limited resources.
 
-\newpage
 \section{Introduction to Distributed Systems}
 \label{sec:background}
+In this section we attempt to summarize the main themes of distributed
+systems theory and where this fits into the picture painted in Section
+\ref{sec:disaster-response}. The primary reference we are following is
+the excellent book by Kshemkalyani and Singhal
+\cite{kshemkalyani_singhal_2008}, particularly chapters 1, 3, 6, and
+12.
 
 A distributed system, in the most general sense, is a collection of
 independent entities that cooperate to solve a problem that cannot be
 individually solved \cite{kshemkalyani_singhal_2008}. This memo is
-concerned with distributed computing systems used by firefighters and
-other disaster response agents. The components of the system could be
-computers, smartphones, or other communication devices. These may be
-personal devices carried by individuals, mounted to ground or
-air-based vehicles, or be deployed as temporary or permanent
-infrastructure. The clients of these devices could be civilians,
-firefighters, or other agents involved in disaster response
-efforts. The components of the system coordinate to solve such tasks
-as navigating safely in close proximity, delivering resources to
-remote locations, suppressing fires, and collecting, processing, and
-disseminating data about the environment.
-
+concerned with distributed systems used by firefighters and other
+disaster response agents. The components of our system could be
+computers, smartphones, various types of sensors, or other kinds of
+communication and networking equipment. These may be personal devices
+carried by individuals, mounted to ground or air-based vehicles, or be
+deployed as temporary or permanent infrastructure. The clients of
+these devices could be civilians, firefighters, incident commanders,
+or other agents involved in disaster response efforts. The devices
+could also be autonomous. The kinds of tasks our system or its
+components might handle include navigating safely in close proximity,
+delivering resources to remote locations, suppressing fires, and
+collecting, processing, and disseminating data about the environment.
 
 \subsection{Message Passing and Logical Time}
 \label{ssec:message-passing}
@@ -632,68 +643,357 @@ definition of a distributed computing system:
   network, and where each computer has its own memory and runs its own
   operating system.''
 \end{quote}
-
 We shall consider a system consisting of a set \(\mathcal{P} =
 \{P_i\}_{i\in I}\) of \emph{processes} executing on independent,
-probably geographically dispersed computing and communication devices,
-which we shall refer to simply as ``nodes.'' A notable aspect of what
-makes the system \emph{distributed} is that the nodes must communicate
-by message-passing, which must be facilitated by some kind of
-network. This restriction is implied by absence of a common memory
-(whereas processes running on the same machine have the option to
-share data by writing it to a shared memory location).
+probably geographically dispersed computing and communication
+devices. We shall consolidate all these kinds of devices under the
+name ``nodes.'' It is important to note that different kinds of system
+nodes can have different characteristics, such as capabilities and
+intended uses, but for now we take a high-level view.
 
-A foundational assumption is that the network is unreliable---Section
-\ref{sec:disaster-response} explained why this is certainly true in
-disaster scenarios.  Message delivery is not instantaneous, so
-messages are passed with some unpredictable latency. The latency need
-not be finite, as the network may deliver a packet zero times, i.e.~it
-may silently delete the packet without alerting the sender. A message
-may be also be delivered multiple times, and different messages may
-arrive in any order. In the case of \emph{Byzantine faults} (CITE) the
-network may even act like a malicious adversary, though we will not
-consider this scenario in this document. The main challenge presented
-to the system nodes is to coordinate their actions despite this
-turbulent environment.
+A notable aspect of what makes the system ``distributed'' is that the
+nodes must communicate by message-passing, which must be facilitated
+by some kind of network. This restriction is implied by absence of a
+common memory (whereas processes running on the same machine can share
+information by writing it to a common memory location).
 
-\begin{figure}[h]
-  \center \includegraphics[width=\textwidth]{images/messages.png}
-  \caption{Time diagram for messages}
-  \label{fig:messages}
+A foundational assumption is that the network is unreliable. Section
+\ref{sec:disaster-response} explained why this is certainly expected
+in disaster scenarios. Delivering messages over the network is not
+instantaneous---message packets must be sent over the air or through a
+cable, and typically processed and forwarded by any number of
+intermediate networking devices, all of which takes time. This means
+that messages are passed with some unpredictable latency. In this
+section, our main challenge is to provide ways for agents to
+coordinate their actions despite the uncontrollable delays in
+communication caused by the network and environment, which is to say
+by the ``distributed'' aspect of the system.
+
+\paragraph{Network reliability}
+In general, the latency involved in sending message need not even be
+finite, meaning the network may not deliver a packet at all, i.e.~it
+may silently discard the packet without alerting the sender. The same
+message may be also be delivered multiple times, and different
+messages may arrive in any order. Information corruption,
+e.g. flipping a 1 to a 0, is also expected for some fraction of total
+transmissions. In the case of \emph{Byzantine faults} (CITE) the
+network might even act like a malicious adversary. In this section,
+being focused on higher-level considerations, we shall assume that
+messages are delivered exactly once, uncorrupted, but with an
+unpredictable delay. Some, but not all, common so-called ``transport''
+protocols like TCP (CITE) and LTP (CITE) can provide this sort of
+semi-reliable message delivery over a less reliable network. For
+example, these protocols might tag messages with unique identifiers
+that allow the receiver to detect duplicates and arrange messages in
+the ordered intended by the sender. For now, one could say we are
+working at a level of abstraction above the network transport
+layer. (We shall take a closer look at low-level networking details in
+Section \ref{sec:network}, where we relax these assumptions.) Note
+that these reliability mechanisms contribute to the latencies involved
+in message passing, so they do not solve the problems under
+consideration here, namely the difficulty of coordination when
+messages are unpredictably delayed and without access to sychronized
+clocks.
+
+\subsubsection{FIFO and causal ordering}
+
+Figures \ref{fig:message-latencies} and \ref{fig:message-latencies2}
+show time diagrams for messages $\{m_i\}_{i=1}^N$ sent between three
+processes $P_1$, $P_2$, and $P_3$. The $x$-axis of the diagram shows
+the flow of physical time from left to right. Each process consists of
+a worldline depicting the events occurring in that process. Each
+message $m_i$ starts off as a message \emph{send} event
+$m_i^\textrm{send}$ indicating the moment the message is sent over the
+network by its originating process; its delivery generates a message
+\emph{receive} event $m_i^\textrm{recv}$. The corresponding events are
+connected by an arrow.  The subscripts on the messages only serve to
+disambiguate them, but they are not part of the message contents and
+have no semantic importance.
+
+\begin{figure}[p]
+  \centering \input{images/pgf/messagePassingEx.pgf}
+  \caption{Time diagram depicting latencies in message-passing}
+  \label{fig:message-latencies}
 \end{figure}
 
+\begin{figure}[p]
+  \centering \input{images/pgf/messagePassingEx2.pgf}
+  \caption{Message $m_1$ is sent first and delivered last}
+  \label{fig:message-latencies2}
+\end{figure}
 
-To focus on higher-level considerations, we shall abstract away from
-the chaotic details of the network and assume that messages are
-delivered exactly once, but with an unpredictable delay that cannot be
-directly controlled.\footnote{Network transport protocols such as TCP
-(CITE) and LTP (CITE) can provide reliable message delivery, so one
-could say we are working at a level abstraction above such low-level
-protocols.} Figure \ref{fig:messages} shows a time diagram for a
-series of four messages sent between three processes. The $x$-axis of
-the diagram shows the flow of physical time. Each process consists of
-a worldline. Each message $m_n$ starts off as a message \emph{send}
-event $m_n.s$ indicating the moment in time the message is sent over
-the network by its originating process. The four arrows depict the
-temporal delay occurring before the message is received.
+\begin{figure}[p]
+  \centering \input{images/pgf/messagePassingEx3.pgf}
+  \caption{A time diagram satisfying FIFO but violating causal ordering}
+  \label{fig:message-latencies3}
+\end{figure}
 
-\subsubsection{Causality and logical clocks}
+\afterpage{\clearpage}
+
+
+Two things are clear from these figures. First, messages are sent with
+a varying delay. This delay is why the arrows are diagonal rather than
+perfectly vertical. Second, messages $m_i$ and $m_j$ sent by different
+senders, whether to the same recipient or different ones, may arrive
+in different order than they were sent in. Such is the case with
+messages $m_2$ and $m_4$ in Figure \ref{fig:message-latencies}, sent
+by $P_1$ to $P_3$ and $P_2$, respectively. This diagram may depict a
+scenario where $P_1$ and $P_3$ are far apart and have a bad connection
+to each other, with $P_2$ having a relatively good connection to the
+others. In Figure \ref{fig:message-latencies2}, $m_1$ is sent before
+all other messages, but it is last to be delivered, with all of the
+messages sent by $P_2$ delivered earlier despite being sent
+later. This may correspond to a scenario where $P_2$ has moved closer
+to $P_1$ while $P_3$ has moved further away.
+
+At this level of abstraction it is reasonable to assume that
+messages from the same sender to the same recipient arrive in the
+correct order, an assumption known as the FIFO (first-in, first-out)
+network model (CITE). A violation of the FIFO assumption would
+correspond to two crossing lines that have \emph{the same
+sender-receiver pair}. All figures in this section satisfy FIFO, as no
+two intersecting lines are originate at the same process and end at
+the same receiver. FIFO ordering is one of the basic services that
+might be provided by the network transport protocol.
+
+Unfortunately, things can go wrong for distributed applications even
+assuming the FIFO networking model. Namely, messages can violate
+\emph{causal ordering} (CO). We define CO formally before giving a
+more informal description.
+
+\begin{definition}[Causal ordering]
+  First we define a binary relation $\to$ of ``direct causality'' as follows:
+  \[e \to e' \iff \begin{cases} e \leq_{P_i} e' \textrm{ for some process $P_i$} \\
+    e = m_i^\textrm{send} \textrm{ and } e' = m_i^\textrm{recv}
+  \end{cases}
+  \]
+  That is, event $e$ directly causes $e'$ if the two events occur on
+  the same process and $e$ happens before $e'$, or $e$ is a message
+  send event and $e'$ is the corresponding message receive event. Now
+  we define a causality relation recursively as follows:
+  \[e \to e' \iff \begin{cases} e \to e' \\
+    \exists e'' \textrm{ such that } e \to e'' \textrm{ and } e'' \to e
+  \end{cases}
+  \]
+  That is, event $e$ causes $e'$ if $e$ directly influencs $e'$ or
+  there is some intermediate event $e''$ such that $e$ causes $e'$ and
+  $e'$ causes $e''$. The reader may note that $\to$ can concisely be
+  defined as the transitive closure $\to^\ast$ of $\to$.
+\end{definition}
+
+Informally, $e \to e'$ holds whenever one can put a finger on an event
+$e$ in the time diagram and, finger held down, trace a path to $e'$
+just by moving left-to-right on the same worldline OR following a
+diagonal lines connecting the sending and receiving events of a
+message. Calling this ``causal'' ordering can be a misnomer, however,
+as it may be that $e \to e'$ without it being the case that $e$
+``caused'' $e'$. Intuitively, it would be more pedantic (but more
+wordy) to say that information from $e$ potentially affected, or could
+have influenced, the event $e'$. For example, if $e$ corresponds to
+$P$ receiving a message, and $e'$ corresponds to $P$ sending a
+message, then it is possible that the message in $e'$ contains
+information that was learned from $e$.
+
+Let us examine a simple application of causal ordering and why a FIFO
+model may violate it. Consider a na\"ively-designed text-messaging
+application used by three clients $P_1, P_2, P_3$. To post a message,
+a process simply sends the contents of that message to the other two
+members of the group. The obvious way to do this is to to send two
+messages, one to both other processes. (Note that we do not assume the
+ability to send one network message to multiple recipients at once,
+since that sort of multicast mechanism is essentially what we are
+trying to implement.) For example, perhaps $P_1$ posts a question ``Is
+the house at the end of the street occupied?'' $P_2$ responds to this
+question in the affirmative. Figure \ref{fig:message-latencies3}
+depicts a possible diagram showing these four messages (two messages
+each for the question and the answer). The diagram vaccuously
+satisfies FIFO because all four message send events have a distinct
+sender-receiver pair (recall that FIFO requires distinct messages with
+the same sender-receiver combination to arrive in the order they were
+sent in). However, $P_3$ witnesses $P_2$'s answer to $P_1$'s question
+before seeing the question posed by $P_1$ in the first place. In this
+simple example, $P_3$ may be able to infer what is meant, but clearly
+in a more complex example with potentially hundreds of clients, the
+potential for inconsistency and serious confusion is great when causal
+ordering is violated. Some mechanism for tracking causal precedence is
+clearly needed.
+
+At first it may appear that we can avoid the scenario described above
+by attaching to each event a \emph{timestamp} tracking when the event
+occurred---this would seemingly allow $P_3$ to infer that the message
+sent by $P_1$ logically precedes $P_2$'s response. Let us see why this
+fails. For each event $e$, let $C(e)$ denote the timestamp attached to
+that event. The fundamental \emph{monotonicity property} we want to
+satisfy is the following:
+
+\[ \textrm{for all events $e$ and $e'$, } e \to e' \implies C(e) < C(e') \label{eq:mp}\tag{MP} \]
+
+\ref{eq:mp} requires that if $e$ causally precedes $e'$, then $e$
+should have a lesser timestamp. In our example, with
+$m_1^\textrm{send} \to m_4^\textrm{send}$, it would have to be the
+case that $C(m_1^\textrm{send}) < C(m_4^\textrm{send})$. The problem
+is that this cannot be guaranteed unless $P_1$ and $P_2$ have
+synchronized clocks, and a hallmark of distributed systems is we
+cannot make this sort of assumption (as stated in the quote at the
+beginning of this section).  Physical clocks suffer from drift, which
+is to say they do not all run at the same physical rate. They are also
+quite prone to misconfiguration, say if a device administrator sets
+the time or date incorrectly, and they require an always-on battery to
+track time when the device is powered off, say when sitting in a
+storage. While in some cases one may assume access to clocks that are
+only approximately synchronized, perhaps by employing special-purpose
+protocols like NTP (CITE), in general we cannot assume access to
+physical clocks that are so precise as to fundamentally solve the
+problems discussed in this section. It is also not the case that
+merely timestamping messages is enough to answer every question we
+could ask about causal precedence. For example, it is especially
+desirable if we can assume the \emph{strong clock consistency
+condition}:
+\[ \textrm{for all events $e$ and $e'$, } e \to e' \iff C(e) < C(e') \label{eq:sc}\tag{SC} \]
+That is, \ref{eq:sc} strengthens \ref{eq:mp} by requiring that we can
+always compare two timestamps to infer whether the events are causally
+related. This property cannot hold even with synchronized clocks, as
+events need not be causally related even if one physically precedes
+the other. For instance, in Figure \ref{fig:message-latencies2},
+$P_3$'s message $m_1$ is sent before any other messages, but
+$m_1^\textrm{send}$ does not causally precede any event except
+$m_1^\textrm{recv}$. To solve these sorts of problems, we turn our
+attention to \emph{logical} clocks.
+
+\subsubsection{Logical clocks}
+Distributed applications can systematically keep track of causal
+precedence by employing a system of logical clocks, which typically
+measure logical (non-physical) time in terms of integers or sets of
+integers. Each device maintains a logical clock that is advanced
+according to certain rules. Three major kinds of ``logical clocks''
+are commonly considered: scalar clocks, vector clocks, and matrix
+clocks. Scalar clocks are extremely simple but provide the most
+coarse-grained information, while matrix clocks require storage space
+quadratic in the number of processes but provide extremely precise
+information about causality; vector clocks fall somewhere in the
+middle. We provide a brief description of each paradigm, with the
+obligatory note that variants of these schemes also exist.
+
+\paragraph{Scalar clocks}
+Scalar clocks, also called Lamport clocks after their inventor (CITE),
+require each process $P_i$ to maintain a single scalar value $C_i$, a
+non-negative integer, which we assume is initialized two $1$. There
+are two update rules:
+
+\begin{enumerate}
+\item When a message is sent, $C_i$ is updated according to the rule
+  \[C_i := C_i + 1.\]
+  This new value is the timestamp attached to the message.
+\item When a message is received with timestamp $C$, $C_i$ is updated according to
+  \[C_i := \max(C, C_i) + 1.\]
+  This new value is the timestamp attached to the message receive event.
+\end{enumerate}
+
+Figures (REF--REF) depict Figures (REF--REF), respectively, this time
+showing the scalar timestamp that would be assigned to each event.
+
+It is not hard to see that scalar clocks satisfy the monotonicity
+property \ref{eq:mp}. Examining Figures \ref{fig:message-latencies2}
+and \ref{fig:message-latencies2-scalar}, we see that $P_3$ could
+examine timestamps to determine that $C(m_1^\textrm{send})$ (the
+timestamp sent with $m_1$, value $1$) is less than
+$C(m_b4^\textrm{send})$ (value $5$). Therefore the application should
+make it clear to the client to $m_1$ logically precedes the response
+from $P_2$, even if it arrives later, resolving the original problem.
+
+However, scalar clocks do not satisfy the strong monotonicity
+condition. If a process sees two messages $m$ and $m'$ sent by $P$ and
+$P'$, respectively, we cannot examine timestamps to infer whether $P'$
+message contents could have been causally influenced by the contents
+of $m$. For example, examining Figures \ref{fig:message-latencies3}
+and \ref{fig:message-latencies3-scalar}, we see that
+$C(m_1^\textrm{send})$ has a globally minimal timestamp value of
+$1$. However, $m_1$ does not logically precede any other message. For
+this fine-grained information we must use vector clocks.
+
+{
+ \setlength\belowcaptionskip{-3ex}
+\begin{figure}[p]
+  \centering \input{images/pgf/messagePassingExScalar.pgf}
+  \caption{Scalar clocks for Figure \ref{fig:message-latencies}}
+  \label{fig:message-latencies-scalar}
+\end{figure}
+
+\begin{figure}[p]
+  \centering \input{images/pgf/messagePassingExScalar2.pgf}
+  \caption{Scalar clocks for Figure \ref{fig:message-latencies2}}
+  \label{fig:message-latencies2-scalar}
+\end{figure}
+
+\begin{figure}[p]
+  \centering \input{images/pgf/messagePassingExScalar3.pgf}
+  \caption{Scalar clocks for Figure \ref{fig:message-latencies3}}
+  \label{fig:message-latencies3-scalar}
+\end{figure}
+\afterpage{\clearpage}
+}
+
+\paragraph{Vector clocks}
+\newcommand{\vt}{\textrm{vt}}
+Vector clocks require each process to store a scalar value for each
+process in the system. That is, given a set of $N$ processes, $P_i$
+maintains a vector $\vt_i[1 \ldots N]$ of non-negative
+integers, with all values initialized to $\vt_i[x] = 1$. As
+with scalar clocks there are two update rules:
+
+\begin{enumerate}
+\item When a message is sent, $\vt_i$ is updated according to the rule
+  \[\vt_i[i] := \vt_i[i] + 1.\]
+  The entire (updated) vector $\vt_i$ is attached to the message.
+\item When a message is received with timestamp $\vt$, $\vt_i$ is updated according to
+  \[\vt_i[x] := \max(\vt[x], \vt_i[x]) \quad \textrm{for all $x = 1\ldots N$}.\]
+  Then $P_i$ advances its own local time according to the rule
+  \[ \vt_i[i] := \vt_i[i] + 1\]
+  This new vector is the timestamp attached to the message receive event.
+\end{enumerate}
+
+A process $P_i'$ vector clock can be concisely described as an
+ordinary scalar clock $\vt_i[i]$ combined with, for all $j \neq i$, a
+\emph{lower bound estimate} $\vt_i[j]$ of the local scalar clock
+$\vt_j[j]$ of process $P_j$.
+
+Figures (REF--REF) depict Figures (REF--REF), respectively, this time
+showing the vector timestamp that would be assigned to each event.
+
+Let us see an example of where the extra information provided by
+vector clocks is useful.
 
 \begin{itemize}
-  \item Difficulty of synchronization
-  \item The ``happens before'' relation
-  \item Lamport and vector clocks
+\item Is the structure occupied?
+\item There are still two people trapped on the second floor.
+\item We already sent a team in and they determined it was empty.
 \end{itemize}
 
+The order of the last two messages is important.
+
+\paragraph{Matrix clocks}
+
+Matrix clocks are to vector clocks what vector clocks are to scalar
+clocks. That is, a matrix clock is a vector clock combined with a
+lower bound estimate of every other process's vector clock.
+
+It is worth highlighting the fact that matrix clocks are used to keep
+track of (a lower bound estimate of) what other processes know about
+the global state of the system. In Section \ref{sec:background}, we
+explained that distributed systems fundamentally involve epistemic
+logic, i.e. reasoning about not just what is true but what is
+known. In Section \ref{sec:continuous-consistency} we will see an
+example where this sort of lower bound estimate of other process's
+clocks is important for distributed database replication.
 
 \subsection{Shared Memory}
 
 A fundamental distributed application is the \emph{shared distributed
-memory} abstraction. We shall assume that all processes maintain a local
-replica of a globally shared data object, as replication increases
-system fault tolerance. For simplicitly, we shall discuss the data store
-as a simple key-value store, but it could be something else like a
-database, filesystem, persistent object, etc.
+memory} abstraction. We shall assume that all processes maintain a
+local replica of a globally shared data object, as replication
+increases system fault tolerance. For simplicitly, we shall discuss
+the data store as a simple key-value store, but it could be something
+else like a database, filesystem, persistent object, etc.
 
 \subsubsection{Client-server model}
 \label{ssec:client-server-model}
