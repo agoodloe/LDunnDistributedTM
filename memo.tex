@@ -551,6 +551,133 @@ operating today over traditional radio channels.
 
 \subsection{Towards the Future}\label{towards-the-future}
 
+So far we have said a lot about the state of disaster response
+today. A distributed system for this sort of challenge should be
+designed for the kinds of environment and conditions expected in the
+near- to medium-term future, so we briefly turn our attention to some
+of our expectation for this topic.
+
+Perhaps the most prominent expectation for future disaster response
+events is a heavy reliance on \emph{data}. Agents in disaster response
+environments will be both producers and consumers of data, and this
+data will need to processed for agents to make informed decisions.
+Besides improvements to digital communications that facilitate
+information sharing, we also expect advances in machine intelligence
+to greatly influence how future crises are handled. Our background
+research indicated many different kinds of data that could be valuable
+for responders. Just some of the kinds of information and
+communication we expect include the following:
+\begin{itemize}
+  \tightlist
+\item
+  Free-form communication, especially recorded voice messages to be
+  broadcast to many agents at once, which may need to be processed by
+  machines to extract the most pertinent information into a more
+  actionable format
+\item
+  The exact or estimated location of victims, firefighters, vehicles,
+  hazards, etc
+\item
+  Medical information gather from victims, perhaps collected from
+  digital triage tags\citationneeded
+\item
+  Data about current and predicted fire or weather patterns
+\item
+  Topographic information about the terrain, highlighting for instance
+  the location of rivers and roads that could form a fire control line
+\item
+  Planned escape routes, rendezvous points, safety zones, and landing
+  zones
+\item
+  Availability and dispatching of resources, e.g.~ambulances,
+  airtankers, or crews on standby
+\end{itemize}
+In a perfect environment, such information would be shared with all
+necessary agents in whole and instantly. In reality, agents will be
+presented with information that is sometimes incomplete, out of date,
+or contradictory---all problems that are further exacerbated by an
+unreliable network. A superficially contradictory concern is that the
+information presented will be \emph{overcomplete}, distracting agents
+from their important tasks. Of course, there is no actual
+contradiction between incomplete information and information that is
+unneeded and useless at best.
+
+In some ways, future systems for disaster response will bear
+resemblence to future systems for warfighting, such as the conceptual
+\emph{Internet of Battle Things} (IoBT) \citationneeded. Chiefly,
+agents ``under extreme cognitive and physical stress'' will be subject
+to a highly dynamic and dangerous environment; while various kinds of
+technology will assist humans by providing data to support
+sensemaking, a contraindicating concern will be flooding agents with a
+``massive, complex, confusing, and potentially
+deceptive\footnote{While deliberately adversarial network behavior
+seems like less of a concern for disaster response agents than
+warfighters, we conjecture that the metaphorical ``fog of war'' may
+lead to confusing or contradictory reports that share similarities
+with intentionally deceptive behavior.} ocean of information.'' To
+avoid ``swimming in sensors and drowning in data''
+\cite{2010:magnuson}:
+\begin{quote}
+``Humans seek well-formed, reasonably-sized, essential information
+  that is highly relevant to their cognitive needs, such as effective
+  indications and warnings that pertain to their current situation and
+  mission.'' \citationneeded
+\end{quote}
+We also note that the most distinctive feature of the internet of
+battle things---that which separates it from the everyday internet of
+things---is ``the adversarial nature of the environment.'' To some
+extent this adversial behavior is common also to disaster response. We
+previously cited a real-world example of a critical communications
+station destroyed by wildfire, perhaps not entirely unlike an attack
+by enemy forces.
+
+Lest we overstate the similarities between a battlefield environment
+and a civil disaster response environment, we expect that a
+distinctive feature of the latter is a greater need to preserve scarce
+network resources. More so than a tactical military unit, a group of
+(say) volunteer firefighters has to make do with off-the-shelf
+equipment rather than purpose-built, ``best in class'' hardware such
+like sophisticated satellite links. Dedicated logistical support, and
+even things like dedicated radio channels, will likely be in shorter
+supply, while adverse conditions like inclement weather will almost
+guaranteed. Therefore we expect a complex interaction between the
+high-level needs of distributed applications and the low-level
+concerns of the network. This is because only the applications have
+enough information to determine what data is important and must shared
+with whom, while only the network-level systems have enough
+information to make prudent use of scarce network resources. In
+contrast to the common wisdom that applications should be relatively
+blind to network considerations---or conversely that network protocols
+ought to be transparent to applications---our setting calls for
+mechanisms allowing the two layers to have some influence over each
+other. This interaction between the network and applications will be
+considered in more detail in Sections
+\ref{sec:networking}--\ref{sec:data-fusion}.
+
+To give an example, a central data fusion center may be used to detect
+and alert responders to a fire that has accidentally moved beyond a
+control line (known as \emph{slopover}), or it may warn firefighters
+when they have strayed too far from an escape route or safety
+zone. Such information would be of high importance, and it would be
+worthwhile to expend network resources conveying this information to
+the relevant parties. On the other hand, a firefighter may not need
+the minute GPS position of every other firefighter in the field:
+perhaps the exact location of teammates is called for, but only the
+general location of other crews is necessary. However, from where we
+stand, we cannot give a blanket rule determining which information is
+important, as this is partly a function of how much unused network
+capacity is available. If the network is extremely strained, perhaps
+only information immediately relevant to preserving life should be
+sent, in order to ensure the network is able to deliver this
+information quickly.
+
+%For developers, it is clear that this requires some coordination
+%between the application and the networking layers, as the latter must
+%be given enough information to make the most prudent use of limited
+%resources.
+
+\subsubsection{Existing works}
+
 \begin{itemize}
   \tightlist
 \item
@@ -559,54 +686,6 @@ operating today over traditional radio channels.
   Talk about other applications
 \end{itemize}
 
-Taking a broader view, agents in disaster response environments will
-often be both producers and consumers of data, and this data will need
-to processed for agents to make informed decisions. Our background
-research indicated many different kinds of data that could be valuable
-for responders. To give just a glimpse:
-
-\begin{itemize}
-  \tightlist
-\item
-  Free-form communication, especially recorded voice messages to be
-  broadcast to many firefighters at once.
-\item
-  The exact or estimated location of firefighters, vehicles, victims,
-  hazards, etc.
-\item
-  Medical information, perhaps collected from digital triage tags (CITE)
-\item
-  Data about current and predicted fire or weather patterns
-\item
-  Topographic information about the terrain, highlighting for instance
-  the location of rivers and roads that could form a fire control line
-\item
-  Planned escape routes, safety zones, and landing zones
-\item
-  Availability and dispatching of resources, e.g.~ambulances,
-  airtankers, or crews on standby
-\end{itemize}
-
-In a perfect environment, such information would be shared with all
-necessary agents in whole and instantly. In reality, agents will be
-presented with information that is sometimes incomplete, out of date, or
-contradictory---all problems that are further exacerbated by an
-unreliable network.
-
-For instance, a central data fusion center may be used to detect and
-alert responders to a fire that has accidentally moved beyond a control
-line (known as \emph{slopover}). Such information would be of high
-importance, and it would be worthwhile to expend network resources
-conveying this information to the relevant parties. On the other hand, a
-firefighter may not need the minute GPS position of every other
-firefighter in the field: perhaps the exact location of teammates, and
-the general location of other crews.
-
-Warn firefighters when they are too far from an escape route or safety zone.
-
-For developers, it is clear that this requires some coordination between
-the application and the networking layers, as the latter must be given
-enough information to make the most prudent use of limited resources.
 
 \section{Introduction to Distributed Systems}
 \label{sec:background}
