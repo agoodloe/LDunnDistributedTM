@@ -265,11 +265,11 @@ infrastructure.  Another example, which is true tautologically, is
 that a communications network is the most congested, and therefore the
 least available, precisely when everyone needs to use it. Both of
 these phenomena were famously exhibited in the immediate aftermath of
-the September $11^\textrm{th}$ terrorist attacks, where the sudden
-user demand and severed trunk cables brought New York public cell
-phone networks virtually to a halt \cite{2011:Reardon}. Other networks
-along the East Coast, as well as dedicated networks for first
-responders, experienced similar effects.
+the September $11^\textrm{th}$ terrorist attacks when sudden user
+demand and severed trunk cables brought New York public cell phone
+networks virtually to a halt \cite{2011:Reardon}. Other networks along
+the East Coast, as well as dedicated networks for first responders,
+experienced similar effects.
 
 From a systems perspective, an unreliable network presents a challenge
 for coordinating distributed agents. A root cause of this problem is
@@ -294,7 +294,7 @@ system.
 
 Many complications in the field are exacerbated by a poor
 communications environment. In this setting, agents must choose
-between long delays in sending or receiving information, or acting
+between long delays in sending and receiving information or acting
 with only limited knowledge. Typically they will experience some
 amount of both. Both options present safety challenges because
 operational safety, by nature, requires agents to gather information
@@ -552,9 +552,9 @@ station:
   So it was kind of a critical job to get that road cleared so that the
   radio crews could go back up there and set up a temporary radio tower.''
 \end{quote}
-This kind of scenario, one where communication between two groups is
-completely severed, is exactly the sort of thing considered by the CAP
-theorem in Section \ref{sec:background}.
+A scenario where communication between two groups is completely
+severed is exactly the sort of thing considered by the CAP theorem in
+Section \ref{sec:background}.
 
 \paragraph{Vehicles on the ground}
 Large numbers of ground vehicles are involved in wildfire
@@ -592,13 +592,14 @@ by themselves.
 
 As aircraft generally have better line-of-site to ground crews than
 ground crews have to each other, firefighters sometimes relay messages
-to air-based units over radio, which in turn is relayed back down to
-other ground units. The locality principle comes into play here too,
-but this time in the reverse direction: this relay scheme allows
-knowledge to travel farther, but the extended reach comes at the cost
-of introducing delays and possible degradation of message quality, as
-in the classic game of telephone. Hence, this sort of message-passing
-should be reserved for more critical information.
+to air-based units over the radio, which in turn is relayed back down
+to other ground units. The locality principle comes into play here
+too, but this time in the reverse direction: this relay scheme allows
+knowledge to travel farther but requires more effort, and the extended
+reach comes at the cost of introducing delays and possible degradation
+of message quality, as in the classic game of telephone. Hence, this
+sort of message-passing should be reserved for more critical
+information.
 
 In some cases, planes from the Civil Air
 Patrol\citationneeded\footnote{A civil auxiliary of the U.S. Air
@@ -676,13 +677,13 @@ In some ways, future systems for disaster response will bear
 resemblence to future systems for warfighting, such as the conceptual
 \emph{Internet of Battle Things} (IoBT) \citationneeded. Chiefly,
 agents ``under extreme cognitive and physical stress'' will be subject
-to a highly dynamic and dangerous environment; while various kinds of
+to a highly dynamic and dangerous environment. Various kinds of
 technology will assist humans by providing data to support
-sensemaking, a contraindicating concern will be flooding agents with a
+sensemaking, but a contraindicating concern will be flooding agents with a
 ``massive, complex, confusing, and potentially
 deceptive\footnote{While deliberately adversarial network behavior
 seems like less of a concern for disaster response agents than
-warfighters, we conjecture that the metaphorical ``fog of war'' may
+warfighters, we conjecture that a similar ``fog of war'' may
 lead to confusing or contradictory reports that share similarities
 with intentionally deceptive behavior.} ocean of information.'' To
 avoid ``swimming in sensors and drowning in data''
@@ -708,21 +709,22 @@ network resources. More so than a tactical military unit, a group of
 (say) volunteer firefighters has to make do with off-the-shelf
 equipment rather than purpose-built, best in class hardware like
 sophisticated satellite links. Dedicated logistical support, and even
-things like dedicated radio spectrums, will likely be in shorter
+things like dedicated radio frequencies, will likely be in shorter
 supply, while adverse conditions like inclement weather will be almost
 guaranteed. Therefore we expect a complex interaction between the
-high-level needs of distributed applications and the low-level
-concerns about network resources. This is because only the
-applications have enough information to determine which data is the
-most important and must shared with whom first, while only the
-network-level protocols have enough information and control to make
-prudent use of scarce network resources. In contrast to the common
-wisdom that applications should be relatively blind to network
-considerations---or conversely that network protocols ought to be
-transparent to applications---our setting calls for mechanisms
-allowing the two layers to have some influence over each other. This
-interaction between the network and applications will be considered in
-more detail in Sections \ref{sec:networking}--\ref{sec:data-fusion}.
+high-level needs of distributed applications and low-level concerns
+about network resources. This is because only the applications have
+enough information to determine which data is the most important and
+must be shared with whom first, while only the network-level protocols
+have enough information and control to make prudent use of scarce
+network availability. In contravention to the common wisdom that
+applications should be relatively blind to network considerations---or
+conversely that network protocols ought to be transparent to
+applications---our setting calls for mechanisms allowing the two
+layers to have some influence over each other. This interaction
+between the network and applications will be considered in more detail
+in Sections \ref{sec:networking}, \ref{sec:continuous-consistency},
+and \ref{sec:data-fusion}.
 
 To give an example, a central data fusion center may be used to detect
 and alert responders to a fire that has accidentally moved beyond a
@@ -731,17 +733,17 @@ when they have strayed too far from an escape route or safety
 zone. Such information would be of high importance, and it would be
 worthwhile to expend network resources conveying this information to
 the relevant parties. It might also be nice for firefighters to have
-real-time information about the GPS location of every other
-firefighters. However, if this strains the network, then perhaps the
-exact location of teammates is called for, while only the general
-location of other crews is necessary. If the network is extremely
-constrained, perhaps only information immediately relevant to
-preserving life should be sent, in order to ensure the network is able
-to deliver this information quickly. The key point is that from where
-we stand, we cannot give a blanket rule determining which information
-is important, as this is partly a dynamic function influenced both by
-the criticality of the information to the task at hand and how much
-unused network capacity is available at that moment.
+access to real-time information about the GPS location of every other
+firefighter. However, if this strains the network, then perhaps the
+exact location of teammates, but only the general location of other
+crews, is called for. If the network is extremely constrained, perhaps
+only information immediately relevant to preserving life should be
+sent in order to ensure the network is able to deliver this
+information quickly. The key point is that from where we stand, we
+cannot give a blanket rule determining which information is important,
+as this is partly a dynamic calculation influenced both by the
+criticality of the information to the task at hand and how much unused
+network capacity is available at that moment at that location.
 
 %For developers, it is clear that this requires some coordination
 %between the application and the networking layers, as the latter must
