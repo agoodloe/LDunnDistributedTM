@@ -765,9 +765,9 @@ disaster response agents. The components of our system could be
 computers, smartphones, sensors, or other kinds of communication
 equipment, which may be carried by individuals, mounted to ground or
 air-based vehicles, deployed as temporary or permanent infrastructure,
-or even autonomous. The kinds of tasks our system might handle include
-navigating safely in close proximity, delivering resources to remote
-locations, suppressing fires, and collecting, processing, and
+or even autonomous devices. The kinds of tasks our system might handle
+include navigating safely in close proximity, delivering resources to
+remote locations, suppressing fires, and collecting, processing, and
 disseminating data about the environment.
 
 \subsection{Message Passing}
@@ -905,24 +905,22 @@ potential for events to influence each other in reality; a key problem
 for distributed systems is that the network latencies mean events with
 a causal relation may appear to happen in an illogical order. Tracking
 causality is such a key issue that we devote some space to considering
-it. We start by defining the causal precedence relation for events,
-also known as the ``happens before'' relation, after giving an
-auxiliary definition.
+it, starting with the definition of the causal precedence relation.
 
 \begin{definition}
   For two events $e$ and $e'$ that both occur in process $P_i$, we
-  write $e \leq_{P_i} e'$ if $e$ occurs before $e'$ in $P_i$'s
+  write $e <_{P_i} e'$ if $e$ occurs before $e'$ in $P_i$'s
   worldline.
 \end{definition}
 The previous definition is unambiguous, as we assume events occur at
 discrete, non-overlapping moments at each process. Less clear is how
 to order events that occur on different processes.
 
-\begin{definition}[Causal ordering]
+\begin{definition}[Causal precedence]
   We define a binary relation $\to$ on the set of events as follows:
-  \[e \to e' \iff \begin{cases} e \leq_{P_i} e' \textrm{ for some process $P_i$} \\
+  \[e \to e' \iff \begin{cases} e <_{P_i} e' \textrm{ for some process $P_i$} \\
     e = m_i^\textrm{send} \textrm{ and } e' = m_i^\textrm{recv} \\
-    \exists e'' \textrm{ such that } e \to e'' \textrm{ and } e'' \to e
+    \exists e'' \textrm{ such that } e \to e'' \textrm{ and } e'' \to e'
   \end{cases}
   \]
   If $e \to e'$, we say $e$ has \emph{causal precedence over} or
@@ -934,7 +932,7 @@ and $e$ literally occurs before $e'$. It may also be $e$ is a message
 send event and $e'$ is the corresponding message receive
 event. Finally, it could be that $e$ has causal precedence over some
 intermediate event $e''$ that has precedence over $e'$, i.e. we
-consider the \emph{transitive closure} of the previous two conditions.
+consider the transitive closure of the previous two conditions.
 
 Informally, $e \to e'$ holds whenever one can put a finger on an event
 $e$ in the time diagram and, finger held down, trace a path to $e'$
@@ -952,37 +950,40 @@ in reality but, from a user's perspective, it seems that $e'$ actually
 occured before $e$. We define this formally before seeing an example.
 
 \begin{definition}(Causally consistent execution)
-  A time diagram is \emph{causally consistent} if the following
-  property holds: for all two messages $m$ and $n$ sent to the same
-  destination, if $m^\textrm{send} \to n^\textrm{send}$, then
-  $m^\textrm{recv} \to n^\textrm{recv}$.
+  A time diagram is \emph{causally consistent}, or satisfies the
+  causal ordering (CO) assumption, if the following property holds:
+  for all two messages $m$ and $n$ sent to the same destination, if
+  $m^\textrm{send} \to n^\textrm{send}$, then $m^\textrm{recv} \to
+  n^\textrm{recv}$.
 \end{definition}
 
 Let us examine a simple application of causal ordering and why a FIFO
-model may violate it. Consider a na\"ively-designed text-messaging
-application used by three clients $P_1, P_2, P_3$. To post a message,
-a process simply sends the contents of that message to the other two
-members of the group, as shown in Figure
-\ref{fig:message-latencies3}. Note that in this example we allow
-messages to multiple recipients, which in reality this might be
-implemented as a pair of distinct messages. What we \emph{do not}
-assume is that the recipients receive the message at the same time,
-since this illusion is precisely what we are trying to implement. In
-the figure, perhaps $P_1$ posts a question ``Is the house at the end
-of the street occupied?,'' while $P_2$ responds to this question in
-the affirmative, and $P_3$ merely listens. Figure
+model may violate it. Consider a simple group messaging application
+used by three clients $P_1, P_2, P_3$. To post a message, a process
+simply sends the contents of that message to the other two members of
+the group, as shown in Figure \ref{fig:message-latencies3}. Note that
+in this example we allow messages to multiple recipients, which in
+reality this might be implemented as a pair of distinct messages. What
+we \emph{do not} assume is that the recipients receive the message at
+the same time, since this illusion is precisely what we are trying to
+implement. In the figure, perhaps $P_1$ posts a question ``Is the
+house at the end of the street occupied?,'' while $P_2$ responds to
+this question in the affirmative, and $P_3$ merely listens. Figure
 \ref{fig:message-latencies3} vaccuously satisfies FIFO because all
 four arrows have a distinct (sender, receiver) pair. However, $P_3$
 witnesses $P_2$'s answer to $P_1$'s question before seeing the
 question posed by $P_1$ in the first place. This is a violation of
-causal order because the send $P_2$'s
+causal order because the send event of $P_1$'s message has causal
+precedence over $P_2$'s message, while the receive event of $P_2$'s
+message at $P_3$ has causal precedence over the receive event of
+$P_1$'s message at $P_3$.
 
-In this simple example, $P_3$ may be able to infer what is meant, but
-clearly this reliance on human intelligence will not suffice
-systematically. In a more complex example with potentially dozens or
-hundreds of clients, the potential for serious confusion is
-great. Some mechanism for tracking causal precedence is clearly
-needed.
+In this simple example, $P_3$ may be able to resolve the ambiguity
+from context, but clearly this reliance on human intelligence will not
+suffice systematically. In a more complex example with potentially
+dozens or hundreds of clients, the potential for serious confusion is
+great if the system cannot enforce causal order. Mechanisms for
+tracking causal precedence are clearly needed.
 
 \subsection{Logical clocks}
 At first it may appear that we can avoid the scenario described above
@@ -1011,11 +1012,12 @@ storage. While in some cases one may assume access to clocks that are
 only approximately synchronized, perhaps by employing special-purpose
 protocols like NTP\citationneeded, in general we cannot assume access
 to physical clocks that are so precise as to fundamentally solve the
-problems discussed in this section. It is also not the case that
-merely timestamping messages is enough to answer every question we
-could ask about causal precedence. For example, it is especially
-desirable if we can assume the \emph{strong clock consistency
-condition}:
+problems discussed in this section.
+
+It is also not the case that merely timestamping messages is enough to
+answer every question we could ask about causal precedence. For
+example, it is especially desirable if we can assume the \emph{strong
+clock consistency condition}:
 \[ \textrm{for all events $e$ and $e'$, } e \to e' \iff C(e) < C(e') \label{eq:sc}\tag{SC} \]
 That is, \ref{eq:sc} strengthens \ref{eq:mp} by requiring that we can
 always compare two timestamps to infer whether the events are causally
@@ -1042,7 +1044,7 @@ middle. We provide a brief description of each paradigm.
 Scalar clocks, also called Lamport clocks after their
 inventor\citationneeded, require each process $P_i$ to maintain a
 single scalar value $C_i$, a non-negative integer, which we assume is
-initialized to $1$. There are two update rules:
+initialized to $0$. There are two update rules:
 
 \begin{enumerate}
 \item When a message is sent, $C_i$ is updated according to the rule
@@ -1064,19 +1066,22 @@ property \ref{eq:mp}. Examining Figures \ref{fig:message-latencies2}
 and \ref{fig:message-latencies2-scalar}, we see that $P_3$ could
 compare timestamps to determine that $C(m_1^\textrm{send})$ (the
 timestamp sent with $m_1$, value $1$) is less than
-$C(m_b4^\textrm{send})$ (value $5$). Therefore the application should
-make it clear to the client to $m_1$ logically precedes the response
-from $P_2$, even if it arrives later.
+$C(m_4^\textrm{send})$ (value $5$). By itself, this fact does not
+quite imply that $P_2$'s message was causally influenced by $P_1$'s
+message, but at least it implies that $P_2$'s answer could not have
+causally preceded $P_1$'s question. It does still leave open the
+possibility that the two messages are causally unrelated, which is one
+reason to consider using vector clocks instead.
 
-However, scalar clocks do not satisfy the strong monotonicity
-condition. If a process sees two messages $m$ and $m'$ sent by $P$ and
-$P'$, respectively, we cannot examine timestamps to infer whether $P'$
-message contents could have been causally influenced by the contents
-of $m$. For example, examining Figures \ref{fig:message-latencies3}
-and \ref{fig:message-latencies3-scalar}, we see that
+The reason scalar clocks do not provide much information is that they
+do not satisfy the strong monotonicity condition. For example,
+examining Figures \ref{fig:message-latencies3} and
+\ref{fig:message-latencies3-scalar}, we see that
 $C(m_1^\textrm{send})$ has a globally minimal timestamp value of $1$,
-but $m_1$ does not causally precede any other message. For this
-fine-grained information we must use vector clocks.
+but $m_1$ does not causally precede any other message. The reason to
+consider vector clocks over scalar clocks is precisely that they can
+be used to unambiguously track whether either of two events had causal
+influence over the other.
 
 {
  \setlength\belowcaptionskip{-3ex}
@@ -1105,7 +1110,7 @@ fine-grained information we must use vector clocks.
 Vector clocks require each process to store a scalar value for each
 process in the system. That is, given a set of $N$ processes, $P_i$
 maintains a vector $\vt_i[1 \ldots N]$ of non-negative
-integers, with all values initialized to $\vt_i[x] = 1$. As
+integers, with all values initialized to $\vt_i[x] = 0$. As
 with scalar clocks there are two update rules:
 
 \begin{enumerate}
@@ -1122,27 +1127,33 @@ with scalar clocks there are two update rules:
 A process $P_i'$ vector clock can be concisely described as an
 ordinary scalar clock $\vt_i[i]$ combined with, for all $j \neq i$, a
 \emph{lower bound estimate} $\vt_i[j]$ of the local scalar clock
-$\vt_j[j]$ of process $P_j$.
+$\vt_j[j]$ of process $P_j$. Figures (REF--REF) depict Figures
+(REF--REF), respectively, this time showing the vector timestamp that
+would be assigned to each event.
 
-Figures (REF--REF) depict Figures (REF--REF), respectively, this time
-showing the vector timestamp that would be assigned to each event.
+Going back to our group-messaging example, $P_3$ can now be certain
+that $P_2$ received $P_1$'s question before responding in the
+affirmative.
 
-Let us see an example of where the extra information provided by
-vector clocks is useful.
+%Let us see an example of where the extra information provided by
+%vector clocks is useful.
 
-\begin{itemize}
-\item Is the structure occupied?
-\item There are still two people trapped on the second floor.
-\item We already sent a team in and they determined it was empty.
-\end{itemize}
+%\begin{itemize}
+%\item Is the structure occupied?
+%\item There are still two people trapped on the second floor.
+%\item We already sent a team in and they determined it was empty.
+%\end{itemize}
 
-The order of the last two messages is important.
+%The order of the last two messages is important.
 
 \subsubsection{Matrix clocks}
 
 Matrix clocks are to vector clocks what vector clocks are to scalar
 clocks. That is, a matrix clock is a vector clock combined with a
-lower bound estimate of every other process's vector clock.
+lower bound estimate of every other process's vector clock. The
+justification for matrix clocks is somewhat subtle, but we shall see a
+clear example in Section \ref{sec:continuous-consistency} of why
+tracking this extra information can prove useful.
 
 It is worth highlighting the fact that matrix clocks are used to keep
 track of (a lower bound estimate of) what other processes know about
