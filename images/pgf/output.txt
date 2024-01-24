@@ -1,0 +1,30 @@
+Up to date
+Up to date
+Up to date
+Up to date
+Up to date
+Up to date
+Up to date
+Up to date
+Up to date
+Up to date
+Up to date
+Up to date
+Build profile: -w ghc-9.0.2 -O1
+In order, the following will be built (use -v for more details):
+ - generator-0.1.0.0 (exe:generator) (file generator/Lib.hs changed)
+Preprocessing executable 'generator' for generator-0.1.0.0..
+Building executable 'generator' for generator-0.1.0.0..
+[4 of 6] Compiling Lib              ( generator/Lib.hs, /home/lawrence/academia/NASA/MemoArt/repo/dist-newstyle/build/x86_64-linux/ghc-9.0.2/generator-0.1.0.0/x/generator/build/generator/generator-tmp/Lib.o )
+Linking /home/lawrence/academia/NASA/MemoArt/repo/dist-newstyle/build/x86_64-linux/ghc-9.0.2/generator-0.1.0.0/x/generator/build/generator/generator ...
+Up to date
+Up to date
+Up to date
+Up to date
+Up to date
+Up to date
+Up to date
+Up to date
+Up to date
+Up to date
+Up to date
