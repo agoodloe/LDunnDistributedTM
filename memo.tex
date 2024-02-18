@@ -910,16 +910,18 @@ not part of the message and have no semantic importance.
 The fact that arrows are diagonal, rather than vertical, represents
 the inherent varying delay with which messages are sent. Because of
 this delay, two messages $m$ and $m'$ may arrive in a different order
-than they were sent in. This happens when message lines intersect, or
-when they \emph{would} intersect if extended indefinitely. Such is the
-case with messages $m_2$ and $m_4$ in \ref{fig:message-latencies-a},
-sent by $P_1$ respectively to $P_3$ and $P_2$. This diagram may depict
-a scenario where $P_1$ and $P_3$ are far apart and have a bad
-connection to each other, with $P_2$ having a relatively good
-connection to the others. \ref{fig:message-latencies-b} depicts an
-extreme example where message $m_1$ is sent before all others but is
-last to be delivered. This diagram may depict a scenario where $P_2$
-has moved closer to $P_1$, while $P_3$ has moved further away.
+than they were sent in.
+%This happens when message lines intersect, or when they \emph{would}
+%intersect if extended indefinitely. (NOTE: THIS IS TOTALLY FALSE.)
+Such is the case with messages $m_2$ and $m_4$ in
+\ref{fig:message-latencies-a}, sent by $P_1$ respectively to $P_3$ and
+$P_2$. This diagram may depict a scenario where $P_1$ and $P_3$ are
+far apart and have a bad connection to each other, with $P_2$ having a
+relatively good connection to the
+others. \ref{fig:message-latencies-b} depicts an extreme example where
+message $m_1$ is sent before all others but is last to be
+delivered. This diagram may depict a scenario where $P_2$ has moved
+closer to $P_1$, while $P_3$ has moved further away.
 
 We assume just one exception to the fact that messages can arrive out
 of order. At this level of abstraction it is reasonable to suppose
