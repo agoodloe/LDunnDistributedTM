@@ -37,7 +37,7 @@
 
 % Globally redefine pgfpicture to use \Large fonts
 \let\origpgfpicture=\pgfpicture
-\def\pgfpicture{\origpgfpicture\Large}
+\def\pgfpicture{\origpgfpicture\LARGE}
 
 % Try loading this package to prevent so much hyphenation
 % as recommended by https://stackoverflow.com/questions/1609837/latex-breaking-up-too-many-words
@@ -791,8 +791,8 @@ message passing framework, the fundamental activity is sending and
 receiving information over the network. Alternatively, the fundamental
 activity of the shared memory framework is collaboratively updating
 data items shared by multiple agents. In either case, a chief concern
-is to shield users from the complex reality of the underlying system
-and ``{[}appear{]} to the users of the system as a single coherent
+is to shield users from the complexity of the underlying system and
+``{[}appear{]} to the users of the system as a single coherent
 computer'' \cite{TanenbaumSteen07}, when it is really a distributed
 collection of loosely coupled devices. The main obstacle to this goal
 is that the network connecting the devices causes messages to be
@@ -924,12 +924,13 @@ delay, two messages $m$ and $m'$ may arrive in a different order than
 they were sent in. In Figure \ref{fig:message-latencies-a}, $P_1$
 sends messages $m_2$ and $m_4$ respectively to $P_3$ and $P_2$, in
 that order, but the message to $P_2$ arrives first. This may depict a
-scenario where $P_1$ and $P_3$ are far apart and have a bad connection
-to each other. \ref{fig:message-latencies-b} depicts an extreme
-example where message $m_1$ is sent before all others but is last to
-be delivered. This diagram may depict a scenario where $P_2$ has an
-even better connection $P_1$, while $P_3$'s connection has gotten
-worse, perhaps because the nodes are moving around the environment.
+scenario where $P_1$ and $P_3$ are far apart and have a higher-latency
+connection to each other. \ref{fig:message-latencies-b} depicts an
+extreme example where message $m_1$ is sent before all others but is
+last to be delivered. This diagram may depict a scenario where $P_2$
+has an even better connection $P_1$, while $P_3$'s connection has
+gotten worse, perhaps because the nodes are moving around the
+environment.
 
 We assume just one exception to the fact that messages can arrive out
 of order. As highlighted earlier, at this level of abstraction it is
@@ -1003,20 +1004,23 @@ information from $e$ potentially affected or could have influenced
 event $e'$. A general desideratum is to avoid a scenario where $e \to
 e'$ holds in reality but, from a process's or user's perspective, it
 seems that $e'$ actually occured before $e$. We define this formally
-before seeing an example.
+before considering an example.
 
-\begin{definition}(Causally consistent execution)
+\begin{definition}(Causally ordered delivery)
   \label{def:causalorder}
-  A time diagram is \emph{causally consistent}, or satisfies the
-  causal ordering (CO) assumption, if the following property holds:
+  A network satisfies the causally ordered (CO) delivery model if
+  messages are received in an order consistent with the causality
+  between send events. That is, the following property holds:
   \begin{quote}
   For all messages $m$ and $n$ with the same destination, if
   $m^\textrm{send} \to n^\textrm{send}$, then $m^\textrm{recv} \to
   n^\textrm{recv}$.
   \end{quote}
-  In mathematical terms, the function mapping send events to
-  corresponding receive events must be monotonic with respect to
-  causal precedence.
+  In mathematical terms, for each destination $P_\mathrm{dest}$, when
+  we consider the set of all messages sent from anywhere to
+  $P_\mathrm{dest}$, the function mapping send events to corresponding
+  receive events must be monotonic with respect to causal
+  precedence.
 \end{definition}
 
 For motivational purposes we consider a simple example. We slightly
@@ -1027,8 +1031,8 @@ messaging application used by three firefighters, shown in Figure
 \ref{fig:message-latencies-c}, though in reality the processes may be
 machines sending messages at orders of magnitude faster than a human
 conversation. To post a message, a process sends it to the other two
-members of the group. For reasons explained above, the recipients
-generally do not receive this message at the same time.
+members of the group. For reasons explained above, the two recipients
+generally do not receive the message at the same time.
 
 \begin{example}
   \label{exmpl:ambulancedispatch}
