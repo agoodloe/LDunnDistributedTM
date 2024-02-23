@@ -1489,9 +1489,17 @@ the memory management layer provides. As is typically the case,
 systems can differ in this respect because they make different
 tradeoffs between safety guarantees and performance.
 
+\begin{figure}
+    \centering
+    \input{images/pgf/smEx1NoEdges.pgf}
+    \caption{Time diagram for memory operations}
+    \label{fig:smEx1}
+\end{figure}
+
 \subsubsection{Shared memory time diagrams}
-Figures \ref{fig:smEx0} and \ref{fig:smEx1} depict time diagrams for
-the shared memory abstraction, not unlike the diagrams in Figure
+
+Figure \ref{fig:smEx1} depicts a time diagram for the shared memory
+abstraction, not unlike the diagrams in Figure
 \ref{fig:message-latencies} for message passing. Two kinds of
 operations are shown:
 \begin{description}
@@ -1529,19 +1537,18 @@ resort to some default behavior if no such write exists. This
 interpretation is unambiguous because we assume that operations
 running on a single process do not overlap in time, so it always makes
 sense to ask which of two events happened before the other.
-\begin{figure}[h]
-  \setlength\belowcaptionskip{0ex}
+\begin{figure}
   \input{images/pgf/smEx0.pgf}
   \caption{Memory operations on a single process}
   \label{fig:smEx0}
 \end{figure}
 
 \begin{example}
-    \label{exmpl:updatesoneprocess}
-Consider Figure \ref{fig:smEx0}, depicting just a single process. Since there is
-no ambiguity in the order of events, it is clear that this process
-should execute in the following order (read requests have been underlined with their results shown):
-\[ W(x, 0) \to W(y, 5) \to \underline{R(x, 0)} \to W(x, 3) \to \underline{R(y, 5)} \to \underline{R(x, 3)}. \]
+  \label{exmpl:updatesoneprocess}
+  Consider Figure \ref{fig:smEx0}, depicting just a single process. Since there is
+  no ambiguity in the order of events, it is clear that this process
+  should execute in the following order (read requests have been underlined with their results shown):
+  \[ W(x, 0) \to W(y, 5) \to \underline{R(x, 0)} \to W(x, 3) \to \underline{R(y, 5)} \to \underline{R(x, 3)}. \]
 \end{example}
 
 In the distributed context, the metaphorical wrench in the works is
@@ -1551,16 +1558,15 @@ compare events. Without such a comparison, the notion of ``most
 recent'' operation is ambiguous, which makes it difficult to say
 exactly how the memory requests should even be interpreted.
 
-\begin{figure}[h]
-  \setlength\belowcaptionskip{0ex}
+\begin{figure}
   \input{images/pgf/smEx2.pgf}
-  \caption{Concurrent updates by distributed nodes}
+  \caption{Concurrent updates by two processes}
   \label{fig:smEx2}
 \end{figure}
 
 \begin{example}
   \label{exmpl:concurrentupdates}
-  Examine Figure \ref{fig:smEx2}. Two writes are depicted that overlap
+  Consider Figure \ref{fig:smEx2}. Two writes are depicted that overlap
   in physical time, making it unclear whether $W(x,3)$ or $W(x,5)$
   should be considered as happening first. Thus, it is unclear whether
   the read request at process 1 will return 3 or 5.
@@ -1581,22 +1587,6 @@ which possibilities are allowed and which are prohibited, namely which
 values can be read under different conditions. A single program can
 behave differently depending on what memory model is offered by the
 shared memory layer.
-
-As before, it is tempting to imagine assigning a physical timestamp to
-reads and writes to establish an order among events, resolving the
-ambiguities above. However, we have seen that physical clocks are
-usually not so precisely sychronized as to allow meaningfully
-comparing timestamps from different nodes, so this is not a total
-solution.
-
-It also happens that, for performance reasons, memory models commonly
-allow distributed operations to have semantics that do not strictly
-conform to the physical order of events, made precise below in the
-form of ``external order.'' Indeed, below we show how sequential
-consistency (Definition \ref{def:sequentiallyconsistent}), one of two
-``strong'' models, allows for this possibility. Yet even this model
-imposes too many constraints to be workable for networking
-environments as unpredictable as ours.
 
 \begin{comment}
 A \emph{memory consistency model} formally constrains the allowable
@@ -1619,6 +1609,13 @@ kinds of systems we consider in this document.
 \subsubsection{Concurrency and External order}
 \label{sssec:externalorder}
 
+As before, it is tempting to imagine assigning a physical timestamp to
+reads and writes to establish an order among events, resolving the
+ambiguities above. However, we have seen that physical clocks are
+usually not so precisely sychronized as to allow meaningfully
+comparing timestamps from different nodes, so this is not a total
+solution.
+
 One fundamental relation in the DSM setting is \emph{external
 order}. Intuitively, it is the partial order that orders
 non-overlapping events by their physical times, but does not assign an
@@ -1640,42 +1637,37 @@ ordering to events whose executions overlap in physical time.
   irreflexive partial order called \emph{external order}.
 \end{definition}
 
-\begin{figure}[p]
-  \setlength\abovecaptionskip{5ex}
-  \setlength\belowcaptionskip{5ex}
+We assume processes handle operations one-at-a-time, so the events
+handled at any one process are totally ordered by external order---one
+event cannot start before another has finished. However, events by
+different process may overlap.
 
-  \begin{subfigure}{1\textwidth}
+For performance reasons, memory models commonly allow distributed
+operations to have semantics that do not strictly conform to external
+order. For instance, below we show how sequential consistency
+(Definition \ref{def:sequentiallyconsistent}), one of two ``strong''
+models, allows for this possibility. Yet even this model imposes too
+many constraints to be workable for networking environments as
+unpredictable as ours.
+
+\begin{figure}[h]
     \centering
-    \input{images/pgf/smEx1NoEdges.pgf}
-    \caption{Time diagram for memory operations}
-    \label{fig:external1}
-  \end{subfigure}
-
-  \begin{subfigure}{1\textwidth}
-    \centering \input{images/pgf/smEx1DAG.pgf}
-    \caption{The directed acyclic graph induced by external order.}
-    \label{fig:externalDAG}
-  \end{subfigure}
-
-  \caption{Shared memory time diagram}
-  \label{fig:external}
-\end{figure}
-
-\afterpage{\clearpage}
+    \input{images/pgf/smEx1DAG.pgf}
+    \caption{External order relation among operations in Figure \ref{fig:smEx1}}
+    \label{fig:smEx1DAG}
+  \end{figure}
 
 \begin{example}
-  Figure \ref{fig:external1} shows a time diagram involving three
-  processes.  Figure \ref{fig:externalDAG} depicts the external order
-  relation among the operations in the form of a directed acyclic
+  Figure \ref{fig:smEx1DAG} shows a time diagram involving three
+  processes depicts the external order relation among the operations
+  shown in Figure \ref{fig:smEx1} in the form of a directed acyclic
   graph (DAG).
 \end{example}
 
-We assume processes handle operations one-at-a-time, so the events
-handled at any one process are totally ordered by external order---one
-event cannot start before another has finished. If \(E1\) and \(E2\)
-are events at \emph{different} processes, they need not be comparable
-by external order, i.e.~neither \(E1.t < E2.s\) nor \(E2.t < E1.s\),
-making them \emph{physically concurrent}.
+
+If \(E1\) and \(E2\) are events at different processes that are not be
+comparable by external order, i.e.~neither \(E1.t < E2.s\) nor
+\(E2.t < E1.s\), we say they are \emph{physically concurrent}.
 
 \begin{definition}
   If two events overlap in physical time (equivalently, if they are
@@ -1737,7 +1729,7 @@ A linearizable execution is defined by three features.
 \end{definition}
 
 An intuitive way of approaching linearizability is by defining it
-in terms of \emph{linearizations.}
+in terms of \emph{linearization points.}
 
 \begin{definition}
   A \emph{linearization point} $t \in \mathbb{R} \in [E.s, E.t]$ for an
@@ -1750,18 +1742,19 @@ in terms of \emph{linearizations.}
 \end{definition}
 
 \begin{example}
-  Linearization points are demonstrated in Figure
-  \ref{fig:linearization}.  The figure shows different linearizable
-  behaviors in response to the same underlying set of accesses. It is
-  assumed no distinct access can have the same linearization point, so
-  that we get a total order. This demonstrates that linearizability
-  still leaves some room for non-determinism in the execution of
-  distributed applications. In this example, the requests must both
-  return 1 or 2. The constraint is that the values must
-  agree---linearizability forbids the situation in which one client
-  reads \(1\) and another reads \(2\) (Figure
-  \ref{fig:nonlinearizable}).
+  \label{exmpl:linearizations}
+  Two different linearizations of Figure \ref{fig:smEx1} are shown in
+  Figure \ref{fig:smEx3}. Possible choices for linearization points
+  are shown in yellow. No other linearizations are possible.
 \end{example}
+
+Example \ref{exmpl:linearizations} demonstrates that linearizability
+leaves some room for non-determinism in the execution of distributed
+applications. In the example, we see that the read requests in Figure
+\ref{fig:smEx1} may return \emph{either} 3 or 5. However,
+linearizability constrains all three reads to return the same value,
+depending on which of $W(x,3)$ or $W(x,5)$ happens to take effect
+first.
 
 \begin{figure}[p]
   \setlength\belowcaptionskip{5ex}
@@ -1779,84 +1772,12 @@ in terms of \emph{linearizations.}
     \label{fig:smEx3L2}
   \end{subfigure}
 
-  \caption{Linearizations of Figure \ref{fig:smEx2}, with possible linearization points}
+  \caption{The two possible linearizations of Figure \ref{fig:smEx2}. Possible choices of linearization points are shown in yellow.}
   \label{fig:smEx3}
 \end{figure}
-
 \afterpage{\clearpage}
 
-\begin{figure}[p]
-  \setlength\belowcaptionskip{5ex}
-
-  \begin{subfigure}{1\textwidth}
-    \centering
-    \input{images/pgf/smEx4S1.pgf}
-    \caption{An example where the processes read different values}
-    \label{fig:smEx1L1}
-  \end{subfigure}
-
-  \begin{subfigure}{1\textwidth}
-    \input{images/pgf/smEx4S2.pgf}
-    \caption{An example where the first write operation affects a read}
-    \label{fig:smEx4S2}
-  \end{subfigure}
-
-  \caption{Sequentially consistent, nonlinearizable executions of Figure \ref{fig:smEx2}}
-  \label{fig:smEx3}
-\end{figure}
-
-\afterpage{\clearpage}
-
-\begin{figure}[p]
-  \setlength\belowcaptionskip{5ex}
-
-  \begin{subfigure}{1\textwidth}
-    \centering
-    \input{images/pgf/smEx4S3.pgf}
-    \caption{}
-    \label{fig:smEx1L1}
-  \end{subfigure}
-
-  \begin{subfigure}{1\textwidth}
-    \input{images/pgf/smEx4S4.pgf}
-    \caption{}
-    \label{fig:smEx4S2}
-  \end{subfigure}
-
-  \caption{Two non-sequentially-consistent executions of Figure \ref{fig:smEx2}}
-  \label{fig:smEx3}
-\end{figure}
-
-\afterpage{\clearpage}
-
-\begin{figure}[p]
-  \setlength\belowcaptionskip{5ex}
-
-  \begin{subfigure}{1\textwidth}
-    \centering
-    \input{images/pgf/linearEx1.pgf}
-    \caption{Linearizable execution}
-    \label{fig:linearEx1}
-  \end{subfigure}
-
-  \begin{subfigure}{1\textwidth}
-    \input{images/pgf/linearEx11.pgf}
-    \caption{One possible linearization}
-    \label{fig:linearEx11}
-  \end{subfigure}
-
-  \begin{subfigure}{1\textwidth}
-    \input{images/pgf/linearEx12.pgf}
-    \caption{Another possible linearization}
-    \label{fig:linearEx12}
-  \end{subfigure}
-
-  \caption{Linearizabile executions}
-  \label{fig:linearEx}
-\end{figure}
-
-\afterpage{\clearpage}
-
+\begin{comment}
 Figure \ref{fig:linear_example11} shows a prototypical example of a
 linearizable execution. We assume that all memory locations are
 initialized to \(0\) at the system start time. Intuitively, it should
@@ -1868,8 +1789,9 @@ to read the value of \(y\) returns \(1\), because at some point between
 linearizable. Figure \ref{fig:linear_example12} shows an
 non-linearizable execution that returns stale data instead of reflecting
 the write access to \(y\) on \(P2\).
+\end{comment}
 
-So far, linearizability is a condition on individual executions of a
+Linearizability is a condition on individual executions of a
 distributed application. When only linearizable executions are
 permitted by the memory manager, the entire system is called
 linearizable.
@@ -1918,49 +1840,71 @@ out of order.
 
   \begin{subfigure}{1\textwidth}
     \centering
-    \input{images/pgf/linearEx13.pgf}
-    \caption{Sequential, non-linearizable execution}
-    \label{fig:linearEx13}
+    \input{images/pgf/smEx4S1.pgf}
+    \caption{An example where the processes read different values}
+    \label{fig:smEx1L1}
   \end{subfigure}
 
   \begin{subfigure}{1\textwidth}
-    \input{images/pgf/linearEx14.pgf}
-    \caption{Demonstration of sequential consistency of the above execution}
-    \label{fig:linearEx14}
+    \input{images/pgf/smEx4S2.pgf}
+    \caption{An example where the first write operation affects a read}
+    \label{fig:smEx4S2}
+  \end{subfigure}
+
+  \caption{Sequentially consistent, nonlinearizable executions of Figure \ref{fig:smEx2}}
+  \label{fig:smEx3}
+\end{figure}
+
+\begin{figure}[p]
+  \setlength\belowcaptionskip{5ex}
+
+  \begin{subfigure}{1\textwidth}
+    \centering
+    \input{images/pgf/smEx4S3.pgf}
+    \caption{}
+    \label{fig:smEx1L1}
   \end{subfigure}
 
   \begin{subfigure}{1\textwidth}
-    \input{images/pgf/linearEx15.pgf}
-    \caption{Nonsequential execution}
-    \label{fig:linearEx12}
+    \input{images/pgf/smEx4S4.pgf}
+    \caption{}
+    \label{fig:smEx4S2}
   \end{subfigure}
 
-  \caption{Sequential and non-sequential executions}
-  \label{fig:linearEx}
+  \caption{Two non-sequentially-consistent executions of Figure \ref{fig:smEx2}}
+  \label{fig:smEx3}
 \end{figure}
 
 \afterpage{\clearpage}
 
-Processes in a sequentially consistent system are required to agree on a
-total order of events, presenting the illusion of a shared database from
-an application programmer's point of view. However, this order need not
-be given by external order. Instead, the only requirement is that
-sequential history must agree with process order, i.e.~the events from
-each process must occur in the same order as in they do in the process.
-This is nearly the definition of linearizability, except that external
-order has been replaced with merely program order. We immediately get
-the following lemma.
+Processes in a sequentially consistent system are required to agree on
+a total order of events, presenting the illusion of a shared database
+from an application programmer's point of view. However, this order
+need not be given by external order. Instead, the only requirement is
+that sequential history must agree with process order, i.e.~the events
+from each process must occur in the same order as in they do in the
+process.  This is nearly the definition of linearizability, except
+that external order has been replaced with merely program order. We
+immediately get the following lemma.
+
+\begin{lemma}
+  \label{lem:linearsequential}
+  A linearizable execution is sequentially consistent.
+\end{lemma}
+\begin{proof}
+  This follows because process order is a subset of external order.
+\end{proof}
 
 Visually, sequential consistency allows reordering an execution by
 sliding events along each process' time axis like beads along a
 string.  Two events from the same process cannot pass over each other
-as this would violate program order, but events on different processes
-may be commuted past each other, violating external order. This
-sliding allows defining an arbitrary interleaving of events, a totally
-ordered execution with no events overlapping. From this perspective,
-while linearizability requires the existence of a linearization,
-sequential consistency requires the existence of an equivalent
-interleaving.
+(as this would precisely be a violation of program order), but events
+on different processes may be commuted past each other, contravening
+external order. This sliding allow noe to construct a fairly arbitrary
+interleaving of events, a totally ordered execution with no events
+overlapping. From this perspective, while linearizability requires the
+existence of a linearization, sequential consistency requires the
+existence of an interleaving.
 
 It may seem strange to consider executions such as the one shown in
 REF in which operations appear to take effect at different times for
@@ -1973,26 +1917,95 @@ messages. Looser requirements by the memory model impose fewer
 constraints on the message passing layer requiring less coordination,
 and allowing for greater performance.
 
-\begin{lemma}
-  \label{lem:linearsequential}
-  A linearizable execution is sequentially consistent.
-\end{lemma}
-\begin{proof}
-  This follows because process order is a subset of external order.
-\end{proof}
-
 The converse of Lemma \ref{lem:linearsequential} does not hold. For
-example, Figure \ref{fig:sequential1} was previously shown (Figure
-\ref{fig:nonlinear1}) as a nonlinearizable execution. However, it is
-sequentially consistent, as evidenced by the interleaving in Figure
-\ref{fig:interleaving1} that slides the events \(W(x,1)\) and \(R(x,2)\)
-past each other.
+example, Figures \ref{fig:smEx4S1} and \ref{fig:smEx4S2} are
+nonlinearizable executions of Figure \ref{fig:smEx2} that are
+nonetheless sequentially consistency.
 
 \subsubsection{Causal consistency}
 \label{causal-consistency}
 
-\emph{Causal} consistency (CITE) is a weak (i.e. non-strong)
-consistency model
+\emph{Causal} consistency\citationneeded is a weaker memory model than
+sequential consistency. Whereas sequential consistency requires the
+system as a whole to behave as if all write operations take place in
+some total order (as long as this is consistent with program order),
+causal consistency allows different processes to see write operations
+take effect in different orders. Instead, only write operations that
+are \emph{causally related} need to take effect in a common order
+at all processes.
+
+We have not defined what it means for memory operations to be causally
+related. The notion is very similar to causal precedence in the
+context of message passing (Definition \ref{def:causalprecedence}),
+with a small wrinkle: in a message passing context, each receive event
+is uniquely paired with a send event. However, because multiple
+operations can write the same value into the same location, there is
+generally not a unique way to associate each read operation with the
+write operation that ``caused'' it to read a particular value.
+
+\begin{definition}[Writes-into order]
+  Consider a set of memory operations. A ``writes into''
+  $\rightsquigarrow$ order is any binary relation that satisfies the
+  following conditions:
+  \begin{itemize}
+  \item If $o \rightsquigarrow o'$, then $o = W(x, v)$ and $o' = R(x,v)$ for memory location $x$ and value $v$.
+  \item For each $o'$, there is exactly one $o$ such that $o \rightsquigarrow o'$
+\end{definition}
+
+This definition is a slight simplication of that found
+in\citationneeded: To avoid talking having to talk about default
+values, we only consider cases here where all read operations are
+preceded by some write operation. Intuitively, the idea is that a
+writes-into order pairs reads with the write operations whose values
+they are ``reading from.'' If all values written into each location
+are unique, the writes-into order is unambiguous, as an operation that
+reads $v$ from location $x$ could only be paired with the operation
+that writes $v$ into $x$.
+
+\begin{definition}[Causal order on memory operations]
+  \label{def:memorycausalprecedence}
+  For some choice of a writes-into order, we define a binary relation
+  $\to$ on the set of memory operations as follows:
+  \[o \to o' \iff
+  \begin{cases}
+    o <_{P_i} o' \textrm{for some process $P_i$}
+    \textbf{ or} \\
+    o \rightsquigarrow o'
+    \textbf{ or} \\
+    \textrm{there is some } o'' \textrm{ such that } o \to o'' \textrm{ and } o'' \to o'
+  \end{cases}
+  \]
+  If $o \to o'$, we say $o$ causally precedes $o'$.
+\end{definition}
+
+We can now define causally consistent executions of memory operations.
+
+\begin{definition}[Causal consistency]
+  \label{def:causalconsistency}
+  A history is causally consistent if each process (acts like it) sees
+  write requests take place in some order that is consistent with
+  causal order for some choice of writes-into order.
+\end{definition}
+
+\begin{figure}[p]
+  \begin{subfigure}{1\textwidth}
+    \centering
+    \input{images/pgf/smEx4S3.pgf}
+    \caption{}
+    \label{fig:smEx1L1}
+  \end{subfigure}
+
+  \begin{subfigure}{1\textwidth}
+    \input{images/pgf/smEx4S4.pgf}
+    \caption{}
+    \label{fig:smEx5}
+  \end{subfigure}
+
+  \caption{PLACEHOLDER: Causally consistent and inconsistent executions}
+  \label{fig:smEx3}
+\end{figure}
+
+\afterpage{\clearpage}
 
 \subsection{The CAP Theorem}
 \label{the-cap-theorem}
@@ -2033,7 +2046,12 @@ not allowed to return anything but the most up-to-date value in
 response to client requests. Keep in mind that any (other) process may
 be the originating replica for an update. Some reflection shows that
 the full set of requirements is unattainable---a partition tolerant
-system simply cannot enforce both consistency and availability.
+system simply cannot enforce both consistency and availability. We
+give only the informal sketch here, leaving the interested reader to
+consult the more formal analysis by Gilbert and Lynch. The key
+technical assumption is that a processes' behavior can only be
+influenced by the messages it actually receives---it cannot be
+affected by messages that are sent to it but never delivered.
 
 \begin{theorem}[The CAP Theorem]
   \label{thm:cap}
@@ -2041,35 +2059,46 @@ system simply cannot enforce both consistency and availability.
   cannot guarantee both linearizability and eventual-availability.
 \end{theorem}
 \begin{proof}
-  Technically, the proof is almost trivial. We give only the informal
-  sketch here, leaving the interested reader to consult the more formal
-  analysis by Gilbert and Lynch. The key technical assumption is that a
-  processes' behavior can only be influenced by the messages it actually
-  receives---it cannot be affected by messages that are sent to it but
-  never delivered.
+  Consider the concurrent writes by separate processes in Figure
+  \ref{fig:smEx2}.  Figure \ref{fig:smEx3} showed that both possible
+  linearizations of this history require all reads to return the same
+  value, either $3$ or $5$. Now suppose the network is unavailable, so
+  the processes cannot communicate, in particular to share write
+  updates.
 
-  In Figure \ref{fig:linear_example11}, suppose the two processes are on
-  opposite sides of a network partition, so that no information can be
-  exchanged between them (even indirectly through a third party). If we
-  just consider the execution of $P_2$ by itself, without $P_1$,
-  linearizability would require it to read the value $2$ for $y$. If we
-  do consider $P_1$, linearizability requires that the read access to
-  $y$ must return $1$. But if $P_2$ cannot send messages to $P_1$, then
-  $P_2$'s behavior cannot be influenced by the write access to $y$, so
-  it would still have to return $2$, violating
-  consistency. Alternatively, it could delay returning any result until
-  it is able to exchange messages with $P_1$. But if the partition never
-  recovers, $P_1$ will wait forever, violating availability.
+  Now there are only two possibilities. First, the processes could
+  proceed despite the lack of communication. In this case, because
+  processes do not otherwise affect each other, $P_1$ could not see
+  the $W(x,5)$ operation and its read must return the value
+  $3$. Likewise, $P_2$ does not see $W(x,3)$ and its reads return
+  $5$. This situation violates linearizability, hence the 'C' of CAP.
+
+  Alternatively, the processes might detect that the network is
+  unavailable and refuse to respond to read requests. However, this
+  indefinitely suspects progress until the network recovers, which
+  violates the 'A' of CAP.
 \end{proof}
 
-CAP also holds for sequential consistency.
+In the previous proof, the last remaining option is to assume that the
+network never suffers from partitions. That is, to sacrifice the 'P'
+of CAP. Clearly this is unacceptable in the systems we are
+considering. Consequently, our systems cannot ensure atomic
+consistency and availability.
+
+Recall Figure \ref{fig:smEx1L1}. This example demonstrated that
+sequential consistency allows the history in Figure \ref{fig:smEx2} to
+return non-equal values for the two read operations. That is, if $P_1$
+reads $3$, and both reads on $P_2$ return $5$, the execution is
+sequentially consistent. This raises the possibility that sequential
+consistency is not subject to the limits of the CAP
+theorem. Unfortunately the hope is fleeting: like linearizability,
+sequential consistency is CAP-unavailabile.
 
 \begin{lemma}[CAP for sequential consistency]
   \label{thm:cap-sequential}
   An eventually-available system cannot provide sequential consistency in the presense of network partitions.
 \end{lemma}
 \begin{proof}
-
   The proof is an adaptation of Theorem \ref{thm:cap}. Suppose $P_1$ and
   $P_2$ form of CAP-available distributed system and consider the
   following execution: $P_1$ reads $x$, then assigns $y$ the value
@@ -2094,33 +2123,56 @@ CAP also holds for sequential consistency.
   $R(y)$, which would violate program order.
 \end{proof}
 
+\begin{lemma}[Causal consistency is CAP-available]
+  \label{thm:cap-causal}
+  Causal consistency can be enforced during network partitions. That
+  is, causal consistency is not subject to the CAP thereom.
+\end{lemma}
+\begin{proof}
+  Consider processes that execute read and write operations purely
+  locally. That is, they never send messages to other processes and
+  they only read to their own writes. In this situation, the causal
+  relation generated by Definition \ref{def:memorycausalprecedence} is
+  essentially unique: operations at $P_i$ are causally preceded by the
+  previous operations at $P_i$, and no others. In the absence of a
+  non-trivial causal order, causal consistency imposes no constraints
+  and the execution is vacuously consistent.
+\end{proof}
+
+Unfortunately, the proof of the prior lemma has more to do the
+weakness of the promises made causal consistency. The example allows
+different processes to deviate arbitrary far from consistency, in the
+sense that no processes need to agree on any of the updates applied to
+the database. The effect is that causal consistency is too weak to
+apply any kind of bound on divergence, which suggests it is not strong
+enough for the kinds of safetly-related applications we have in mind.
 
 \subsubsection{Consequences of CAP}
 \label{interpretation-of-the-cap-theorem}
+While the CAP theorem is conceptually simple, its interpretation is
+subtle and has been the subject of much discussion since it was
+introduced \cite{2012CAP12Years}. It is sometimes assumed that the CAP
+theorem claims that a distributed system can only offer two of the
+properties C, A, and P.  In fact, the theorem constrains, but does not
+prohibit the existence of, applications that apply some relaxed amount
+of all three features. The CAP theorem only rules out their
+combination when all three are interpreted in a highly idealized
+sense.
 
-While the proof of the CAP theorem is simple, its interpretation is
-subtle and has been the subject of much discussion in the years since
-\cite{2012CAP12Years}. It is sometimes assumed that the CAP theorem claims that
-a distributed system can only offer two of the properties C, A, and P.
-In fact, the theorem constrains, but does not prohibit the existence of,
-applications that apply some relaxed amount of all three features. The
-CAP theorem only rules out their combination when all three are
-interpreted in a highly idealized sense.
-
-In practice, applications can tolerate much weaker levels of consistency
-than linearizability. Furthermore, network partitions are usually not as
-dramatic as an indefinite communications blackout. Real conditions in
-our context are likely to be chaotic, featuring many smaller disruptions
-and delays and sometimes larger ones. Communications between different
-clients may be affected differently, with nearby agents generally likely
-to have better communication channels between them than agents that are
-far apart. Finally, CAP-availability is a suprisingly weak condition.
+In practice, applications can tolerate much weaker levels of
+consistency than linearizability. Furthermore, network partitions are
+usually not as dramatic as an indefinite communications blackout. Real
+conditions in our context are likely to be chaotic, featuring many
+smaller disruptions and delays and sometimes larger
+ones. Communications between different clients may be affected
+differently, with nearby agents generally likely to have better
+communication channels between them than agents that are far
+apart. Finally, CAP-availability is a suprisingly weak condition.
 Generally one cares about the actual time it takes to handle user
 requests, but the CAP theorem exposes difficulties just ensuring the
-system handles requests at all. Altogether, the extremes of C, A, and P
-in the CAP theorem are not the appropriate conditions to apply to many,
-perhaps most, real-world applications.
-
+system handles requests at all. Altogether, the extremes of C, A, and
+P in the CAP theorem are not the appropriate conditions to apply to
+many, perhaps most, real-world applications.
 
 \subsection{Summary}
 \label{sec:background-summary}
@@ -2637,6 +2689,12 @@ To be written.
 
 \bibliographystyle{abbrv}
 \bibliography{bibliography}
+\end{document}
+
+%%% Local Variables:
+%%% mode: LaTeX
+%%% TeX-master: t
+%%% End:
 
 
 \begin{figure}[p]
@@ -2728,11 +2786,3 @@ To be written.
   \caption{A non-sequentially consistent execution with sequentially-consistent executions at each variable.}
   \label{fig:nonsequential}
 \end{figure}
-
-
-\end{document}
-
-%%% Local Variables:
-%%% mode: LaTeX
-%%% TeX-master: t
-%%% End:
