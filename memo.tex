@@ -1490,55 +1490,34 @@ systems can differ in this respect because they make different
 tradeoffs between safety guarantees and performance.
 
 \subsubsection{Shared memory time diagrams}
-Figure \ref{fig:external1} shows a time diagram for the shared memory
-abstraction, not unlike the diagrams in Figure
-\ref{fig:message-latencies} for message passing. The diagram depicts a
-series of operations, which come in two types:
+Figures \ref{fig:smEx0} and \ref{fig:smEx1} depict time diagrams for
+the shared memory abstraction, not unlike the diagrams in Figure
+\ref{fig:message-latencies} for message passing. Two kinds of
+operations are shown:
 \begin{description}
-  \item[Reads] A \emph{read} request $R(x)$ indicates reading the value
-    in memory at location $x$, which returns some value $v$. When it
-    is important to indicate the return value, we sometimes notate
-    read requests as $R(x, v)$.
-  \item[Writes] A \emph{write} operation $W(x, v)$ indicates writing
-    value $v$ to memory location $x$. In pseudocode the notation might
-    be $x := v$ or $x \leftarrow v$.
+\item[Reads] A \emph{read} request $R(x)$ indicates reading the value
+  in memory at location $x$, which returns some value $v$. When it is
+  important to indicate the return value, we notate read requests as
+  $R(x, v)$.
+\item[Writes] A \emph{write} operation $W(x, v)$ indicates writing
+  value $v$ to memory location $x$. In pseudocode the notation might
+  be $x := v$ or $x \leftarrow v$.
 \end{description}
 
-Each request consists of a horizontal span, shown as a shallow box,
-along the worldline of a process. The span represents the duration
-when the request is executing, beginning when the request is submitted
-by the application and ending when the operation has finished. From
-the programmer's perspective, if the read/write primitives are
-blocking operations, the execution is when the memory management layer
-is running and the main application is blocked. During this time, the
-memory management layer might coordinate with other processes in the
-background over the network. During a read request $R(x)$ it may, for
-example, send messages to another server to lookup the ``most
-current'' value of location $x$. Such behind-the-scenes coordination
-is transparent to the programmer and not depicted in the time
-diagrams.
+Each request consists of a horizontal span along the worldline of a
+process. The span represents the duration when the request is
+executing, beginning when the request is submitted by the application
+and ending when the operation has finished. From the programmer's
+perspective, if the read/write primitives are blocking operations, the
+execution is when the memory management layer is running and the main
+application is blocked.
 
-\begin{figure}[p]
-  \setlength\belowcaptionskip{5ex}
-
-  \begin{subfigure}{1\textwidth}
-    \centering
-    \input{images/pgf/external1.pgf}
-    \caption{Time diagram for memory operations}
-    \label{fig:external1}
-  \end{subfigure}
-
-  \begin{subfigure}{1\textwidth}
-    \centering \input{images/pgf/externalDAG.pgf}
-    \caption{The directed acyclic graph induced by external order.}
-    \label{fig:externalDAG}
-  \end{subfigure}
-
-  \caption{Shared memory time diagram}
-  \label{fig:external}
-\end{figure}
-
-\afterpage{\clearpage}
+Transparently and in the background, the memory management layer
+coordinates with other processes over the network. While executing a
+read request $R(x)$ it may, for example, send messages to another
+server to lookup the current value of memory location $x$. Such
+behind-the-scenes coordination is hidden from the programmer and not
+reflected in the time diagrams.
 
 \subsubsection{Semantics and consistency}
 
@@ -1550,13 +1529,19 @@ resort to some default behavior if no such write exists. This
 interpretation is unambiguous because we assume that operations
 running on a single process do not overlap in time, so it always makes
 sense to ask which of two events happened before the other.
+\begin{figure}[h]
+  \setlength\belowcaptionskip{0ex}
+  \input{images/pgf/smEx0.pgf}
+  \caption{Memory operations on a single process}
+  \label{fig:smEx0}
+\end{figure}
 
 \begin{example}
-Consider Figure CITE, depicting just a single process. Since there is
+    \label{exmpl:updatesoneprocess}
+Consider Figure \ref{fig:smEx0}, depicting just a single process. Since there is
 no ambiguity in the order of events, it is clear that this process
-should execute as such (note that we indicate the values returned by
-each read request):
-\[ W(x, 0), W(y, 5), R(x, 0), W(x, 3), R(y, 5), R(x, 3). \]
+should execute in the following order (read requests have been underlined with their results shown):
+\[ W(x, 0) \to W(y, 5) \to \underline{R(x, 0)} \to W(x, 3) \to \underline{R(y, 5)} \to \underline{R(x, 3)}. \]
 \end{example}
 
 In the distributed context, the metaphorical wrench in the works is
@@ -1566,21 +1551,36 @@ compare events. Without such a comparison, the notion of ``most
 recent'' operation is ambiguous, which makes it difficult to say
 exactly how the memory requests should even be interpreted.
 
-Examine Figure CITE. Because the two writes overlap in physical time,
-we cannot say that either $W(x,3)$ or $W(x,5)$ happened first, so it
-is unclear whether the read request should return 3 or 5. However, it
-seems intuitively clear that the programmer should be confident that
-$R(x)$ will return 3 or 5, and not, say, 37. But consider the second
+\begin{figure}[h]
+  \setlength\belowcaptionskip{0ex}
+  \input{images/pgf/smEx2.pgf}
+  \caption{Concurrent updates by distributed nodes}
+  \label{fig:smEx2}
+\end{figure}
+
+\begin{example}
+  \label{exmpl:concurrentupdates}
+  Examine Figure \ref{fig:smEx2}. Two writes are depicted that overlap
+  in physical time, making it unclear whether $W(x,3)$ or $W(x,5)$
+  should be considered as happening first. Thus, it is unclear whether
+  the read request at process 1 will return 3 or 5.
+\end{example}
+
+In example \ref{exmpl:concurrentupdates}, it seems intuitively clear
+that the programmer should expect each read request to return either 3
+or 5, and not, say, 37. What is less clear is whether the first
+request requests on each process, which run concurrently, must be
+constrained to return the same value. Now consider the second read
 request $R(x)$ running on process $2$. Can the programmer be confident
-that both requests will return the same value, or might they seemingly
-``disagree'' with each other? Finally, consider the second request
-$R(x)$. Is it possible that this request reads a different value than
-the read immediately preceding it?  Ultimately, it is possible to
-consider different ways of answering these questions. The role of
-different \emph{memory models} is to constrain exactly which
-possibilities are allowed and which are prohibited, and so the same
-program can execute differently depending on what memory model is
-offered by its execution environment.
+that this request will return the same value as the one immediately
+preceding it?
+
+It is possible to consider different ways of answering these
+questions. The role of a \emph{memory model} is to constrain exactly
+which possibilities are allowed and which are prohibited, namely which
+values can be read under different conditions. A single program can
+behave differently depending on what memory model is offered by the
+shared memory layer.
 
 As before, it is tempting to imagine assigning a physical timestamp to
 reads and writes to establish an order among events, resolving the
@@ -1591,10 +1591,11 @@ solution.
 
 It also happens that, for performance reasons, memory models commonly
 allow distributed operations to have semantics that do not strictly
-conform to the physical order of events. Indeed, below we show how
-sequential consistency (Definition \ref{def:sequentiallyconsistent}),
-one of two ``strong'' models, allows for this possibility. Yet even
-this model imposes too many constraints to be workable for networking
+conform to the physical order of events, made precise below in the
+form of ``external order.'' Indeed, below we show how sequential
+consistency (Definition \ref{def:sequentiallyconsistent}), one of two
+``strong'' models, allows for this possibility. Yet even this model
+imposes too many constraints to be workable for networking
 environments as unpredictable as ours.
 
 \begin{comment}
@@ -1618,31 +1619,19 @@ kinds of systems we consider in this document.
 \subsubsection{Concurrency and External order}
 \label{sssec:externalorder}
 
-\begin{definition}
-  If two events overlap in physical time (equivalently, if they are
-  not comparable by external order), we call the events
-  \emph{physically concurrent} and write $E1 || E2$.
-\end{definition}
-
-Physical concurrency is a reflexive and symmetric---but usually not
-transitive--- binary relation. Such structures are often called
-\emph{compatibility relations.} The general intuition is that anything
-is compatabile with itself (reflexivity), and the compatibility of two
-objects does not depend on their order (symmetry). But if \(A\) and
-\(B\) are compatible with \(C\), it need not be the case that \(A\)
-and \(B\) are compatible with each other.
-
 One fundamental relation in the DSM setting is \emph{external
 order}. Intuitively, it is the partial order that orders
 non-overlapping events by their physical times, but does not assign an
 ordering to events whose executions overlap in physical time.
 
+\begin{comment}
 \begin{definition}
   Recall that an irreflexive partial order is a binary relation \(<\)
   such that \(A \not < A\), \(A < B \implies B \not < A\), and \(A <
   B, B < C \implies A < C\), where $x \not < y$ means it is not the
   case that $x < y$.
 \end{definition}
+\end{comment}
 
 \begin{definition}
   Let $E$ be an execution. Request $E1$ \emph{externally precedes}
@@ -1651,8 +1640,35 @@ ordering to events whose executions overlap in physical time.
   irreflexive partial order called \emph{external order}.
 \end{definition}
 
-Figure \ref{fig:externalDAG} shows the directed acyclic graph (DAG)
-induced by external order on the operations of \ref{fig:external1}.
+\begin{figure}[p]
+  \setlength\abovecaptionskip{5ex}
+  \setlength\belowcaptionskip{5ex}
+
+  \begin{subfigure}{1\textwidth}
+    \centering
+    \input{images/pgf/smEx1NoEdges.pgf}
+    \caption{Time diagram for memory operations}
+    \label{fig:external1}
+  \end{subfigure}
+
+  \begin{subfigure}{1\textwidth}
+    \centering \input{images/pgf/smEx1DAG.pgf}
+    \caption{The directed acyclic graph induced by external order.}
+    \label{fig:externalDAG}
+  \end{subfigure}
+
+  \caption{Shared memory time diagram}
+  \label{fig:external}
+\end{figure}
+
+\afterpage{\clearpage}
+
+\begin{example}
+  Figure \ref{fig:external1} shows a time diagram involving three
+  processes.  Figure \ref{fig:externalDAG} depicts the external order
+  relation among the operations in the form of a directed acyclic
+  graph (DAG).
+\end{example}
 
 We assume processes handle operations one-at-a-time, so the events
 handled at any one process are totally ordered by external order---one
@@ -1661,11 +1677,25 @@ are events at \emph{different} processes, they need not be comparable
 by external order, i.e.~neither \(E1.t < E2.s\) nor \(E2.t < E1.s\),
 making them \emph{physically concurrent}.
 
+\begin{definition}
+  If two events overlap in physical time (equivalently, if they are
+  not comparable by external order), we call the events
+  \emph{physically concurrent} and write $E1 || E2$.
+\end{definition}
+
+Physical concurrency is a reflexive and symmetric---but usually not
+transitive--- binary relation. Such structures are generally known as
+\emph{compatibility relations}, the idea being that if \(A\) and
+\(B\) are both compatible with \(C\), it need not be the case that
+\(A\) and \(B\) are compatible with each other. The reader should come
+up with an example of two operations that are physically concurrent
+with a third operation but not with each other.
+
 \subsection{Memory Consistency Models}
 
-Since the goal is for the system to present the illusion of a reading
-and writing from a common memory, the observed result should be
-equivalent to some interleaving of the requests into a linear
+Since the goal of the DSM abstraction is to present the illusion of a
+reading and writing from a common memory, the observed result should
+be equivalent to some interleaving of the requests into a linear
 order. If each processes $P_i$ of $N$ total processes issues $r_i$
 requests for some non-negative integer $r_i$, observe there are a
 total of
@@ -1685,7 +1715,7 @@ point between its invocation and response.'' \citationneeded The same
 condition is known variously as atomic consistency, strict
 consistency, and sometimes external consistency. In the context of
 database transactions (which come with other database-specific
-guarantees, like isolation), the analogous condition is called strict
+guarantees like isolation), the analogous condition is called strict
 serializability.
 
 A linearizable execution is defined by three features.
@@ -1706,8 +1736,8 @@ A linearizable execution is defined by three features.
 \end{enumerate}
 \end{definition}
 
-Linearizability can be precisely defined in terms of
-\emph{linearizations.}
+An intuitive way of approaching linearizability is by defining it
+in terms of \emph{linearizations.}
 
 \begin{definition}
   A \emph{linearization point} $t \in \mathbb{R} \in [E.s, E.t]$ for an
@@ -1719,10 +1749,85 @@ Linearizability can be precisely defined in terms of
   linearization points.
 \end{definition}
 
-\begin{definition}[Linearizable system]
-  A shared-memory application is \emph{linearizable} if all possible
-  executions of that system are linearizable executions.
-\end{definition}
+\begin{example}
+  Linearization points are demonstrated in Figure
+  \ref{fig:linearization}.  The figure shows different linearizable
+  behaviors in response to the same underlying set of accesses. It is
+  assumed no distinct access can have the same linearization point, so
+  that we get a total order. This demonstrates that linearizability
+  still leaves some room for non-determinism in the execution of
+  distributed applications. In this example, the requests must both
+  return 1 or 2. The constraint is that the values must
+  agree---linearizability forbids the situation in which one client
+  reads \(1\) and another reads \(2\) (Figure
+  \ref{fig:nonlinearizable}).
+\end{example}
+
+\begin{figure}[p]
+  \setlength\belowcaptionskip{5ex}
+
+  \begin{subfigure}{1\textwidth}
+    \centering
+    \input{images/pgf/smEx3L1.pgf}
+    \caption{One of two possible linearizations}
+    \label{fig:smEx1L1}
+  \end{subfigure}
+
+  \begin{subfigure}{1\textwidth}
+    \input{images/pgf/smEx3L2.pgf}
+    \caption{The other possible linearization}
+    \label{fig:smEx3L2}
+  \end{subfigure}
+
+  \caption{Linearizations of Figure \ref{fig:smEx2}, with possible linearization points}
+  \label{fig:smEx3}
+\end{figure}
+
+\afterpage{\clearpage}
+
+\begin{figure}[p]
+  \setlength\belowcaptionskip{5ex}
+
+  \begin{subfigure}{1\textwidth}
+    \centering
+    \input{images/pgf/smEx4S1.pgf}
+    \caption{An example where the processes read different values}
+    \label{fig:smEx1L1}
+  \end{subfigure}
+
+  \begin{subfigure}{1\textwidth}
+    \input{images/pgf/smEx4S2.pgf}
+    \caption{An example where the first write operation affects a read}
+    \label{fig:smEx4S2}
+  \end{subfigure}
+
+  \caption{Sequentially consistent, nonlinearizable executions of Figure \ref{fig:smEx2}}
+  \label{fig:smEx3}
+\end{figure}
+
+\afterpage{\clearpage}
+
+\begin{figure}[p]
+  \setlength\belowcaptionskip{5ex}
+
+  \begin{subfigure}{1\textwidth}
+    \centering
+    \input{images/pgf/smEx4S3.pgf}
+    \caption{}
+    \label{fig:smEx1L1}
+  \end{subfigure}
+
+  \begin{subfigure}{1\textwidth}
+    \input{images/pgf/smEx4S4.pgf}
+    \caption{}
+    \label{fig:smEx4S2}
+  \end{subfigure}
+
+  \caption{Two non-sequentially-consistent executions of Figure \ref{fig:smEx2}}
+  \label{fig:smEx3}
+\end{figure}
+
+\afterpage{\clearpage}
 
 \begin{figure}[p]
   \setlength\belowcaptionskip{5ex}
@@ -1764,17 +1869,15 @@ linearizable. Figure \ref{fig:linear_example12} shows an
 non-linearizable execution that returns stale data instead of reflecting
 the write access to \(y\) on \(P2\).
 
-Linearization points are demonstrated in Figure
-\ref{fig:linearization}.  The figure shows different linearizable
-behaviors in response to the same underlying set of accesses. It is
-assumed no distinct access can have the same linearization point, so
-that we get a total order. This demonstrates that linearizability
-still leaves some room for non-determinism in the execution of
-distributed applications. In this example, the requests must both
-return 1 or 2. The constraint is that the values must
-agree---linearizability forbids the situation in which one client
-reads \(1\) and another reads \(2\) (Figure
-\ref{fig:nonlinearizable}).
+So far, linearizability is a condition on individual executions of a
+distributed application. When only linearizable executions are
+permitted by the memory manager, the entire system is called
+linearizable.
+
+\begin{definition}[Linearizable system]
+  A shared-memory application is \emph{linearizable} if all possible
+  executions of that system are linearizable executions.
+\end{definition}
 
 \subsubsection{Sequential consistency}
 \label{sequential-consistency}
