@@ -1467,27 +1467,30 @@ for distributed database replication.
 
 \newpage
 \subsection{Shared Memory}
-Programming distributed applications in terms of sending and receiving
-messages over the network is a complex task. As we have seen, it
-raises issues of synchronization and consistency that must be dealt
-with in order to provide understandable system behavior. In this
-section we summarize a simpler but in some sense equivalent paradigm
-called the \emph{distributed shared memory} (DSM) abstraction.
-
-In the DSM model, programmers think in terms of reading and writing
-values to memory locations (one might also say \emph{variables})
-rather than directly transmitting messages over the network. The key
+Framing a distributed application directly in terms of message passing
+can be challenging. The low-level details required to implement the
+correct message passing behavior distract from the high-level
+application design, making it desirable to separate these concerns. In
+this section we summarize a more abstract paradigm called the
+\emph{distributed shared memory} (DSM) framework. In this setting,
+programmers think in terms of reading and writing values to memory
+locations rather than transmitting messages over the network. The key
 feature is that all instances of the application act as if they are
-reading and writing from the same memory locations, when in reality
-they are running on distributed computers that do not share
-memory. Transparently and behind the scenes, a ``middleware'' memory
-management protocol layer translates the read/write requests into
-send/receive requests that facilitate the abstraction of a common
-virtual memory space. The programmer does not have to know how this is
-achieved exactly, but it is critical for them to know what guarantees
-the memory management layer provides. As is typically the case,
-systems can differ in this respect because they make different
-tradeoffs between safety guarantees and performance.
+reading and writing from the same pool of memory locations, when they
+are actually running on distributed computers that do not share
+memory.
+
+To implement the DSM model, a ``middleware'' memory management layer
+is employed to handle read and write requests issued by the
+application. Under the hood, the middleware coordinates with other
+nodes by message passing in a way that facilitates the abstraction of
+a common virtual memory space. The programmer is not directly
+concerned with how this is accomplished. They are, however, required
+to understand what guarantees are and are not provided by the memory
+management layer, in other words what kinds of \emph{semantics} the
+virtual memory implements. Systems generally differ in this respect
+because they make different tradeoffs between safety guarantees and
+performance.
 
 \begin{figure}
     \centering
@@ -1497,6 +1500,7 @@ tradeoffs between safety guarantees and performance.
 \end{figure}
 
 \subsubsection{Shared memory time diagrams}
+\newcommand{\Op}{\mathrm{Op}}
 
 Figure \ref{fig:smEx1} depicts a time diagram for the shared memory
 abstraction, not unlike the diagrams in Figure
@@ -1508,17 +1512,24 @@ operations are shown:
   important to indicate the return value, we notate read requests as
   $R(x, v)$.
 \item[Writes] A \emph{write} operation $W(x, v)$ indicates writing
-  value $v$ to memory location $x$. In pseudocode the notation might
-  be $x := v$ or $x \leftarrow v$.
+  value $v$ to memory location $x$. Other common notations include
+  $x := v$ or $x \leftarrow v$.
 \end{description}
+We write $\Op$ to indicate an arbitrary (read or write)
+operation.
 
-Each request consists of a horizontal span along the worldline of a
-process. The span represents the duration when the request is
-executing, beginning when the request is submitted by the application
-and ending when the operation has finished. From the programmer's
-perspective, if the read/write primitives are blocking operations, the
-execution is when the memory management layer is running and the main
-application is blocked.
+Each operation consists of a horizontal span along the worldline of a
+process representing the duration of the operation. Each operation
+begins at a time $\Op.s$ ($s$ for ``start'') called its
+\emph{invocation event}, beginning when the programmer invokes the
+memory manager. The operation ends at some time $\Op.t$ ($t$ for
+``terminate'') called its \emph{response event}, when a response is
+given to the caller (either an acknowledgement for a write operation,
+or a value for a read operation). The entire collection of invocation
+and response events, as depicted in a time diagram, is called a
+\emph{history}. If $H$ is a history, we write $H|_P$ for the set of
+operations that happen on process $P$, called the \emph{local history}
+of $P$.
 
 Transparently and in the background, the memory management layer
 coordinates with other processes over the network. While executing a
@@ -1529,14 +1540,15 @@ reflected in the time diagrams.
 
 \subsubsection{Semantics and consistency}
 
-For a non-distributed application, i.e. one running on a single
-computer, it is clear how read and write requests should be
-interpreted. Mainly, a read request $R(x)$ should return the most
-recent value $v$ that was written to $x$ by a write $W(x, v)$, or
-resort to some default behavior if no such write exists. This
-interpretation is unambiguous because we assume that operations
-running on a single process do not overlap in time, so it always makes
-sense to ask which of two events happened before the other.
+For a sequential application, i.e. one running on a single computer,
+it is clear how read and write requests should be interpreted. A read
+request $R(x)$ should return the most recent value $v$ that was
+written to $x$ by a write $W(x, v)$ (or resort to some default
+behavior if no such write exists, but we will not consider such
+examples). This interpretation is unambiguous because we assume that
+operations running on a single process do not overlap in time, so it
+always makes sense to ask which of two events happened before the
+other.
 \begin{figure}
   \input{images/pgf/smEx0.pgf}
   \caption{Memory operations on a single process}
@@ -1552,11 +1564,11 @@ sense to ask which of two events happened before the other.
 \end{example}
 
 In the distributed context, the metaphorical wrench in the works is
-that operations by different processes can and frequently will
-overlap, so by default there is no total order that can be used to
-compare events. Without such a comparison, the notion of ``most
-recent'' operation is ambiguous, which makes it difficult to say
-exactly how the memory requests should even be interpreted.
+that operations by different processes can execute concurrently, so
+there is no obvious total order that can be used to compare
+events. Without such a comparison, the notion of ``most recent''
+operation is ambiguous, which makes it difficult to say exactly how
+the memory requests should even be interpreted.
 
 \begin{figure}
   \input{images/pgf/smEx2.pgf}
@@ -1568,79 +1580,74 @@ exactly how the memory requests should even be interpreted.
   \label{exmpl:concurrentupdates}
   Consider Figure \ref{fig:smEx2}. Two writes are depicted that overlap
   in physical time, making it unclear whether $W(x,3)$ or $W(x,5)$
-  should be considered as happening first. Thus, it is unclear whether
-  the read request at process 1 will return 3 or 5.
+  should be considered as happening first.
 \end{example}
 
-In example \ref{exmpl:concurrentupdates}, it seems intuitively clear
-that the programmer should expect each read request to return either 3
-or 5, and not, say, 37. What is less clear is whether the first
-request requests on each process, which run concurrently, must be
-constrained to return the same value. Now consider the second read
-request $R(x)$ running on process $2$. Can the programmer be confident
-that this request will return the same value as the one immediately
-preceding it?
+In example \ref{exmpl:concurrentupdates}, it seems likely that the
+programmer should expect each $R(x)$ operation to return either 3 or
+5, but definitely not, say, 37. After some thought, especially about
+how to implement the memory manager, a few other questions seem less
+obvious.
+\begin{itemize}
+\item Must the read requests on $P_1$ and $P_2$ return the same value?
+\item May the second read at $P_2$ return a different value
+  than the preceding one?
+\item Is there a world in which an $R(x)$ could return 4?
+\end{itemize}
 
 It is possible to consider different ways of answering these
-questions. The role of a \emph{memory model} is to constrain exactly
-which possibilities are allowed and which are prohibited, namely which
-values can be read under different conditions. A single program can
-behave differently depending on what memory model is offered by the
-shared memory layer.
-
-\begin{comment}
-A \emph{memory consistency model} formally constrains the allowable
-system responses during executions. ``Strong'' models are generally
-understood as ones providing the illusion that all clients are
-accessing a single global database. As we will see, this still leaves
-room for different possible behaviors (i.e.~allows non-determinism in
-the execution of a distributed application), but the allowable
-behavior is tightly constrained.  Weaker models tolerate deviation
-from this standard. For a given application, the most appropriate
-model depends on the semantics expected by the application and its
-clients, which must be weighed against other requirements. Strongly
-consistent systems are easier to understand and reason about and so,
-all other things being equal, one wants to have as much consistency as
-possible. However, we shall see that strong notions of consistency are
-brittle in the sense that they generally cannot be achieved for the
-kinds of systems we consider in this document.
-\end{comment}
+questions. The role of a \emph{memory model} is to specify exactly
+which possibilities are allowed and which are prohibited, which comes
+down to constraining which kinds of values can be returned by read
+operations under different conditions. An application designed
+assuming one memory model may misbehave if executed in an environment
+that actually implements a different one. On the other hand, memory
+models that provide greater guarantees to the programmer also impose
+greater constraints on the memory manager and, ultimately, the
+network. Thus, the selection of a memory model requires balancing the
+needs and expectations of the application against the practical
+constraints of the environment.
 
 \subsubsection{Concurrency and External order}
 \label{sssec:externalorder}
-
-As before, it is tempting to imagine assigning a physical timestamp to
-reads and writes to establish an order among events, resolving the
-ambiguities above. However, we have seen that physical clocks are
-usually not so precisely sychronized as to allow meaningfully
-comparing timestamps from different nodes, so this is not a total
-solution.
+As before, it is tempting to imagine sidestepping these issues by
+assigning a physical timestamp to each operation as to establish a
+total global order among events. However, we have seen that physical
+clocks are usually not so precisely sychronized as to allow comparing
+physical timestamps from different nodes.
 
 One fundamental relation in the DSM setting is \emph{external
 order}. Intuitively, it is the partial order that orders
 non-overlapping events by their physical times, but does not assign an
 ordering to events whose executions overlap in physical time.
 
-\begin{comment}
-\begin{definition}
-  Recall that an irreflexive partial order is a binary relation \(<\)
-  such that \(A \not < A\), \(A < B \implies B \not < A\), and \(A <
-  B, B < C \implies A < C\), where $x \not < y$ means it is not the
-  case that $x < y$.
-\end{definition}
-\end{comment}
-
-\begin{definition}
-  Let $E$ be an execution. Request $E1$ \emph{externally precedes}
-  request $E2$ if $E1.t < E2.s$. That is, if the first request
-  terminates before the second request is accepted. This induces an
-  irreflexive partial order called \emph{external order}.
+\begin{definition}[External order]
+  Let $H$ be a history. An operation $\Op^1$ \emph{externally
+    precedes} operation $\Op^2$ if $\Op^1.t < \Op^2.s$. (Here, we are
+  comparing events in terms of real, physical time.) That is, one
+  operation externally precedes another if its response occurs before
+  the invocation of the other. This induces an irreflexive partial
+  order on $H$ called external order.
 \end{definition}
 
-We assume processes handle operations one-at-a-time, so the events
-handled at any one process are totally ordered by external order---one
-event cannot start before another has finished. However, events by
+Because each process handles operations one-at-a-time, a local history
+$H|_P$ is totally ordered by external order. However, operations by
 different process may overlap.
+
+\begin{definition}[Physical concurrency]
+  Consider two operations $\Op^1$ and $\Op^2$. If neither externally
+  precedes the other, in another words if there is some moment in time
+  during which both operations are executing, the operations are said
+  to be \emph{physically concurrent}, written $\Op^1 || \Op^2$.
+\end{definition}
+
+Physical concurrency is a reflexive and symmetric relation, but
+typically not a transitive one. Such structures are generally known as
+compatibility relations, the intuition being that if \(A\) and \(B\) are
+both ``compatible'' with \(C\), it need not be the case that \(A\) and
+\(B\) are compatible with each other. The reader should convince
+themselves that if $\Op^1 || \Op^2$ and $\Op^2 || \Op^3$, it need not
+be the case that $\Op^1 || \Op^3$.
 
 For performance reasons, memory models commonly allow distributed
 operations to have semantics that do not strictly conform to external
@@ -1664,38 +1671,18 @@ unpredictable as ours.
   graph (DAG).
 \end{example}
 
-
-If \(E1\) and \(E2\) are events at different processes that are not be
-comparable by external order, i.e.~neither \(E1.t < E2.s\) nor
-\(E2.t < E1.s\), we say they are \emph{physically concurrent}.
-
-\begin{definition}
-  If two events overlap in physical time (equivalently, if they are
-  not comparable by external order), we call the events
-  \emph{physically concurrent} and write $E1 || E2$.
+\begin{definition}[Sequential history]
+  Let $H$ be a history of invocation/response events. A
+  \emph{sequential history} of $H$ is any choice of total order among
+  the events in $H$---that is, some rearrangement of the operations as
+  to ensure none of them overlap in time.
 \end{definition}
 
-Physical concurrency is a reflexive and symmetric---but usually not
-transitive--- binary relation. Such structures are generally known as
-\emph{compatibility relations}, the idea being that if \(A\) and
-\(B\) are both compatible with \(C\), it need not be the case that
-\(A\) and \(B\) are compatible with each other. The reader should come
-up with an example of two operations that are physically concurrent
-with a third operation but not with each other.
+The first two memory models in the next section require, among other
+things, that any history $H$ must be consistent with some sequential
+rearrangement of $H$.
 
 \subsection{Memory Consistency Models}
-
-Since the goal of the DSM abstraction is to present the illusion of a
-reading and writing from a common memory, the observed result should
-be equivalent to some interleaving of the requests into a linear
-order. If each processes $P_i$ of $N$ total processes issues $r_i$
-requests for some non-negative integer $r_i$, observe there are a
-total of
-\[
-\frac{\left(\sum_{i = 1}^N r_i\right)!}{\prod_{i = 1}^N r_i!}
-\]
-such interleavings. The question we must consider is which of these
-are allowed.
 
 \subsubsection{Linearizability}
 \label{sssec:linearizability}
@@ -1703,59 +1690,67 @@ are allowed.
 \emph{Linearizability}, the strongest consistency model, can be
 concisely defined as providing the appearance that ``each operation
 applied by concurrent processes takes effect instantaneously at some
-point between its invocation and response.'' \citationneeded The same
-condition is known variously as atomic consistency, strict
-consistency, and sometimes external consistency. In the context of
-database transactions (which come with other database-specific
-guarantees like isolation), the analogous condition is called strict
-serializability.
+point between its invocation and response.''
+\cite{10.1145/78969.78972} The same condition is known variously as
+atomic consistency, strict consistency, and sometimes external
+consistency. In the context of database transactions (which come with
+other database-specific guarantees, particularly serializability), the
+analogous condition is called strict serializability.
 
-A linearizable execution is defined by three features.
-
-\begin{definition}[Linearizable execution]
-  A \emph{linearizable execution} is one satisfying the following three conditions.
+A linearizable history is defined by three features.
+\begin{definition}[Linearizable history]
+  \label{def:linearizable}
+  A \emph{linearizable history} is one satisfying the following three rules.
 \begin{enumerate}
   \tightlist
-\item
-  All processes act like they agree on a single, global total order
-  defined across all accesses.
-\item
-  This sequential order is consistent with the actual external order.
-\item
-  Responses are semantically correct, meaning a read request \(R(x, a)\)
-  returns the value of the most recent write request \(W(x, a)\) to
-  \(x\).
+\item[R1] All processes act like they all see some common sequential
+  history of operations.
+\item[R2] Responses are semantically correct, meaning a read request
+  \(R(x, a)\) returns the value of the most recent write request
+  \(W(x, a)\) to \(x\).
+\item[R3] The sequential history is consistent with external
+  order. That is, if the response of $\Op$ precedes the invocation of
+  $\Op'$, then $\Op$ precedes $\Op'$ in the sequential history.
 \end{enumerate}
 \end{definition}
 
-An intuitive way of approaching linearizability is by defining it
-in terms of \emph{linearization points.}
+We return to Example \ref{exmpl:concurrentupdates}. Rule 1 of
+Definition \ref{def:linearizable} requires $P_1$ and $P_2$ to act like
+they both witness the same total order of operations, which in
+particular assigns a total order on the three write operations
+$W(x,4), W(x,3),$ and $W(x,5)$. By Rule 3 this order must agree with
+external order, meaning $W(x,4)$ comes first, followed by $W(x,3)$ and
+$W(x,5)$ in either order (due to their physical concurrency), followed
+by the three read operations. By Rule 2, the three read operations
+must return the value of $x$ assigned by whichever of $W(x,3)$ or
+$W(x,5)$ happens last. Altogether, linearizability leaves only two
+possibilities: all three read operations return $3$, or all three
+return $5$. These are known as the possible \emph{linearizations} of
+the history shown in Figure \ref{fig:smEx1}.
+
+A more visually intuitive way of approaching linearizability is by
+defining it in terms of \emph{linearization points.}
 
 \begin{definition}
-  A \emph{linearization point} $t \in \mathbb{R} \in [E.s, E.t]$ for an
-  event $E$ is a time between the event's start and termination. An
-  execution is \emph{linearizable} if and only if there is a choice of
-  linearization point for each access, which induces a total order called a \emph{linearization},
-  such that $E$ is equivalent to
-  the serial execution of events when totally ordered by their
-  linearization points.
+  A \emph{linearization point} $t \in \mathbb{R} \in [\Op.s, \Op.t]$
+  for an operation $\Op$ is a time between the event's invocation and
+  response, at which time the operation appears to take effect in
+  whole and instantaneously.
 \end{definition}
 
 \begin{example}
   \label{exmpl:linearizations}
-  Two different linearizations of Figure \ref{fig:smEx1} are shown in
-  Figure \ref{fig:smEx3}. Possible choices for linearization points
-  are shown in yellow. No other linearizations are possible.
+  The two possible linearizations of Figure \ref{fig:smEx1} are shown
+  in Figure \ref{fig:smEx3}. Possible choices for linearization points
+  are shown in yellow. (Note that only the relative order of
+  linearization points is important.)
 \end{example}
 
 Example \ref{exmpl:linearizations} demonstrates that linearizability
 leaves some room for non-determinism in the execution of distributed
-applications. In the example, we see that the read requests in Figure
-\ref{fig:smEx1} may return \emph{either} 3 or 5. However,
-linearizability constrains all three reads to return the same value,
-depending on which of $W(x,3)$ or $W(x,5)$ happens to take effect
-first.
-
+applications. In the example, we see that the reads in Figure
+\ref{fig:smEx1} may return 3 or 5, though they must all return the
+same value.
 \begin{figure}[p]
   \setlength\belowcaptionskip{5ex}
 
@@ -1777,29 +1772,17 @@ first.
 \end{figure}
 \afterpage{\clearpage}
 
-\begin{comment}
-Figure \ref{fig:linear_example11} shows a prototypical example of a
-linearizable execution. We assume that all memory locations are
-initialized to \(0\) at the system start time. Intuitively, it should
-appear to an external observer that each access instantaneously took
-effect at some point between its start and end time. Hence, the request
-to read the value of \(y\) returns \(1\), because at some point between
-\(W(y,1).s\) and \(W(y,1).t\) that change took effect. If client on
-\(P_1\) read a stale value, we would say the execution is not
-linearizable. Figure \ref{fig:linear_example12} shows an
-non-linearizable execution that returns stale data instead of reflecting
-the write access to \(y\) on \(P2\).
-\end{comment}
-
 Linearizability is a condition on individual executions of a
 distributed application. When only linearizable executions are
 permitted by the memory manager, the entire system is called
 linearizable.
 
 \begin{definition}[Linearizable system]
-  A shared-memory application is \emph{linearizable} if all possible
-  executions of that system are linearizable executions.
+  A memory management layer is linearizable if all possible histories
+  of the system are linearizable.
 \end{definition}
+
+\subsubsection{The CAP Theorem}
 
 \subsubsection{Sequential consistency}
 \label{sequential-consistency}
@@ -1822,6 +1805,20 @@ reason about concurrent executions of programs because the result is
 always guaranteed to represent some possible interleaving of
 instructions, never allowing instructions from one program to execute
 out of order.
+
+\begin{definition}[Legal sequential history]
+Let $H$ be a history of invocation/response events occurring on a set
+of processes $\{P_i\}_{i = 1 \ldots N}$. A \emph{sequential history}
+of $H$ is any choice of total order among the events in $H$---that is,
+a rearrangement of the operations as to ensure none of them overlap in
+time. If each $P_i$ issues
+$r_i$-many requests for some non-negative integer $r_i$, observe there
+are a total of
+\[
+\frac{\left(\sum_{i = 1}^N r_i\right)!}{\prod_{i = 1}^N r_i!}
+\]
+possible sequential histories.
+\end{definition}
 
 \begin{definition}
   \label{def:sequentiallyconsistent}
