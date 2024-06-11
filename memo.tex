@@ -33,7 +33,7 @@
 
 \newcommand{\B}{\mathbf{B}}
 \newcommand{\w}{\mathbf{w}}
-\newcommand{\citationneeded}{\footnote{\textbf{CITATION NEEDED}}}
+\newcommand{\citationneeded}{\textbf{[CITATION NEEDED]}}
 
 % Globally redefine pgfpicture to use \Large fonts
 \let\origpgfpicture=\pgfpicture
@@ -102,8 +102,8 @@
 \tableofcontents
 \newpage
 
-\section{Introduction}\label{introduction}
-
+\section{Introduction}
+\label{introduction}
 Civil aviation has traditionally focused primarily on the efficient
 and safe transportation of people and goods via the airspace. Despite
 the inherent risks, the application of sound engineering practices and
@@ -136,7 +136,7 @@ applications.
 If there is a central theme uniting the sections of this manuscript,
 it is \emph{continuity} in the sense considered by
 topology.\footnote{For a typical introductory textbook see
-\cite{mendelson2012introduction}.} The systems we consider will be
+  \cite{mendelson2012introduction}.} The systems we consider will be
 subject to harsh operating conditions that limit how well they can
 perform---for example, wireless communication is typically less
 reliable during inclement weather. To build a system that is
@@ -150,7 +150,8 @@ delicate tradeoffs between competing objectives, most famously between
 performance and consistency, the topic of Section
 \ref{sec:background}.
 
-\subsection{Summaries of the sections}\label{summaries-of-the-sections}
+\subsection{Summaries of the sections}
+\label{summaries-of-the-sections}
 
 Sections \ref{sec:disaster-response}--\ref{sec:desiderata} contain
 background material on disaster response, distributed systems, and the
@@ -243,132 +244,133 @@ simulation and experimentation in the field.
 
 \section{Coordination Challenges in Disaster Response}
 \label{sec:disaster-response}
-
-This section explains aspects of disaster response (particularly
-firefighting) scenarios that motivate the remainder of this
-document. We describe how real-world environments give rise to
-foundational challenges that must be addressed through the application
-of distributed computing principles. Even deploying the best
-communications equipment cannot realistically avoid the fundamental
-computer scientific problems raised when many distributed agents try
-to coordinate their actions over a widespread area.
+This section explains aspects of disaster response, particularly
+firefighting, that motivate the remainder of this document. We
+describe how real-world environments give rise to foundational
+challenges that must be addressed through the application of
+distributed computing principles. Even using the best communications
+equipment cannot avoid the fundamental computer scientific problems
+raised when distributed agents must coordinate their actions over a
+widespread area.
 
 The operational environment of wildfire suppression, hurricane relief,
 and other disaster settings is generally characterized by systemic
-communications challenges. It is not surprising that a 2023 report on
-wildland firefighting modernization by the President’s Council of
-Advisors on Science and Technology (PCAST) cites ``the vulnerabilities
-and shortfalls in wildland firefighter communications, connectivity,
-and technology interoperability'' in their first of five
-recommendations \cite{pcast2023}. These shortfalls can be partly
-attributed to factors that are simply inherent to disaster response:
-remote locations, difficult terrain, damaged infrastructure, harsh
-weather, and limited battery power, to name a few.
+communications challenges. A 2023 report on wildland firefighting
+modernization by the President’s Council of Advisors on Science and
+Technology (PCAST) cites ``the vulnerabilities and shortfalls in
+wildland firefighter communications, connectivity, and technology
+interoperability'' in their first of five recommendations
+\cite{pcast2023}. These shortfalls can be partly attributed to factors
+that are simply inherent to disaster response: remote locations,
+difficult terrain, damaged infrastructure, harsh weather, and limited
+battery power, to name a few.
 
-Agents in the field generally experience high packet loss (when
-considering digital communication), garbled transmissions, and
-unpredictable latencies when passing information over the
-communication network(s). A conservative view suggests expecting the
-worst performance at particularly inopportune times, simply because
-the conditions that prompt urgent communication can be expected to
-correlate with those that make communication difficult. One
-possibility is that the disaster itself damages the communications
-infrastructure.  Another example, which is true tautologically, is
-that a communications network is the most congested, and therefore the
-least available, precisely when everyone needs to use it. Both of
-these phenomena were famously exhibited in the immediate aftermath of
-the September $11^\textrm{th}$ terrorist attacks when sudden user
-demand and severed trunk cables brought New York public cell phone
-networks virtually to a halt \cite{2011:Reardon}. Other networks along
-the East Coast, as well as dedicated networks for first responders,
-experienced similar effects.
+Agents in the field generally experience high packet loss, garbled
+transmissions, and unpredictable latencies when passing information
+over the communication network(s). A conservative view suggests
+expecting the worst performance at the most inopportune times, because
+the conditions that prompt urgent communication tend to correlate with
+those that make communication difficult. It could be that the disaster
+itself damages the communications infrastructure. A more basic
+observation---essentially a tautology---is that a network is the most
+congested, and therefore the least available, precisely when everyone
+needs to use it. Both of these phenomena were famously exhibited in
+the immediate aftermath of the September $11^\textrm{th}$ terrorist
+attacks, when sudden user demand and severed trunk cables brought New
+York public cell phone networks virtually to a halt
+\cite{2011:Reardon}. Other networks along the East Coast, including
+dedicated networks for first responders, experienced similar
+effects. The communication failures of 9/11 eventually became the
+impetus for the creation of a nationwide public safety broadband
+network, FirstNet \cite{2021:firstnet, 2021:firstnet2}.
 
 From a systems perspective, an unreliable network presents a challenge
-for coordinating distributed agents. A root cause of this problem is
-that coordinated action requires some notion of consistency,
-i.e.~agreement, among data shared between agents. We shall make this
-somewhat vague notion more precise in Section \ref{sec:background},
-but a simple example is that it is very important for everyone to
-agree which firetrucks have been dispatched to which scenes, which
-tasks should be prioritized, or which radios have been reserved from
-the {\mbox{NIICD}} radio cache \cite{radiocache} and for whom. The
-exact meaning of ``consistency'' varies between applications, but a
-general observation is that stronger standards for consistency are
-more difficult to maintain than relaxed ones because they require
-exchanging more information with other agents quickly, putting a
-heavier burden on the network. When the network is slow, system
-components that need to communicate may have to wait for network to
-deliver their messages, diminishing the efficacy and coherence of the
-system.
+for coordinating distributed agents. Coherent decision-making and
+coordinated action require consistency, i.e.~agreement, among data
+shared between agents. We shall make this somewhat vague notion more
+precise in Section \ref{sec:background}, but the intuition is clear:
+it is very important for everyone to agree which firetrucks should
+respond to which scenes, which tasks should be prioritized, or which
+radios and radio frequencies have been reserved for whom. A general
+observation is that stronger standards for consistency are more
+difficult to maintain than relaxed ones because they require
+exchanging more information in less time, putting a heavier burden on
+the network. When a communications link is slow, system components
+that need to coordinate may have to pause and wait, diminishing the
+efficacy of the system. When this delay is unacceptable, the most
+realistic alternative is to relax the standards for coordination. In
+the next section we demonstrate that such a tradeoff has implications
+for system safety.
 
 \subsection{Communication and Safety}
 \label{communication-and-safety}
-
-Many complications in the field are exacerbated by a poor
-communications environment. In this setting, agents must choose
-between long delays in sending and receiving information or acting
-with only limited knowledge. Typically they will experience some
-amount of both. Both options present safety challenges because
-operational safety, by nature, requires agents to gather information
-about their environment and react to it quickly and systematically. In
-other words, both inaction and uninformed action are problems. This
-turns out to be deeply related to a computer science phenomenon
+Operational safety requires agents to gather information about their
+environment and react to it quickly and systematically. This
+information is often transmitted over networks, so a poor
+communications environment is a safety problem. Poor communication
+forces agents to choose between delays in sending and receiving
+information or acting with only limited knowledge, but note that
+inaction and uninformed action are both problematic for their own
+reasons. This turns out to be related to a computer science phenomenon
 generally known as the safety/liveness tradeoff.
 
 As a running example, we consider the use of firefighting airtankers,
 the largest of which are the Very Large Airtankers (VLATs), defined as
 those carrying more than 8,000 gallons of water or fire retardant
-\cite{2019:airtankerops}. The largest VLATs can carry more than 20,000
-gallons, weighing about 170,000 pounds. This weight is typically
-dropped from a mere 250 feet above the tree canopy
-\cite{2019:airtankerops}, though the complexity of the maneuver means
-errant drops are sometimes performed even lower than this, easily
-crushing a ground vehicle \cite{2019:stickney}. A 2018 accident led to
-the death of one firefighter and the injury of three others when an
-87-foot Douglas Fir tree was knocked down by an unexpectedly forceful
-drop from a Boeing 747-400 Supertanker \cite{2018:calfire}.
+\cite{2019:airtankerops}. The largest VLATs can deposit more than
+20,000 gallons, weighing about 170,000 pounds, in a single ``drop.''
+In the United States today, a typical policy is to perform drops from
+a mere 250 feet above the tree canopy \cite{2019:airtankerops}, though
+the complexity of the maneuver means errant drops are sometimes
+performed even lower than this, easily crushing a ground vehicle
+\cite{2019:stickney}. A 2018 accident led to the death of one
+firefighter and the injury of three others when an 87-foot Douglas Fir
+tree was knocked down by an unexpectedly forceful drop from a Boeing
+747-400 Supertanker \cite{2018:calfire}.
 
 \begin{figure}[h]
   \label{fig:airtanker}
   \centering
   \includegraphics[scale=0.4]{images/dc10.jpg}
-  \caption{A DC-10 airtanker, rated for 9,400 gallons, drops retardant above Greer, Arizona. \textbf{CITATION NEEDED}}
+  \caption{A DC-10 airtanker, rated for 9,400 gallons, drops retardant above Greer, Arizona. \citationneeded.}
 \end{figure}
+% https://www.flickr.com/photos/apachesitgreavesnf/5837741382
+% Also appears at https://www.nifc.gov/resources/aircraft/airtankers
 
 Suppose that in the future, firefighters are equipped with GPS sensors
-and digital transmitters---this could be an application running on
-their personal cell phones, or better yet something running on
-dedicated and more reliable equipment. A seemingly reasonable policy
-would be to prohibit VLATs from performing a drop if its computers do
-not have up-to-date information about the location of firefighters on
-the ground. The problem is that obtaining this information may be
-difficult or impossible: perhaps heavy smoke, a damaged radio tower,
-or a tall ridge prevents communications between the air and ground. In
-these scenarios, rigid enforcement of the safety policy would prevent
+and digital transmitters that are integrated into an environment-wide
+communication system. A reasonable policy would be to prohibit VLATs
+from performing a drop if its computers do not have up-to-date
+information about the location of firefighters on the
+ground. Unfortunately, this information may be difficult or impossible
+to share: perhaps heavy smoke, a damaged radio tower, or a tall ridge
+prevents communications between the air and ground. In these
+scenarios, rigid enforcement of the safety policy would prevent
 airtankers from operating.
 
 This scenario exemplifies a classic tradeoff between opposing goals:
 system \emph{safety} and system \emph{availability} (or
 \emph{liveness}), elaborated on in Section \ref{sec:background}. In
 the distributed computing context, safety properties guarantee that a
-system will not perform an action that violates a constraint. In this
-example, a reasonable safety property could look like the following:
+system will not perform an action that violates a constraint. An
+exemplary safety property could look like the following:
 \begin{quote}
   \interlinepenalty=10000 % Punish pagebreaks inside this quote!
-  $\textbf{P}_\textrm{safe}$: All ground agents are known to be at
-  least 100 feet outside the drop zone, and this information is
-  current to within 30 seconds, or airtankers will not perform a drop.
+  $\textbf{P}_\textrm{safe}$: Ground agents are known to be at least
+  100 feet outside the drop zone, and this information is current to
+  within 30 seconds, or airtankers will not perform a drop.
 \end{quote}
-By contrast, liveness properties stipulate that the system
-will certainly perform requested actions, typically within some time
-bound. In our scenario, an expected liveness property might be the
-following:
+By contrast, liveness properties stipulate that the system will
+certainly perform requested actions, typically within some time
+bound. An exemplary liveness property might be the following:
 \begin{quote}
-  $\textbf{P}_\textrm{live}$: Airtankers will perform a drop within 20
-  minutes\footnote{In an interview with PBS, the Chief of Flight
-  Operations for Cal Fire cited 20 \mbox{minutes} as the response time
-  for aerial firefighting units within designated responsibility areas
-  \cite{2021:aerialfirefighting}.} of receiving a request.
+  $\textbf{P}_\textrm{live}$: A VLAT on the ground will takeoff and
+  perform a drop within 20 minutes \footnote{In an interview with
+  PBS, the Chief of Flight Operations for Cal Fire cited 20
+  \mbox{minutes} as the response time for aerial firefighting units
+  within designated responsibility areas
+  \cite{2021:aerialfirefighting}} of receiving a request from an
+  incident commander.
 \end{quote}
 
 Safety and liveness are frequently dual mandates: safety, in the sense
@@ -420,28 +422,6 @@ which is precisely the kind of \emph{discontinuity} that we aim to
 prevent. Our goal is to build reliable systems that perform well in a
 wide range of circumstances.
 
-
-
-%To make the example more extreme, $\mathbf{P}_\textrm{safe}$ is
-%violated even if the information is current to within 31 seconds, so
-%a mere extra second of delay makes all the difference between whether
-%the VLAT can operate, even though the firefighters in question are
-%clearly far outside the drop zone.
-
-
-
-%as it makes the system's behavior difficult to predict, being so
-%sensitive to the particulars of the environment. Preventing this kind
-%of discontinuity can be difficult because we still want to provide
-%rigorous guarantees about the system's behavior, i.e. we cannot forgo
-%enforcing properties like $\mathbf{P}_\textrm{safe}$ altogether.
-
-%In reality, a human controller would likely decide that
-%the computer \emph{does} have enough information, and decide to
-%override the policy. However, it is difficult to make assurances about
-%a system if external actors are frequently in the habit of overruling
-%its decisions.
-
 \subsection{Communication Patterns in the Field}
 \label{communication-in-practice}
 
@@ -488,17 +468,7 @@ without the pretense of answering it conclusively, throughout Sections
 \ref{sec:data-fusion}. For now, we resume our examination of what
 communication patterns look like today.
 
-%Generally speaking, we expect that agents with a higher need to
-%coordinate their actions will tend to be located closer to each
-%other, which in turn correlates with an ability to communicate
-%quickly and reliably. This kind of principle motivates the sort of
-%decentralized, ad-hoc networking protocols considered in Section
-%\ref{sec:networking}. It can also affect the design of higher-level
-%applications like the one in Section
-%\ref{sec:continuous-consistency}.
-
 \paragraph{Communication on the ground}
-
 In the field, communication between firefighters and other agents is
 often facilitated by handheld (analog) land-mobile radios, which are
 inherently limited in their battery life, bandwidth, effective range,
@@ -515,25 +485,20 @@ without any network infrastructure at all. In a future environment
 where agents might be equipped with body-worn sensors and heads-up
 displays (HUDs) \citationneeded, this sort of local communication
 might be facilitated by simple low-power technologies such as
-Bluetooth \citationneeded, without the need for more sophisticated
-(and heavy) equipment.
+Bluetooth, without the need for more sophisticated (and heavy)
+equipment.
 
 Communication over a long distance requires infrastructural support,
 such as the use of cell towers and repeater stations. Typically,
 disaster response environments have scarce permanent infrastructure:
 in a wildland fire setting, perhaps a few repeaters mounted to a
 nearby watch tower. Ad-hoc infrastructure, such as a cell on wheels
-(COW) or cell on light truck (COLT), can sometimes be deployed on an
-as-needed basis if the location allows for it. An extremely common
-issue is making sure that all equipment is properly configured, for
-instance that all radios are listening on the correct frequencies,
-particularly when different agencies and groups need to
-interoperate. The difficulty of interoperability was another issue
-exhibited during the September $11^\textrm{th}$ attacks, which was a
-major impetus for the creation of the nationwide public safety
-broadband network (NPSBN) FirstNet \citationneeded. However, we can
-only imagine that interoperability between different agencies and
-vendors will remain a challenge in the future.
+(COW), can sometimes be deployed on an as-needed basis if the location
+allows for it. An extremely common issue is making sure that all
+equipment is properly configured, for instance that all radios are
+listening on the correct frequencies, particularly when different
+agencies and groups need to interoperate (another problem highlighted
+during the September $11^\textrm{th}$ attacks).
 
 \begin{figure}[t]
   \centering
@@ -541,9 +506,10 @@ vendors will remain a challenge in the future.
   \caption{The Ironside Mountain lookout and radio repeater station, destroyed in the 2021
     Monument fire, shown with protective foil on August
     $10^\textrm{th}$, 2015 during the 2015 River Complex fire. This
-    particular fire burned 77,077 acres over 77 days. \textbf{CITATION NEEDED}}
+    particular fire burned 77,077 acres over 77 days. \citationneeded}
   \label{fig:ironside}
 \end{figure}
+%https://web.archive.org/web/20150923190323/http://inciweb.nwcg.gov/incident/photograph/4431/44/45122/
 
 Use of centralized infrastructure comes with the potential for
 widespread failure when the infrastructure breaks down. For example,
@@ -552,17 +518,19 @@ Figure \ref{fig:ironside}, was destroyed during the 2021 Monument
 Fire, which burned approximately 223,124 acres over 88 days
 \cite{2021:monumentfire}. The Ironside Mountain station had strategic
 importance, being located on a tall ridge. According to a video blog
-from a volunteer firefighter involved in the incident\citationneeded,
+from a volunteer firefighter involved in the incident \cite{2022:mechfire},
+% See also https://web.archive.org/web/20220809061927/https://www.youtube.com/watch?v=4F2dDKMgAME
 its loss prevented communication between operators on different sides
 of the ridge, in networking parlance creating a \emph{partition} that
 lasted until crews could ascend the ridge to deploy a temporary
 station:
 \begin{quote}
-  ``When {[}the Ironside Mountain lookout station{]} burned down the radio
-  repeater went with it. And so communications were lost across the
-  fire\ldots{} one side of the fire couldn't talk to the other side\ldots.
-  So it was kind of a critical job to get that road cleared so that the
-  radio crews could go back up there and set up a temporary radio tower.''
+  ``When {[}the Ironside Mountain lookout station{]} burned down the
+  radio repeater went with it. And so communications were lost across
+  the fire\ldots{} one side of the fire couldn't talk to the other
+  side\ldots.  So it was kind of a critical job to get that road
+  cleared so that the radio crews could go back up there and set up a
+  temporary radio tower.''
 \end{quote}
 A scenario where communication between two groups is completely
 severed is exactly the sort of thing considered by the CAP theorem in
@@ -581,7 +549,6 @@ as a bridge between agents in the field and central coordinators
 (e.g. incident commanders).
 
 \paragraph{Communication in the air}
-
 Wildland firefighting increasingly involves the use of helicopters and
 fixed wing aircraft. Civil aviation has traditionally employed simpler
 communication patterns than this use case demands. For instance,
@@ -602,36 +569,42 @@ case calls for more sophisticated coordination schemes between
 airborne and ground-based elements than solutions like ADS-B provide
 by themselves.
 
+\paragraph{Message relaying}
 As aircraft generally have better line-of-site to ground crews than
 ground crews have to each other, firefighters sometimes relay messages
 to air-based units over the radio, which in turn is relayed back down
-to other ground units. The locality principle comes into play here
-too, but this time in the reverse direction: this relay scheme allows
-knowledge to travel farther but requires more effort, and the extended
-reach comes at the cost of introducing delays and possible degradation
-of message quality, as in the classic game of telephone. Hence, this
-sort of message passing should be reserved for more critical
-information.
+to other ground units. The locality principle comes into play for this
+sort of message relaying scheme, but in the negative direction:
+relaying allows knowledge to travel farther but requires more effort,
+and the extended reach comes at the cost of introducing delays and
+possible degradation of message quality, as in the classic game of
+telephone. Hence, this mode of communication should be reserved for
+more critical information.
 
-In some cases, planes from the Civil Air
-Patrol\citationneeded\footnote{A civil auxiliary of the U.S. Air
-Force. https://www.gocivilairpatrol.com/} have been equipped with
-radio repeaters and dispatched to wildfires to provide service to
-ground-based units. In the future, this sort of service could be
+The Communications Program of the Civil Air Patrol (a civilian
+auxiliary of the U.S. Air Force) is sometimes deployed to provide
+communications for firefighters on the ground using airplane-mounted
+radio repeaters. Air-based repeaters are better than scheme in the
+previous paragraph as they do not require a human to receive and then
+manually re-transmit information. That is, this form of relaying is
+\emph{transparent}. In this future, this sort of service could be
 provided autonomously by base stations mounted to unmanned aerial
 vehicles (UAVs), which might perform additional functions such as
-tracking the fire perimeter. More generally, future systems should
-transparently facilitate exchanging information between agents in a
-decentralized fashion that is robust to the failure of any one
-component. In Section \ref{sec:networking} we imagine a resilient
-ad-hoc digital network built from handheld and ground- and
-air-vehicle-mounted devices, permanent base stations, portable
-temporary infrastructure, and so on.
-%---a high-tech modernization of the sort of informal relay schemes
-%operating today over traditional radio channels.
+tracking the fire perimeter.
 
-\subsection{Towards the Future}\label{towards-the-future}
+In Section \ref{sec:networking} we imagine a resilient ad-hoc digital
+network built from handheld and ground- and air-vehicle-mounted
+devices, permanent base stations, portable temporary infrastructure,
+and so on. In effect, this would be a high-tech modernization of the
+sort of informal relay schemes operating today over traditional radio
+channels.
 
+%More generally, future systems should transparently facilitate
+%exchanging information between agents in a decentralized fashion that
+%is robust to the failure of any one component.
+
+\subsection{Towards the Future}
+\label{towards-the-future}
 So far we have said a lot about the state of disaster response
 today. A distributed system for this sort of challenge should be
 designed for the kinds of environments and conditions expected in the
@@ -678,16 +651,13 @@ In a perfect environment, such information would be shared with all
 necessary agents in whole and instantly. In reality, agents will be
 presented with information that is sometimes incomplete, out of date,
 or contradictory---all problems that are further exacerbated by an
-unreliable network. A superficially contradictory concern is that the
-information presented will be \emph{overcomplete}, filled with petty
-details that distract agents from their important tasks.
-
-%Of course, there is no actual contradiction between incomplete
-%information and information that is unneeded and useless at best.
+unreliable network. A competing concern is that the information
+presented will be \emph{overcomplete}, filled with petty details that
+distract agents from their important tasks.
 
 In some ways, future systems for disaster response will bear
 resemblence to future systems for warfighting, such as the conceptual
-\emph{Internet of Battle Things} (IoBT) \citationneeded. Chiefly,
+\emph{Internet of Battle Things} (IoBT) \cite{2016:iobt}. Chiefly,
 agents ``under extreme cognitive and physical stress'' will be subject
 to a highly dynamic and dangerous environment. Various kinds of
 technology will assist humans by providing data to support
@@ -704,7 +674,7 @@ avoid ``swimming in sensors and drowning in data''
 ``Humans seek well-formed, reasonably-sized, essential information
   that is highly relevant to their cognitive needs, such as effective
   indications and warnings that pertain to their current situation and
-  mission.'' \citationneeded
+  mission.'' \cite{2016:iobt}
 \end{quote}
 The most distinctive feature of the Internet of Battle Things, which
 separates it from the everyday internet of things, is ``the
@@ -714,28 +684,28 @@ real-world example of a critical communications station destroyed by
 wildfire, perhaps not unlike an attack by enemy forces.
 
 Lest we overstate the similarities between a battlefield environment
-and civil disaster response, we expect that a distinctive feature of
-the latter is a greater emphasis on the preservation of scarce network
-resources. More so than a tactical military unit, a group of (say)
-volunteer firefighters has to make do with off-the-shelf equipment
-rather than purpose-built, best in class hardware like sophisticated
-satellite links. Dedicated logistical support, and even things like
-allocated radio frequencies, will likely be in shorter supply, while
-adverse conditions like inclement weather will be almost
-guaranteed. Therefore we expect a complex interaction between the
-high-level needs of distributed applications and low-level concerns
-about network resources. This is because only the applications have
-enough information to determine which data is the most important and
-must be shared with whom first, while only the network-level protocols
-have enough information and control to make prudent use of scarce
-network availability. In contravention to the common wisdom that
-applications should be relatively blind to network considerations---or
-conversely that network protocols ought to be transparent to
-applications---our setting calls for mechanisms allowing the two
-layers to have some influence over each other. This interaction
-between the network and applications will be considered in more detail
-in Sections \ref{sec:networking}, \ref{sec:continuous-consistency},
-and \ref{sec:data-fusion}.
+and civil disaster response, a distinctive feature of the latter is a
+greater emphasis on the preservation of scarce network resources. More
+so than a tactical military unit, a group of (say) volunteer
+firefighters has to make do with off-the-shelf equipment rather than
+purpose-built, best in class hardware like sophisticated satellite
+links. Dedicated logistical support, and even things like allocated
+radio frequencies, will likely be in shorter supply, while adverse
+conditions like inclement weather will be almost guaranteed. Therefore
+we expect a complex interaction between the high-level needs of
+distributed applications and low-level concerns about network
+resources. This is because only the applications have enough
+information to determine which data is the most important and must be
+shared with whom first, while only the network-level protocols have
+enough information and control to make prudent use of scarce network
+availability. In contravention to the common wisdom that applications
+should be relatively blind to network considerations---or conversely
+that network protocols ought to be transparent to applications---our
+setting calls for mechanisms allowing the two layers to have some
+influence over each other. This interaction between the network and
+applications will be considered in more detail in Sections
+\ref{sec:networking}, \ref{sec:continuous-consistency}, and
+\ref{sec:data-fusion}.
 
 To give an example, a central data fusion center may be used to detect
 and alert responders to a fire that has accidentally moved beyond a
@@ -756,23 +726,36 @@ as this is partly a dynamic calculation influenced both by the
 criticality of the information to the task at hand and how much unused
 network capacity is available at that moment at that location.
 
-%For developers, it is clear that this requires some coordination
-%between the application and the networking layers, as the latter must
-%be given enough information to make the most prudent use of limited
-%resources.
-
 \section{Introduction to Distributed Systems}
 \label{sec:background}
-In this section we review two core aspects of distributed systems
-theory, message passing and distributed shared memory, and address how
-these fit into the picture painted in Section
-\ref{sec:disaster-response}. The primary reference we are following is
-the manuscript by Kshemkalyani and Singhal
-\cite{kshemkalyani_singhal_2008}, particularly chapters 1, 3, 6, and
-12. The main theme of the section is that distributed applications are
-sensitive to tradeoffs, typically between performance and a
-user-perceived notion of consistency.
+In this section we review some core aspects of distributed systems
+theory. The primary reference we are following is the manuscript by
+Kshemkalyani and Singhal \cite{kshemkalyani_singhal_2008},
+particularly chapters 1, 3, 6, and 12. The main theme of the section
+is that distributed applications are sensitive to tradeoffs, typically
+between performance and a user-perceived notion of consistency.
 
+This section is divided into two components that consider alternate
+paradigms for framing distributed applications. In the message passing
+framework, considered in Sections
+\ref{ssec:message-passing}--\ref{ssec:clocks}, the fundamental
+activity is sending and receiving information over the network. In the
+shared memory framework, considered in Section
+\ref{ssec:sharedmemory}, the fundamental activity is collaboratively
+updating data items shared by multiple agents. In either paradigm, a
+chief concern is to shield users from the complexity of the underlying
+system and ``{[}appear{]} to the users of the system as a single
+coherent computer'' \cite{TanenbaumSteen07}, when it is really a
+distributed collection of loosely coupled devices. The main obstacle
+to this goal is that the network connecting the devices causes
+messages to be delayed unpredictably. When communication is delayed,
+information becomes out of date, and separated nodes will have
+different and possibly conflicting information. This situation tends
+to force a choice: delay operations and wait for messages to be
+passed, or proceed at the risk of diverging from total global
+consistency.
+
+\subsection{What is a distributed system?}
 In general, a distributed system is a collection of independent
 entities that cooperate to solve a problem that cannot be individually
 solved \cite{kshemkalyani_singhal_2008}. Our motivating examples are
@@ -785,25 +768,6 @@ or attached to autonomous devices. The kinds of tasks considered
 include navigating safely in close proximity, delivering resources to
 remote locations, suppressing fires, and collecting, processing, and
 disseminating data about the environment.
-
-We consider two paradigms for framing distributed applications. In the
-message passing framework, the fundamental activity is sending and
-receiving information over the network. Alternatively, the fundamental
-activity of the shared memory framework is collaboratively updating
-data items shared by multiple agents. In either case, a chief concern
-is to shield users from the complexity of the underlying system and
-``{[}appear{]} to the users of the system as a single coherent
-computer'' \cite{TanenbaumSteen07}, when it is really a distributed
-collection of loosely coupled devices. The main obstacle to this goal
-is that the network connecting the devices causes messages to be
-delayed unpredictably. When communication is delayed, information
-becomes out of date, and separated nodes will have different and
-possibly conflicting information. This situation tends to force a
-choice: delay operations and wait for messages to be passed, or
-proceed at the risk of diverging from total global consistency.
-
-\subsection{Message Passing}
-\label{ssec:message-passing}
 
 Singhal and Shivaratri \cite{10.5555/562065} offer the following
 definition of a distributed computing system:
@@ -865,16 +829,45 @@ surface of this topic by discussing a basic mechanism common to many
 such protocols: using a system of ``logical'' clocks to track the
 causal order of events throughout the system.
 
-\subsubsection{FIFO and Causal Ordering}
+\subsubsection{Assumptions about Clocks}
+Physical clocks, especially inexpensive ones in consumer-grade
+devices, suffer from \emph{drift}, which is to say they do not all run
+at the same rate. They are also notoriously prone to misconfiguration,
+say if a device administrator sets the date, time, timezone, or
+daylight saving time policy (etc.) incorrectly. The devices we are
+considering may also spend a long time unpowered in storage, during
+which time they may not maintain an always-on clock.  For all these
+reasons, ordinary device clocks by themselves are not very
+reliable. They can be made more reliable using protocols like the
+venerable Network Time Protocol (NTP) \citationneeded to bring them
+into synchronization with respect to authoritative atomic clocks. Over
+a standard internet connection, the NTP works well enough to bring a
+device clock into synchronization with atomic clocks within 100ms,
+typically better. However, though NTP is robust to the network
+environment, this may not extend into the sorts of highly intermittent
+networks considered here and in Section \ref{sec:networking}. We will
+consider further issues of synchronization in that section.
+
+The NTP assumes devices already have a somewhat reliable network connection
+(by means that cannot themselves rely on synchronized clocks, of
+course, which may rule out settings that rely on time-sensitive access
+control mechanisms or public key infrastructure).
+
+%In general, we cannot assume access to physical clocks so precisely
+%synchronized as to fundamentally solve the problems discussed in this
+%section.
+
+\subsection{Message Passing}
+\label{ssec:message-passing}
 
 We model a system as a set \(\mathcal{P} = \{P_i\}_{i\in I}\) of
 \emph{processes} executing on independent, geographically dispersed
-computing devices, which we consolidate under the generic term
-\emph{nodes}. It is important to note, in general, that different
-nodes can have different characteristics, such as capabilities and
-intended uses. In other words, the system is heterogeneous. For now we
-take a high-level view that treats nodes simply as blackboxes.
-
+computing devices or \emph{nodes}. It is important to note that in
+general, different nodes can have different characteristics, such as
+capabilities and intended uses. In other words, the system is
+\emph{heterogeneous}. For now we take a high-level view that treats
+nodes simply as blackboxes and consider how these blackboxes
+communicate.
 
 Figure \ref{fig:message-latencies} shows several time diagrams for
 messages $\{m_i\}_{i=1}^N$ sent between three processes $P_1$, $P_2$,
@@ -886,8 +879,8 @@ indicating the moment the message is sent over the network by its
 originating process; its delivery generates a receive event
 $m^\textrm{recv}$. The (send, receive) pairs are connected by an arrow
 and said to be corresponding events. Note that the subscripts on the
-messages only serve to disambiguate them to the reader. They are not
-part of the message and have no semantic importance.
+messages only serve to disambiguate them to the reader, but they are
+not part of the message and have no semantic importance.
 
 \begin{figure}[p]
   \setlength\belowcaptionskip{5ex}
@@ -895,23 +888,15 @@ part of the message and have no semantic importance.
   \begin{subfigure}{1\textwidth}
     \centering
     \input{images/pgf/mpEx1.pgf}
-    \caption{Depiction of latencies in message passing}
+    \caption{$P_1$ has a somewhat lower-latency connection to $P_2$ than to $P_3$}
     \label{fig:message-latencies-a}
   \end{subfigure}
 
   \begin{subfigure}{1\textwidth}
     \centering \input{images/pgf/mpEx2.pgf}
-    \caption{$P_1$ has a low-latency connection to $P_2$ and high-latency connection to $P_3$}
+    \caption{$P_1$ has a much lower-latency connection to $P_2$ than to $P_3$}
     \label{fig:message-latencies-b}
   \end{subfigure}
-
-
-  \begin{subfigure}{1\textwidth}
-    \centering \input{images/pgf/mpEx3.pgf}
-    \caption{Broadcasting example satisfying FIFO but not CO}
-    \label{fig:message-latencies-c}
-  \end{subfigure}
-
   \caption{Message-passing time diagram examples}
   \label{fig:message-latencies}
 \end{figure}
@@ -924,37 +909,37 @@ delay, two messages $m$ and $m'$ may arrive in a different order than
 they were sent in. In Figure \ref{fig:message-latencies-a}, $P_1$
 sends messages $m_2$ and $m_4$ respectively to $P_3$ and $P_2$, in
 that order, but the message to $P_2$ arrives first. This may depict a
-scenario where $P_1$ and $P_3$ are far apart and have a higher-latency
-connection to each other. \ref{fig:message-latencies-b} depicts an
-extreme example where message $m_1$ is sent before all others but is
-last to be delivered. This diagram may depict a scenario where $P_2$
-has an even better connection $P_1$, while $P_3$'s connection has
-gotten worse, perhaps because the nodes are moving around the
-environment.
+scenario where $P_1$ and $P_3$ are far apart and have a high-latency
+connection to each other. Figure \ref{fig:message-latencies-b} depicts
+an extreme example where message $m_1$ is sent before all others but
+is last to be delivered. This diagram may depict a scenario where the
+connection between $P_1$ and $P_3$ has gotten worse, perhaps because
+$P_3$ has moved far away from the others.
 
 We assume just one exception to the fact that messages can arrive out
 of order. As highlighted earlier, at this level of abstraction it is
 reasonable to consider the first-in/first-out or FIFO model, which
 means messages from the same sender to the same recipient arrive in
 the order they were sent in. FIFO ordering is one of the basic
-services that might be provided by the network transport protocol (see
-Section \ref{sec:networking}). However, this guarantee only applies to
-the relative order of messages with the same source and destination;
-it does not constrain messages with different destinations or
-senders. The reader may wish to verify that all figures in this
-section satisfy FIFO: a violation of it would correspond to
-intersecting lines with the same (sender, receiver) pair.
+services that might be provided by the network transport protocol,
+which we discuss in Section \ref{sec:networking}. Note that the
+guarantee only applies to the relative order of messages with the same
+source and destination, but it does not apply to messages with
+different destinations or senders. The reader may wish to verify that
+all figures in this section satisfy FIFO: a violation of it would
+correspond to intersecting lines with the same (sender, receiver)
+pair.
 
 Because FIFO does not apply to messages sent between three or more
 nodes, distributed applications can experience anomolies in message
-order. A distinct possibility is for messages to violate the
-\emph{causally ordered delivery} assumption. ``Causality'' in
-this context refers to the potential for information from one event to
-influence another. A key problem for distributed systems is that
-network latencies mean events with a causal relation may appear to
-happen in an illogical order to users, which makes tracking causality
-a key issue. We start by defining an order between events on the same
-process.
+order. One possibility is for messages to violate the \emph{causally
+  ordered delivery} assumption. ``Causality'' in this context refers
+to the potential for information from one event to influence
+another. A key problem for distributed systems is that network
+latencies mean events with a causal relation may appear to happen in
+an illogical order to users, so tracking causality a key issue for
+system designers. We start by defining an order between events on the
+same process.
 
 \begin{definition}
   For two events $e$ and $e'$ that both occur in process $P_i$, we
@@ -966,7 +951,7 @@ The previous definition is unambiguous because we assume events occur
 at discrete, non-overlapping moments at each process. Less clear is
 how to order events that occur on different processes. The most
 fundamental order considered is the \emph{causal precedence} relation,
-also called Lamport's ``happens before'' relation \citationneeded.
+also called Lamport's ``happens before'' relation \cite{1978:lamportclocks}.
 
 \begin{definition}[Causal precedence]
   \label{def:causalprecedence}
@@ -1010,7 +995,7 @@ before considering an example.
   \label{def:causalorder}
   A network satisfies the causally ordered (CO) delivery model if
   messages are received in an order consistent with the causality
-  between send events. That is, the following property holds:
+  between send events. That is, if the following property holds:
   \begin{quote}
   For all messages $m$ and $n$ with the same destination, if
   $m^\textrm{send} \to n^\textrm{send}$, then $m^\textrm{recv} \to
@@ -1034,11 +1019,17 @@ conversation. To post a message, a process sends it to the other two
 members of the group. For reasons explained above, the two recipients
 generally do not receive the message at the same time.
 
+\begin{figure}{1\textwidth}
+  \centering \input{images/pgf/mpEx3.pgf}
+  \caption{Broadcasting example satisfying FIFO but not CO}
+  \label{fig:message-latencies-c}
+\end{figure}
+
 \begin{example}
   \label{exmpl:ambulancedispatch}
   In Figure \ref{fig:message-latencies-c}, we imagine the following
   conversation has taken place:
-\begin{itemize}
+  \begin{itemize}
 \item [$P_1$]: ``I need an ambulance at location A.''
 \item [$P_2$]: ``Understood, the last ambulance has been dispatched.''
 \end{itemize}
@@ -1063,12 +1054,14 @@ pair. However, the diagram violates Definition \ref{def:causalorder}
 because the send event of $P_1$'s question has causal precedence over
 $P_2$'s answer, while in $P_3$'s worldline, the receive event of the
 answer has causal precedence over the receipt of question. It is
-possible to implement broadcast-ordering protocols that present the
-abstraction of multiple parties who receive group messages in the same
-order at all locations. Unsurprisingly, such protocols often require
-mechanisms for tracking the causal relation between events.
+certainly possible to implement broadcast-ordering protocols that
+present the abstraction of multiple parties who receive group messages
+in the same order at all locations, but it should be unsurprising that
+such protocols require mechanisms for tracking the causal relation
+between events.
 
-\subsection{Timestamps and Synchronicity}
+\subsection{Timestamps and Logical Clocks}
+\label{ssec:timestamps}
 It may appear that we can avoid the ambiguous situation described
 above by attaching to each event a \emph{timestamp} tracking when the
 event occurred. Let us see why a na\"ive application of this idea
@@ -1095,47 +1088,19 @@ and $P_2$ happen to have two different clocks that are
 synchronized. Whether we can assume clocks are synchronized depends on
 the exact environment and the level of synchronicity required, but
 generally sychronization is either unavailable or requires additional
-mechanisms to prevent clocks from falling out of sync.
+mechanisms to prevent clocks from falling out of sync. For some
+coarse-grained purposes, possibly including the database replication
+framework in Section \ref{sec:continuous-consistency}, it may be
+enough for devices to maintain clocks that are only somewhat precisely
+synchronized. For other purposes, such as enforcing a total order on a
+sequence of broadcasts among large distributed groups, sufficiently
+precise synchronization of clocks untenable.
 
-Physical clocks, especially inexpensive ones in consumer-grade
-devices, suffer from \emph{drift}, which is to say they do not all run
-at the same rate. They are also notoriously prone to misconfiguration,
-say if a device administrator sets the date, time, timezone, or
-daylight saving time policy (etc.) incorrectly. The devices we are
-considering may also spend a long time unpowered in storage, during
-which time they may not maintain an always-on clock.  For all these
-reasons, ordinary device clocks by themselves are not very
-reliable. They can be made more reliable using protocols like the
-venerable Network Time Protocol (NTP) \citationneeded to bring them
-into synchronization with respect to authoritative atomic clocks. Over
-a standard internet connection, the NTP works well enough to bring a
-device clock into synchronization with atomic clocks within 100ms,
-typically better. However, though NTP is robust to the network
-environment, this may not extend into the sorts of highly intermittent
-networks considered here and in Section \ref{sec:networking}. We will
-consider further issues of synchronization in that section.
-
-%The NTP assumes devices already have a somewhat reliable network connection
-%(by means that cannot themselves rely on synchronized clocks, of
-%course, which may rule out settings that rely on time-sensitive access
-%control mechanisms or public key infrastructure).
-
-%In general, we cannot assume access to physical clocks so precisely
-%synchronized as to fundamentally solve the problems discussed in this
-%section.
-
-For some coarse-grained purposes, possibly including the database
-replication framework in Section \ref{sec:continuous-consistency}, it
-may be enough for devices to maintain clocks that are only somewhat
-precisely synchronized. For other purposes, such as enforcing a total
-order on a sequence of broadcasts among large distributed groups,
-sufficiently precise synchronization of clocks is an unrealistic
-assumption.
-
-It also happens that merely timestamping messages, even with perfectly
-sychronized clocks, is not enough to answer every question we could
-ask about causal precedence. For example, it is especially desirable
-if we can assume the \emph{strong} clock consistency condition:
+Lest the reader despair over our lack of synchronized clocks, we
+should point out that even perfectly synchronized clocks would not
+solve every problem. Even with perfect synchronization, merely
+timestamping messages would not provide enough information to achieve,
+for instance, the following \emph{strong} clock consistency condition:
 \begin{definition}
   A system of timestamps satisfies the strong clock consistency
   condition if the following property holds:
@@ -1151,25 +1116,24 @@ related, and simply comparing physical timestamps does not reveal the
 lack of causal relation. An example of this situation is found in
 Figure \ref{fig:message-latencies-b}, where $m_1^\textrm{send}$
 physically precedes all other events but does not causally precede any
-event except $m_1^\textrm{recv}$.
+event except $m_1^\textrm{recv}$. Assigning synchronized timestamps to
+each event using would do nothing to reveal the \emph{lack} of causal
+relation among them.
 
-\subsection{Logical Clocks}
-Distributed applications can systematically track causality by
-employing a system of \emph{logical clocks}, which usually measure the
-logical flow of time by storing non-negative integers that are
+For all the preceding reasons, typical distributed applications
+systematically track causality by employing a system of \emph{logical}
+clocks (as opposed to \emph{physical} ones). Such ``clocks'' measure
+the logical flow of time by storing non-negative integers that are
 advanced according to certain rules. Three major variants are common:
 scalar, vector, and matrix clocks. These fall on a kind of spectrum,
 in that scalar clocks are simple but provide the most coarse-grained
 information, while vector and matrix clocks provide increasingly more
 information but impose greater overheads.
 
-%quadratic in the number of processes but provide extremely precise
-%information about causality, with vector clocks in the middle.
-
 \subsubsection{Scalar clocks}
-Scalar clocks, introduced by Lamport\citationneeded, require each
-process $P_i$ to maintain a single scalar value $C_i$, a non-negative
-integer initialized at $0$. There are two update rules:
+Scalar clocks, introduced by Lamport \cite{1978:lamportclocks},
+require each process $P_i$ to maintain a single scalar value $C_i$, a
+non-negative integer initialized at $0$. There are two update rules:
 \begin{enumerate}
 \item Before a message is sent, $C_i$ is updated according to the rule
   \[C_i := C_i + 1.\]
