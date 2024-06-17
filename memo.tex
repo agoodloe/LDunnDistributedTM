@@ -37,7 +37,7 @@
 
 % Globally redefine pgfpicture to use \Large fonts
 \let\origpgfpicture=\pgfpicture
-\def\pgfpicture{\origpgfpicture\LARGE}
+\def\pgfpicture{\origpgfpicture\small}
 
 % Try loading this package to prevent so much hyphenation
 % as recommended by https://stackoverflow.com/questions/1609837/latex-breaking-up-too-many-words
@@ -728,170 +728,97 @@ network capacity is available at that moment at that location.
 
 \section{Introduction to Distributed Systems}
 \label{sec:background}
-In this section we review some core aspects of distributed systems
-theory. The primary reference we are following is the manuscript by
-Kshemkalyani and Singhal \cite{kshemkalyani_singhal_2008},
-particularly chapters 1, 3, 6, and 12. The main theme of the section
-is that distributed applications are sensitive to tradeoffs, typically
-between performance and a user-perceived notion of consistency.
+In this section we distill some core aspects of distributed systems
+theory, following manuscripts by Coulouris et al.
+\cite{coulouris2005distributed} and Kshemkalyani and Singhal
+\cite{kshemkalyani_singhal_2008}. As in Section
+\ref{sec:disaster-response}, our motivating examples of distributed
+systems consist of agents, nodes, and sensors in disaster response
+environments where infrastructure is deployed on an ad-hoc basis or
+carried by persons or vehicles in the field.
 
-This section is divided into two components that consider alternate
-paradigms for framing distributed applications. In the message passing
-framework, considered in Sections
-\ref{ssec:message-passing}--\ref{ssec:clocks}, the fundamental
-activity is sending and receiving information over the network. In the
-shared memory framework, considered in Section
-\ref{ssec:sharedmemory}, the fundamental activity is collaboratively
-updating data items shared by multiple agents. In either paradigm, a
-chief concern is to shield users from the complexity of the underlying
-system and ``{[}appear{]} to the users of the system as a single
-coherent computer'' \cite{TanenbaumSteen07}, when it is really a
-distributed collection of loosely coupled devices. The main obstacle
-to this goal is that the network connecting the devices causes
-messages to be delayed unpredictably. When communication is delayed,
-information becomes out of date, and separated nodes will have
-different and possibly conflicting information. This situation tends
-to force a choice: delay operations and wait for messages to be
-passed, or proceed at the risk of diverging from total global
-consistency.
-
-\subsection{What is a distributed system?}
-In general, a distributed system is a collection of independent
-entities that cooperate to solve a problem that cannot be individually
-solved \cite{kshemkalyani_singhal_2008}. Our motivating examples are
-systems that facilitate cooperation between firefighters and other
-disaster response agents.  The system components are typically
-computers, smartphones, sensors, or other kinds of communication
-equipment. These may be carried by individuals, mounted to ground or
-air-based vehicles, deployed as temporary or permanent infrastructure,
-or attached to autonomous devices. The kinds of tasks considered
-include navigating safely in close proximity, delivering resources to
-remote locations, suppressing fires, and collecting, processing, and
-disseminating data about the environment.
-
-Singhal and Shivaratri \cite{10.5555/562065} offer the following
-definition of a distributed computing system:
-
+In general, a distributed system can be defined as a collection of
+independent entities that cooperate to solve a problem that cannot be
+individually solved \cite{kshemkalyani_singhal_2008}. Singhal and
+Shivaratri \cite{10.5555/562065} offer the following definition:
 \begin{quote}
   ``A collection of computers that do not share common memory or a common
   physical clock, that communicate by message passing over a communication
   network, and where each computer has its own memory and runs its own
   operating system.''
 \end{quote}
-The most notable thing which makes a system ``distributed'' is that
-the nodes communicate by passing messages. Communication is
-facilitated by some form of network, a restriction implied by absence
-of a common memory. (Processes with common memory generally share
-information by writing it to a common memory location.) Section
-\ref{sec:disaster-response} explained why messages sent over the
-network experience a perceptible delay or \emph{latency}, especially
-in the context of disaster response where latencies may be on the
-order of minutes or even hours. First, passing messages requires the
-sender and receiver both to be within range of suitable access points
-to the network, which in these environments is likely true only
-intermittently. Then, messages must be sent over the air or through
-cables and processed, carried, and forwarded by any number of
-intermediate networking devices, and they must be retransmitted in
-case of unrecoverable errors during transit. In a tactical
-environment, packet loss can be on the order of \%xx. \citationneeded
 
-The limitations of the network should be taken as environmental
-factors over which system designers can exercise only limited
-control. Consequently, network latencies must be tolerated to within
-the range of conditions experienced in the field. This raises
-fundamental questions of computer science: How, and how well, can
-agents coordinate their actions when communication between them is
-subject to unpredictable delays?
+The ``distributed'' aspect of the system means its components can only
+communicate by passing messages over a network.\footnote{Components of
+  a non-distributed system, e.g. processes on the same computer, can
+  communicate by writing data to a shared memory location.} Our
+foundational assumption is that messages sent over the network
+experience a finite but unpredictable \emph{latency} or delay before
+they are delivered. More precisely, a system is ``distributed'' when
+network latencies are non-negligible compared to the timescale of
+other events in the system. Per the locality principles discussed in
+Section \ref{sec:disaster-response}, higher latencies are generally
+expected as components of the system become more greatly separated
+from each other.
 
-\subsubsection{Assumptions about the Network}
-To focus on high-level questions about consistency and coordination,
-we introduce a few simplifying assumptions. We treat the communication
-network as a blackbox that sends messages from a single destination to
-a single receiver, subject to an unpredictable delay.  We assume that
-if the same sender dispatches more than one message to a single
-destination, they arrive at their destination in the order they were
-sent. Below, this is called the FIFO (first-in, first-out) network
-model. Section \ref{sec:networking} will consider the low-level
-details of how the network facilitates this kind of message passing
-model, but for now we take the fact for granted.
+This section will explain how the unpredictability of the network
+essentially implies that the components of the system do not have a
+shared notion of time, and ultimately no shared notion of global
+state. We must either design mechanisms that attempt to recover such
+features, or protocols that perform correctly without relying on
+them. As any engineer would expect, the design space of distributed
+systems and protocols considers many possible tradeoffs, which are
+often between user-perceived notions of performance and consistency.
 
-A major limitation of the FIFO model is that it does not constrain the
-order of delivery of messages from different senders or with different
-destinations. This means whenever group communication is considered
-between three or more agents, messages typically arrive in different
-orders at different destinations, at least at the lowest level of the
-network protocol stack used by each device. To facilitate a coherent
-abstraction for users and applications, higher-level protocols must be
-employed that account for out-of-order delivery and offer a more
-predictable interface to the network, such as by enforcing a common
-message order across an entire group. We shall just scratch the
-surface of this topic by discussing a basic mechanism common to many
-such protocols: using a system of ``logical'' clocks to track the
-causal order of events throughout the system.
+In our environment, we assume nodes have only intermittent access to
+the network. Indeed, two or more nodes may need to coordinate without
+end-to-end connectivity, i.e. without ever being on the same network
+(or network partition) at the same time, necessitating the use of
+delay-tolerant networking (DTN) concepts as discussed in Section
+\ref{sec:networking}. Consequently, we consider latencies on an order
+ranging from seconds when communicating with nearby agents, to
+potentially hours or days for system-wide coordination.
+Communications engineers and system designers at the hardware level
+have only so much control over these latencies. Thus, we can only hope
+to build systems that tolerate real conditions as optimally as
+possible at the level of software.
+% In a tactical environment, packet loss can be on the order of
+% \%xx. \citationneeded
 
-\subsubsection{Assumptions about Clocks}
-Physical clocks, especially inexpensive ones in consumer-grade
-devices, suffer from \emph{drift}, which is to say they do not all run
-at the same rate. They are also notoriously prone to misconfiguration,
-say if a device administrator sets the date, time, timezone, or
-daylight saving time policy (etc.) incorrectly. The devices we are
-considering may also spend a long time unpowered in storage, during
-which time they may not maintain an always-on clock.  For all these
-reasons, ordinary device clocks by themselves are not very
-reliable. They can be made more reliable using protocols like the
-venerable Network Time Protocol (NTP) \citationneeded to bring them
-into synchronization with respect to authoritative atomic clocks. Over
-a standard internet connection, the NTP works well enough to bring a
-device clock into synchronization with atomic clocks within 100ms,
-typically better. However, though NTP is robust to the network
-environment, this may not extend into the sorts of highly intermittent
-networks considered here and in Section \ref{sec:networking}. We will
-consider further issues of synchronization in that section.
-
-The NTP assumes devices already have a somewhat reliable network connection
-(by means that cannot themselves rely on synchronized clocks, of
-course, which may rule out settings that rely on time-sensitive access
-control mechanisms or public key infrastructure).
-
-%In general, we cannot assume access to physical clocks so precisely
-%synchronized as to fundamentally solve the problems discussed in this
-%section.
-
-\subsection{Message Passing}
+\subsection{Message Passing and Virtual Time}
 \label{ssec:message-passing}
-
-We model a system as a set \(\mathcal{P} = \{P_i\}_{i\in I}\) of
-\emph{processes} executing on independent, geographically dispersed
-computing devices or \emph{nodes}. It is important to note that in
-general, different nodes can have different characteristics, such as
-capabilities and intended uses. In other words, the system is
-\emph{heterogeneous}. For now we take a high-level view that treats
-nodes simply as blackboxes and consider how these blackboxes
-communicate.
+One can model a distributed system as a set
+\(\mathcal{P} = \{P_i\}_{i\in I}\) of \emph{processes} which undergo
+atomic (indivisible) state changes known as \emph{events}. We divide
+events into three types: internal events, representing state changes
+inside a single process, and send and receive events for for passing
+messages between multiple processes. For now we treat processes and
+the network as opaque blackboxes, and focus on the ramifications of
+unpredictable communication delays for general coordination. The
+latter condition is subsumed by saying we work in the
+\emph{asychronous} network model.
 
 Figure \ref{fig:message-latencies} shows several time diagrams for
 messages $\{m_i\}_{i=1}^N$ sent between three processes $P_1$, $P_2$,
-and $P_3$. The $x$-axis of the diagram depicts the flow of physical
-time from left to right. Each process consists of a worldline
-depicting the \emph{events} occurring in that process. Each message
-$m$ starts off as a message \emph{send event} $m^\textrm{send}$
-indicating the moment the message is sent over the network by its
-originating process; its delivery generates a receive event
-$m^\textrm{recv}$. The (send, receive) pairs are connected by an arrow
-and said to be corresponding events. Note that the subscripts on the
-messages only serve to disambiguate them to the reader, but they are
-not part of the message and have no semantic importance.
+and $P_3$. The $x$-axis of the diagram depicts the flow of real
+(physical) time from left to right. For each process a worldline is
+shown depicting the events occurring in that process. Each message $m$
+starts off as a send event $m^\textrm{send}$ indicating the moment the
+message is sent over the network by its originating process; its
+delivery generates a receive event $m^\textrm{recv}$. The (send,
+receive) pairs are connected by an arrow and said to be corresponding
+events. Note that the subscripts on the messages only serve to
+disambiguate them to the reader, but they are not part of the message
+and have no semantic importance.
 
 \begin{figure}[p]
   \setlength\belowcaptionskip{5ex}
-
   \begin{subfigure}{1\textwidth}
     \centering
     \input{images/pgf/mpEx1.pgf}
     \caption{$P_1$ has a somewhat lower-latency connection to $P_2$ than to $P_3$}
     \label{fig:message-latencies-a}
   \end{subfigure}
-
   \begin{subfigure}{1\textwidth}
     \centering \input{images/pgf/mpEx2.pgf}
     \caption{$P_1$ has a much lower-latency connection to $P_2$ than to $P_3$}
@@ -907,51 +834,62 @@ The fact that arrows are diagonal, rather than vertical, represents
 the varying delay with which messages are delivered. Because of this
 delay, two messages $m$ and $m'$ may arrive in a different order than
 they were sent in. In Figure \ref{fig:message-latencies-a}, $P_1$
-sends messages $m_2$ and $m_4$ respectively to $P_3$ and $P_2$, in
-that order, but the message to $P_2$ arrives first. This may depict a
-scenario where $P_1$ and $P_3$ are far apart and have a high-latency
-connection to each other. Figure \ref{fig:message-latencies-b} depicts
-an extreme example where message $m_1$ is sent before all others but
-is last to be delivered. This diagram may depict a scenario where the
-connection between $P_1$ and $P_3$ has gotten worse, perhaps because
-$P_3$ has moved far away from the others.
+sends messages $m_2$ and $m_4$ in that order, but $m_4$ arrives at its
+recipient before $m_2$. Such a scenario might occur if $P_1$ and $P_3$
+are far apart and have a high-latency communication link. In Figure
+\ref{fig:message-latencies-b}, message $m_1$ is sent before any other
+message, but it is also the last to be delivered. This diagram may
+depict a scenario where the communication link between $P_1$ and $P_3$
+has deteriorated, perhaps because they have grown farther apart or
+because of environmental factors.
 
-We assume just one exception to the fact that messages can arrive out
-of order. As highlighted earlier, at this level of abstraction it is
-reasonable to consider the first-in/first-out or FIFO model, which
-means messages from the same sender to the same recipient arrive in
-the order they were sent in. FIFO ordering is one of the basic
-services that might be provided by the network transport protocol,
-which we discuss in Section \ref{sec:networking}. Note that the
-guarantee only applies to the relative order of messages with the same
-source and destination, but it does not apply to messages with
-different destinations or senders. The reader may wish to verify that
-all figures in this section satisfy FIFO: a violation of it would
-correspond to intersecting lines with the same (sender, receiver)
-pair.
+\subsubsection{Causality and  Sychrony}
+A fundamental distributed systems challenge is to order events in a
+way that individual components can calculate and agree upon. What
+makes this task challenging is that the components do not share a
+common time base. That is, participants in the system do not have
+instantaneous access to a globally shared clock, nor are they equipped
+with perfectly synchronized local clocks, so any two nodes do not
+necessarily agree on physical time.
 
-Because FIFO does not apply to messages sent between three or more
-nodes, distributed applications can experience anomolies in message
-order. One possibility is for messages to violate the \emph{causally
-  ordered delivery} assumption. ``Causality'' in this context refers
-to the potential for information from one event to influence
-another. A key problem for distributed systems is that network
-latencies mean events with a causal relation may appear to happen in
-an illogical order to users, so tracking causality a key issue for
-system designers. We start by defining an order between events on the
-same process.
+We briefly elaborate on the challenge of producing physically
+sychronized clocks before discussing the consequences of this
+difficulty. Physical clocks, especially consumer-grade ones, suffer
+from \emph{drift}, which is to say they do not all run at the same
+rate. Experienced system administrators will testify that clocks can
+also be quite prone to misconfiguration, say if the date, time,
+timezone, or daylight saving time policy (etc.) is set
+incorrectly. Our devices may spend a long time sitting unpowered in
+storage without maintaining an always-on clock. For these sorts of
+reasons, we cannot assume that physical clocks in devices are very
+reliable out-of-the-box.
+
+Clock drift can be corrected for using, for instance, signals from GPS
+satellites, but in disaster response environments GPS signals are not
+always available. Protocols like the Network Time Protocol (NTP)
+\citationneeded try to bring local clocks into synchronization with
+respect to authoritative clocks, typically to within 100ms over even a
+somewhat challenged internet connection, but this may not extend to
+highly chaotic networking environments such as ours. For such reasons
+we do not assume typical corrective measures will be able to reliably
+synchronize the clocks in our system with great precision.
+
+Fortunately, what seems most important about time for many purposes is
+that \emph{the future cannot influence the past} \citationneeded, and
+this is the sort of invariant we can enforce with appropriate
+measures. The key relation between events we must respect is their
+\emph{causal precedence}, also called Lamport's ``happens before''
+relation \cite{1978:lamportclocks}. We begin with some definitions.
 
 \begin{definition}
   For two events $e$ and $e'$ that both occur in process $P_i$, we
   write $e <_{P_i} e'$ if $e$ occurs before $e'$ in $P_i$'s
   worldline.
 \end{definition}
-
-The previous definition is unambiguous because we assume events occur
-at discrete, non-overlapping moments at each process. Less clear is
-how to order events that occur on different processes. The most
-fundamental order considered is the \emph{causal precedence} relation,
-also called Lamport's ``happens before'' relation \cite{1978:lamportclocks}.
+The previous definition is ``local'' in that only relates events
+within the same process. It is unambiguous because we assume events
+occur in discrete, non-overlapping moments at each process. The next
+definition describes an order among all (``global'') events.
 
 \begin{definition}[Causal precedence]
   \label{def:causalprecedence}
@@ -974,302 +912,194 @@ $e'$.  First it may be that the two events occur on the same process
 and $e$ literally happens before $e'$. It may also be that $e$ is a
 message send event and $e'$ is the corresponding receive event at
 another process. Finally, it could be that $e$ has precedence over
-some intermediate event $e''$ that has precedence over $e'$, i.e. we
+some intermediate event $e''$ with precedence over $e'$, i.e. we
 consider the transitive closure of the previous two
-conditions. Informally, $e \to e'$ holds whenever one can put a finger
-on an event $e$ in the time diagram and trace a path to $e'$ by moving
-left-to-right along the worldlines or following the arrows connecting
-corresponding message event pairs.
+conditions. Visually, $e \to e'$ holds whenever one can put a finger
+on $e$ in the time diagram and trace a ``path of causality'' to $e'$
+by moving along worldlines or following arrows.
 
-The names ``causal precedence'' and ``happens before'' can be misnomers: $e
-\to e'$ can hold without it being the case that $e$ really caused $e'$
-to happen, nor is it that case that if $e$ literally occurs before
-$e'$ that $e \to e'$ holds. Intuitively, $e \to e'$ conveys that
-information from $e$ potentially affected or could have influenced
-event $e'$. A general desideratum is to avoid a scenario where $e \to
-e'$ holds in reality but, from a process's or user's perspective, it
-seems that $e'$ actually occured before $e$. We define this formally
-before considering an example.
+Figure \ref{fig:causal-precedence} illustrates the causal precedence
+relation corresponding to the time diagrams in Figure
+\ref{fig:message-latencies}. For readability we just depict arrows
+between (send, receive) pairs or adjacent events in each process,
+hiding redundant transitive arrows. By comparison to Figure
+\ref{fig:message-latencies}, we note that causal precedence only
+describes a logical relation among events, but not their absolute time
+or where they occurred.
 
-\begin{definition}(Causally ordered delivery)
-  \label{def:causalorder}
-  A network satisfies the causally ordered (CO) delivery model if
-  messages are received in an order consistent with the causality
-  between send events. That is, if the following property holds:
-  \begin{quote}
-  For all messages $m$ and $n$ with the same destination, if
-  $m^\textrm{send} \to n^\textrm{send}$, then $m^\textrm{recv} \to
-  n^\textrm{recv}$.
-  \end{quote}
-  In mathematical terms, for each destination $P_\mathrm{dest}$, when
-  we consider the set of all messages sent from anywhere to
-  $P_\mathrm{dest}$, the function mapping send events to corresponding
-  receive events must be monotonic with respect to causal
-  precedence.
-\end{definition}
+Mathematically, causal precedence is an irreflexive partial
+order. Events $e$ and $e'$ that satisfy neither $e \to e'$ nor
+$e' \to e$ are said to be \emph{logically synchronous}, denoted
+$e \sim e'$. The reader is warned that logical synchronicity is not a
+transitive\footnote{Relations like $\sim$ that are reflexive and
+  symmetric but not necessarily transitive are sometimes called
+  \emph{compatibility relations}.} relation: it is possible to have
+$e \sim e'$ and $e' \sim e''$ but not $e \sim e''$. For instance, in
+Figure \ref{fig:message-co-a}, $m_2^{\textrm{recv}}$ is synchronous
+with both $m_1^{\textrm{recv}}$ and $m_4^{\textrm{send}}$, but
+$m_1^{\textrm{recv}} \to m_4^{\textrm{send}}$. In Figure
+\ref{fig:message-co-b}, $m_1^\textrm{send}$ is logically synchronous
+with every event except $m_1^\textrm{recv}$, but the other events are
+totally ordered by causality.
 
-For motivational purposes we consider a simple example. We slightly
-generalize the notion of a message and allow messages with multiple
-receipients (which could be realized by sending independent messages
-treated as one unit for present purposes). Our example is a group
-messaging application used by three firefighters, shown in Figure
-\ref{fig:message-latencies-c}, though in reality the processes may be
-machines sending messages at orders of magnitude faster than a human
-conversation. To post a message, a process sends it to the other two
-members of the group. For reasons explained above, the two recipients
-generally do not receive the message at the same time.
+Incidentally, ``causal precedence'' and ``happens before'' are
+misnomers: $e \to e'$ does not mean caused $e'$ in any philosophical
+sense, and conversely $e$ might occur before $e'$ in physical time
+without having $e \to e'$. Intuitively, $e \to e'$ conveys merely the
+possibility that information from $e$ influenced $e'$. The goal is
+then to avoid systems that behave as if $e'$ takes effect before
+$e$. This proscription ensures users never observe the system behaving
+as if the future can influence the past.
 
-\begin{figure}{1\textwidth}
-  \centering \input{images/pgf/mpEx3.pgf}
-  \caption{Broadcasting example satisfying FIFO but not CO}
-  \label{fig:message-latencies-c}
+\begin{figure}[p]
+  \setlength\belowcaptionskip{5ex}
+  \begin{subfigure}{1\textwidth}
+    \centering
+    \input{images/pgf/mpEx1CO.pgf}
+    \caption{Causal precedence among the events in Figure \ref{fig:message-latencies-a}}
+    \label{fig:message-co-a}
+  \end{subfigure}
+  \begin{subfigure}{1\textwidth}
+    \centering
+    \input{images/pgf/mpEx2CO.pgf}
+    \caption{Causal precedence among the events in Figure \ref{fig:message-latencies-b}}
+    \label{fig:message-co-b}
+  \end{subfigure}
+  \caption{Causal precedence relations for Figure \ref{fig:message-latencies} (transitive arrows not shown)}
+  \label{fig:causal-precedence}
 \end{figure}
 
-\begin{example}
-  \label{exmpl:ambulancedispatch}
-  In Figure \ref{fig:message-latencies-c}, we imagine the following
-  conversation has taken place:
-  \begin{itemize}
-\item [$P_1$]: ``I need an ambulance at location A.''
-\item [$P_2$]: ``Understood, the last ambulance has been dispatched.''
-\end{itemize}
-However, $P_3$ witnesses $P_2$'s answer before seeing $P_1$'s
-question. This results in $P_3$ hearing a rather different conversation snippet:
-\begin{itemize}
-\item [$P_2$]: ``Understood, the last ambulance has been dispatched.''
-\item [$P_1$]: ``I need an ambulance at location A.''
-\end{itemize}
-\end{example}
-From $P_3$'s perspective, it seems that $P_1$ is requesting resources
-that are not available. The apparent conflict can lead to requests
-going unanswered, or possibly handled twice, leading to a chaotic
-situation and misallocation of resources. If these broadcasts
-represented machine-to-machine traffic between instances of a
-distributed application, it is likely the application would misbehave
-if not explicitly designed for this situation.
+\afterpage{\clearpage}
 
-FIFO is vaccuously satisfied in Figure \ref{fig:message-latencies-c}
-because all four arrows have a distinct (sender, receiver)
-pair. However, the diagram violates Definition \ref{def:causalorder}
-because the send event of $P_1$'s question has causal precedence over
-$P_2$'s answer, while in $P_3$'s worldline, the receive event of the
-answer has causal precedence over the receipt of question. It is
-certainly possible to implement broadcast-ordering protocols that
-present the abstraction of multiple parties who receive group messages
-in the same order at all locations, but it should be unsurprising that
-such protocols require mechanisms for tracking the causal relation
-between events.
-
-\subsection{Timestamps and Logical Clocks}
+\subsubsection{Virtual Time}
 \label{ssec:timestamps}
-It may appear that we can avoid the ambiguous situation described
-above by attaching to each event a \emph{timestamp} tracking when the
-event occurred. Let us see why a na\"ive application of this idea
-fails. For each event $e$, let $C(e)$ denote the timestamp attached to
-that event. The fundamental property we want to satisfy is the
-following one:
+For all the preceding reasons, typical distributed applications
+systematically track causality by employing a system of \emph{logical}
+clocks. Such ``clocks'' measure the logical flow of time by storing
+non-negative integers that are advanced according to certain
+rules. Three major variants are common: scalar, vector, and matrix
+clocks. These fall on a kind of spectrum, in that scalar clocks are
+simple but provide the most coarse-grained information, while vector
+and matrix clocks provide increasingly more information but impose
+greater overheads.
+
+For each event $e$, let $C(e)$ denote the timestamp attached to that
+event. The fundamental property we want to satisfy is that if $e$
+causally precedes $e'$, it should receive a lesser timestamp. This is
+called the clock condition.
 \begin{definition}
   A system of timestamps satisfies the \emph{clock consistency
   condition} if the following monotonicity property holds:
-  \[ \textrm{for all events $e$ and $e'$, } e \to e' \implies C(e) < C(e') \label{eq:mp}\tag{CC} \]
+  \[ \textrm{For all events $e$ and $e'$, } e \to e' \implies C(e) < C(e') \label{eq:mp}\tag{CC} \]
 \end{definition}
-In words, \ref{eq:mp} requires that if $e$ causally precedes $e'$,
-then $e$ should have a lesser timestamp. In Example
-\ref{exmpl:ambulancedispatch}, we had two send events
-$m_1^\textrm{send} \to m_2^\textrm{send}$, so the clock consistency
-condition would require that
-\[C(m_1^\textrm{send}) < C(m_2^\textrm{send}).\]
+%In Example \ref{exmpl:ambulancedispatch}, we had two send events
+%$m_1^\textrm{send} \to m_2^\textrm{send}$, so the clock consistency
+%condition would require that
+%\[C(m_1^\textrm{send}) < C(m_2^\textrm{send}).\]
 
-Now message $m_1$ is timestamped and sent by $P_1$, while $m_2$ is
-timestamped and sent by $P_2$. A hallmark of distributed systems is we
-cannot assume processes have instantaneous access to a common physical
-clock, which means the inequality cannot be guaranteed unless $P_1$
-and $P_2$ happen to have two different clocks that are
-synchronized. Whether we can assume clocks are synchronized depends on
-the exact environment and the level of synchronicity required, but
-generally sychronization is either unavailable or requires additional
-mechanisms to prevent clocks from falling out of sync. For some
-coarse-grained purposes, possibly including the database replication
-framework in Section \ref{sec:continuous-consistency}, it may be
-enough for devices to maintain clocks that are only somewhat precisely
-synchronized. For other purposes, such as enforcing a total order on a
-sequence of broadcasts among large distributed groups, sufficiently
-precise synchronization of clocks untenable.
+Importantly, the clock consistency condition does \emph{not} imply
+that we can decide if events are causally related by comparing
+timestamps. Instead, their utility can be seen by replacing it
+with the following logically equivalent condition.
+\[ \textrm{For all events $e$ and $e'$, }C(e) \leq C(e') \implies e'
+  \not\to e \label{eq:mp-conv} \] That is, we can be sure that some
+ordering $e_1, e_2, e_3\ldots$ does \emph{not} violate the causal
+precedence relation provided we ensure $C(e_{i}) \leq C(e_{i+1})$ for $i = 1, 2, 3\ldots$
 
-Lest the reader despair over our lack of synchronized clocks, we
-should point out that even perfectly synchronized clocks would not
-solve every problem. Even with perfect synchronization, merely
-timestamping messages would not provide enough information to achieve,
-for instance, the following \emph{strong} clock consistency condition:
+For many applications, one does want to unambiguously determine
+whether two events are causally related by comparing timestamps. That
+is, one would like to have the following stronger condition.
 \begin{definition}
-  A system of timestamps satisfies the strong clock consistency
-  condition if the following property holds:
-  \[ \textrm{for all events $e$ and $e'$, } e \to e' \iff C(e) < C(e') \label{eq:sc}\tag{SC} \]
+  A system of timestamps satisfies the \emph{strong} clock consistency
+  condition if the following property holds.
+  \[ \textrm{For all events $e$ and $e'$, } e \to e' \iff C(e) < C(e') \label{eq:sc}\tag{SC} \]
+  Note that $\iff$ is notation for ``if and only if,'' i.e. logical equivalence.
 \end{definition}
 \ref{eq:sc} strengthens \ref{eq:mp} by stipulating that we can always
 compare two timestamps to infer whether the events are causally
-related. This condition cannot be achieved using simple timestamps
-even from synchronized clocks. This is because physical timestamps
-always assign a relative order between any two messages. However, we
-have seen that some events are physically ordered but not causally
-related, and simply comparing physical timestamps does not reveal the
-lack of causal relation. An example of this situation is found in
-Figure \ref{fig:message-latencies-b}, where $m_1^\textrm{send}$
-physically precedes all other events but does not causally precede any
-event except $m_1^\textrm{recv}$. Assigning synchronized timestamps to
-each event using would do nothing to reveal the \emph{lack} of causal
-relation among them.
-
-For all the preceding reasons, typical distributed applications
-systematically track causality by employing a system of \emph{logical}
-clocks (as opposed to \emph{physical} ones). Such ``clocks'' measure
-the logical flow of time by storing non-negative integers that are
-advanced according to certain rules. Three major variants are common:
-scalar, vector, and matrix clocks. These fall on a kind of spectrum,
-in that scalar clocks are simple but provide the most coarse-grained
-information, while vector and matrix clocks provide increasingly more
-information but impose greater overheads.
+related. A system of scalar clocks, defined below, can enforce the
+weaker condition but not the strong one.
 
 \subsubsection{Scalar clocks}
-Scalar clocks, introduced by Lamport \cite{1978:lamportclocks},
-require each process $P_i$ to maintain a single scalar value $C_i$, a
-non-negative integer initialized at $0$. There are two update rules:
-\begin{enumerate}
-\item Before a message is sent, $C_i$ is updated according to the rule
-  \[C_i := C_i + 1.\]
-  This new value is the timestamp attached to the message send
-  event. The value is sent (``piggybacked'') as part of the message
-  metadata for use by the receiver.
-\item When $P_i$ receives a message timestamped with value $C$, the
-  process updates $C_i$ according to the rule
-  \[C_i := \max(C, C_i) + 1.\]
-  The updated value is the timestamp associated with the receive
-  event.
-\end{enumerate}
-
-\begin{figure}[p]
+\begin{figure}
   \setlength\belowcaptionskip{5ex}
 
   \begin{subfigure}{1\textwidth}
     \centering \input{images/pgf/mpEx1Sc.pgf}
-    \caption{Scalar clocks for \ref{fig:message-latencies-a}}
+    \caption{Figure \ref{fig:message-latencies-a} redepicted with scalar clocks}
     \label{fig:message-latencies-scalar-a}
   \end{subfigure}
 
   \begin{subfigure}{1\textwidth}
     \centering \input{images/pgf/mpEx2Sc.pgf}
-    \caption{Scalar clocks for \ref{fig:message-latencies-b}}
+    \caption{Figure \ref{fig:message-latencies-b} redepicted with scalar clocks}
     \label{fig:message-latencies-scalar-b}
   \end{subfigure}
 
-
-  \begin{subfigure}{1\textwidth}
-    \centering \input{images/pgf/mpEx3Sc.pgf}
-    \caption{Scalar clocks for \ref{fig:message-latencies-c}}
-    \label{fig:message-latencies-scalar-c}
-  \end{subfigure}
   \caption{Scalar clock examples}
   \label{fig:message-latencies-scalar}
 \end{figure}
 
-\afterpage{\clearpage}
-
+Scalar clocks, introduced by Lamport \cite{1978:lamportclocks},
+require each process $P_i$ to maintain a single scalar value $C_i$, a
+non-negative integer initialized at $0$. There are two update rules:
+\begin{enumerate}
+\item[\textbf{R1}] Before a message is sent, $C_i$ is updated according to the rule
+  \[C_i := C_i + 1.\] This new value is the timestamp attached to the
+  message send event. The value is sent (``piggybacked'') alongside
+  the message as metadata.
+\item[\textbf{R2}] When $P_i$ receives a message timestamped with value $C$, it
+  updates $C_i$ according to the rule
+  \[C_i := \max(C, C_i) + 1.\]
+  The updated value is the timestamp associated with the receive
+  event.
+\end{enumerate}
 Figure \ref{fig:message-latencies-scalar} depicts the same events in
-Figure \ref{fig:message-latencies} alongside the scalar timestamp that
-would be assigned to each event. It is not hard to prove, and the
-reader should verify, that scalar clocks satisfy the clock consistency
-condition (\ref{eq:mp}). Intuitively, this is because a node ensures
-its clock is incremented before every event and always greater than
-the timestamp piggybacked on top of any message it receives.
+Figure \ref{fig:message-latencies} alongside the scalar timestamp (in
+parentheses) that would be assigned to each event. For send events,
+the piggybacked timestamp is shown as a label attached to the arrow.
 
+It is clear that scalar clocks satisfy the clock condition
+\eqref{eq:mp}, which is observed by tracing the path of causality
+between related events and seeing that the clock is incremented at
+each step.
 \begin{lemma}
-  A system of scalar clocks satisfies $e \to e' \implies C(e) < C(e')$.
+  Scalar clocks satisfy $e \to e' \implies C(e) < C(e')$.
 \end{lemma}
 
-However, scalar clocks do not satisfy the strong condition
-(\ref{eq:sc}). That is, even if the timestamp of one event $e'$ is
-greater than that of $e$, the possiblity is left open that $e$ does
-not have causal precedence over $e'$. For example, examining Figures
-\ref{fig:message-latencies-b} and
-\ref{fig:message-latencies-scalar-b}, $C(m_1^\textrm{send})$ has a
-globally minimal timestamp value of $1$, which is less than the
-timestamp of every other event except
-$m_2^\textrm{send}$. Nonetheless, the sending of $m_1$ is causally
-unrelated to every event but its own delivery.
-
-Returning to the previous example, Figure \ref{fig:message-latencies-c} and
-\ref{fig:message-latencies-scalar-c}, because $m_1^\textrm{send}$
-causally precedes $m_2^\textrm{send}$, we find
-\[C(m_1^\textrm{send}) = 1 < 5 = C(m_2^\textrm{send}).\] Using this
-fact $P_3$ can learn (by examining piggybacked timestamps) that
-$P_2$'s response could not causally precede $P_1$'s question,
-partially resolving the ambiguity posed earlier. However, the scalar
-clock regimen does not given $P_3$ enough information to conclusively
-affirm that the question causally precedes the answer: the opposite is
-ruled out, but it is possible the events are causally independent.
-
-Scalar clocks achieve the clock consistency condition without
-synchronized physical clocks. They are often used when an application
-needs to establish a shared global ordering among all events in the
-system, such as in state machine replication (SMR) protocols. Because
-timestamps are not globally unique, they do not carry quite enough
-information for recipients to compute a shared total order by
-themselves. A simple way to obtain a total order is to use an
-arbitrary tie-breaking mechanism for deciding how to order two
-(necessarily causally unrelated) events that happen to share a common
-scalar clock timestamp, typically by comparing the (necessarily
-distinct) identifiers of the processes where they took place. Indeed,
-this application was the motivating example when scalar clocks were
-introduced by Lamport.
-
-However, like physical timestamps from synchronized clocks, scalar
-clocks are insufficient for applications that need to perform detailed
-causality tracking that relies on the stronger clock consistency
-condition.
+Scalar clocks do not satisfy the strong condition (\ref{eq:sc})
+because knowing $e$ has a lesser timestamp than $e'$ leaves open the
+question of whether $e$ causally preceded $e'$. For example, in Figure
+\ref{fig:message-latencies-scalar-b}, $m_1^\textrm{send}$ has a
+globally minimal timestamp value of $1$. However, we see clearly in
+the Figure that it does not causally precede any event except
+$m_1^\textrm{recv}$.
 
 \subsubsection{Vector clocks}
 \newcommand{\vt}{\textrm{vt}}
 
-Vector clocks require each process to store one scalar value for each
-process in the system. That is, for a set of $N$ processes, $P_i$
-maintains a vector $\vt_i[1 \ldots N]$ of non-negative integers, with
-all values initialized to $\vt_i[x] = 0$. As with scalar clocks there
-are two update rules:
-\begin{enumerate}
-\item Before a new message is sent, $\vt_i$ is updated according to the rule
-  \[\vt_i[i] := \vt_i[i] + 1.\]
-  The entire updated vector $\vt_i$ is piggybacked as part of the
-  message's metadata so the receiver can use it.
-\item When a message is received with a piggybacked timestamp $\vt$,
-  $\vt_i$ is updated according to
-  \[\vt_i[x] := \max(\vt[x], \vt_i[x]) \quad \textrm{for all $x = 1\ldots N$}.\]
-  After this, $P_i$ advances its own local time according to the rule
-  \[ \vt_i[i] := \vt_i[i] + 1.\]
-  This new vector is the timestamp attached to the receive event.
-\end{enumerate}
+The strong clock condition \eqref{eq:sc} cannot hold either using
+scalar clocks or even synchronized physical clocks. This is because
+they assign timestamps whose values form a total order, meaning any
+non-equal timestamps $C_1, C_2$ have to satisfy either $C_1 < C_2$ or
+$C_2 < C_1$. However, logically synchronous events $e \sim e'$ do not
+satisfy either $e \to e'$ or $e' \to e$. Thus, the strong consistency
+requirement would require us to set $C(e) = C(e')$ for all logically
+synchronous events. This is impossible, as we already saw that logical
+concurrency is not transitive. For example, recall in Figure
+\ref{fig:message-co-b} that $m_1^{\textrm{send}}$ is logically
+synchronous with every event except $m_1^\textrm{recv}$, so they would
+all have to receive the same timestamp as $m_1^{\textrm{send}}$, which
+violates the fact that they are not logically synchronous with each
+other.
 
-According to these rules, the $i^\textrm{th}$ component $\vt_i[i]$ of
-$P_i$'s vector clock acts somewhat like a scalar clock: we call it the
-\emph{local time} for $P_i$. A slight difference between the local
-time and a scalar clock is that after receiving a message, $P_i$'s
-local time is not necessarily greater than the sender's local time
-that was piggybacked with the message. (What matters is that $P_i$'s
-overall vector time is greater.) For all other $j \neq i$, the
-$j^\textrm{th}$ component $\vt_i[j]$ of $P_i$'s clock represents
-$P_i$'s \emph{estimate} of $P_j$'s local time. This estimate is always
-a lower bound, since $P_j$'s actual local time may have advanced in
-the meantime.
-
-Figure \ref{fig:message-latencies-vector} redepicts the diagrams in
-Figure \ref{fig:message-latencies} showing the vector timestamp that
-would be assigned to each event.
-
-\begin{figure}[p]
+\begin{figure}
   \setlength\belowcaptionskip{5ex}
 
   \begin{subfigure}{1\textwidth}
     \centering
     \input{images/pgf/mpEx1Vec.pgf}
+    \caption{Figure \ref{fig:message-latencies-a} redepicted with vector clocks}
     \label{fig:message-latencies-vector-a}
   \end{subfigure}
 
@@ -1277,23 +1107,58 @@ would be assigned to each event.
 
   \begin{subfigure}{1\textwidth}
     \centering \input{images/pgf/mpEx2Vec.pgf}
+    \caption{Figure \ref{fig:message-latencies-b} redepicted with vector clocks}
     \label{fig:message-latencies-vector-b}
-  \end{subfigure}
-
-  \begin{subfigure}{1\textwidth}
-    \centering \input{images/pgf/mpEx3Vec.pgf}
-    \label{fig:message-latencies-vector-c}
   \end{subfigure}
 
   \caption{Vector clock examples}
   \label{fig:message-latencies-vector}
 \end{figure}
-
 \afterpage{\clearpage}
 
-Vector clocks are compared component-wise. Crucially, this only gives a partial
-order among timestamps, as one vector may be greater than another in
-some components and less in others.
+The way out of this impasse is to assign timestamps from a partial
+order, meaning two non-equal timestamps may not satisfy $C_1 < C_2$ or
+$C_1 > C_2$. Vector clocks achieve this by storing one scalar value
+for each process in the system. For a set of $N$ processes, $P_i$
+maintains a vector $\vt_i[1 \ldots N]$ of non-negative integers, with
+all values initialized to $\vt_i[x] = 0$. As with scalar clocks there
+are two update rules:
+\begin{enumerate}
+\item[\textbf{R1}] Before a new message is sent, $\vt_i$ is updated according to the rule
+  \[\vt_i[i] := \vt_i[i] + 1.\]
+  The entire updated vector $\vt_i$ is piggybacked as part of the
+  message's metadata so the receiver can use it.
+\item[\textbf{R2}] When a message is received with a piggybacked timestamp $\vt$,
+  $\vt_i$ is updated according to
+  \[\vt_i[x] := \max(\vt[x], \vt_i[x]) \quad \textrm{for all $x = 1\ldots N$}.\]
+  After this, $P_i$ advances its own local time according to the rule
+  \[ \vt_i[i] := \vt_i[i] + 1.\]
+  This new vector is the timestamp attached to the receive event.
+\end{enumerate}
+
+These rules are perhaps more intuitively explained by demonstration.
+Figure \ref{fig:message-latencies-vector} redepicts the diagrams in
+Figure \ref{fig:message-latencies} showing the vector timestamp that
+would be assigned to each event. The $i^\textrm{th}$ component of
+$P_i$'s vector clock, or $\vt_i[i]$, is called the \emph{local time}
+for $P_i$. For all other $j \neq i$, the $j^\textrm{th}$ component
+$\vt_i[j]$ of $P_i$'s clock represents $P_i$'s \emph{estimate} of
+$P_j$'s local time. This estimate is always a lower bound, since
+$P_j$'s local time may have advanced in the meantime, but we never
+advance our estimate ahead of $P_j$'s actual local time. By examing
+timestamps sent to it by other processes, $P_i$ can learn that $P_j$'s
+local clock has advanced, even without directly communicating with
+$P_j$.
+
+% A slight difference between
+%the local time and a scalar clock is that after receiving a message,
+%$P_i$'s local time is not necessarily greater than the sender's local
+%time that was piggybacked with the message. (What matters is that
+%$P_i$'s overall vector time is greater.)
+
+Vector timestamps are compared component-wise. This is of course a
+partial order, as one vector may be greater than another in some
+components and less in others.
 \begin{definition}[Vector comparison]
   Let $v, w$ be two vector clocks. We define the following relations:
   \begin{align*}
@@ -1310,16 +1175,16 @@ some components and less in others.
 \end{definition}
 
 The reason to consider vector clocks over scalar clocks is precisely
-that they satisfy \ref{eq:sc}, so they can be used to unambiguously
-decide whether two timestamped events had causal influence over the
-other.
+that they satisfy \ref{eq:sc}.
 \begin{lemma}
   Vector clocks satisfy the strong clock consistency condition. That
   is, where $C(e)$ is the vector timestamp of an event, then
   \[ e \to e' \iff C(e) \prec C(e'). \]
+  From this it follows that for non-equal events $e$ and $e'$ we have
+  \[ e \sim e' \iff C(e) || C(e'). \]
 \end{lemma}
 
-For reasons of space we omit a proof of the precending lemma.  The
+For reasons of space we omit a proof of the preceding lemma.  The
 direction $e \to e' \implies C(e) \prec C(e')$ is
 straightforward. More tedious is the right-to-left direction
 $C(e) \prec C(e') \implies e \to e'$, but the key idea is that if
@@ -1375,45 +1240,206 @@ send and receive events connecting $e$ to $e'$, hence $e \to e'$.
 % \end{proof}
 
 \subsubsection{Matrix clocks}
+If a vector clock stores an estimate of every other processes' local
+time, a matrix clock stores an estimate of every other processes'
+vector clock. We give the details below. Figure
+\ref{fig:message-latencies-matrix} shows our running examples with
+matrix clocks.
 
-Matrix clocks are to vector clocks what vector clocks are to scalar
-clocks. That is, a matrix clock is a vector clock combined with a
-lower bound estimate of every other process's vector clock. The
-justification for matrix clocks is somewhat subtle, but we shall see a
-clear example in Section \ref{sec:continuous-consistency} of why
-tracking this extra information can prove useful.
+\begin{enumerate}
+\item[\textbf{R1}] Before a new message is sent, $\vt_i[i]$ is updated according to the rule
+  \[\vt_i[i,i] := \vt_i[i,i] + 1.\]
+  The entire updated matrix $\vt_i$ is piggybacked with the message.
+\item[\textbf{R2}] When a message is received with a piggybacked timestamp $\vt$,
+  $\vt_j$ is updated according to
+  \[\vt_j[x] := \max(\vt_j[x], \vt[x]) \quad \textrm{for all $x = 1\ldots N$}.\]
+  After this, $P_i$ advances its own local time according to the rule
+  \[ \vt_i[i] := \vt_i[i] + 1.\]
+  This new vector is the timestamp attached to the receive event.
+\end{enumerate}
+
+\begin{figure}[p]
+  \begin{subfigure}{1\textwidth}
+    \centering
+    \input{images/pgf/mpEx1Mat.pgf}
+    \caption{Figure \ref{fig:message-latencies-a} redepicted with matrix clocks}
+    \label{fig:message-latencies-matrix-a}
+  \end{subfigure}
+  \begin{subfigure}{1\textwidth}
+    \input{images/pgf/mpEx2Mat.pgf}
+    \label{fig:message-latencies-matrix-b}
+  \end{subfigure}
+  \caption{Figure \ref{fig:message-latencies-b} redepicted with matrix clocks}
+  \label{fig:message-latencies-matrix}
+\end{figure}
+
+\afterpage{\clearpage}
+
+but we shall see a clear example in Section
+\ref{sec:continuous-consistency} of why tracking this extra
+information can prove useful.
 
 Matrix clocks subsume vector clocks, so they can be used whenever the
-strong consistency condition is needed. The reader may then be left
-wondering what extra utility is provided. It is worth highlighting the
-fact that matrix clocks are used to keep track of (a lower bound
-estimate of) what other processes know about the global state of the
-system. In Section \ref{sec:background}, we explained that distributed
-systems fundamentally involve epistemic logic, i.e. reasoning about
-not just what is true but what is known. If logical clocks are roughly
-thought of as a sense of ``time,'' the matrix clocks are useful when
-processes need to know what time other processes think it is. More
-concretely, when (CONDITION), the process knows (STATE). In Section
+strong consistency condition is needed. The justification for matrix
+clocks is somewhat subtle.
+
+In Section \ref{sec:background}, we explained that distributed systems
+fundamentally involve epistemic logic, i.e. reasoning about not just
+what is true but what is known. Other nodes store
+knowledge. Frequently the nodes want to collaborate to ensure every
+other process is made aware. Since a vector clock represents the state
+of knowledge, by keeping a lower bound estimate of all other vector
+clocks, we have a lower bound estimate of the knowledge that is
+already known to others. In Section
 \ref{sec:continuous-consistency} we will see an example where this
 sort of lower bound estimate of other process's clocks is important
 for distributed database replication.
 
+\subsection{Message Ordering and Group Communication}
 
-\begin{figure}[p]
-  \setlength\belowcaptionskip{5ex}
-  \renewcommand*{\arraystretch}{0.9}
+In this section we summarize some different assumptions we could
+impose about how messages are ordered. Then we discuss allowing
+messages to be sent to multiple receipients at once, such as in a
+group chat application.
 
+\subsubsection{Message Ordering}
+We have seen that the network latencies tend to cause messages to be
+delayed and arrive in a different order than they were sent in.
+
+\paragraph{FIFO ordering}
+A very modest requirement is to impose the \emph{first-in, first-out}
+(FIFO) condition, which stipulates that on any logical communication
+link between two nodes in the system, messages arrive in the order
+they were sent.
+
+\begin{definition}[FIFO condition]
+  A FIFO execution is one that satisfies the following condition. Let
+  $P_i$ and $P_j$ be any two processes and $m_1$ and $m_2$ be two
+  messages sent from $P_i$ to $P_j$. Then
+  $m_1^{\textrm{send}} m_2^{\textrm{send}} \implies
+  m_1^{\textrm{recv}} m_2^{\textrm{recv}}$.
+\end{definition}
+
+The FIFO assumption is less strict than it may look. Crucially, the
+requirement only applies to messages that share a common sender and a
+common destination. No guarantee is made for any other messages. FIFO
+order is faily easy to implement and often built into the transport
+layer of a network protocol stack. For instance, the internet protocol
+(IPv4) by itself does not provide FIFO semantics, but the TCP protocol
+does. Enforcing FIFO on a logical communication link between $P$ and
+$P'$ can be as simple as requiring both sides to mark their messages
+with consecutive increasing numbers (e.g. $1,2,3\ldots$): If message
+$1$ arrives and then message $3$ arrives, then the middleware can
+infer that message $2$ is lagging behind, so it can deliver $1$ to the
+higher-level application but will not deliver $3$ until $2$ arrives.
+
+\paragraph{Causal ordering}
+Because FIFO does not apply to messages sent between three or more
+nodes, distributed applications can experience anomolies in message
+order. One possibility is for messages to violate the \emph{causally
+  ordered delivery} assumption. ``Causality'' in this context refers
+to the potential for information from one event to influence
+another. A key problem for distributed systems is that network
+latencies mean events with a causal relation may appear to happen in
+an illogical order to users, so tracking causality a key issue for
+system designers. We start by defining an order between events on the
+same process.
+
+Now message $m_1$ is timestamped and sent by $P_1$, while $m_2$ is
+timestamped and sent by $P_2$. A hallmark of distributed systems is we
+cannot assume processes have instantaneous access to a common physical
+clock, which means the inequality cannot be guaranteed unless $P_1$
+and $P_2$ happen to have two different clocks that are
+synchronized. Whether we can assume clocks are synchronized depends on
+the exact environment and the level of synchronicity required, but
+generally sychronization is either unavailable or requires additional
+mechanisms to prevent clocks from falling out of sync. For some
+coarse-grained purposes, possibly including the database replication
+framework in Section \ref{sec:continuous-consistency}, it may be
+enough for devices to maintain clocks that are only somewhat precisely
+synchronized. For other purposes, such as enforcing a total order on a
+sequence of broadcasts among large distributed groups, sufficiently
+precise synchronization of clocks untenable.
+
+
+\begin{definition}(Causally ordered delivery)
+  \label{def:causalorder}
+  A network satisfies the causally ordered (CO) delivery model if
+  messages are received in an order consistent with the causality
+  between send events. That is, if the following property holds:
+  \begin{quote}
+  For all messages $m$ and $n$ with the same destination, if
+  $m^\textrm{send} \to n^\textrm{send}$, then $m^\textrm{recv} \to
+  n^\textrm{recv}$.
+  \end{quote}
+  In mathematical terms, for each destination $P_\mathrm{dest}$, when
+  we consider the set of all messages sent from anywhere to
+  $P_\mathrm{dest}$, the function mapping send events to corresponding
+  receive events must be monotonic with respect to causal
+  precedence.
+\end{definition}
+
+\subsubsection{Group Communication}
+The importance of message ordering is particularly acute
+
+\paragraph{Causal order broadcast}
+For motivational purposes we consider a simple example. We slightly
+generalize the notion of a message and allow messages with multiple
+receipients (which could be realized by sending independent messages
+treated as one unit for present purposes). Our example is a group
+messaging application used by three firefighters, shown in Figure
+\ref{fig:message-latencies-c}, though in reality the processes may be
+machines sending messages at orders of magnitude faster than a human
+conversation. To post a message, a process sends it to the other two
+members of the group. For reasons explained above, the two recipients
+generally do not receive the message at the same time.
+
+\begin{figure}
+  \centering \input{images/pgf/mpEx3.pgf}
+  \caption{Broadcasting example satisfying FIFO but not CO}
+  \label{fig:message-latencies-c}
+\end{figure}
+
+\begin{example}
+  \label{exmpl:ambulancedispatch}
+  In Figure \ref{fig:message-latencies-c}, we imagine the following
+  conversation has taken place:
+  \begin{itemize}
+\item [$P_1$]: ``I need an ambulance at location A.''
+\item [$P_2$]: ``Understood, the last ambulance has been dispatched.''
+\end{itemize}
+However, $P_3$ witnesses $P_2$'s answer before seeing $P_1$'s
+question. This results in $P_3$ hearing a rather different conversation snippet:
+\begin{itemize}
+\item [$P_2$]: ``Understood, the last ambulance has been dispatched.''
+\item [$P_1$]: ``I need an ambulance at location A.''
+\end{itemize}
+\end{example}
+From $P_3$'s perspective, it seems that $P_1$ is requesting resources
+that are not available. The apparent conflict can lead to requests
+going unanswered, or possibly handled twice, leading to a chaotic
+situation and misallocation of resources. If these broadcasts
+represented machine-to-machine traffic between instances of a
+distributed application, it is likely the application would misbehave
+if not explicitly designed for this situation.
+
+FIFO is vaccuously satisfied in Figure \ref{fig:message-latencies-c}
+because all four arrows have a distinct (sender, receiver)
+pair. However, the diagram violates Definition \ref{def:causalorder}
+because the send event of $P_1$'s question has causal precedence over
+$P_2$'s answer, while in $P_3$'s worldline, the receive event of the
+answer has causal precedence over the receipt of question.
+
+\begin{figure}
   \begin{subfigure}{1\textwidth}
-    \centering
-    \input{images/pgf/mpEx1Mat.pgf}
-    \label{fig:message-latencies-matrix-a}
+    \centering \input{images/pgf/mpEx3Sc.pgf}
+    \caption{Scalar clocks for \ref{fig:message-latencies-c}}
+    \label{fig:message-latencies-scalar-c}
   \end{subfigure}
 
-  \vspace{4ex}
-
   \begin{subfigure}{1\textwidth}
-    \input{images/pgf/mpEx2Mat.pgf}
-    \label{fig:message-latencies-matrix-b}
+    \centering \input{images/pgf/mpEx3Vec.pgf}
+    \label{fig:message-latencies-vector-c}
   \end{subfigure}
 
   \begin{subfigure}{1\textwidth}
@@ -1421,12 +1447,43 @@ for distributed database replication.
     \label{fig:message-latencies-matrix-c}
   \end{subfigure}
 
-  \caption{Matrix clock examples}
-  \label{fig:message-latencies-matrix}
+  \caption{Broadcasts with logical clocks}
+  \label{fig:broadcast-latencies}
 \end{figure}
 
-\afterpage{\clearpage}
+Returning to the previous example, Figure \ref{fig:message-latencies-c} and
+\ref{fig:message-latencies-scalar-c}, because $m_1^\textrm{send}$
+causally precedes $m_2^\textrm{send}$, we find
+\[C(m_1^\textrm{send}) = 1 < 5 = C(m_2^\textrm{send}).\] Using this
+fact $P_3$ can learn (by examining piggybacked timestamps) that
+$P_2$'s response could not causally precede $P_1$'s question,
+partially resolving the ambiguity posed earlier.
 
+However, the scalar clock regimen does not given $P_3$ enough
+information to conclusively affirm that the question causally precedes
+the answer: the opposite is ruled out, but it is possible the events
+are causally independent.
+
+\paragraph{Total order broadcast}
+%Scalar clocks achieve the clock consistency condition without
+%synchronized physical clocks. They are often used when an application
+%needs to establish a shared global ordering among all events in the
+%system, such as in state machine replication (SMR) protocols. Because
+%timestamps are not globally unique, they do not carry quite enough
+%information for recipients to compute a shared total order by
+%themselves. A simple way to obtain a total order is to use an
+%arbitrary tie-breaking mechanism for deciding how to order two
+%(necessarily causally unrelated) events that happen to share a common
+%scalar clock timestamp, typically by comparing the (necessarily
+%distinct) identifiers of the processes where they took place. Indeed,
+%this application was the motivating example when scalar clocks were
+%introduced by Lamport.
+
+%It is certainly possible to implement broadcast-ordering protocols
+%that present the abstraction of multiple parties who receive group
+%messages in the same order at all locations, but it should be
+%unsurprising that such protocols require mechanisms for tracking the
+%causal relation between events.
 
 
 \newpage
@@ -2757,3 +2814,8 @@ To be written.
   \caption{A non-sequentially consistent execution with sequentially-consistent executions at each variable.}
   \label{fig:nonsequential}
 \end{figure}
+
+%%% Local Variables:
+%%% mode: LaTeX
+%%% TeX-master: t
+%%% End:
