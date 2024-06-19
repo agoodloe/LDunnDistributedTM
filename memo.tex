@@ -30,6 +30,9 @@
 \newtheorem{example}{Example}
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
+\newcommand{\msend}[1]{m_{#1}^{\textrm{send}}}
+\newcommand{\mrecv}[1]{m_{#1}^{\textrm{recv}}}
+\newcommand{\sync}[2]{#1 || #2}
 
 \newcommand{\B}{\mathbf{B}}
 \newcommand{\w}{\mathbf{w}}
@@ -737,10 +740,10 @@ systems consist of agents, nodes, and sensors in disaster response
 environments where infrastructure is deployed on an ad-hoc basis or
 carried by persons or vehicles in the field.
 
-In general, a distributed system can be defined as a collection of
-independent entities that cooperate to solve a problem that cannot be
-individually solved \cite{kshemkalyani_singhal_2008}. Singhal and
-Shivaratri \cite{10.5555/562065} offer the following definition:
+In general, a distributed system is a collection of independent
+entities that cooperate to solve a problem that cannot be individually
+solved \cite{kshemkalyani_singhal_2008}. Singhal and Shivaratri
+\cite{10.5555/562065} offer the following definition:
 \begin{quote}
   ``A collection of computers that do not share common memory or a common
   physical clock, that communicate by message passing over a communication
@@ -751,37 +754,41 @@ Shivaratri \cite{10.5555/562065} offer the following definition:
 The ``distributed'' aspect of the system means its components can only
 communicate by passing messages over a network.\footnote{Components of
   a non-distributed system, e.g. processes on the same computer, can
-  communicate by writing data to a shared memory location.} Our
-foundational assumption is that messages sent over the network
-experience a finite but unpredictable \emph{latency} or delay before
-they are delivered. More precisely, a system is ``distributed'' when
-network latencies are non-negligible compared to the timescale of
-other events in the system. Per the locality principles discussed in
-Section \ref{sec:disaster-response}, higher latencies are generally
-expected as components of the system become more greatly separated
-from each other.
+  communicate by writing data to a shared memory location.} Messages
+sent over the network experience a finite but unpredictable
+\emph{latency} or delay before they are delivered. More precisely, a
+system is distributed when network latencies are non-negligible
+compared to the timescale of other events in the system. Per the
+locality principles discussed in Section \ref{sec:disaster-response},
+higher latencies are generally expected as components of the system
+become more greatly separated from each other.
 
 This section will explain how the unpredictability of the network
-essentially implies that the components of the system do not have a
-shared notion of time, and ultimately no shared notion of global
-state. We must either design mechanisms that attempt to recover such
-features, or protocols that perform correctly without relying on
-them. As any engineer would expect, the design space of distributed
-systems and protocols considers many possible tradeoffs, which are
-often between user-perceived notions of performance and consistency.
+essentially implies that system components at any moment lack a shared
+time reference (i.e. synchronized clocks). Likewise, components do not
+have perfect knowledge about the global state of the system. Of
+course, we the omniscient observer can see the global state, but
+network latencies prohibit the instantaneous knowledge transfer that
+would be required for all components to know it. We must either design
+mechanisms that attempt to recover notions like shared time and state,
+or applications that perform correctly without relying on them. As any
+engineer would expect, the design space considers many possible
+tradeoffs. In the context of data replication, a central theme is a
+general tradeoff between performance and consistency.
 
-In our environment, we assume nodes have only intermittent access to
-the network. Indeed, two or more nodes may need to coordinate without
-end-to-end connectivity, i.e. without ever being on the same network
-(or network partition) at the same time, necessitating the use of
-delay-tolerant networking (DTN) concepts as discussed in Section
-\ref{sec:networking}. Consequently, we consider latencies on an order
-ranging from seconds when communicating with nearby agents, to
+We assume that nodes in our environments have only intermittent access
+to the network. Indeed, groups of nodes may need to coordinate without
+end-to-end connectivity, meaning without being on the same network (or
+network partition) at the same time.\footnote{Networking without
+  end-to-end connectivity requires the use of delay-tolerant
+  networking (DTN) concepts, as will be discussed in Section
+  \ref{sec:networking}.}  Consequently, we consider latencies on an
+order ranging from seconds when communicating with nearby agents, to
 potentially hours or days for system-wide coordination.
 Communications engineers and system designers at the hardware level
-have only so much control over these latencies. Thus, we can only hope
-to build systems that tolerate real conditions as optimally as
-possible at the level of software.
+have limited control over these latencies, so we can only hope to
+build systems that tolerate real conditions as optimally as possible
+at the level of software.
 % In a tactical environment, packet loss can be on the order of
 % \%xx. \citationneeded
 
@@ -791,25 +798,23 @@ One can model a distributed system as a set
 \(\mathcal{P} = \{P_i\}_{i\in I}\) of \emph{processes} which undergo
 atomic (indivisible) state changes known as \emph{events}. We divide
 events into three types: internal events, representing state changes
-inside a single process, and send and receive events for for passing
-messages between multiple processes. For now we treat processes and
-the network as opaque blackboxes, and focus on the ramifications of
-unpredictable communication delays for general coordination. The
-latter condition is subsumed by saying we work in the
-\emph{asychronous} network model.
+inside a single process, and send and receive events for passing
+messages between processes. For now we treat processes and the network
+as opaque blackboxes, focusing on the ramifications of unpredictable
+communication delays for coordination. These assumptions are properly
+known as the asychronous network model.
 
 Figure \ref{fig:message-latencies} shows several time diagrams for
 messages $\{m_i\}_{i=1}^N$ sent between three processes $P_1$, $P_2$,
-and $P_3$. The $x$-axis of the diagram depicts the flow of real
-(physical) time from left to right. For each process a worldline is
-shown depicting the events occurring in that process. Each message $m$
-starts off as a send event $m^\textrm{send}$ indicating the moment the
-message is sent over the network by its originating process; its
-delivery generates a receive event $m^\textrm{recv}$. The (send,
-receive) pairs are connected by an arrow and said to be corresponding
-events. Note that the subscripts on the messages only serve to
-disambiguate them to the reader, but they are not part of the message
-and have no semantic importance.
+and $P_3$. The $x$-axis of the diagram depicts the flow of real time
+from left to right. For each process a worldline is shown depicting
+the events occurring in that process. Each message $m$ starts off as a
+send event $m^\textrm{send}$ indicating the moment the message is sent
+over the network by its originating process; its delivery generates a
+receive event $m^\textrm{recv}$. The (send, receive) pairs are
+connected by an arrow and said to be corresponding events. The
+subscripts on messages serve to disambiguate them to the reader, but
+they are not part of the message itself.
 
 \begin{figure}[p]
   \setlength\belowcaptionskip{5ex}
@@ -831,51 +836,52 @@ and have no semantic importance.
 \afterpage{\clearpage}
 
 The fact that arrows are diagonal, rather than vertical, represents
-the varying delay with which messages are delivered. Because of this
-delay, two messages $m$ and $m'$ may arrive in a different order than
-they were sent in. In Figure \ref{fig:message-latencies-a}, $P_1$
+the effect of network latencies on message delivery. Because they
+arrive delayed, two messages may be delivered in a different order
+than they were sent in. In Figure \ref{fig:message-latencies-a}, $P_1$
 sends messages $m_2$ and $m_4$ in that order, but $m_4$ arrives at its
-recipient before $m_2$. Such a scenario might occur if $P_1$ and $P_3$
+recipient before $m_2$. This scenario might occur if $P_1$ and $P_3$
 are far apart and have a high-latency communication link. In Figure
-\ref{fig:message-latencies-b}, message $m_1$ is sent before any other
-message, but it is also the last to be delivered. This diagram may
-depict a scenario where the communication link between $P_1$ and $P_3$
-has deteriorated, perhaps because they have grown farther apart or
-because of environmental factors.
+\ref{fig:message-latencies-b}, $m_1$ is the first message sent but the
+last message to be delivered. This may depict a scenario where the
+link between $P_1$ and $P_3$ has deteriorated, perhaps because they
+have grown farther apart or because of inclement weather.
 
 \subsubsection{Causality and  Sychrony}
-A fundamental distributed systems challenge is to order events in a
-way that individual components can calculate and agree upon. What
-makes this task challenging is that the components do not share a
-common time base. That is, participants in the system do not have
-instantaneous access to a globally shared clock, nor are they equipped
-with perfectly synchronized local clocks, so any two nodes do not
-necessarily agree on physical time.
+\label{ssec:causality}
+A fundamental challenge is to order events globally in a way that
+individual components can calculate and agree upon. What makes this
+task challenging is that the components do not share a common time
+base. That is, participants in the system do not have instantaneous
+access to a globally shared clock, nor are they equipped with
+perfectly synchronized local clocks, so any two nodes do not
+necessarily agree on physical time. We briefly elaborate on the
+challenge of producing physically sychronized clocks before discussing
+conventional ways around the problem.
 
-We briefly elaborate on the challenge of producing physically
-sychronized clocks before discussing the consequences of this
-difficulty. Physical clocks, especially consumer-grade ones, suffer
-from \emph{drift}, which is to say they do not all run at the same
+Physical clocks, especially consumer-grade ones, suffer from
+\emph{drift}, which is to say they do not all run at the same
 rate. Experienced system administrators will testify that clocks can
 also be quite prone to misconfiguration, say if the date, time,
 timezone, or daylight saving time policy (etc.) is set
 incorrectly. Our devices may spend a long time sitting unpowered in
 storage without maintaining an always-on clock. For these sorts of
-reasons, we cannot assume that physical clocks in devices are very
-reliable out-of-the-box.
+reasons, physical clocks are not very reliable out-of-the-box. We
+would not want to rest the integrity of a safety-related system on the
+assumption all devices have synchronized clocks.
 
 Clock drift can be corrected for using, for instance, signals from GPS
-satellites, but in disaster response environments GPS signals are not
-always available. Protocols like the Network Time Protocol (NTP)
-\citationneeded try to bring local clocks into synchronization with
-respect to authoritative clocks, typically to within 100ms over even a
+satellites, but for example in the wildfire setting GPS signals are
+not reliably available. Protocols like the Network Time Protocol (NTP)
+\cite{rfc1119} try to bring local clocks into synchronization with
+respect to authoritative clocks, typically to within 100ms even over a
 somewhat challenged internet connection, but this may not extend to
 highly chaotic networking environments such as ours. For such reasons
 we do not assume typical corrective measures will be able to reliably
 synchronize the clocks in our system with great precision.
 
 Fortunately, what seems most important about time for many purposes is
-that \emph{the future cannot influence the past} \citationneeded, and
+that \emph{the future cannot influence the past} \cite{1989mattern}, and
 this is the sort of invariant we can enforce with appropriate
 measures. The key relation between events we must respect is their
 \emph{causal precedence}, also called Lamport's ``happens before''
@@ -887,9 +893,9 @@ relation \cite{1978:lamportclocks}. We begin with some definitions.
   worldline.
 \end{definition}
 The previous definition is ``local'' in that only relates events
-within the same process. It is unambiguous because we assume events
-occur in discrete, non-overlapping moments at each process. The next
-definition describes an order among all (``global'') events.
+within the same process. It is unambiguous because we assume events at
+one process occur in discrete, non-overlapping moments. The next
+definition describes an order among all events.
 
 \begin{definition}[Causal precedence]
   \label{def:causalprecedence}
@@ -903,20 +909,20 @@ definition describes an order among all (``global'') events.
     \textrm{there is some } e'' \textrm{ such that } e \to e'' \textrm{ and } e'' \to e'
   \end{cases}
   \]
-  If $e \to e'$, we say $e$ has \emph{causal precedence over} or
+  If $e \to e'$, we say $e$ has \emph{causal precedence over} $e'$ or
   \emph{happens before} $e'$.
-\end{definition}% Should here be mentioned logical concurrency?
+\end{definition}
 
 In words, there are three ways $e$ could have causal precedence over
-$e'$.  First it may be that the two events occur on the same process
-and $e$ literally happens before $e'$. It may also be that $e$ is a
-message send event and $e'$ is the corresponding receive event at
-another process. Finally, it could be that $e$ has precedence over
-some intermediate event $e''$ with precedence over $e'$, i.e. we
-consider the transitive closure of the previous two
-conditions. Visually, $e \to e'$ holds whenever one can put a finger
-on $e$ in the time diagram and trace a ``path of causality'' to $e'$
-by moving along worldlines or following arrows.
+$e'$.  First it may be that the $e$ and $e'$ occur in the same process
+and $e$ physically precedes $e'$. It may also be that $e$ is a
+send event and $e'$ is the corresponding receive event at another
+process. Finally, it could be that $e$ has precedence over some
+intermediate event $e''$ with precedence over $e'$, i.e. we take
+the transitive closure of the other conditions. Visually, $e \to e'$
+holds whenever one can put a finger on $e$ in the time diagram and
+trace a ``path of causality'' to $e'$ by following worldlines or
+arrows.
 
 Figure \ref{fig:causal-precedence} illustrates the causal precedence
 relation corresponding to the time diagrams in Figure
@@ -930,35 +936,36 @@ or where they occurred.
 Mathematically, causal precedence is an irreflexive partial
 order. Events $e$ and $e'$ that satisfy neither $e \to e'$ nor
 $e' \to e$ are said to be \emph{logically synchronous}, denoted
-$e \sim e'$. The reader is warned that logical synchronicity is not a
-transitive\footnote{Relations like $\sim$ that are reflexive and
-  symmetric but not necessarily transitive are sometimes called
-  \emph{compatibility relations}.} relation: it is possible to have
-$e \sim e'$ and $e' \sim e''$ but not $e \sim e''$. For instance, in
-Figure \ref{fig:message-co-a}, $m_2^{\textrm{recv}}$ is synchronous
-with both $m_1^{\textrm{recv}}$ and $m_4^{\textrm{send}}$, but
-$m_1^{\textrm{recv}} \to m_4^{\textrm{send}}$. In Figure
-\ref{fig:message-co-b}, $m_1^\textrm{send}$ is logically synchronous
-with every event except $m_1^\textrm{recv}$, but the other events are
-totally ordered by causality.
+$\sync{e}{e'}$. The reader is warned that logical synchronicity is not
+a transitive relation: it is possible to have $\sync{e}{e'}$ and
+$\sync{e'}{e''}$ but not $\sync{e}{e''}$. For instance, in Figure
+\ref{fig:message-co-a}, $\mrecv{2}$ is synchronous with both
+$\mrecv{1}$ and $\msend{4}$, but $\mrecv{1} \to \msend{4}$. In Figure
+\ref{fig:message-co-b}, $\msend{1}$ is logically synchronous with
+every event except $\mrecv{1}$, and all other events are totally ordered
+by causality. Relations like $\sync{}{}$ that are reflexive and
+symmetric but not necessarily transitive are sometimes called
+\emph{compatibility relations}.
 
 Incidentally, ``causal precedence'' and ``happens before'' are
 misnomers: $e \to e'$ does not mean caused $e'$ in any philosophical
 sense, and conversely $e$ might occur before $e'$ in physical time
 without having $e \to e'$. Intuitively, $e \to e'$ conveys merely the
 possibility that information from $e$ influenced $e'$. The goal is
-then to avoid systems that behave as if $e'$ takes effect before
+then to avoid systems that might act as if $e'$ takes effect before
 $e$. This proscription ensures users never observe the system behaving
 as if the future can influence the past.
 
-\begin{figure}[p]
-  \setlength\belowcaptionskip{5ex}
+\begin{figure}
+  \begingroup
+  \setlength\belowcaptionskip{4ex}
   \begin{subfigure}{1\textwidth}
     \centering
     \input{images/pgf/mpEx1CO.pgf}
     \caption{Causal precedence among the events in Figure \ref{fig:message-latencies-a}}
     \label{fig:message-co-a}
   \end{subfigure}
+  \endgroup
   \begin{subfigure}{1\textwidth}
     \centering
     \input{images/pgf/mpEx2CO.pgf}
@@ -969,19 +976,16 @@ as if the future can influence the past.
   \label{fig:causal-precedence}
 \end{figure}
 
-\afterpage{\clearpage}
-
 \subsubsection{Virtual Time}
 \label{ssec:timestamps}
-For all the preceding reasons, typical distributed applications
-systematically track causality by employing a system of \emph{logical}
-clocks. Such ``clocks'' measure the logical flow of time by storing
-non-negative integers that are advanced according to certain
-rules. Three major variants are common: scalar, vector, and matrix
-clocks. These fall on a kind of spectrum, in that scalar clocks are
-simple but provide the most coarse-grained information, while vector
-and matrix clocks provide increasingly more information but impose
-greater overheads.
+Distributed applications can systematically track causality by
+employing a system of \emph{logical} clocks. Such ``clocks'' measure
+the logical flow of time by storing non-negative integers that are
+advanced according to certain rules. Three major variants are common:
+scalar, vector, and matrix clocks. These fall on a kind of spectrum.
+Scalar clocks are simple but provide only coarse-grained information,
+while vector and matrix clocks track more precise information but
+impose greater administrative overheads.
 
 For each event $e$, let $C(e)$ denote the timestamp attached to that
 event. The fundamental property we want to satisfy is that if $e$
@@ -993,20 +997,21 @@ called the clock condition.
   \[ \textrm{For all events $e$ and $e'$, } e \to e' \implies C(e) < C(e') \label{eq:mp}\tag{CC} \]
 \end{definition}
 %In Example \ref{exmpl:ambulancedispatch}, we had two send events
-%$m_1^\textrm{send} \to m_2^\textrm{send}$, so the clock consistency
+%$\msend{1} \to \msend{2}$, so the clock consistency
 %condition would require that
-%\[C(m_1^\textrm{send}) < C(m_2^\textrm{send}).\]
+%\[C(\msend{1}) < C(\msend{2}).\]
 
 Importantly, the clock consistency condition does \emph{not} imply
 that we can decide if events are causally related by comparing
-timestamps. Instead, their utility can be seen by replacing it
-with the following logically equivalent condition.
+timestamps. The utility of \eqref{eq:mp} is best seen by expressing in
+terms of the following logically equivalent condition.
 \[ \textrm{For all events $e$ and $e'$, }C(e) \leq C(e') \implies e'
   \not\to e \label{eq:mp-conv} \] That is, we can be sure that some
-ordering $e_1, e_2, e_3\ldots$ does \emph{not} violate the causal
-precedence relation provided we ensure $C(e_{i}) \leq C(e_{i+1})$ for $i = 1, 2, 3\ldots$
+ordering of events $e_1, e_2, e_3\ldots$ does \emph{not} violate the
+causal precedence relation simply by verifying that
+$C(e_{i}) \leq C(e_{i+1})$ for all $i$.
 
-For many applications, one does want to unambiguously determine
+For many applications, we would like to unambiguously determine
 whether two events are causally related by comparing timestamps. That
 is, one would like to have the following stronger condition.
 \begin{definition}
@@ -1016,9 +1021,9 @@ is, one would like to have the following stronger condition.
   Note that $\iff$ is notation for ``if and only if,'' i.e. logical equivalence.
 \end{definition}
 \ref{eq:sc} strengthens \ref{eq:mp} by stipulating that we can always
-compare two timestamps to infer whether the events are causally
-related. A system of scalar clocks, defined below, can enforce the
-weaker condition but not the strong one.
+compare timestamps to infer events are causally related. A system of
+scalar clocks, defined below, can enforce the weaker condition but not
+the strong one.
 
 \subsubsection{Scalar clocks}
 \begin{figure}
@@ -1068,12 +1073,11 @@ each step.
 \end{lemma}
 
 Scalar clocks do not satisfy the strong condition (\ref{eq:sc})
-because knowing $e$ has a lesser timestamp than $e'$ leaves open the
-question of whether $e$ causally preceded $e'$. For example, in Figure
-\ref{fig:message-latencies-scalar-b}, $m_1^\textrm{send}$ has a
-globally minimal timestamp value of $1$. However, we see clearly in
-the Figure that it does not causally precede any event except
-$m_1^\textrm{recv}$.
+because knowing $e$ has a lesser timestamp rules out $e' \to e$ but
+does not determine whether $e \to e'$. For example, in Figure
+\ref{fig:message-latencies-scalar-b}, $\msend{1}$ has a globally
+minimal timestamp value of $1$. However, we see clearly in the Figure
+that it does not causally precede any event except $\mrecv{1}$.
 
 \subsubsection{Vector clocks}
 \newcommand{\vt}{\textrm{vt}}
@@ -1082,14 +1086,14 @@ The strong clock condition \eqref{eq:sc} cannot hold either using
 scalar clocks or even synchronized physical clocks. This is because
 they assign timestamps whose values form a total order, meaning any
 non-equal timestamps $C_1, C_2$ have to satisfy either $C_1 < C_2$ or
-$C_2 < C_1$. However, logically synchronous events $e \sim e'$ do not
+$C_2 < C_1$. However, logically synchronous events $\sync{e}{e'}$ do not
 satisfy either $e \to e'$ or $e' \to e$. Thus, the strong consistency
 requirement would require us to set $C(e) = C(e')$ for all logically
 synchronous events. This is impossible, as we already saw that logical
 concurrency is not transitive. For example, recall in Figure
-\ref{fig:message-co-b} that $m_1^{\textrm{send}}$ is logically
-synchronous with every event except $m_1^\textrm{recv}$, so they would
-all have to receive the same timestamp as $m_1^{\textrm{send}}$, which
+\ref{fig:message-co-b} that $\msend{1}$ is logically
+synchronous with every event except $\mrecv{1}$, so they would
+all have to receive the same timestamp as $\msend{1}$, which
 violates the fact that they are not logically synchronous with each
 other.
 
@@ -1165,12 +1169,12 @@ components and less in others.
              v = w &\iff \forall i, v[i] = w[i] \\
   v \preccurlyeq w &\iff \forall i, v[i] \leq w[i] \\
          v \prec w &\iff v \preccurlyeq w \textrm{ and } \exists i, v[i] < w[i] \\
-            v || w &\iff \textrm{ neither } v \preccurlyeq w \textrm{ nor } w \preccurlyeq v
+            \sync{v}{w} &\iff \textrm{ neither } v \preccurlyeq w \textrm{ nor } w \preccurlyeq v
   \end{align*}
   That is, $v \prec w$ if all of $w$'s components are at least as
   great as $v$'s, and at least one of its components is strictly
   greater. When two non-equal vector timestamps are compared, and
-  neither is greater than the other, we write $v || w$ and say the
+  neither is greater than the other, we write $\sync{v}{w}$ and say the
   events are \emph{logically concurrent}.
 \end{definition}
 
@@ -1181,7 +1185,7 @@ that they satisfy \ref{eq:sc}.
   is, where $C(e)$ is the vector timestamp of an event, then
   \[ e \to e' \iff C(e) \prec C(e'). \]
   From this it follows that for non-equal events $e$ and $e'$ we have
-  \[ e \sim e' \iff C(e) || C(e'). \]
+  \[ \sync{e}{e'} \iff \sync{C(e)}{C(e')}. \]
 \end{lemma}
 
 For reasons of space we omit a proof of the preceding lemma.  The
@@ -1243,144 +1247,200 @@ send and receive events connecting $e$ to $e'$, hence $e \to e'$.
 If a vector clock stores an estimate of every other processes' local
 time, a matrix clock stores an estimate of every other processes'
 vector clock. We give the details below. Figure
-\ref{fig:message-latencies-matrix} shows our running examples with
-matrix clocks.
+\ref{fig:message-latencies-matrix} shows our running examples
+alongside matrix clock timestamps.
+
+Each process $P_i$ stores an $N$ by $N$ matrix $\vt_i$, initialized to
+all zeros, with the following interpretation. The $i^{\textrm{th}}$
+row from the top, $\vt_i[i, -]$, stores $P_i$'s vector time. All other
+rows $\vt_i[j,-]$ store $P_i$'s estimate of $P_j$'s vector
+time. Matrix timestamps are piggybacked with messages, and the
+receiver uses the sender's vector clock to update their own vector
+clock as usual, and takes the pointwise maximum of all other rows.
 
 \begin{enumerate}
 \item[\textbf{R1}] Before a new message is sent, $\vt_i[i]$ is updated according to the rule
   \[\vt_i[i,i] := \vt_i[i,i] + 1.\]
   The entire updated matrix $\vt_i$ is piggybacked with the message.
-\item[\textbf{R2}] When a message is received with a piggybacked timestamp $\vt$,
-  $\vt_j$ is updated according to
-  \[\vt_j[x] := \max(\vt_j[x], \vt[x]) \quad \textrm{for all $x = 1\ldots N$}.\]
+\item[\textbf{R2}] When a message is received from $P_j$ with a piggybacked timestamp $\vt$,
+  $\vt_i$ is updated according to two cases
+  \begin{enumerate}
+  \item Update the row $\vt_i[i, -]$ according to
+    \[\vt_i[i, k] := \max(\vt_i[i,k], \vt[j, k]) \quad \textrm{for all $k = 1\ldots N$}.\]
+  \item Update all other rows $\vt_i[j', -]$ for $j'\neq j$ according
+    to
+    \[\vt_i[j', k] := \max(\vt_i[j',k], \vt[j', k]) \quad \textrm{for all $k = 1\ldots N$}.\]
+  \end{enumerate}
   After this, $P_i$ advances its own local time according to the rule
   \[ \vt_i[i] := \vt_i[i] + 1.\]
   This new vector is the timestamp attached to the receive event.
 \end{enumerate}
 
 \begin{figure}[p]
+  \begingroup
+  \setlength\belowcaptionskip{4ex}
   \begin{subfigure}{1\textwidth}
-    \centering
-    \input{images/pgf/mpEx1Mat.pgf}
-    \caption{Figure \ref{fig:message-latencies-a} redepicted with matrix clocks}
+    \input{images/pgf/mpEx1Mat.pgf}%
+    \caption{Matrix clock timestamps for the events in Figure \ref{fig:message-latencies-a}}
     \label{fig:message-latencies-matrix-a}
   \end{subfigure}
   \begin{subfigure}{1\textwidth}
-    \input{images/pgf/mpEx2Mat.pgf}
+    \input{images/pgf/mpEx2Mat.pgf}%
+    \caption{Matrix clock timestamps for the events in Figure \ref{fig:message-latencies-b}}
     \label{fig:message-latencies-matrix-b}
   \end{subfigure}
-  \caption{Figure \ref{fig:message-latencies-b} redepicted with matrix clocks}
+  \caption{Figure \ref{fig:message-latencies} depicted with matrix clocks}
   \label{fig:message-latencies-matrix}
+  \endgroup
 \end{figure}
-
 \afterpage{\clearpage}
-
-but we shall see a clear example in Section
-\ref{sec:continuous-consistency} of why tracking this extra
-information can prove useful.
 
 Matrix clocks subsume vector clocks, so they can be used whenever the
 strong consistency condition is needed. The justification for matrix
-clocks is somewhat subtle.
+clocks is somewhat subtle. In Section \ref{sec:background}, we
+indicated a connection between distributed systems and epistemic
+logic, i.e. reasoning about not just what is true but what is
+known. Matrix clocks can be applied when processes require knowledge
+about the knowledge had by others.
 
-In Section \ref{sec:background}, we explained that distributed systems
-fundamentally involve epistemic logic, i.e. reasoning about not just
-what is true but what is known. Other nodes store
-knowledge. Frequently the nodes want to collaborate to ensure every
-other process is made aware. Since a vector clock represents the state
-of knowledge, by keeping a lower bound estimate of all other vector
-clocks, we have a lower bound estimate of the knowledge that is
-already known to others. In Section
-\ref{sec:continuous-consistency} we will see an example where this
-sort of lower bound estimate of other process's clocks is important
-for distributed database replication.
+Suppose a group of processes collaborate to replicate updates to a
+shared data structure. We imagine that all updates are submitted by
+users to some process, say $P_O$ ($O$ for ``origin''), whereupon it is
+timestamped with $P_O$'s local time (value $\vt_O[O,O]$) and with the
+value $O$ to indicate which process originally accepted the update
+from a user. As an invariant, we ensure that no process $P_j$ updates
+its estimate $\vt_j[j, O]$ of $O$'s local time to a value $t$ until
+$P_j$ has been informed about all updates submitted to $P_O$ with
+timestamps less than or equal to $t$. Now with these assumptions,
+$P_i$ can use the value $\vt_i[j, O]$ as a lower bound estimate of
+which updates originating from $P_O$ $P_j$ has already been informed
+about. In particular, once we have the condition
+\[ \textrm{for all $j$}, \vt_i[j, O] \geq t
+\]
+for some logical time $t$, $P_i$ can be sure that all other processes
+have seen all updates with timestamps less than or equal to $t$
+originating at $P_O$. In Section \ref{sec:continuous-consistency} we
+will see an example where this sort of lower bound estimate of other
+process's clocks is important for distributed database replication.
 
 \subsection{Message Ordering and Group Communication}
-
-In this section we summarize some different assumptions we could
-impose about how messages are ordered. Then we discuss allowing
-messages to be sent to multiple receipients at once, such as in a
-group chat application.
+We have seen that the network latencies tend to cause messages to be
+delayed and arrive in a different order than they were sent in. In
+this section we summarize some different assumptions we could impose
+about how messages are ordered. Then we discuss generalizing our model
+to allow sent to multiple receipients at once, such as in a group chat
+application, where message ordering becomes a critical issue.
 
 \subsubsection{Message Ordering}
-We have seen that the network latencies tend to cause messages to be
-delayed and arrive in a different order than they were sent in.
+We briefly explain some terminology before proceeding. In general,
+applications should not show messages to the user immediately when
+they come in from the network, precisely because the network tends to
+deliver messages in unexpected orders. Thus, we may want to wait for
+other messages to play ``catch up.'' Thus, we make a distinction
+between message \emph{receipt} and \emph{delivery}. Middleware layer.
 
 \paragraph{FIFO ordering}
-A very modest requirement is to impose the \emph{first-in, first-out}
-(FIFO) condition, which stipulates that on any logical communication
-link between two nodes in the system, messages arrive in the order
-they were sent.
+A modest requirement is the \emph{first-in, first-out} (FIFO)
+condition, which stipulates that on any logical communication link
+between two nodes in the system, messages arrive in the order they
+were sent. The restrictive phrase here is ``any logical communication
+link''---by definition there is one link for any \emph{pair} of
+processes. Hence, FIFO does not impose any conditions on messages
+unless they are from the same sender and to the same recipient.
 
 \begin{definition}[FIFO condition]
   A FIFO execution is one that satisfies the following condition. Let
   $P_i$ and $P_j$ be any two processes and $m_1$ and $m_2$ be two
   messages sent from $P_i$ to $P_j$. Then
-  $m_1^{\textrm{send}} m_2^{\textrm{send}} \implies
-  m_1^{\textrm{recv}} m_2^{\textrm{recv}}$.
+  $\msend{1} \msend{2} \implies
+  \mrecv{1} \mrecv{2}$.
 \end{definition}
 
-The FIFO assumption is less strict than it may look. Crucially, the
-requirement only applies to messages that share a common sender and a
-common destination. No guarantee is made for any other messages. FIFO
-order is faily easy to implement and often built into the transport
-layer of a network protocol stack. For instance, the internet protocol
-(IPv4) by itself does not provide FIFO semantics, but the TCP protocol
-does. Enforcing FIFO on a logical communication link between $P$ and
-$P'$ can be as simple as requiring both sides to mark their messages
-with consecutive increasing numbers (e.g. $1,2,3\ldots$): If message
-$1$ arrives and then message $3$ arrives, then the middleware can
-infer that message $2$ is lagging behind, so it can deliver $1$ to the
-higher-level application but will not deliver $3$ until $2$ arrives.
+FIFO ordering is simple to implement and often built into the
+transport layer of a network protocol stack. For instance, although
+the Internet Protocol (IPv4) by itself does not
+provide FIFO semantics, the associated TCP protocol, which many
+applications use, does provide FIFO. As TCP demonstrates, maintaining
+a FIFO channel can be as simple as marking outgoing messages with
+consecutive increasing numbers (e.g. $1,2,3\ldots$). If message $1$
+arrives and then $3$ arrives, we infer that $2$ is lagging behind,
+delivering $1$ to the user immediately but withholding delivery of $3$
+until after $2$ is received and delivered. As far as the end user can
+tell, the messages arrive in the right order.
+
+The guarantees provided by FIFO are minimal because they only apply on
+a per-link basis. The next ordering model enforces a partial order
+across messages in the system.
+
+\begin{figure}[p]
+  \setlength\abovecaptionskip{0ex}
+  \setlength\belowcaptionskip{4ex}
+  \begin{subfigure}[t]{0.475\textwidth}
+    \centering
+    \input{images/pgf/ordEx1.pgf}
+    \caption{A non-FIFO execution}
+    \label{fig:ordEx1}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.475\textwidth}
+  \centering
+  \input{images/pgf/ordEx2.pgf}
+  \caption{A CO (therefore FIFO) execution}
+  \label{fig:ordEx2}
+\end{subfigure}
+\begin{subfigure}[b]{0.475\textwidth}
+  \centering
+  \input{images/pgf/ordEx3.pgf}
+  \caption{A CO execution}
+  \label{fig:ordEx3}
+\end{subfigure}
+\begin{subfigure}[b]{0.475\textwidth}
+  \centering
+  \input{images/pgf/ordEx6.pgf}
+  \caption{A CO execution}
+  \label{fig:ordEx6}
+\end{subfigure}
+\begin{subfigure}[b]{0.475\textwidth}
+  \centering
+  \input{images/pgf/ordEx5.pgf}
+  \caption{A FIFO and non-CO execution}
+  \label{fig:ordEx5}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.475\textwidth}
+  \centering
+  \input{images/pgf/ordEx4.pgf}
+  \caption{A FIFO and non-CO execution}
+  \label{fig:ordEx4}
+\end{subfigure}
+\caption{Message ordering examples}
+\label{fig:message-ordering}
+\end{figure}
+
+\afterpage{\clearpage}
 
 \paragraph{Causal ordering}
-Because FIFO does not apply to messages sent between three or more
-nodes, distributed applications can experience anomolies in message
-order. One possibility is for messages to violate the \emph{causally
-  ordered delivery} assumption. ``Causality'' in this context refers
-to the potential for information from one event to influence
-another. A key problem for distributed systems is that network
-latencies mean events with a causal relation may appear to happen in
-an illogical order to users, so tracking causality a key issue for
-system designers. We start by defining an order between events on the
-same process.
-
-Now message $m_1$ is timestamped and sent by $P_1$, while $m_2$ is
-timestamped and sent by $P_2$. A hallmark of distributed systems is we
-cannot assume processes have instantaneous access to a common physical
-clock, which means the inequality cannot be guaranteed unless $P_1$
-and $P_2$ happen to have two different clocks that are
-synchronized. Whether we can assume clocks are synchronized depends on
-the exact environment and the level of synchronicity required, but
-generally sychronization is either unavailable or requires additional
-mechanisms to prevent clocks from falling out of sync. For some
-coarse-grained purposes, possibly including the database replication
-framework in Section \ref{sec:continuous-consistency}, it may be
-enough for devices to maintain clocks that are only somewhat precisely
-synchronized. For other purposes, such as enforcing a total order on a
-sequence of broadcasts among large distributed groups, sufficiently
-precise synchronization of clocks untenable.
-
+A network satisfies the causally ordered (CO) delivery model if
+messages are received in an order consistent with the causality
+between send events.
 
 \begin{definition}(Causally ordered delivery)
-  \label{def:causalorder}
-  A network satisfies the causally ordered (CO) delivery model if
-  messages are received in an order consistent with the causality
-  between send events. That is, if the following property holds:
+  \label{def:causalorder} That is, if the following property holds:
   \begin{quote}
   For all messages $m$ and $n$ with the same destination, if
   $m^\textrm{send} \to n^\textrm{send}$, then $m^\textrm{recv} \to
   n^\textrm{recv}$.
   \end{quote}
-  In mathematical terms, for each destination $P_\mathrm{dest}$, when
-  we consider the set of all messages sent from anywhere to
-  $P_\mathrm{dest}$, the function mapping send events to corresponding
-  receive events must be monotonic with respect to causal
-  precedence.
 \end{definition}
 
+In mathematical terms, if we consider the set of all messages sent to
+some fixed destination $P_\mathrm{dest}$, the function mapping send
+events to corresponding receive events must be monotonic with respect
+to causal precedence. That is, all destinations $P_\mathrm{dest}$
+observe messages arriving in an order respecting the causality of
+their send events.
+
 \subsubsection{Group Communication}
-The importance of message ordering is particularly acute
+The importance of message ordering is particularly acute. The FIFO
+model does not really apply in group communication.
 
 \paragraph{Causal order broadcast}
 For motivational purposes we consider a simple example. We slightly
@@ -1452,9 +1512,9 @@ answer has causal precedence over the receipt of question.
 \end{figure}
 
 Returning to the previous example, Figure \ref{fig:message-latencies-c} and
-\ref{fig:message-latencies-scalar-c}, because $m_1^\textrm{send}$
-causally precedes $m_2^\textrm{send}$, we find
-\[C(m_1^\textrm{send}) = 1 < 5 = C(m_2^\textrm{send}).\] Using this
+\ref{fig:message-latencies-scalar-c}, because $\msend{1}$
+causally precedes $\msend{2}$, we find
+\[C(\msend{1}) = 1 < 5 = C(\msend{2}).\] Using this
 fact $P_3$ can learn (by examining piggybacked timestamps) that
 $P_2$'s response could not causally precede $P_1$'s question,
 partially resolving the ambiguity posed earlier.
@@ -1465,53 +1525,43 @@ the answer: the opposite is ruled out, but it is possible the events
 are causally independent.
 
 \paragraph{Total order broadcast}
-%Scalar clocks achieve the clock consistency condition without
-%synchronized physical clocks. They are often used when an application
-%needs to establish a shared global ordering among all events in the
-%system, such as in state machine replication (SMR) protocols. Because
-%timestamps are not globally unique, they do not carry quite enough
-%information for recipients to compute a shared total order by
-%themselves. A simple way to obtain a total order is to use an
-%arbitrary tie-breaking mechanism for deciding how to order two
-%(necessarily causally unrelated) events that happen to share a common
-%scalar clock timestamp, typically by comparing the (necessarily
-%distinct) identifiers of the processes where they took place. Indeed,
-%this application was the motivating example when scalar clocks were
-%introduced by Lamport.
-
-%It is certainly possible to implement broadcast-ordering protocols
-%that present the abstraction of multiple parties who receive group
-%messages in the same order at all locations, but it should be
-%unsurprising that such protocols require mechanisms for tracking the
-%causal relation between events.
 
 
-\newpage
+\begin{definition}(Totally ordered broadcast)
+  \label{def:totalorderbroadcast} For any processes $P$ and $P'$ and
+  messages $m$ and $m'$ that arrive at \emph{both} destinations, $m$
+  arrives before $m'$ at both processes or $m'$ arrives before $m$ at
+  both processes.
+\end{definition}
+
 \subsection{Shared Memory}
 Framing a distributed application directly in terms of message passing
 can be challenging. The low-level details required to implement the
 correct message passing behavior distract from the high-level
-application design, making it desirable to separate these concerns. In
-this section we summarize a more abstract paradigm called the
-\emph{distributed shared memory} (DSM) framework. In this setting,
-programmers think in terms of reading and writing values to memory
-locations rather than transmitting messages over the network. The key
-feature is that all instances of the application act as if they are
-reading and writing from the same pool of memory locations, when they
-are actually running on distributed computers that do not share
-memory.
+application design. In this section we summarize a more abstract
+paradigm called the \emph{distributed shared memory} (DSM)
+framework.
 
-To implement the DSM model, a ``middleware'' memory management layer
-is employed to handle read and write requests issued by the
-application. Under the hood, the middleware coordinates with other
-nodes by message passing in a way that facilitates the abstraction of
-a common virtual memory space. The programmer is not directly
-concerned with how this is accomplished. They are, however, required
-to understand what guarantees are and are not provided by the memory
-management layer, in other words what kinds of \emph{semantics} the
-virtual memory implements. Systems generally differ in this respect
-because they make different tradeoffs between safety guarantees and
-performance.
+In this setting, programmers think in terms of reading and writing
+values to memory locations rather than transmitting messages over the
+network. The key feature is that all instances of the application act
+as if they are reading and writing from the same pool of memory
+locations, when they are actually running on distributed computers
+that do not share memory. In a sense, instead of focusing on a logical
+notion of time, in the DSM model we directly focus on logical notion
+of shared state.
+
+To implement the DSM model, a somewhat ``middleware'' layer called the
+\emph{memory manager} handles read and write requests issued by the
+application. Under the hood, the middleware might coordinate with
+other nodes by passing messages to inform them about updates to data
+in a way that facilitates the illusion that processes share a common
+virtual memory. The programmer is not directly concerned with how this
+is accomplished. They are, however, required to understand what
+guarantees are and are not provided by the memory management layer, in
+other words what kinds of \emph{semantics} the virtual memory
+implements. Generally, the design space involves a fundamental
+tradeoff between safety guarantees and performance.
 
 \begin{figure}
     \centering
@@ -1520,7 +1570,6 @@ performance.
     \label{fig:smEx1}
 \end{figure}
 
-\subsubsection{Shared memory time diagrams}
 \newcommand{\Op}{\mathrm{Op}}
 
 Figure \ref{fig:smEx1} depicts a time diagram for the shared memory
@@ -1530,36 +1579,32 @@ operations are shown:
 \begin{description}
 \item[Reads] A \emph{read} request $R(x)$ indicates reading the value
   in memory at location $x$, which returns some value $v$. When it is
-  important to indicate the return value, we notate read requests as
-  $R(x, v)$.
+  important to indicate the return value is $v$, we write $R(x, v)$.
 \item[Writes] A \emph{write} operation $W(x, v)$ indicates writing
-  value $v$ to memory location $x$. Other common notations include
+  value $v$ to memory location $x$. In pseudocode this might be written
   $x := v$ or $x \leftarrow v$.
 \end{description}
 We write $\Op$ to indicate an arbitrary (read or write)
-operation.
+operation. Each operation consists of a horizontal span along the
+worldline of a process, which represents the duration of the
+operation. Each operation begins at a time $\Op.s$ ($s$ for ``start'')
+called its \emph{invocation event}, beginning when the programmer
+invokes the memory manager. The operation ends at some time $\Op.t$
+($t$ for ``terminate'') called its \emph{response event}, when a
+response is given to the caller (either an acknowledgement for a write
+operation, or a value for a read operation). The entire collection of
+invocation and response events, as depicted in a time diagram, is
+called a \emph{history}. If $H$ is a history, we write $H|_P$ for the
+set of operations that happen on process $P$, called the \emph{local
+  history} of $P$.
 
-Each operation consists of a horizontal span along the worldline of a
-process representing the duration of the operation. Each operation
-begins at a time $\Op.s$ ($s$ for ``start'') called its
-\emph{invocation event}, beginning when the programmer invokes the
-memory manager. The operation ends at some time $\Op.t$ ($t$ for
-``terminate'') called its \emph{response event}, when a response is
-given to the caller (either an acknowledgement for a write operation,
-or a value for a read operation). The entire collection of invocation
-and response events, as depicted in a time diagram, is called a
-\emph{history}. If $H$ is a history, we write $H|_P$ for the set of
-operations that happen on process $P$, called the \emph{local history}
-of $P$.
+In the background, the memory management layer coordinates with other
+processes over the network. While executing a read request $R(x)$ it
+may, for example, send messages to another ask them about the current
+value stored at location $x$. This behind-the-scenes coordination is
+transparent to the programmer and not reflected in the diagrams.
 
-Transparently and in the background, the memory management layer
-coordinates with other processes over the network. While executing a
-read request $R(x)$ it may, for example, send messages to another
-server to lookup the current value of memory location $x$. Such
-behind-the-scenes coordination is hidden from the programmer and not
-reflected in the time diagrams.
-
-\subsubsection{Semantics and consistency}
+\subsection{Semantics and consistency}
 
 For a sequential application, i.e. one running on a single computer,
 it is clear how read and write requests should be interpreted. A read
@@ -1578,18 +1623,18 @@ other.
 
 \begin{example}
   \label{exmpl:updatesoneprocess}
-  Consider Figure \ref{fig:smEx0}, depicting just a single process. Since there is
-  no ambiguity in the order of events, it is clear that this process
-  should execute in the following order (read requests have been underlined with their results shown):
+  Consider Figure \ref{fig:smEx0}, depicting just a single
+  process. Since there is no ambiguity in the order of events, it is
+  clear that this process should execute in the following order.
   \[ W(x, 0) \to W(y, 5) \to \underline{R(x, 0)} \to W(x, 3) \to \underline{R(y, 5)} \to \underline{R(x, 3)}. \]
+  Note read requests (underlined with their results shown) return the value of most recent write operation to each location.
 \end{example}
 
-In the distributed context, the metaphorical wrench in the works is
-that operations by different processes can execute concurrently, so
-there is no obvious total order that can be used to compare
-events. Without such a comparison, the notion of ``most recent''
-operation is ambiguous, which makes it difficult to say exactly how
-the memory requests should even be interpreted.
+In the distributed context, operations on different processes can
+execute concurrently, so there is no obvious total order that can be
+used to compare events. Without such a comparison, the notion of
+``most recent'' operation is ambiguous, which makes it difficult to
+say exactly how the memory requests should even be interpreted.
 
 \begin{figure}
   \input{images/pgf/smEx2.pgf}
@@ -1604,9 +1649,10 @@ the memory requests should even be interpreted.
   should be considered as happening first.
 \end{example}
 
-In example \ref{exmpl:concurrentupdates}, it seems likely that the
-programmer should expect each $R(x)$ operation to return either 3 or
-5, but definitely not, say, 37. After some thought, especially about
+In Example \ref{exmpl:concurrentupdates}, it seems likely intuitively
+that the programmer should expect each $R(x)$ operation to return
+either 3 or 5. It should definitely not return 37, but perhaps 4 could
+be expected in some situations. After some thought, especially about
 how to implement the memory manager, a few other questions seem less
 obvious.
 \begin{itemize}
@@ -1630,37 +1676,44 @@ needs and expectations of the application against the practical
 constraints of the environment.
 
 \subsubsection{Concurrency and External order}
-\label{sssec:externalorder}
-As before, it is tempting to imagine sidestepping these issues by
-assigning a physical timestamp to each operation as to establish a
-total global order among events. However, we have seen that physical
-clocks are usually not so precisely sychronized as to allow comparing
-physical timestamps from different nodes.
+\label{ssec:externalorder}
+As in Section \ref{ssec:causality}, one might hope to disambiguate
+the global order of memory operations by assigning them with
+sufficiently fine-grained timestamps indicating when they start and
+terminate. However, comparing physical timestamps between operations
+on different processes requires them to have synchronized clocks,
+which we have seen we cannot assume.
 
-One fundamental relation in the DSM setting is \emph{external
-order}. Intuitively, it is the partial order that orders
+A fundamental relation playing a role somewhat like causal precedence
+in Section \ref{ssec:causality} is that of \emph{external
+  order}. Intuitively, it is the partial order that orders
 non-overlapping events by their physical times, but does not assign an
 ordering to events whose executions overlap in physical time.
 
 \begin{definition}[External order]
   Let $H$ be a history. An operation $\Op^1$ \emph{externally
-    precedes} operation $\Op^2$ if $\Op^1.t < \Op^2.s$. (Here, we are
-  comparing events in terms of real, physical time.) That is, one
-  operation externally precedes another if its response occurs before
-  the invocation of the other. This induces an irreflexive partial
-  order on $H$ called external order.
+    precedes} operation $\Op^2$ if $\Op^1.t < \Op^2.s$. This induces
+  an irreflexive partial order on $H$ called external order.
 \end{definition}
-
-Because each process handles operations one-at-a-time, a local history
-$H|_P$ is totally ordered by external order. However, operations by
-different process may overlap.
-
+The definition states that one operation externally precedes another
+if it terminates occurs before other is invoked. Note that we are
+comparing events in terms of real, physical time: external order is
+the partial order that would be expected by an outside observe who can
+see operations executing in real time.
 \begin{definition}[Physical concurrency]
   Consider two operations $\Op^1$ and $\Op^2$. If neither externally
   precedes the other, in another words if there is some moment in time
   during which both operations are executing, the operations are said
   to be \emph{physically concurrent}, written $\Op^1 || \Op^2$.
 \end{definition}
+If one operation finishes
+before another starts, this must surely come first. If two operations
+are ever seen executed at the same time, then we do not assume
+anything about which one should be considered to execute first.
+
+%Because each process handles operations one-at-a-time, a local history
+%$H|_P$ is totally ordered by external order. However, operations by
+%different process may overlap.
 
 Physical concurrency is a reflexive and symmetric relation, but
 typically not a transitive one. Such structures are generally known as
@@ -1678,19 +1731,16 @@ models, allows for this possibility. Yet even this model imposes too
 many constraints to be workable for networking environments as
 unpredictable as ours.
 
-\begin{figure}[h]
+\begin{figure}
     \centering
     \input{images/pgf/smEx1DAG.pgf}
     \caption{External order relation among operations in Figure \ref{fig:smEx1}}
     \label{fig:smEx1DAG}
-  \end{figure}
+\end{figure}
 
-\begin{example}
-  Figure \ref{fig:smEx1DAG} shows a time diagram involving three
-  processes depicts the external order relation among the operations
-  shown in Figure \ref{fig:smEx1} in the form of a directed acyclic
-  graph (DAG).
-\end{example}
+Figure \ref{fig:smEx1DAG} shows the external order among the
+operations in Figure \ref{fig:smEx1} in the form of a directed
+acyclic graph (DAG).
 
 \begin{definition}[Sequential history]
   Let $H$ be a history of invocation/response events. A
@@ -1699,11 +1749,10 @@ unpredictable as ours.
   to ensure none of them overlap in time.
 \end{definition}
 
+\subsection{Strong Consistency Models}
 The first two memory models in the next section require, among other
 things, that any history $H$ must be consistent with some sequential
 rearrangement of $H$.
-
-\subsection{Memory Consistency Models}
 
 \subsubsection{Linearizability}
 \label{sssec:linearizability}
@@ -1724,12 +1773,12 @@ A linearizable history is defined by three features.
   A \emph{linearizable history} is one satisfying the following three rules.
 \begin{enumerate}
   \tightlist
-\item[R1] All processes act like they all see some common sequential
+\item[\textbf{L1}] All processes act like they all see some common sequential
   history of operations.
-\item[R2] Responses are semantically correct, meaning a read request
+\item[\textbf{L2}] Responses are semantically correct, meaning a read request
   \(R(x, a)\) returns the value of the most recent write request
   \(W(x, a)\) to \(x\).
-\item[R3] The sequential history is consistent with external
+\item[\textbf{L3}] The sequential history is consistent with external
   order. That is, if the response of $\Op$ precedes the invocation of
   $\Op'$, then $\Op$ precedes $\Op'$ in the sequential history.
 \end{enumerate}
@@ -1759,44 +1808,37 @@ defining it in terms of \emph{linearization points.}
   whole and instantaneously.
 \end{definition}
 
-\begin{example}
-  \label{exmpl:linearizations}
-  The two possible linearizations of Figure \ref{fig:smEx1} are shown
-  in Figure \ref{fig:smEx3}. Possible choices for linearization points
-  are shown in yellow. (Note that only the relative order of
-  linearization points is important.)
-\end{example}
+%\begin{example}
+%  \label{exmpl:linearizations}
+The two possible linearizations of Figure \ref{fig:smEx1} are shown in
+Figure \ref{fig:smEx3}. Possible choices for linearization points are
+shown in yellow. Note that only the relative order of linearization
+points is important. These examples demonstrate that linearizability
+leaves room for non-determinism in the execution of distributed
+applications. In particular, the read operations in Figure
+\ref{fig:smEx1} can return 3 or 5, as long as they all return the same
+value.
 
-Example \ref{exmpl:linearizations} demonstrates that linearizability
-leaves some room for non-determinism in the execution of distributed
-applications. In the example, we see that the reads in Figure
-\ref{fig:smEx1} may return 3 or 5, though they must all return the
-same value.
 \begin{figure}[p]
-  \setlength\belowcaptionskip{5ex}
-
+  %\setlength\belowcaptionskip{4ex}
   \begin{subfigure}{1\textwidth}
     \centering
     \input{images/pgf/smEx3L1.pgf}
-    \caption{One of two possible linearizations}
+    \caption{A linearization where the read operations return 3}
     \label{fig:smEx1L1}
   \end{subfigure}
-
   \begin{subfigure}{1\textwidth}
     \input{images/pgf/smEx3L2.pgf}
-    \caption{The other possible linearization}
+        \caption{A linearization where the read operations return 5}
     \label{fig:smEx3L2}
   \end{subfigure}
-
-  \caption{The two possible linearizations of Figure \ref{fig:smEx2}. Possible choices of linearization points are shown in yellow.}
+  \caption{Two possible linearizations of Figure \ref{fig:smEx2} with linearization points shown in yellow}
   \label{fig:smEx3}
 \end{figure}
-\afterpage{\clearpage}
 
-Linearizability is a condition on individual executions of a
-distributed application. When only linearizable executions are
-permitted by the memory manager, the entire system is called
-linearizable.
+Note that is a condition on individual executions of a distributed
+application. When only linearizable executions are permitted by the
+memory manager, the entire system is said to be linearizable.
 
 \begin{definition}[Linearizable system]
   A memory management layer is linearizable if all possible histories
@@ -1889,7 +1931,6 @@ replica for an update.
 
 \subsubsection{Sequential consistency}
 \label{sequential-consistency}
-
 Enforcing atomic consistency means that an access \(E\) at process
 \(P_i\) cannot return to the client until every other process has been
 informed about \(E\). For many applications this is an unacceptably
@@ -1936,46 +1977,37 @@ possible sequential histories.
 \end{definition}
 
 \begin{figure}[p]
-  \setlength\belowcaptionskip{5ex}
-
+  %\setlength\belowcaptionskip{5ex}
   \begin{subfigure}{1\textwidth}
     \centering
     \input{images/pgf/smEx4S1.pgf}
     \caption{An example where the processes read different values}
     \label{fig:smEx1L1}
   \end{subfigure}
-
   \begin{subfigure}{1\textwidth}
     \input{images/pgf/smEx4S2.pgf}
     \caption{An example where the first write operation affects a read}
     \label{fig:smEx4S2}
   \end{subfigure}
-
   \caption{Sequentially consistent, nonlinearizable executions of Figure \ref{fig:smEx2}}
   \label{fig:smEx3}
 \end{figure}
-
 \begin{figure}[p]
-  \setlength\belowcaptionskip{5ex}
-
+  %\setlength\belowcaptionskip{5ex}
   \begin{subfigure}{1\textwidth}
     \centering
     \input{images/pgf/smEx4S3.pgf}
     \caption{}
     \label{fig:smEx1L1}
   \end{subfigure}
-
   \begin{subfigure}{1\textwidth}
     \input{images/pgf/smEx4S4.pgf}
     \caption{}
     \label{fig:smEx4S2}
   \end{subfigure}
-
   \caption{Two non-sequentially-consistent executions of Figure \ref{fig:smEx2}}
   \label{fig:smEx3}
 \end{figure}
-
-\afterpage{\clearpage}
 
 Processes in a sequentially consistent system are required to agree on
 a total order of events, presenting the illusion of a shared database
@@ -2062,7 +2094,7 @@ sequential consistency is CAP-unavailabile.
   $R(y)$, which would violate program order.
 \end{proof}
 
-\subsubsection{Causal consistency}
+\subsection{Causal consistency}
 \label{causal-consistency}
 
 \emph{Causal} consistency\citationneeded is a weaker memory model than
@@ -2175,7 +2207,7 @@ the database. The effect is that causal consistency is too weak to
 apply any kind of bound on divergence, which suggests it is not strong
 enough for the kinds of safetly-related applications we have in mind.
 
-\subsection{Consequences of CAP}
+\subsubsection{Consequences of CAP}
 \label{interpretation-of-the-cap-theorem}
 While the CAP theorem is conceptually simple, its interpretation is
 subtle and has been the subject of much discussion since it was
