@@ -753,7 +753,7 @@ solved \cite{kshemkalyani_singhal_2008}. Singhal and Shivaratri
 
 The ``distributed'' aspect of the system means its components can only
 communicate by passing messages over a network.\footnote{Components of
-  a non-distributed system, e.g. processes on the same computer, can
+  a non-distributed system, like processes on the same computer, can
   communicate by writing data to a shared memory location.} Messages
 sent over the network experience a finite but unpredictable
 \emph{latency} or delay before they are delivered. More precisely, a
@@ -773,8 +773,9 @@ would be required for all components to know it. We must either design
 mechanisms that attempt to recover notions like shared time and state,
 or applications that perform correctly without relying on them. As any
 engineer would expect, the design space considers many possible
-tradeoffs. In the context of data replication, a central theme is a
-general tradeoff between performance and consistency.
+tradeoffs. In the context of data replication, a fundamental task, a
+central theme is a general tradeoff between performance and
+consistency.
 
 We assume that nodes in our environments have only intermittent access
 to the network. Indeed, groups of nodes may need to coordinate without
@@ -783,7 +784,7 @@ network partition) at the same time.\footnote{Networking without
   end-to-end connectivity requires the use of delay-tolerant
   networking (DTN) concepts, as will be discussed in Section
   \ref{sec:networking}.}  Consequently, we consider latencies on an
-order ranging from seconds when communicating with nearby agents, to
+order ranging from seconds when communicating with nearby agents to
 potentially hours or days for system-wide coordination.
 Communications engineers and system designers at the hardware level
 have limited control over these latencies, so we can only hope to
@@ -792,7 +793,7 @@ at the level of software.
 % In a tactical environment, packet loss can be on the order of
 % \%xx. \citationneeded
 
-\subsection{Message Passing and Virtual Time}
+\subsection{Message Passing and Logical Time}
 \label{ssec:message-passing}
 One can model a distributed system as a set
 \(\mathcal{P} = \{P_i\}_{i\in I}\) of \emph{processes} which undergo
@@ -812,7 +813,7 @@ the events occurring in that process. Each message $m$ starts off as a
 send event $m^\textrm{send}$ indicating the moment the message is sent
 over the network by its originating process; its delivery generates a
 receive event $m^\textrm{recv}$. The (send, receive) pairs are
-connected by an arrow and said to be corresponding events. The
+connected by an arrow and said to be corresponding events. Note that
 subscripts on messages serve to disambiguate them to the reader, but
 they are not part of the message itself.
 
@@ -836,8 +837,8 @@ they are not part of the message itself.
 \afterpage{\clearpage}
 
 The fact that arrows are diagonal, rather than vertical, represents
-the effect of network latencies on message delivery. Because they
-arrive delayed, two messages may be delivered in a different order
+the varying effect of network latencies on message delivery. Because
+they arrive delayed, messages may be delivered in a different order
 than they were sent in. In Figure \ref{fig:message-latencies-a}, $P_1$
 sends messages $m_2$ and $m_4$ in that order, but $m_4$ arrives at its
 recipient before $m_2$. This scenario might occur if $P_1$ and $P_3$
@@ -857,7 +858,7 @@ access to a globally shared clock, nor are they equipped with
 perfectly synchronized local clocks, so any two nodes do not
 necessarily agree on physical time. We briefly elaborate on the
 challenge of producing physically sychronized clocks before discussing
-conventional ways around the problem.
+conventional ways around the problem for our purposes.
 
 Physical clocks, especially consumer-grade ones, suffer from
 \emph{drift}, which is to say they do not all run at the same
@@ -868,7 +869,8 @@ incorrectly. Our devices may spend a long time sitting unpowered in
 storage without maintaining an always-on clock. For these sorts of
 reasons, physical clocks are not very reliable out-of-the-box. We
 would not want to rest the integrity of a safety-related system on the
-assumption all devices have synchronized clocks.
+assumption that a numerous and diverse assortment of devices have
+precisely synchronized clocks.
 
 Clock drift can be corrected for using, for instance, signals from GPS
 satellites, but for example in the wildfire setting GPS signals are
@@ -942,10 +944,10 @@ $\sync{e'}{e''}$ but not $\sync{e}{e''}$. For instance, in Figure
 \ref{fig:message-co-a}, $\mrecv{2}$ is synchronous with both
 $\mrecv{1}$ and $\msend{4}$, but $\mrecv{1} \to \msend{4}$. In Figure
 \ref{fig:message-co-b}, $\msend{1}$ is logically synchronous with
-every event except $\mrecv{1}$, and all other events are totally ordered
-by causality. Relations like $\sync{}{}$ that are reflexive and
-symmetric but not necessarily transitive are sometimes called
-\emph{compatibility relations}.
+every event except $\mrecv{1}$, but those other events are totally
+ordered by causality and not synchronous with each other. Relations
+like $\sync{}{}$ that are reflexive and symmetric but not necessarily
+transitive are sometimes called \emph{compatibility relations}.
 
 Incidentally, ``causal precedence'' and ``happens before'' are
 misnomers: $e \to e'$ does not mean caused $e'$ in any philosophical
@@ -987,19 +989,16 @@ Scalar clocks are simple but provide only coarse-grained information,
 while vector and matrix clocks track more precise information but
 impose greater administrative overheads.
 
-For each event $e$, let $C(e)$ denote the timestamp attached to that
+All processes timestamp their events using their local clocks. For
+each event $e$, let $C(e)$ denote the timestamp attached to that
 event. The fundamental property we want to satisfy is that if $e$
 causally precedes $e'$, it should receive a lesser timestamp. This is
-called the clock condition.
+called the clock consistency condition, or just the clock condition.
 \begin{definition}
   A system of timestamps satisfies the \emph{clock consistency
   condition} if the following monotonicity property holds:
   \[ \textrm{For all events $e$ and $e'$, } e \to e' \implies C(e) < C(e') \label{eq:mp}\tag{CC} \]
 \end{definition}
-%In Example \ref{exmpl:ambulancedispatch}, we had two send events
-%$\msend{1} \to \msend{2}$, so the clock consistency
-%condition would require that
-%\[C(\msend{1}) < C(\msend{2}).\]
 
 Importantly, the clock consistency condition does \emph{not} imply
 that we can decide if events are causally related by comparing
@@ -1021,9 +1020,9 @@ is, one would like to have the following stronger condition.
   Note that $\iff$ is notation for ``if and only if,'' i.e. logical equivalence.
 \end{definition}
 \ref{eq:sc} strengthens \ref{eq:mp} by stipulating that we can always
-compare timestamps to infer events are causally related. A system of
-scalar clocks, defined below, can enforce the weaker condition but not
-the strong one.
+compare timestamps to infer whether events are causally related. A
+system of scalar clocks, defined below, can enforce the weaker
+condition but not the strong one.
 
 \subsubsection{Scalar clocks}
 \begin{figure}
@@ -1049,10 +1048,11 @@ Scalar clocks, introduced by Lamport \cite{1978:lamportclocks},
 require each process $P_i$ to maintain a single scalar value $C_i$, a
 non-negative integer initialized at $0$. There are two update rules:
 \begin{enumerate}
-\item[\textbf{R1}] Before a message is sent, $C_i$ is updated according to the rule
-  \[C_i := C_i + 1.\] This new value is the timestamp attached to the
-  message send event. The value is sent (``piggybacked'') alongside
-  the message as metadata.
+\item[\textbf{R1}] At each process $P_i$, before a message is sent or
+  before an internal event, $C_i$ is updated according to the rule
+  \[C_i := C_i + 1.\] The new value is the timestamp attached to the
+  event, and for messages the value is sent (``piggybacked'')
+  alongside the message as metadata.
 \item[\textbf{R2}] When $P_i$ receives a message timestamped with value $C$, it
   updates $C_i$ according to the rule
   \[C_i := \max(C, C_i) + 1.\]
@@ -1060,9 +1060,10 @@ non-negative integer initialized at $0$. There are two update rules:
   event.
 \end{enumerate}
 Figure \ref{fig:message-latencies-scalar} depicts the same events in
-Figure \ref{fig:message-latencies} alongside the scalar timestamp (in
-parentheses) that would be assigned to each event. For send events,
-the piggybacked timestamp is shown as a label attached to the arrow.
+Figure \ref{fig:message-latencies} alongside the scalar timestamp,
+shown in parentheses, that would be assigned to each event. For send
+events, the piggybacked timestamp is shown as a label attached to the
+arrow.
 
 It is clear that scalar clocks satisfy the clock condition
 \eqref{eq:mp}, which is observed by tracing the path of causality
@@ -1084,7 +1085,7 @@ that it does not causally precede any event except $\mrecv{1}$.
 
 The strong clock condition \eqref{eq:sc} cannot hold either using
 scalar clocks or even synchronized physical clocks. This is because
-they assign timestamps whose values form a total order, meaning any
+both mechanisms assign timestamps whose values form a total order, meaning any
 non-equal timestamps $C_1, C_2$ have to satisfy either $C_1 < C_2$ or
 $C_2 < C_1$. However, logically synchronous events $\sync{e}{e'}$ do not
 satisfy either $e \to e'$ or $e' \to e$. Thus, the strong consistency
@@ -1125,15 +1126,16 @@ order, meaning two non-equal timestamps may not satisfy $C_1 < C_2$ or
 $C_1 > C_2$. Vector clocks achieve this by storing one scalar value
 for each process in the system. For a set of $N$ processes, $P_i$
 maintains a vector $\vt_i[1 \ldots N]$ of non-negative integers, with
-all values initialized to $\vt_i[x] = 0$. As with scalar clocks there
+all values initialized to $0$. As with scalar clocks there
 are two update rules:
 \begin{enumerate}
-\item[\textbf{R1}] Before a new message is sent, $\vt_i$ is updated according to the rule
+\item[\textbf{R1}] Before an internal event or a new message is sent by $P_i$,
+  $\vt_i$ is updated according to the rule
   \[\vt_i[i] := \vt_i[i] + 1.\]
-  The entire updated vector $\vt_i$ is piggybacked as part of the
-  message's metadata so the receiver can use it.
-\item[\textbf{R2}] When a message is received with a piggybacked timestamp $\vt$,
-  $\vt_i$ is updated according to
+  For messages, the entire updated vector $\vt_i$ is piggybacked with
+  the message.
+\item[\textbf{R2}] When a message is received by $P_i$ with a
+  piggybacked timestamp $\vt$, $\vt_i$ is updated according to
   \[\vt_i[x] := \max(\vt[x], \vt_i[x]) \quad \textrm{for all $x = 1\ldots N$}.\]
   After this, $P_i$ advances its own local time according to the rule
   \[ \vt_i[i] := \vt_i[i] + 1.\]
@@ -1154,12 +1156,6 @@ timestamps sent to it by other processes, $P_i$ can learn that $P_j$'s
 local clock has advanced, even without directly communicating with
 $P_j$.
 
-% A slight difference between
-%the local time and a scalar clock is that after receiving a message,
-%$P_i$'s local time is not necessarily greater than the sender's local
-%time that was piggybacked with the message. (What matters is that
-%$P_i$'s overall vector time is greater.)
-
 Vector timestamps are compared component-wise. This is of course a
 partial order, as one vector may be greater than another in some
 components and less in others.
@@ -1173,13 +1169,16 @@ components and less in others.
   \end{align*}
   That is, $v \prec w$ if all of $w$'s components are at least as
   great as $v$'s, and at least one of its components is strictly
-  greater. When two non-equal vector timestamps are compared, and
-  neither is greater than the other, we write $\sync{v}{w}$ and say the
-  events are \emph{logically concurrent}.
+  greater. When two non-equal vectors are compared, and neither is
+  greater than the other, we write $\sync{v}{w}$ and say the vectors
+  are \emph{incomparable}.
 \end{definition}
 
-The reason to consider vector clocks over scalar clocks is precisely
-that they satisfy \ref{eq:sc}.
+Note we have slightly overloaded the notation $||$ to mean either that
+two events are logically synchronous or that two vectors are
+incomparable. This mild abuse is justified by the fact that vector
+clocks satisfy \ref{eq:sc}, so these otherwise distinct notions will
+coincide.
 \begin{lemma}
   Vector clocks satisfy the strong clock consistency condition. That
   is, where $C(e)$ is the vector timestamp of an event, then
@@ -1244,13 +1243,13 @@ send and receive events connecting $e$ to $e'$, hence $e \to e'$.
 % \end{proof}
 
 \subsubsection{Matrix clocks}
-If a vector clock stores an estimate of every other processes' local
-time, a matrix clock stores an estimate of every other processes'
+If a vector clock stores an estimate of every other process' local
+time, a matrix clock stores an estimate of every other process's
 vector clock. We give the details below. Figure
-\ref{fig:message-latencies-matrix} shows our running examples
-alongside matrix clock timestamps.
+\ref{fig:message-latencies-matrix} shows how our running examples
+would use matrix clock timestamps.
 
-Each process $P_i$ stores an $N$ by $N$ matrix $\vt_i$, initialized to
+Each process $P_i$ stores an $N\times{}N$ matrix $\vt_i$, initialized to
 all zeros, with the following interpretation. The $i^{\textrm{th}}$
 row from the top, $\vt_i[i, -]$, stores $P_i$'s vector time. All other
 rows $\vt_i[j,-]$ store $P_i$'s estimate of $P_j$'s vector
@@ -1267,13 +1266,12 @@ clock as usual, and takes the pointwise maximum of all other rows.
   \begin{enumerate}
   \item Update the row $\vt_i[i, -]$ according to
     \[\vt_i[i, k] := \max(\vt_i[i,k], \vt[j, k]) \quad \textrm{for all $k = 1\ldots N$}.\]
-  \item Update all other rows $\vt_i[j', -]$ for $j'\neq j$ according
-    to
+  \item Update all other rows $\vt_i[j', -]$ according to
     \[\vt_i[j', k] := \max(\vt_i[j',k], \vt[j', k]) \quad \textrm{for all $k = 1\ldots N$}.\]
   \end{enumerate}
   After this, $P_i$ advances its own local time according to the rule
   \[ \vt_i[i] := \vt_i[i] + 1.\]
-  This new vector is the timestamp attached to the receive event.
+  This new matrix is the timestamp attached to the receive event.
 \end{enumerate}
 
 \begin{figure}[p]
@@ -1311,17 +1309,19 @@ value $O$ to indicate which process originally accepted the update
 from a user. As an invariant, we ensure that no process $P_j$ updates
 its estimate $\vt_j[j, O]$ of $O$'s local time to a value $t$ until
 $P_j$ has been informed about all updates submitted to $P_O$ with
-timestamps less than or equal to $t$. Now with these assumptions,
-$P_i$ can use the value $\vt_i[j, O]$ as a lower bound estimate of
-which updates originating from $P_O$ $P_j$ has already been informed
-about. In particular, once we have the condition
+timestamps less than or equal to $t$. With these assumptions, any
+process $P_i$ can use the value $\vt_i[j, O]$ as a lower bound
+estimate of which updates originating from $P_O$ have already been
+seen by $P_j$. In particular, once we have the
+condition
 \[ \textrm{for all $j$}, \vt_i[j, O] \geq t
 \]
 for some logical time $t$, $P_i$ can be sure that all other processes
 have seen all updates with timestamps less than or equal to $t$
-originating at $P_O$. In Section \ref{sec:continuous-consistency} we
-will see an example where this sort of lower bound estimate of other
-process's clocks is important for distributed database replication.
+originating at $P_O$. Using this principle, matrix clocks have been
+used to discard obsolete information during database replication. In
+Section \ref{sec:continuous-consistency} we will see an example of how
+this can be applied in practice.
 
 \subsection{Message Ordering and Group Communication}
 We have seen that the network latencies tend to cause messages to be
@@ -1879,7 +1879,7 @@ Some reflection shows that the full set of requirements is
 unattainable---a partition tolerant system simply cannot enforce both
 consistency and availability. We give only the informal sketch here,
 leaving the interested reader to consult the more formal analysis by
-Gilbert and Lynch. The key technical assumption is that a processes'
+Gilbert and Lynch. The key technical assumption is that a process's
 behavior can only be influenced by the messages it actually
 receives---it cannot be affected by messages that are sent to it but
 never delivered.

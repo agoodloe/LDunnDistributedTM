@@ -274,7 +274,7 @@
 \end{pgfscope}
 \begin{pgfscope}
 \pgftransformshift{\pgfqpoint{320.8335bp}{12.4536bp}}
-\pgftext[base,left]{$m_5^\textrm{recv}\!\begingroup\setlength\arraycolsep{1pt}\renewcommand*{\arraystretch}{0.8}\begin{pmatrix}3 & 0 & 0\\0 & 3 & 0\\3 & 3 & 3\\\end{pmatrix}\endgroup$}
+\pgftext[base,left]{$m_5^\textrm{recv}\!\begingroup\setlength\arraycolsep{1pt}\renewcommand*{\arraystretch}{0.8}\begin{pmatrix}3 & 1 & 0\\3 & 3 & 0\\3 & 3 & 3\\\end{pmatrix}\endgroup$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -902,6 +902,6 @@
 \end{pgfscope}
 \begin{pgfscope}
 \pgftransformshift{\pgfqpoint{295.1482bp}{77.4536bp}}
-\pgftext[base,left]{$\begingroup\setlength\arraycolsep{1pt}\renewcommand*{\arraystretch}{0.8}\begin{pmatrix}3 & 0 & 0\\0 & 3 & 0\\0 & 0 & 0\\\end{pmatrix}\endgroup$}
+\pgftext[base,left]{$\begingroup\setlength\arraycolsep{1pt}\renewcommand*{\arraystretch}{0.8}\begin{pmatrix}3 & 1 & 0\\3 & 3 & 0\\0 & 0 & 0\\\end{pmatrix}\endgroup$}
 \end{pgfscope}
 \end{pgfpicture}
