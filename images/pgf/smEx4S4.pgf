@@ -18,8 +18,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{259.7532bp}{25.0093bp}}
-\pgftext[base,left]{$R(x, 5)$}
+\pgftransformshift{\pgfqpoint{259.5266bp}{25.0093bp}}
+\pgftext[base,left]{$\memreadVal{x}{5}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.8627,0.1490,0.4980}
@@ -38,8 +38,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{197.7532bp}{25.0093bp}}
-\pgftext[base,left]{$R(x, 5)$}
+\pgftransformshift{\pgfqpoint{197.5266bp}{25.0093bp}}
+\pgftext[base,left]{$\memreadVal{x}{5}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.3922,0.5608,1.0000}
@@ -58,8 +58,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{123.1775bp}{25.0093bp}}
-\pgftext[base,left]{$W(x, 5)$}
+\pgftransformshift{\pgfqpoint{122.9700bp}{25.0093bp}}
+\pgftext[base,left]{$\memwrite{x}{5}$}
 \end{pgfscope}
 \begin{pgfscope}
 \pgfsetlinewidth{1.5000bp}
@@ -129,8 +129,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{192.2532bp}{85.0093bp}}
-\pgftext[base,left]{$R(x, 4)$}
+\pgftransformshift{\pgfqpoint{192.0266bp}{85.0093bp}}
+\pgftext[base,left]{$\memreadVal{x}{4}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.3922,0.5608,1.0000}
@@ -149,8 +149,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{122.1775bp}{85.0093bp}}
-\pgftext[base,left]{$W(x, 3)$}
+\pgftransformshift{\pgfqpoint{121.9700bp}{85.0093bp}}
+\pgftext[base,left]{$\memwrite{x}{3}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.3922,0.5608,1.0000}
@@ -169,8 +169,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{58.6775bp}{85.0093bp}}
-\pgftext[base,left]{$W(x, 4)$}
+\pgftransformshift{\pgfqpoint{58.4700bp}{85.0093bp}}
+\pgftext[base,left]{$\memwrite{x}{4}$}
 \end{pgfscope}
 \begin{pgfscope}
 \pgfsetlinewidth{1.5000bp}

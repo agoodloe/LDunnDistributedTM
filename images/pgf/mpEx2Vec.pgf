@@ -1,5 +1,5 @@
 \begin{pgfpicture}
-\pgfpathrectangle{\pgfpointorigin}{\pgfqpoint{411.0000bp}{163.0000bp}}
+\pgfpathrectangle{\pgfpointorigin}{\pgfqpoint{402.0000bp}{163.0000bp}}
 \pgfusepath{use as bounding box}
 \begin{pgfscope}
 \pgfsetlinewidth{1.0000bp}
@@ -8,7 +8,7 @@
 \pgfsetmiterjoin
 \pgfsetbuttcap
 \pgfpathqmoveto{321.3419bp}{139.2938bp}
-\pgfpathqlineto{343.4286bp}{95.1205bp}
+\pgfpathqlineto{343.4881bp}{95.0014bp}
 \pgfusepathqstroke
 \end{pgfscope}
 \begin{pgfscope}
@@ -24,24 +24,24 @@
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
-\pgfpathqmoveto{347.4960bp}{86.9858bp}
-\pgfpathqlineto{345.8280bp}{98.0606bp}
-\pgfpathqlineto{343.5462bp}{94.8854bp}
-\pgfpathqlineto{339.6369bp}{94.9650bp}
-\pgfpathqlineto{347.4960bp}{86.9858bp}
+\pgfpathqmoveto{347.5092bp}{86.9593bp}
+\pgfpathqlineto{345.8608bp}{97.9043bp}
+\pgfpathqlineto{343.6057bp}{94.7663bp}
+\pgfpathqlineto{339.7423bp}{94.8450bp}
+\pgfpathqlineto{347.5092bp}{86.9593bp}
 \pgfpathclose
 \pgfusepathqfill
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
-\pgfpathqmoveto{343.5462bp}{94.8854bp}
-\pgfpathqlineto{343.4286bp}{95.1205bp}
-\pgfpathqlineto{343.8758bp}{95.3441bp}
-\pgfpathqlineto{343.5462bp}{94.8854bp}
-\pgfpathqlineto{343.4286bp}{95.1205bp}
-\pgfpathqlineto{342.9814bp}{94.8969bp}
-\pgfpathqlineto{343.5462bp}{94.8854bp}
+\pgfpathqmoveto{343.6057bp}{94.7663bp}
+\pgfpathqlineto{343.4881bp}{95.0014bp}
+\pgfpathqlineto{343.9353bp}{95.2250bp}
+\pgfpathqlineto{343.6057bp}{94.7663bp}
+\pgfpathqlineto{343.4881bp}{95.0014bp}
+\pgfpathqlineto{343.0409bp}{94.7778bp}
+\pgfpathqlineto{343.6057bp}{94.7663bp}
 \pgfpathclose
 \pgfusepathqfill
 \end{pgfscope}
@@ -52,7 +52,7 @@
 \pgfsetmiterjoin
 \pgfsetbuttcap
 \pgfpathqmoveto{261.3419bp}{84.6616bp}
-\pgfpathqlineto{283.4286bp}{128.8349bp}
+\pgfpathqlineto{283.4881bp}{128.9540bp}
 \pgfusepathqstroke
 \end{pgfscope}
 \begin{pgfscope}
@@ -68,24 +68,24 @@
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
-\pgfpathqmoveto{287.4960bp}{136.9696bp}
-\pgfpathqlineto{279.6369bp}{128.9904bp}
-\pgfpathqlineto{283.5462bp}{129.0700bp}
-\pgfpathqlineto{285.8280bp}{125.8948bp}
-\pgfpathqlineto{287.4960bp}{136.9696bp}
+\pgfpathqmoveto{287.5092bp}{136.9961bp}
+\pgfpathqlineto{279.7423bp}{129.1104bp}
+\pgfpathqlineto{283.6057bp}{129.1891bp}
+\pgfpathqlineto{285.8608bp}{126.0511bp}
+\pgfpathqlineto{287.5092bp}{136.9961bp}
 \pgfpathclose
 \pgfusepathqfill
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
-\pgfpathqmoveto{283.5462bp}{129.0700bp}
-\pgfpathqlineto{283.4286bp}{128.8349bp}
-\pgfpathqlineto{282.9814bp}{129.0585bp}
-\pgfpathqlineto{283.5462bp}{129.0700bp}
-\pgfpathqlineto{283.4286bp}{128.8349bp}
-\pgfpathqlineto{283.8758bp}{128.6113bp}
-\pgfpathqlineto{283.5462bp}{129.0700bp}
+\pgfpathqmoveto{283.6057bp}{129.1891bp}
+\pgfpathqlineto{283.4881bp}{128.9540bp}
+\pgfpathqlineto{283.0409bp}{129.1776bp}
+\pgfpathqlineto{283.6057bp}{129.1891bp}
+\pgfpathqlineto{283.4881bp}{128.9540bp}
+\pgfpathqlineto{283.9353bp}{128.7304bp}
+\pgfpathqlineto{283.6057bp}{129.1891bp}
 \pgfpathclose
 \pgfusepathqfill
 \end{pgfscope}
@@ -96,7 +96,7 @@
 \pgfsetmiterjoin
 \pgfsetbuttcap
 \pgfpathqmoveto{171.3419bp}{139.2938bp}
-\pgfpathqlineto{193.4286bp}{95.1205bp}
+\pgfpathqlineto{193.4881bp}{95.0014bp}
 \pgfusepathqstroke
 \end{pgfscope}
 \begin{pgfscope}
@@ -112,24 +112,24 @@
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
-\pgfpathqmoveto{197.4960bp}{86.9858bp}
-\pgfpathqlineto{195.8280bp}{98.0606bp}
-\pgfpathqlineto{193.5462bp}{94.8854bp}
-\pgfpathqlineto{189.6369bp}{94.9650bp}
-\pgfpathqlineto{197.4960bp}{86.9858bp}
+\pgfpathqmoveto{197.5092bp}{86.9593bp}
+\pgfpathqlineto{195.8608bp}{97.9043bp}
+\pgfpathqlineto{193.6057bp}{94.7663bp}
+\pgfpathqlineto{189.7423bp}{94.8450bp}
+\pgfpathqlineto{197.5092bp}{86.9593bp}
 \pgfpathclose
 \pgfusepathqfill
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
-\pgfpathqmoveto{193.5462bp}{94.8854bp}
-\pgfpathqlineto{193.4286bp}{95.1205bp}
-\pgfpathqlineto{193.8758bp}{95.3441bp}
-\pgfpathqlineto{193.5462bp}{94.8854bp}
-\pgfpathqlineto{193.4286bp}{95.1205bp}
-\pgfpathqlineto{192.9814bp}{94.8969bp}
-\pgfpathqlineto{193.5462bp}{94.8854bp}
+\pgfpathqmoveto{193.6057bp}{94.7663bp}
+\pgfpathqlineto{193.4881bp}{95.0014bp}
+\pgfpathqlineto{193.9353bp}{95.2250bp}
+\pgfpathqlineto{193.6057bp}{94.7663bp}
+\pgfpathqlineto{193.4881bp}{95.0014bp}
+\pgfpathqlineto{193.0409bp}{94.7778bp}
+\pgfpathqlineto{193.6057bp}{94.7663bp}
 \pgfpathclose
 \pgfusepathqfill
 \end{pgfscope}
@@ -140,7 +140,7 @@
 \pgfsetmiterjoin
 \pgfsetbuttcap
 \pgfpathqmoveto{111.3419bp}{84.6616bp}
-\pgfpathqlineto{133.4286bp}{128.8349bp}
+\pgfpathqlineto{133.4881bp}{128.9540bp}
 \pgfusepathqstroke
 \end{pgfscope}
 \begin{pgfscope}
@@ -156,24 +156,24 @@
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
-\pgfpathqmoveto{137.4960bp}{136.9696bp}
-\pgfpathqlineto{129.6369bp}{128.9904bp}
-\pgfpathqlineto{133.5462bp}{129.0700bp}
-\pgfpathqlineto{135.8280bp}{125.8948bp}
-\pgfpathqlineto{137.4960bp}{136.9696bp}
+\pgfpathqmoveto{137.5092bp}{136.9961bp}
+\pgfpathqlineto{129.7423bp}{129.1104bp}
+\pgfpathqlineto{133.6057bp}{129.1891bp}
+\pgfpathqlineto{135.8608bp}{126.0511bp}
+\pgfpathqlineto{137.5092bp}{136.9961bp}
 \pgfpathclose
 \pgfusepathqfill
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
-\pgfpathqmoveto{133.5462bp}{129.0700bp}
-\pgfpathqlineto{133.4286bp}{128.8349bp}
-\pgfpathqlineto{132.9814bp}{129.0585bp}
-\pgfpathqlineto{133.5462bp}{129.0700bp}
-\pgfpathqlineto{133.4286bp}{128.8349bp}
-\pgfpathqlineto{133.8758bp}{128.6113bp}
-\pgfpathqlineto{133.5462bp}{129.0700bp}
+\pgfpathqmoveto{133.6057bp}{129.1891bp}
+\pgfpathqlineto{133.4881bp}{128.9540bp}
+\pgfpathqlineto{133.0409bp}{129.1776bp}
+\pgfpathqlineto{133.6057bp}{129.1891bp}
+\pgfpathqlineto{133.4881bp}{128.9540bp}
+\pgfpathqlineto{133.9353bp}{128.7304bp}
+\pgfpathqlineto{133.6057bp}{129.1891bp}
 \pgfpathclose
 \pgfusepathqfill
 \end{pgfscope}
@@ -184,7 +184,7 @@
 \pgfsetmiterjoin
 \pgfsetbuttcap
 \pgfpathqmoveto{51.3419bp}{139.2938bp}
-\pgfpathqlineto{73.4286bp}{95.1205bp}
+\pgfpathqlineto{73.4881bp}{95.0014bp}
 \pgfusepathqstroke
 \end{pgfscope}
 \begin{pgfscope}
@@ -200,24 +200,24 @@
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
-\pgfpathqmoveto{77.4960bp}{86.9858bp}
-\pgfpathqlineto{75.8280bp}{98.0606bp}
-\pgfpathqlineto{73.5462bp}{94.8854bp}
-\pgfpathqlineto{69.6369bp}{94.9650bp}
-\pgfpathqlineto{77.4960bp}{86.9858bp}
+\pgfpathqmoveto{77.5092bp}{86.9593bp}
+\pgfpathqlineto{75.8608bp}{97.9043bp}
+\pgfpathqlineto{73.6057bp}{94.7663bp}
+\pgfpathqlineto{69.7423bp}{94.8450bp}
+\pgfpathqlineto{77.5092bp}{86.9593bp}
 \pgfpathclose
 \pgfusepathqfill
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
-\pgfpathqmoveto{73.5462bp}{94.8854bp}
-\pgfpathqlineto{73.4286bp}{95.1205bp}
-\pgfpathqlineto{73.8758bp}{95.3441bp}
-\pgfpathqlineto{73.5462bp}{94.8854bp}
-\pgfpathqlineto{73.4286bp}{95.1205bp}
-\pgfpathqlineto{72.9814bp}{94.8969bp}
-\pgfpathqlineto{73.5462bp}{94.8854bp}
+\pgfpathqmoveto{73.6057bp}{94.7663bp}
+\pgfpathqlineto{73.4881bp}{95.0014bp}
+\pgfpathqlineto{73.9353bp}{95.2250bp}
+\pgfpathqlineto{73.6057bp}{94.7663bp}
+\pgfpathqlineto{73.4881bp}{95.0014bp}
+\pgfpathqlineto{73.0409bp}{94.7778bp}
+\pgfpathqlineto{73.6057bp}{94.7663bp}
 \pgfpathclose
 \pgfusepathqfill
 \end{pgfscope}
@@ -228,7 +228,7 @@
 \pgfsetmiterjoin
 \pgfsetbuttcap
 \pgfpathqmoveto{42.8201bp}{23.0032bp}
-\pgfpathqlineto{356.1904bp}{136.9560bp}
+\pgfpathqlineto{356.3155bp}{137.0015bp}
 \pgfusepathqstroke
 \end{pgfscope}
 \begin{pgfscope}
@@ -244,24 +244,24 @@
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
-\pgfpathqmoveto{364.7378bp}{140.0642bp}
-\pgfpathqlineto{353.5448bp}{139.6766bp}
-\pgfpathqlineto{356.4375bp}{137.0459bp}
-\pgfpathqlineto{355.9102bp}{133.1715bp}
-\pgfpathqlineto{364.7378bp}{140.0642bp}
+\pgfpathqmoveto{364.7656bp}{140.0743bp}
+\pgfpathqlineto{353.7038bp}{139.6912bp}
+\pgfpathqlineto{356.5626bp}{137.0914bp}
+\pgfpathqlineto{356.0415bp}{133.2625bp}
+\pgfpathqlineto{364.7656bp}{140.0743bp}
 \pgfpathclose
 \pgfusepathqfill
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
-\pgfpathqmoveto{356.4375bp}{137.0459bp}
-\pgfpathqlineto{356.1904bp}{136.9560bp}
-\pgfpathqlineto{356.0196bp}{137.4259bp}
-\pgfpathqlineto{356.4375bp}{137.0459bp}
-\pgfpathqlineto{356.1904bp}{136.9560bp}
-\pgfpathqlineto{356.3613bp}{136.4861bp}
-\pgfpathqlineto{356.4375bp}{137.0459bp}
+\pgfpathqmoveto{356.5626bp}{137.0914bp}
+\pgfpathqlineto{356.3155bp}{137.0015bp}
+\pgfpathqlineto{356.1447bp}{137.4714bp}
+\pgfpathqlineto{356.5626bp}{137.0914bp}
+\pgfpathqlineto{356.3155bp}{137.0015bp}
+\pgfpathqlineto{356.4864bp}{136.5316bp}
+\pgfpathqlineto{356.5626bp}{137.0914bp}
 \pgfpathclose
 \pgfusepathqfill
 \end{pgfscope}
@@ -272,7 +272,7 @@
 \pgfsetmiterjoin
 \pgfsetbuttcap
 \pgfpathqmoveto{30.0000bp}{21.9777bp}
-\pgfpathqlineto{384.0233bp}{21.9777bp}
+\pgfpathqlineto{384.0914bp}{21.9777bp}
 \pgfusepathqstroke
 \end{pgfscope}
 \begin{pgfscope}
@@ -289,8 +289,8 @@
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
 \pgfpathqmoveto{390.0000bp}{21.9777bp}
-\pgfpathqlineto{384.0233bp}{25.4283bp}
-\pgfpathqlineto{384.0233bp}{18.5271bp}
+\pgfpathqlineto{384.0914bp}{25.3890bp}
+\pgfpathqlineto{384.0914bp}{18.5664bp}
 \pgfpathqlineto{390.0000bp}{21.9777bp}
 \pgfpathclose
 \pgfusepathqfill
@@ -317,8 +317,8 @@
 \pgftext[base,left]{$P_3$}
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{13.5968bp}{3.4870bp}}
-\pgftext[base,left]{$m_1^\textrm{send}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}0 & 0 & 1\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{23.4784bp}{3.4870bp}}
+\pgftext[base,left]{$\msend{1}\timestampnegativespace\vectortimestamp{0}{0}{1}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -343,7 +343,7 @@
 \pgfsetmiterjoin
 \pgfsetbuttcap
 \pgfpathqmoveto{30.0000bp}{81.9777bp}
-\pgfpathqlineto{384.0233bp}{81.9777bp}
+\pgfpathqlineto{384.0914bp}{81.9777bp}
 \pgfusepathqstroke
 \end{pgfscope}
 \begin{pgfscope}
@@ -360,8 +360,8 @@
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
 \pgfpathqmoveto{390.0000bp}{81.9777bp}
-\pgfpathqlineto{384.0233bp}{85.4283bp}
-\pgfpathqlineto{384.0233bp}{78.5271bp}
+\pgfpathqlineto{384.0914bp}{85.3890bp}
+\pgfpathqlineto{384.0914bp}{78.5664bp}
 \pgfpathqlineto{390.0000bp}{81.9777bp}
 \pgfpathclose
 \pgfusepathqfill
@@ -388,8 +388,8 @@
 \pgftext[base,left]{$P_2$}
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{324.1544bp}{63.4870bp}}
-\pgftext[base,left]{$m_6^\textrm{recv}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}5 & 5 & 0\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{333.4784bp}{63.4870bp}}
+\pgftext[base,left]{$\mrecv{6}\timestampnegativespace\vectortimestamp{5}{5}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -408,8 +408,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{233.5968bp}{63.4870bp}}
-\pgftext[base,left]{$m_5^\textrm{send}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}3 & 4 & 0\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{243.4784bp}{63.4870bp}}
+\pgftext[base,left]{$\msend{5}\timestampnegativespace\vectortimestamp{3}{4}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -428,8 +428,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{174.1544bp}{63.4870bp}}
-\pgftext[base,left]{$m_4^\textrm{recv}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}3 & 3 & 0\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{183.4784bp}{63.4870bp}}
+\pgftext[base,left]{$\mrecv{4}\timestampnegativespace\vectortimestamp{3}{3}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -448,8 +448,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{83.5968bp}{63.4870bp}}
-\pgftext[base,left]{$m_3^\textrm{send}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}1 & 2 & 0\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{93.4784bp}{63.4870bp}}
+\pgftext[base,left]{$\msend{3}\timestampnegativespace\vectortimestamp{1}{2}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -468,8 +468,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{26.4416bp}{63.4870bp}}
-\pgftext[base,left]{$m_2^\textrm{recv}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}1 & 1 & 0\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{35.7656bp}{63.4870bp}}
+\pgftext[base,left]{$\mrecv{2}\timestampnegativespace\vectortimestamp{1}{1}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -494,7 +494,7 @@
 \pgfsetmiterjoin
 \pgfsetbuttcap
 \pgfpathqmoveto{30.0000bp}{141.9777bp}
-\pgfpathqlineto{384.0233bp}{141.9777bp}
+\pgfpathqlineto{384.0914bp}{141.9777bp}
 \pgfusepathqstroke
 \end{pgfscope}
 \begin{pgfscope}
@@ -511,8 +511,8 @@
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
 \pgfpathqmoveto{390.0000bp}{141.9777bp}
-\pgfpathqlineto{384.0233bp}{145.4283bp}
-\pgfpathqlineto{384.0233bp}{138.5271bp}
+\pgfpathqlineto{384.0914bp}{145.3890bp}
+\pgfpathqlineto{384.0914bp}{138.5664bp}
 \pgfpathqlineto{390.0000bp}{141.9777bp}
 \pgfpathclose
 \pgfusepathqfill
@@ -539,8 +539,8 @@
 \pgftext[base,left]{$P_1$}
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{360.1544bp}{155.4870bp}}
-\pgftext[base,left]{$m_1^\textrm{recv}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}6 & 4 & 1\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{369.4784bp}{155.4870bp}}
+\pgftext[base,left]{$\mrecv{1}\timestampnegativespace\vectortimestamp{6}{4}{1}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -559,8 +559,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{299.4203bp}{155.4870bp}}
-\pgftext[base,left]{$m_6^\textrm{send}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}5 & 4 & 0\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{309.3019bp}{155.4870bp}}
+\pgftext[base,left]{$\msend{6}\timestampnegativespace\vectortimestamp{5}{4}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -579,8 +579,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{245.0864bp}{155.4870bp}}
-\pgftext[base,left]{$m_5^\textrm{recv}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}4 & 4 & 0\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{254.4103bp}{155.4870bp}}
+\pgftext[base,left]{$\mrecv{5}\timestampnegativespace\vectortimestamp{4}{4}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -599,8 +599,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{159.5968bp}{155.4870bp}}
-\pgftext[base,left]{$m_4^\textrm{send}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}3 & 2 & 0\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{169.4784bp}{155.4870bp}}
+\pgftext[base,left]{$\msend{4}\timestampnegativespace\vectortimestamp{3}{2}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -619,8 +619,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{98.1544bp}{155.4870bp}}
-\pgftext[base,left]{$m_3^\textrm{recv}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}2 & 2 & 0\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{107.4784bp}{155.4870bp}}
+\pgftext[base,left]{$\mrecv{3}\timestampnegativespace\vectortimestamp{2}{2}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -639,8 +639,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{23.5968bp}{155.4870bp}}
-\pgftext[base,left]{$m_2^\textrm{send}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}1 & 0 & 0\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{33.4784bp}{155.4870bp}}
+\pgftext[base,left]{$\msend{2}\timestampnegativespace\vectortimestamp{1}{0}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -662,7 +662,7 @@
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
 \pgfsetfillopacity{0.0000}
-\pgfsetlinewidth{1.0394bp}
+\pgfsetlinewidth{1.0276bp}
 \definecolor{sc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetstrokecolor{sc}
 \pgfsetmiterjoin
@@ -682,7 +682,7 @@
 \begin{pgfscope}
 \definecolor{fc}{rgb}{1.0000,1.0000,1.0000}
 \pgfsetfillcolor{fc}
-\pgfsetlinewidth{1.0394bp}
+\pgfsetlinewidth{1.0276bp}
 \definecolor{sc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetstrokecolor{sc}
 \pgfsetmiterjoin
@@ -722,13 +722,13 @@
 \end{pgfscope}
 \begin{pgfscope}
 \pgftransformshift{\pgfqpoint{91.9691bp}{43.4870bp}}
-\pgftext[base,left]{$\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}0 & 0 & 1\end{pmatrix}\endgroup$}
+\pgftext[base,left]{$\vectortimestamp{0}{0}{1}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
 \pgfsetfillopacity{0.0000}
-\pgfsetlinewidth{1.0394bp}
+\pgfsetlinewidth{1.0276bp}
 \definecolor{sc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetstrokecolor{sc}
 \pgfsetmiterjoin
@@ -748,7 +748,7 @@
 \begin{pgfscope}
 \definecolor{fc}{rgb}{1.0000,1.0000,1.0000}
 \pgfsetfillcolor{fc}
-\pgfsetlinewidth{1.0394bp}
+\pgfsetlinewidth{1.0276bp}
 \definecolor{sc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetstrokecolor{sc}
 \pgfsetmiterjoin
@@ -788,13 +788,13 @@
 \end{pgfscope}
 \begin{pgfscope}
 \pgftransformshift{\pgfqpoint{50.9691bp}{109.4870bp}}
-\pgftext[base,left]{$\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}1 & 0 & 0\end{pmatrix}\endgroup$}
+\pgftext[base,left]{$\vectortimestamp{1}{0}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
 \pgfsetfillopacity{0.0000}
-\pgfsetlinewidth{1.0394bp}
+\pgfsetlinewidth{1.0276bp}
 \definecolor{sc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetstrokecolor{sc}
 \pgfsetmiterjoin
@@ -814,7 +814,7 @@
 \begin{pgfscope}
 \definecolor{fc}{rgb}{1.0000,1.0000,1.0000}
 \pgfsetfillcolor{fc}
-\pgfsetlinewidth{1.0394bp}
+\pgfsetlinewidth{1.0276bp}
 \definecolor{sc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetstrokecolor{sc}
 \pgfsetmiterjoin
@@ -854,13 +854,13 @@
 \end{pgfscope}
 \begin{pgfscope}
 \pgftransformshift{\pgfqpoint{110.9691bp}{109.4870bp}}
-\pgftext[base,left]{$\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}1 & 2 & 0\end{pmatrix}\endgroup$}
+\pgftext[base,left]{$\vectortimestamp{1}{2}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
 \pgfsetfillopacity{0.0000}
-\pgfsetlinewidth{1.0394bp}
+\pgfsetlinewidth{1.0276bp}
 \definecolor{sc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetstrokecolor{sc}
 \pgfsetmiterjoin
@@ -880,7 +880,7 @@
 \begin{pgfscope}
 \definecolor{fc}{rgb}{1.0000,1.0000,1.0000}
 \pgfsetfillcolor{fc}
-\pgfsetlinewidth{1.0394bp}
+\pgfsetlinewidth{1.0276bp}
 \definecolor{sc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetstrokecolor{sc}
 \pgfsetmiterjoin
@@ -920,13 +920,13 @@
 \end{pgfscope}
 \begin{pgfscope}
 \pgftransformshift{\pgfqpoint{170.9691bp}{109.4870bp}}
-\pgftext[base,left]{$\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}3 & 2 & 0\end{pmatrix}\endgroup$}
+\pgftext[base,left]{$\vectortimestamp{3}{2}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
 \pgfsetfillopacity{0.0000}
-\pgfsetlinewidth{1.0394bp}
+\pgfsetlinewidth{1.0276bp}
 \definecolor{sc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetstrokecolor{sc}
 \pgfsetmiterjoin
@@ -946,7 +946,7 @@
 \begin{pgfscope}
 \definecolor{fc}{rgb}{1.0000,1.0000,1.0000}
 \pgfsetfillcolor{fc}
-\pgfsetlinewidth{1.0394bp}
+\pgfsetlinewidth{1.0276bp}
 \definecolor{sc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetstrokecolor{sc}
 \pgfsetmiterjoin
@@ -986,13 +986,13 @@
 \end{pgfscope}
 \begin{pgfscope}
 \pgftransformshift{\pgfqpoint{260.9691bp}{109.4870bp}}
-\pgftext[base,left]{$\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}3 & 4 & 0\end{pmatrix}\endgroup$}
+\pgftext[base,left]{$\vectortimestamp{3}{4}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetfillcolor{fc}
 \pgfsetfillopacity{0.0000}
-\pgfsetlinewidth{1.0394bp}
+\pgfsetlinewidth{1.0276bp}
 \definecolor{sc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetstrokecolor{sc}
 \pgfsetmiterjoin
@@ -1012,7 +1012,7 @@
 \begin{pgfscope}
 \definecolor{fc}{rgb}{1.0000,1.0000,1.0000}
 \pgfsetfillcolor{fc}
-\pgfsetlinewidth{1.0394bp}
+\pgfsetlinewidth{1.0276bp}
 \definecolor{sc}{rgb}{0.0000,0.0000,0.0000}
 \pgfsetstrokecolor{sc}
 \pgfsetmiterjoin
@@ -1052,6 +1052,6 @@
 \end{pgfscope}
 \begin{pgfscope}
 \pgftransformshift{\pgfqpoint{320.9691bp}{109.4870bp}}
-\pgftext[base,left]{$\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}5 & 4 & 0\end{pmatrix}\endgroup$}
+\pgftext[base,left]{$\vectortimestamp{5}{4}{0}$}
 \end{pgfscope}
 \end{pgfpicture}

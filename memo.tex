@@ -30,13 +30,7 @@
 \newtheorem{example}{Example}
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
-\newcommand{\msend}[1]{m_{#1}^{\textrm{send}}}
-\newcommand{\mrecv}[1]{m_{#1}^{\textrm{recv}}}
-\newcommand{\sync}[2]{#1 || #2}
-
-\newcommand{\B}{\mathbf{B}}
-\newcommand{\w}{\mathbf{w}}
-\newcommand{\citationneeded}{\textbf{[CITATION NEEDED]}}
+\include{macros.tex}
 
 % Globally redefine pgfpicture to use \Large fonts
 \let\origpgfpicture=\pgfpicture
@@ -45,9 +39,6 @@
 % Try loading this package to prevent so much hyphenation
 % as recommended by https://stackoverflow.com/questions/1609837/latex-breaking-up-too-many-words
 \usepackage{microtype}
-
-% Try setting matrix columns closer
-\setlength\arraycolsep{2pt}
 
 \title{A Survey of Distributed Systems Challenges for Wildland
   Firefighting and Disaster Response}
@@ -811,9 +802,9 @@ messages $\{m_i\}_{i=1}^N$ sent between three processes $P_1$, $P_2$,
 and $P_3$. The $x$-axis of the diagram depicts the flow of real time
 from left to right. For each process a worldline is shown depicting
 the events occurring in that process. Each message $m$ starts off as a
-send event $m^\textrm{send}$ indicating the moment the message is sent
+send event $\msend{}$ indicating the moment the message is sent
 over the network by its originating process; its delivery generates a
-receive event $m^\textrm{recv}$. The (send, receive) pairs are
+receive event $mrecv{}$. The (send, receive) pairs are
 connected by an arrow and said to be corresponding events. Note that
 subscripts on messages serve to disambiguate them to the reader, but
 they are not part of the message itself.
@@ -907,7 +898,7 @@ definition describes an order among all events.
   \begin{cases}
     e <_{P_i} e' \textrm{ for some process $P_i$}
     \textbf{ or} \\
-    e = m^\textrm{send} \textrm{ and } e' = m^\textrm{recv}
+    e = \msend{} \textrm{ and } e' =\mrecv{}
     \textbf{ or} \\
     \textrm{there is some } e'' \textrm{ such that } e \to e'' \textrm{ and } e'' \to e'
   \end{cases}
@@ -1441,15 +1432,15 @@ following property.
   \label{def:causalorder}
   For any process $P_\mathrm{dest}$ in the system, if we consider all
   messages $m$ and $n$ sent to $P_\mathrm{dest}$ (possibly by
-  different senders), $m^\textrm{send} \to n^\textrm{send}$, then
-  $m^\textrm{recv} \to n^\textrm{recv}$. That is, each destination
+  different senders), $\msend{} \to n^\textrm{send}$, then
+  $\mrecv{} \to n^\textrm{recv}$. That is, each destination
   receives messages in an order consistent with causality between send
   events.
 \end{definition}
 Unlike FIFO, the this condition enforces a partial order among
 messages with possibly different senders. In mathematical terms, if
 we consider the set of all messages sent to some fixed destination
-$P_\mathrm{dest}$, the function mapping send events to corresponding
+$P_{\mathrm{dest}}$, the function mapping send events to corresponding
 receive events must be monotonic with respect to causal precedence.
 
 Figure \ref{fig:message-ordering} demonstrates different message
@@ -1500,8 +1491,8 @@ total ordering (TO), defined below.
 \begin{definition}[CO broadcast]
   \label{def:causalorder-bcast}
   A broadcast primitive satisfies CO semantics if for any broadcasts
-  $m$ and $n$, if $m^\textrm{send} \to n^\textrm{send}$, then all
-  destinations deliver $m^\textrm{recv}$ before $n^\textrm{recv}$.
+  $m$ and $n$, if $\msend{} \to n^{\textrm{send}}$, then all
+  destinations deliver $\mrecv{}$ before $n^{\textrm{recv}}$.
 \end{definition}
 In the above definition, the happens before relation is defined just
 as in the unicast (non-broadcast) setting by following a path of
@@ -1605,17 +1596,17 @@ Figure \ref{fig:smEx1} depicts an exemplary time diagram for the
 shared memory abstraction, not unlike the diagrams for message
 passing. Two kinds of operations are shown:
 \begin{description}
-\item[Reads] A \emph{read} request $R(x)$ indicates reading the value
+\item[Reads] A \emph{read} request $\mathsf{R}(x)$ indicates reading the value
   in memory at location $x$, which returns some value $v$. When it is
-  important to indicate the return value is $v$, we write $R(x, v)$.
-\item[Writes] A \emph{write} operation $W(x, v)$ indicates writing
+  important to indicate the return value is $v$, we write $\memread{x}{v}$.
+\item[Writes] A \emph{write} operation $\memwrite{x}{v}$ indicates writing
   value $v$ to memory location $x$. In pseudocode this might be written
   $x := v$ or $x \leftarrow v$.
 \end{description}
 We write $\Op$ to indicate an arbitrary (read or write)
 operation. Each operation consists of a horizontal span along the
 worldline of a process, which represents the duration of the
-operation. Each operation begins at a time $\Op.s$ ($s$ for ``start'')
+operation. Each operation begins at a time $\memstart{Op}$
 called its \emph{invocation event}, beginning when the programmer
 invokes the memory manager. The operation ends at some time $\Op.t$
 ($t$ for ``terminate'') called its \emph{response event}, when a
@@ -1627,7 +1618,7 @@ set of operations that happen on process $P$, called the \emph{local
   history} of $P$.
 
 In the background, the memory management layer coordinates with other
-processes over the network. While executing a read request $R(x)$ it
+processes over the network. While executing a read request $\memread{x}$ it
 may, for example, send messages to another ask them about the current
 value stored at location $x$. This behind-the-scenes coordination is
 transparent to the programmer and not reflected in the diagrams.
@@ -1636,8 +1627,8 @@ transparent to the programmer and not reflected in the diagrams.
 
 For a sequential application, i.e. one running on a single computer,
 it is clear how read and write requests should be interpreted. A read
-request $R(x)$ should return the most recent value $v$ that was
-written to $x$ by a write $W(x, v)$ (or resort to some default
+request $\memread{x}$ should return the most recent value $v$ that was
+written to $x$ by a write $\memwrite{x}{v}$ (or resort to some default
 behavior if no such write exists, but we will not consider such
 examples). This interpretation is unambiguous because we assume that
 operations running on a single process do not overlap in time, so it
@@ -1654,7 +1645,7 @@ other.
   Consider Figure \ref{fig:smEx0}, depicting just a single
   process. Since there is no ambiguity in the order of events, it is
   clear that this process should execute in the following order.
-  \[ W(x, 0) \to W(y, 5) \to \underline{R(x, 0)} \to W(x, 3) \to \underline{R(y, 5)} \to \underline{R(x, 3)}. \]
+  \[ \memwrite{x}{0} \to \memwrite{y}{5} \to \underline{\memread{x}{0}} \to \memwrite{x}{3} \to \underline{\memread{y}{5}} \to \underline{\memread{x}{3}}. \]
   Note read requests (underlined with their results shown) return the value of most recent write operation to each location.
 \end{example}
 
@@ -1673,12 +1664,12 @@ say exactly how the memory requests should even be interpreted.
 \begin{example}
   \label{exmpl:concurrentupdates}
   Consider Figure \ref{fig:smEx2}. Two writes are depicted that overlap
-  in physical time, making it unclear whether $W(x,3)$ or $W(x,5)$
+  in physical time, making it unclear whether $\memwrite{x}{3}$ or $\memwrite{x}{5}$
   should be considered as happening first.
 \end{example}
 
 In Example \ref{exmpl:concurrentupdates}, it seems likely intuitively
-that the programmer should expect each $R(x)$ operation to return
+that the programmer should expect each $\memread{x}$ operation to return
 either 3 or 5. It should definitely not return 37, but perhaps 4 could
 be expected in some situations. After some thought, especially about
 how to implement the memory manager, a few other questions seem less
@@ -1687,7 +1678,7 @@ obvious.
 \item Must the read requests on $P_1$ and $P_2$ return the same value?
 \item May the second read at $P_2$ return a different value
   than the preceding one?
-\item Is there a world in which an $R(x)$ could return 4?
+\item Is there a world in which an $\memread{x}$ could return 4?
 \end{itemize}
 
 It is possible to consider different ways of answering these
@@ -1804,8 +1795,8 @@ A linearizable history is defined by three features.
 \item[\textbf{L1}] All processes act like they all see some common sequential
   history of operations.
 \item[\textbf{L2}] Responses are semantically correct, meaning a read request
-  \(R(x, a)\) returns the value of the most recent write request
-  \(W(x, a)\) to \(x\).
+  \(\memread{x}{a}\) returns the value of the most recent write request
+  \(\memwrite{x}{a}\) to \(x\).
 \item[\textbf{L3}] The sequential history is consistent with external
   order. That is, if the response of $\Op$ precedes the invocation of
   $\Op'$, then $\Op$ precedes $\Op'$ in the sequential history.
@@ -1816,12 +1807,12 @@ We return to Example \ref{exmpl:concurrentupdates}. Rule 1 of
 Definition \ref{def:linearizable} requires $P_1$ and $P_2$ to act like
 they both witness the same total order of operations, which in
 particular assigns a total order on the three write operations
-$W(x,4), W(x,3),$ and $W(x,5)$. By Rule 3 this order must agree with
-external order, meaning $W(x,4)$ comes first, followed by $W(x,3)$ and
-$W(x,5)$ in either order (due to their physical concurrency), followed
+$\memwrite{x}{4}, \memwrite{x}{3},$ and $\memwrite{x}{5}$. By Rule 3 this order must agree with
+external order, meaning $\memwrite{x}{4}$ comes first, followed by $\memwrite{x}{3}$ and
+$\memwrite{x}{5}$ in either order (due to their physical concurrency), followed
 by the three read operations. By Rule 2, the three read operations
-must return the value of $x$ assigned by whichever of $W(x,3)$ or
-$W(x,5)$ happens last. Altogether, linearizability leaves only two
+must return the value of $x$ assigned by whichever of $\memwrite{x}{3}$ or
+$\memwrite{x}{5}$ happens last. Altogether, linearizability leaves only two
 possibilities: all three read operations return $3$, or all three
 return $5$. These are known as the possible \emph{linearizations} of
 the history shown in Figure \ref{fig:smEx1}.
@@ -1928,8 +1919,8 @@ never delivered.
   Now there are only two possibilities. First, the processes could
   proceed despite the lack of communication. In this case, because
   processes do not otherwise affect each other, $P_1$ could not see
-  the $W(x,5)$ operation and its read must return the value
-  $3$. Likewise, $P_2$ does not see $W(x,3)$ and its reads return
+  the $\memwrite{x}{5}$ operation and its read must return the value
+  $3$. Likewise, $P_2$ does not see $\memwrite{x}{3}$ and its reads return
   $5$. This situation violates linearizability, hence the 'C' of CAP.
 
   Alternatively, the processes might detect that the network is
@@ -2110,16 +2101,16 @@ sequential consistency is CAP-unavailabile.
   read each other's writes during this process. For contradiction,
   suppose the execution is equivalent to a sequential order.
 
-  If $W(y,1)$ precedes $R(y)$ in the sequential order, then $R(y)$ would
+  If $\memwrite{y}{1}$ precedes $\memread{y}$ in the sequential order, then $\memread{y}$ would
   be constrained to return to $1$. But $P_2$ cannot pass information to
   $P_1$, so this is ruled out. To avoid this situation, suppose the
-  sequential order places $R(y)$ before $W(y,1)$, in which case $R(y)$
+  sequential order places $\memread{y}$ before $\memwrite{y}{1}$, in which case $\memread{y}$
   could correctly return the initial value of $0$. However, by
-  transitivity the $R(x)$ event would occur after $W(x,1)$ event, so it
+  transitivity the $\memread{x}$ event would occur after $\memwrite{x}{1}$ event, so it
   would have to return $1$. But there is no way to pass this information
   from $P_1$ to $P_2$. Thus, any attempt to consistently order the
-  requests would require commuting $W(y,1)$ with $R(x)$ or $W(x,1)$ with
-  $R(y)$, which would violate program order.
+  requests would require commuting $\memwrite{y}{1}$ with $\memread{x}$ or $\memwrite{x}{1}$ with
+  $\memread{y}$, which would violate program order.
 \end{proof}
 
 \subsection{Causal consistency}
@@ -2148,7 +2139,7 @@ write operation that ``caused'' it to read a particular value.
   $\rightsquigarrow$ order is any binary relation that satisfies the
   following conditions:
   \begin{itemize}
-  \item If $o \rightsquigarrow o'$, then $o = W(x, v)$ and $o' = R(x,v)$ for memory location $x$ and value $v$.
+  \item If $o \rightsquigarrow o'$, then $o = \memwrite{x}{v}$ and $o' = \memread{x}{v}$ for memory location $x$ and value $v$.
   \item For each $o'$, there is exactly one $o$ such that $o \rightsquigarrow o'$
   \end{itemize}
 \end{definition}

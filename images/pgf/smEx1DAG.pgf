@@ -649,8 +649,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{289.4578bp}{7.4907bp}}
-\pgftext[base,left]{$R(x)$}
+\pgftransformshift{\pgfqpoint{289.2312bp}{7.4907bp}}
+\pgftext[base,left]{$\memread{x}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
@@ -670,8 +670,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{289.4578bp}{47.4907bp}}
-\pgftext[base,left]{$R(x)$}
+\pgftransformshift{\pgfqpoint{289.2312bp}{47.4907bp}}
+\pgftext[base,left]{$\memread{x}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
@@ -691,8 +691,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{248.4035bp}{87.4907bp}}
-\pgftext[base,left]{$W(y, 2)$}
+\pgftransformshift{\pgfqpoint{248.1959bp}{87.4907bp}}
+\pgftext[base,left]{$\memwrite{y}{2}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
@@ -712,8 +712,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{213.1775bp}{7.4907bp}}
-\pgftext[base,left]{$W(x, 3)$}
+\pgftransformshift{\pgfqpoint{212.9700bp}{7.4907bp}}
+\pgftext[base,left]{$\memwrite{x}{3}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
@@ -733,8 +733,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{149.6838bp}{7.4907bp}}
-\pgftext[base,left]{$R(y)$}
+\pgftransformshift{\pgfqpoint{149.4572bp}{7.4907bp}}
+\pgftext[base,left]{$\memread{y}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
@@ -754,8 +754,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{143.1775bp}{47.4907bp}}
-\pgftext[base,left]{$W(x, 1)$}
+\pgftransformshift{\pgfqpoint{142.9700bp}{47.4907bp}}
+\pgftext[base,left]{$\memwrite{x}{1}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
@@ -775,8 +775,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{149.6838bp}{87.4907bp}}
-\pgftext[base,left]{$R(y)$}
+\pgftransformshift{\pgfqpoint{149.4572bp}{87.4907bp}}
+\pgftext[base,left]{$\memread{y}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
@@ -796,8 +796,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{73.1775bp}{87.4907bp}}
-\pgftext[base,left]{$W(x, 4)$}
+\pgftransformshift{\pgfqpoint{72.9700bp}{87.4907bp}}
+\pgftext[base,left]{$\memwrite{x}{4}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
@@ -817,7 +817,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{9.4578bp}{47.4907bp}}
-\pgftext[base,left]{$R(x)$}
+\pgftransformshift{\pgfqpoint{9.2312bp}{47.4907bp}}
+\pgftext[base,left]{$\memread{x}$}
 \end{pgfscope}
 \end{pgfpicture}

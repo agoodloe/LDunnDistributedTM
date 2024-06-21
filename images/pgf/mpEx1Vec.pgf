@@ -273,8 +273,8 @@
 \pgftext[base,left]{$P_3$}
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{324.1544bp}{3.4870bp}}
-\pgftext[base,left]{$m_5^\textrm{recv}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}3 & 3 & 3\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{333.4784bp}{3.4870bp}}
+\pgftext[base,left]{$\mrecv{5}\timestampnegativespace\vectortimestamp{3}{3}{3}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -293,8 +293,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{264.1544bp}{3.4870bp}}
-\pgftext[base,left]{$m_2^\textrm{recv}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}1 & 0 & 2\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{273.4784bp}{3.4870bp}}
+\pgftext[base,left]{$\mrecv{2}\timestampnegativespace\vectortimestamp{1}{0}{2}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -313,8 +313,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{131.5968bp}{3.4870bp}}
-\pgftext[base,left]{$m_3^\textrm{send}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}0 & 0 & 1\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{141.4784bp}{3.4870bp}}
+\pgftext[base,left]{$\msend{3}\timestampnegativespace\vectortimestamp{0}{0}{1}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -384,8 +384,8 @@
 \pgftext[base,left]{$P_2$}
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{281.5665bp}{87.4870bp}}
-\pgftext[base,left]{$m_5^\textrm{send}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}3 & 3 & 0\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{291.4481bp}{87.4870bp}}
+\pgftext[base,left]{$\msend{5}\timestampnegativespace\vectortimestamp{3}{3}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -404,8 +404,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{218.4381bp}{98.4684bp}}
-\pgftext[base,left]{$m_4^\textrm{recv}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}3 & 2 & 0\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{227.7620bp}{98.4684bp}}
+\pgftext[base,left]{$\mrecv{4}\timestampnegativespace\vectortimestamp{3}{2}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -424,8 +424,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{33.5968bp}{63.4870bp}}
-\pgftext[base,left]{$m_1^\textrm{send}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}0 & 1 & 0\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{43.4784bp}{63.4870bp}}
+\pgftext[base,left]{$\msend{1}\timestampnegativespace\vectortimestamp{0}{1}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -495,8 +495,8 @@
 \pgftext[base,left]{$P_1$}
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{319.1544bp}{147.4870bp}}
-\pgftext[base,left]{$m_3^\textrm{recv}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}4 & 1 & 1\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{328.4784bp}{147.4870bp}}
+\pgftext[base,left]{$\mrecv{3}\timestampnegativespace\vectortimestamp{4}{1}{1}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -515,8 +515,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{155.5968bp}{147.4870bp}}
-\pgftext[base,left]{$m_4^\textrm{send}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}3 & 1 & 0\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{165.4784bp}{147.4870bp}}
+\pgftext[base,left]{$\msend{4}\timestampnegativespace\vectortimestamp{3}{1}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -535,8 +535,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{99.1544bp}{147.4870bp}}
-\pgftext[base,left]{$m_1^\textrm{recv}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}2 & 1 & 0\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{108.4784bp}{147.4870bp}}
+\pgftext[base,left]{$\mrecv{1}\timestampnegativespace\vectortimestamp{2}{1}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -555,8 +555,8 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{41.5968bp}{147.4870bp}}
-\pgftext[base,left]{$m_2^\textrm{send}\!\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}1 & 0 & 0\end{pmatrix}\endgroup$}
+\pgftransformshift{\pgfqpoint{51.4784bp}{147.4870bp}}
+\pgftext[base,left]{$\msend{2}\timestampnegativespace\vectortimestamp{1}{0}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.1216,0.4667,0.7059}
@@ -638,7 +638,7 @@
 \end{pgfscope}
 \begin{pgfscope}
 \pgftransformshift{\pgfqpoint{78.4691bp}{105.4870bp}}
-\pgftext[base,left]{$\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}0 & 1 & 0\end{pmatrix}\endgroup$}
+\pgftext[base,left]{$\vectortimestamp{0}{1}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
@@ -704,7 +704,7 @@
 \end{pgfscope}
 \begin{pgfscope}
 \pgftransformshift{\pgfqpoint{233.9691bp}{39.4870bp}}
-\pgftext[base,left]{$\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}1 & 0 & 0\end{pmatrix}\endgroup$}
+\pgftext[base,left]{$\vectortimestamp{1}{0}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
@@ -770,7 +770,7 @@
 \end{pgfscope}
 \begin{pgfscope}
 \pgftransformshift{\pgfqpoint{293.5691bp}{111.4870bp}}
-\pgftext[base,left]{$\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}0 & 0 & 1\end{pmatrix}\endgroup$}
+\pgftext[base,left]{$\vectortimestamp{0}{0}{1}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
@@ -836,7 +836,7 @@
 \end{pgfscope}
 \begin{pgfscope}
 \pgftransformshift{\pgfqpoint{172.4691bp}{117.4870bp}}
-\pgftext[base,left]{$\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}3 & 1 & 0\end{pmatrix}\endgroup$}
+\pgftext[base,left]{$\vectortimestamp{3}{1}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.0000,0.0000,0.0000}
@@ -902,6 +902,6 @@
 \end{pgfscope}
 \begin{pgfscope}
 \pgftransformshift{\pgfqpoint{298.4691bp}{45.4870bp}}
-\pgftext[base,left]{$\begingroup\setlength\arraycolsep{1pt}\begin{pmatrix}3 & 3 & 0\end{pmatrix}\endgroup$}
+\pgftext[base,left]{$\vectortimestamp{3}{3}{0}$}
 \end{pgfscope}
 \end{pgfpicture}
