@@ -802,8 +802,9 @@ events into three types: internal events, representing state changes
 inside a single process, and send and receive events for passing
 messages between processes. For now we treat processes and the network
 as opaque blackboxes, focusing on the ramifications of unpredictable
-communication delays for coordination. These assumptions are properly
-known as the asychronous network model.
+communication delays for coordination.  For simplicity's sake, we will
+assume that all messages are actually delivered at some point. These
+assumptions are properly known as the asychronous network model.
 
 Figure \ref{fig:message-latencies} shows several time diagrams for
 messages $\{m_i\}_{i=1}^N$ sent between three processes $P_1$, $P_2$,
@@ -1324,20 +1325,35 @@ Section \ref{sec:continuous-consistency} we will see an example of how
 this can be applied in practice.
 
 \subsection{Message Ordering and Group Communication}
-We have seen that the network latencies tend to cause messages to be
-delayed and arrive in a different order than they were sent in. In
-this section we summarize some different assumptions we could impose
-about how messages are ordered. Then we discuss generalizing our model
-to allow sent to multiple receipients at once, such as in a group chat
-application, where message ordering becomes a critical issue.
+We have seen that the network latencies cause messages to be delayed
+and arrive in a different order than they were sent in. Coulouris et
+al. \cite{coulouris2005distributed} aptly summarized why this is a
+problem.
+\begin{quote}
+  This lack of an ordering guarantee is not satisfactory for many
+  applications. For example, in a nuclear power plant it may be
+  important that events signifying threats to safety conditions and
+  events signifying actions by control units are observed in the same
+  order by all processes in the system.
+\end{quote}
+In this section we summarize some different assumptions we could
+impose about how messages are ordered. Then we discuss generalizing
+our model to allow messages sent to multiple parties at once, such as
+in a group chat application, where message ordering becomes
+particularly critical.
 
 \subsubsection{Message Ordering}
-We briefly explain some terminology before proceeding. In general,
-applications should not show messages to the user immediately when
-they come in from the network, precisely because the network tends to
-deliver messages in unexpected orders. Thus, we may want to wait for
-other messages to play ``catch up.'' Thus, we make a distinction
-between message \emph{receipt} and \emph{delivery}. Middleware layer.
+In general, applications should not show messages to the user
+immediately when they come in from the network, precisely because the
+network tends to deliver messages in unexpected orders. Thus, we may
+want to wait for other messages to ``catch up'' to present the
+illusion that messages arrive in the right order. Thus, we make a
+distinction between message \emph{receipt} and \emph{delivery}. A
+message is received at a time determined by the network, but it is not
+delivered until the process (which could be something like a network
+protocol driver, a distributed middleware, or a user-facing
+application) is able to enforce whatever ordering guarantees it is
+meant to provide.
 
 \paragraph{FIFO ordering}
 A modest requirement is the \emph{first-in, first-out} (FIFO)
@@ -1349,28 +1365,30 @@ processes. Hence, FIFO does not impose any conditions on messages
 unless they are from the same sender and to the same recipient.
 
 \begin{definition}[FIFO condition]
+  \label{def:fifo}
   A FIFO execution is one that satisfies the following condition. Let
   $P_i$ and $P_j$ be any two processes and $m_1$ and $m_2$ be two
   messages sent from $P_i$ to $P_j$. Then
-  $\msend{1} \msend{2} \implies
-  \mrecv{1} \mrecv{2}$.
+  $\msend{1} \to \msend{2} \implies \mrecv{1} \to \mrecv{2}$.
 \end{definition}
 
 FIFO ordering is simple to implement and often built into the
-transport layer of a network protocol stack. For instance, although
-the Internet Protocol (IPv4) by itself does not
-provide FIFO semantics, the associated TCP protocol, which many
-applications use, does provide FIFO. As TCP demonstrates, maintaining
-a FIFO channel can be as simple as marking outgoing messages with
-consecutive increasing numbers (e.g. $1,2,3\ldots$). If message $1$
-arrives and then $3$ arrives, we infer that $2$ is lagging behind,
-delivering $1$ to the user immediately but withholding delivery of $3$
-until after $2$ is received and delivered. As far as the end user can
-tell, the messages arrive in the right order.
+transport layer of a network protocol stack, so that some distributed
+applications can take FIFO for granted. For instance, although the
+Internet Protocol (IPv4) by itself does not provide FIFO semantics,
+the associated and higher-level TCP protocol, which many applications
+use, does provide FIFO. As TCP demonstrates, maintaining a FIFO
+channel can be as simple as marking outgoing messages with consecutive
+increasing numbers (e.g. $1,2,3\ldots$). If message $1$ arrives and
+then $3$ arrives, we infer that $2$ is lagging behind, delivering $1$
+to the user immediately but withholding delivery of $3$ until after
+$2$ is received and delivered. As far as the end user can tell, the
+messages arrive in the right order.
 
 The guarantees provided by FIFO are minimal because they only apply on
-a per-link basis. The next ordering model enforces a partial order
-across messages in the system.
+a per-link basis: every link requires its own numbering scheme, so
+message numbers across different links, meaning messages with
+different senders \textbf{or} receivers, cannot be compared.
 
 \begin{figure}[p]
   \setlength\abovecaptionskip{0ex}
@@ -1379,92 +1397,125 @@ across messages in the system.
     \centering
     \input{images/pgf/ordEx1.pgf}
     \caption{A non-FIFO execution}
-    \label{fig:ordEx1}
+    \label{fig:ordex-non-fifo}
   \end{subfigure}
   \begin{subfigure}[t]{0.475\textwidth}
   \centering
   \input{images/pgf/ordEx2.pgf}
   \caption{A CO (therefore FIFO) execution}
-  \label{fig:ordEx2}
+  \label{fig:ordex-co-1}
 \end{subfigure}
 \begin{subfigure}[b]{0.475\textwidth}
   \centering
   \input{images/pgf/ordEx3.pgf}
   \caption{A CO execution}
-  \label{fig:ordEx3}
+  \label{fig:ordex-co-2}
 \end{subfigure}
 \begin{subfigure}[b]{0.475\textwidth}
   \centering
   \input{images/pgf/ordEx6.pgf}
   \caption{A CO execution}
-  \label{fig:ordEx6}
+  \label{fig:ordex-co-3}
 \end{subfigure}
 \begin{subfigure}[b]{0.475\textwidth}
   \centering
   \input{images/pgf/ordEx5.pgf}
   \caption{A FIFO and non-CO execution}
-  \label{fig:ordEx5}
+  \label{fig:ordex-non-co-1}
 \end{subfigure}\hfill
 \begin{subfigure}[b]{0.475\textwidth}
   \centering
   \input{images/pgf/ordEx4.pgf}
   \caption{A FIFO and non-CO execution}
-  \label{fig:ordEx4}
+  \label{fig:ordex-non-co-2}
 \end{subfigure}
 \caption{Message ordering examples}
 \label{fig:message-ordering}
 \end{figure}
 
-\afterpage{\clearpage}
-
 \paragraph{Causal ordering}
-A network satisfies the causally ordered (CO) delivery model if
-messages are received in an order consistent with the causality
-between send events.
-
+Causal order is an order consistent with causality. A network
+satisfies the causally ordered (CO) delivery model if it satisfies the
+following property.
 \begin{definition}(Causally ordered delivery)
-  \label{def:causalorder} That is, if the following property holds:
-  \begin{quote}
-  For all messages $m$ and $n$ with the same destination, if
-  $m^\textrm{send} \to n^\textrm{send}$, then $m^\textrm{recv} \to
-  n^\textrm{recv}$.
-  \end{quote}
+  \label{def:causalorder}
+  For any process $P_\mathrm{dest}$ in the system, if we consider all
+  messages $m$ and $n$ sent to $P_\mathrm{dest}$ (possibly by
+  different senders), $m^\textrm{send} \to n^\textrm{send}$, then
+  $m^\textrm{recv} \to n^\textrm{recv}$. That is, each destination
+  receives messages in an order consistent with causality between send
+  events.
 \end{definition}
+Unlike FIFO, the this condition enforces a partial order among
+messages with possibly different senders. In mathematical terms, if
+we consider the set of all messages sent to some fixed destination
+$P_\mathrm{dest}$, the function mapping send events to corresponding
+receive events must be monotonic with respect to causal precedence.
 
-In mathematical terms, if we consider the set of all messages sent to
-some fixed destination $P_\mathrm{dest}$, the function mapping send
-events to corresponding receive events must be monotonic with respect
-to causal precedence. That is, all destinations $P_\mathrm{dest}$
-observe messages arriving in an order respecting the causality of
-their send events.
+Figure \ref{fig:message-ordering} demonstrates different message
+ordering conditions. We make a few observations for emphasis.
+
+\begin{itemize}
+\item \ref{fig:ordex-non-fifo} violates FIFO because messages $m_1$
+  and $m_2$ are both sent from $P_1$ to $P_2$, but the arrive in the wrong order.
+\item \ref{fig:ordex-co-1} satisfies CO and therefore FIFO. Messages
+  $m_1$ and $m_2$ arrive in the opposite order but they are sent to
+  different destinations.
+\item \ref{fig:ordex-non-co-1} violates CO because the send event of
+  $m_1$ happens before that of $m_3$ via the chain
+  $\msend{1} \to \msend{2} \to \mrecv{2} \to \msend{3}$ but
+  $\mrecv{3} \to \mrecv{1}$.
+\item \ref{fig:ordex-non-co-2} violates CO because it is equivalent to
+  \ref{fig:ordex-non-co-1} with the roles of $P_2$ and $P_3$ swapped.
+\end{itemize}
 
 \subsubsection{Group Communication}
-The importance of message ordering is particularly acute. The FIFO
-model does not really apply in group communication.
+Now we generalize the above definitions to the group communication
+setting. We will allow messages $m$ with multiple recipients. For
+simplicity we suppose messages are sent to all other recipients, known
+as a broadcast. More generally we could consider messages sent to a
+subset of other processes, known as a multicast.
 
-\paragraph{Causal order broadcast}
-For motivational purposes we consider a simple example. We slightly
-generalize the notion of a message and allow messages with multiple
-receipients (which could be realized by sending independent messages
-treated as one unit for present purposes). Our example is a group
-messaging application used by three firefighters, shown in Figure
-\ref{fig:message-latencies-c}, though in reality the processes may be
-machines sending messages at orders of magnitude faster than a human
-conversation. To post a message, a process sends it to the other two
-members of the group. For reasons explained above, the two recipients
-generally do not receive the message at the same time.
+At a lower level of abstraction, broadcasting could be implemented by
+sending distinct messages which for present purposes would be treated
+as a single unit. Alternatively we might send a single message
+specially marked as a broadcast and rely on lower-level network
+protocols to ensure each recipient receives a copy. Regardless of
+implementation, because messages are now associated with multiple
+receive events, the importance of consistent message ordering is
+particularly acute.
 
-\begin{figure}
+The FIFO and CO conditions in the broadcast setting are just
+adaptations of Definition \ref{def:fifo} and
+\ref{def:causalorder}. Additionally we can consider a new notion of
+total ordering (TO), defined below.
+
+\begin{definition}[FIFO broadcast]
+  \label{def:fifo-bcast}
+  A broadcast primitive satisfies the FIFO semantics if it satisfies
+  the following condition. For any process $P_i$, if $P_i$ broadcasts
+  $m_1$ before $m_2$, then all recipients receive $m_1$ before $m_2$.
+\end{definition}
+
+\begin{definition}[CO broadcast]
+  \label{def:causalorder-bcast}
+  A broadcast primitive satisfies CO semantics if for any broadcasts
+  $m$ and $n$, if $m^\textrm{send} \to n^\textrm{send}$, then all
+  destinations deliver $m^\textrm{recv}$ before $n^\textrm{recv}$.
+\end{definition}
+In the above definition, the happens before relation is defined just
+as in the unicast (non-broadcast) setting by following a path of
+causality along worldlines and message arrows.
+
+\begin{figure}[p]
   \centering \input{images/pgf/mpEx3.pgf}
-  \caption{Broadcasting example satisfying FIFO but not CO}
-  \label{fig:message-latencies-c}
+  \caption{Broadcast example that satisfies FIFO but violates CO}
+  \label{fig:broadcast-fifo-1}
 \end{figure}
 
-\begin{example}
-  \label{exmpl:ambulancedispatch}
-  In Figure \ref{fig:message-latencies-c}, we imagine the following
-  conversation has taken place:
-  \begin{itemize}
+Figure \ref{fig:broadcast-fifo-1} shows a violation of CO. We might
+imagine the following conversation has taken place:
+\begin{itemize}
 \item [$P_1$]: ``I need an ambulance at location A.''
 \item [$P_2$]: ``Understood, the last ambulance has been dispatched.''
 \end{itemize}
@@ -1474,58 +1525,19 @@ question. This results in $P_3$ hearing a rather different conversation snippet:
 \item [$P_2$]: ``Understood, the last ambulance has been dispatched.''
 \item [$P_1$]: ``I need an ambulance at location A.''
 \end{itemize}
-\end{example}
 From $P_3$'s perspective, it seems that $P_1$ is requesting resources
 that are not available. The apparent conflict can lead to requests
 going unanswered, or possibly handled twice, leading to a chaotic
-situation and misallocation of resources. If these broadcasts
-represented machine-to-machine traffic between instances of a
-distributed application, it is likely the application would misbehave
-if not explicitly designed for this situation.
-
-FIFO is vaccuously satisfied in Figure \ref{fig:message-latencies-c}
-because all four arrows have a distinct (sender, receiver)
-pair. However, the diagram violates Definition \ref{def:causalorder}
-because the send event of $P_1$'s question has causal precedence over
-$P_2$'s answer, while in $P_3$'s worldline, the receive event of the
-answer has causal precedence over the receipt of question.
-
-\begin{figure}
-  \begin{subfigure}{1\textwidth}
-    \centering \input{images/pgf/mpEx3Sc.pgf}
-    \caption{Scalar clocks for \ref{fig:message-latencies-c}}
-    \label{fig:message-latencies-scalar-c}
-  \end{subfigure}
-
-  \begin{subfigure}{1\textwidth}
-    \centering \input{images/pgf/mpEx3Vec.pgf}
-    \label{fig:message-latencies-vector-c}
-  \end{subfigure}
-
-  \begin{subfigure}{1\textwidth}
-    \input{images/pgf/mpEx3Mat.pgf}
-    \label{fig:message-latencies-matrix-c}
-  \end{subfigure}
-
-  \caption{Broadcasts with logical clocks}
-  \label{fig:broadcast-latencies}
-\end{figure}
-
-Returning to the previous example, Figure \ref{fig:message-latencies-c} and
-\ref{fig:message-latencies-scalar-c}, because $\msend{1}$
-causally precedes $\msend{2}$, we find
-\[C(\msend{1}) = 1 < 5 = C(\msend{2}).\] Using this
-fact $P_3$ can learn (by examining piggybacked timestamps) that
-$P_2$'s response could not causally precede $P_1$'s question,
-partially resolving the ambiguity posed earlier.
-
-However, the scalar clock regimen does not given $P_3$ enough
-information to conclusively affirm that the question causally precedes
-the answer: the opposite is ruled out, but it is possible the events
-are causally independent.
+situation and misallocation of resources. Hence, respecting causal
+order is critical in such a setting.
 
 \paragraph{Total order broadcast}
-
+A total order ensures that all recipients receive the messages in the
+same order. Note that whatever the final order is, it is not required
+to satisfy any particular constraints except that all recipients agree
+on it. Such a model is appropriate when it is more important that
+everyone agrees on a common order of events but the order itself is
+not necessarily critical.
 
 \begin{definition}(Totally ordered broadcast)
   \label{def:totalorderbroadcast} For any processes $P$ and $P'$ and
@@ -1534,15 +1546,32 @@ are causally independent.
   both processes.
 \end{definition}
 
+X satisfies CO, and therefore FIFO, but not TO. Y satisfies TO but not
+CO . Note that, of course, we can also consider hybrid message order
+models that provide both total and causal order.
+
+\paragraph{Self-delivered messages}
+In some contexts one considers multicast primitives that include the
+original sender among the recipients of a message. For instance,
+suppose the broadcasts involve instructions to update to a database,
+for which purpose one might use totally ordered broadcasts to ensure
+everyone applies updates in the same order. In this setting, one
+should not apply one's own update to a local copy of the database
+immediately, but must wait until others have been notified, so that
+all updates are applied in a common order. In this case, one must wait
+to receive a copy of one's own message with update instructions. Doing
+so ensures we apply the update at the same (logical) time that all
+other processes are applying it. For simplicity, the examples in this
+section have not shown this sort of self-delivery.
+
 \subsection{Shared Memory}
 Framing a distributed application directly in terms of message passing
-can be challenging. The low-level details required to implement the
+can be challenging, as the low-level details required to implement the
 correct message passing behavior distract from the high-level
 application design. In this section we summarize a more abstract
-paradigm called the \emph{distributed shared memory} (DSM)
-framework.
+paradigm called the \emph{distributed shared memory} (DSM) framework.
 
-In this setting, programmers think in terms of reading and writing
+In the DSM setting, programmers think in terms of reading and writing
 values to memory locations rather than transmitting messages over the
 network. The key feature is that all instances of the application act
 as if they are reading and writing from the same pool of memory
@@ -1551,7 +1580,7 @@ that do not share memory. In a sense, instead of focusing on a logical
 notion of time, in the DSM model we directly focus on logical notion
 of shared state.
 
-To implement the DSM model, a somewhat ``middleware'' layer called the
+To implement DSM, a ``middleware'' layer called the
 \emph{memory manager} handles read and write requests issued by the
 application. Under the hood, the middleware might coordinate with
 other nodes by passing messages to inform them about updates to data
@@ -1572,10 +1601,9 @@ tradeoff between safety guarantees and performance.
 
 \newcommand{\Op}{\mathrm{Op}}
 
-Figure \ref{fig:smEx1} depicts a time diagram for the shared memory
-abstraction, not unlike the diagrams in Figure
-\ref{fig:message-latencies} for message passing. Two kinds of
-operations are shown:
+Figure \ref{fig:smEx1} depicts an exemplary time diagram for the
+shared memory abstraction, not unlike the diagrams for message
+passing. Two kinds of operations are shown:
 \begin{description}
 \item[Reads] A \emph{read} request $R(x)$ indicates reading the value
   in memory at location $x$, which returns some value $v$. When it is
