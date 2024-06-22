@@ -1,0 +1,23 @@
+%\newcommand{\msend}[1]{m_{#1}^{\textrm{send}}}
+%\newcommand{\mrecv}[1]{m_{#1}^{\textrm{recv}}}
+%\newcommand{\msend}[1]{\mathsf{send}\left({m_{#1}}\right)}
+%\newcommand{\mrecv}[1]{\mathsf{recv}\left({m_{#1}}\right)}
+\newcommand{\msend}[1]{m_{#1}^{\mathsf{send}}}
+\newcommand{\mrecv}[1]{m_{#1}^{\mathsf{recv}}}
+\newcommand{\memstart}[1]{\mathsf{start}\left(#1\right)}
+\newcommand{\memstop}[1]{\mathsf{stop}\left(#1\right)}
+\newcommand{\memread}[1]{\mathsf{R}\!\left(#1\right)}
+\newcommand{\memreadVal}[2]{\mathsf{R}\!\left(#1, #2\right)}
+\newcommand{\memwrite}[2]{\mathsf{W}\!\left(#1, #2\right)}
+\newcommand{\sync}[2]{#1 || #2}
+%\newcommand{\timestampnegativespace}{\!}
+\newcommand{\timestampnegativespace}{}
+\newcommand{\vectoropen}{\begingroup\setlength\arraycolsep{1pt}}
+\newcommand{\vectorclose}{\endgroup}
+\newcommand{\vectortimestamp}[3]{\vectoropen\begin{pmatrix} #1 & #2 & #3 \end{pmatrix}\vectorclose}
+\newcommand{\matrixopen}{\begingroup\setlength\arraycolsep{1pt}\renewcommand*{\arraystretch}{0.8}}
+\newcommand{\matrixclose}{\endgroup}
+\newcommand{\matrixtimestamp}[9]{\matrixopen\begin{pmatrix} #1 & #2 & #3 \\ #4 & #5 & #6 \\ #7 & #8 & #9 \end{pmatrix}\matrixclose}
+\newcommand{\B}{\mathbf{B}}
+\newcommand{\w}{\mathbf{w}}
+\newcommand{\citationneeded}{\textbf{[CITATION NEEDED]}}
