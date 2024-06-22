@@ -756,16 +756,16 @@ become more greatly separated from each other.
 
 This section will explain how the unpredictability of the network
 essentially implies that system components at any moment lack a shared
-time reference (i.e. synchronized clocks). Likewise, components do not
-have perfect knowledge about the global state of the system. Of
-course, we the omniscient observer can see the global state, but
-network latencies prohibit the instantaneous knowledge transfer that
-would be required for all components to know it. We must either design
-mechanisms that attempt to recover notions like shared time and state,
-or applications that perform correctly without relying on them. As any
-engineer would expect, the design space considers many possible
-tradeoffs. In the context of data replication, a fundamental task, a
-central theme is a general tradeoff between performance and
+time reference (i.e. synchronized clocks). For the same underlying
+reasons, components lack perfect knowledge about the global state of
+the system. Of course, we the omniscient observer can see the global
+state, but network latencies prohibit the instantaneous knowledge
+transfer that would be required for all components to know it. We must
+either design mechanisms that attempt to recover notions like shared
+time and state, or applications that perform correctly without relying
+on them. As any engineer would expect, the design space considers many
+possible tradeoffs. In the context of data replication, a fundamental
+task, a central theme is a general tradeoff between performance and
 consistency.
 
 We assume that nodes in our environments have only intermittent access
@@ -802,12 +802,12 @@ messages $\{m_i\}_{i=1}^N$ sent between three processes $P_1$, $P_2$,
 and $P_3$. The $x$-axis of the diagram depicts the flow of real time
 from left to right. For each process a worldline is shown depicting
 the events occurring in that process. Each message $m$ starts off as a
-send event $\msend{}$ indicating the moment the message is sent
-over the network by its originating process; its delivery generates a
-receive event $mrecv{}$. The (send, receive) pairs are
-connected by an arrow and said to be corresponding events. Note that
-subscripts on messages serve to disambiguate them to the reader, but
-they are not part of the message itself.
+send event $\msend{}$ indicating the moment the message is sent over
+the network by its originating process; its delivery generates a
+receive event $\mrecv{}$. The (send, receive) pairs are connected by
+an arrow and said to be corresponding events. We write subscripts on
+messages to disambiguate them to the reader, but note that these are
+not part of the message itself.
 
 \begin{figure}[p]
   \setlength\belowcaptionskip{5ex}
@@ -828,13 +828,14 @@ they are not part of the message itself.
 
 \afterpage{\clearpage}
 
-The fact that arrows are diagonal, rather than vertical, represents
-the varying effect of network latencies on message delivery. Because
-they arrive delayed, messages may be delivered in a different order
-than they were sent in. In Figure \ref{fig:message-latencies-a}, $P_1$
-sends messages $m_2$ and $m_4$ in that order, but $m_4$ arrives at its
-recipient before $m_2$. This scenario might occur if $P_1$ and $P_3$
-are far apart and have a high-latency communication link. In Figure
+Message arrows in time diagrams are diagonal, rather than vertical, as
+to represent the varying effect of network latencies on message
+delivery. Because they arrive delayed, messages may be delivered in a
+different order than they were sent in. In Figure
+\ref{fig:message-latencies-a}, $P_1$ sends messages $m_2$ and $m_4$ in
+that order, but $m_4$ arrives at its recipient before $m_2$. This
+scenario might occur if $P_1$ and $P_3$ are far apart and have a
+high-latency communication link. In Figure
 \ref{fig:message-latencies-b}, $m_1$ is the first message sent but the
 last message to be delivered. This may depict a scenario where the
 link between $P_1$ and $P_3$ has deteriorated, perhaps because they
@@ -886,7 +887,7 @@ relation \cite{1978:lamportclocks}. We begin with some definitions.
   write $e <_{P_i} e'$ if $e$ occurs before $e'$ in $P_i$'s
   worldline.
 \end{definition}
-The previous definition is ``local'' in that only relates events
+The previous definition is ``local'' in that it only relates events
 within the same process. It is unambiguous because we assume events at
 one process occur in discrete, non-overlapping moments. The next
 definition describes an order among all events.
@@ -923,9 +924,9 @@ relation corresponding to the time diagrams in Figure
 \ref{fig:message-latencies}. For readability we just depict arrows
 between (send, receive) pairs or adjacent events in each process,
 hiding redundant transitive arrows. By comparison to Figure
-\ref{fig:message-latencies}, we note that causal precedence only
-describes a logical relation among events, but not their absolute time
-or where they occurred.
+\ref{fig:message-latencies}, we note that Figure
+\ref{fig:causal-precedence} only suggests a logical relation among
+events, but not their absolute time or where they occurred.
 
 Mathematically, causal precedence is an irreflexive partial
 order. Events $e$ and $e'$ that satisfy neither $e \to e'$ nor
@@ -994,8 +995,8 @@ called the clock consistency condition, or just the clock condition.
 
 Importantly, the clock consistency condition does \emph{not} imply
 that we can decide if events are causally related by comparing
-timestamps. The utility of \eqref{eq:mp} is best seen by expressing in
-terms of the following logically equivalent condition.
+timestamps. The utility of \eqref{eq:mp} is best seen by re-expressing
+it in terms of the following logically equivalent condition.
 \[ \textrm{For all events $e$ and $e'$, }C(e) \leq C(e') \implies e'
   \not\to e \label{eq:mp-conv} \] That is, we can be sure that some
 ordering of events $e_1, e_2, e_3\ldots$ does \emph{not} violate the
@@ -1017,6 +1018,7 @@ system of scalar clocks, defined below, can enforce the weaker
 condition but not the strong one.
 
 \subsubsection{Scalar clocks}
+\label{sssec:scalar-clocks}
 \begin{figure}
   \setlength\belowcaptionskip{5ex}
 
@@ -1073,6 +1075,7 @@ minimal timestamp value of $1$. However, we see clearly in the Figure
 that it does not causally precede any event except $\mrecv{1}$.
 
 \subsubsection{Vector clocks}
+\label{sssec:vector-clocks}
 \newcommand{\vt}{\textrm{vt}}
 
 The strong clock condition \eqref{eq:sc} cannot hold either using
@@ -1235,7 +1238,8 @@ send and receive events connecting $e$ to $e'$, hence $e \to e'$.
 % \end{proof}
 
 \subsubsection{Matrix clocks}
-If a vector clock stores an estimate of every other process' local
+\label{sssec:matrix-clocks}
+If a vector clock stores an estimate of every other process's local
 time, a matrix clock stores an estimate of every other process's
 vector clock. We give the details below. Figure
 \ref{fig:message-latencies-matrix} shows how our running examples
@@ -1262,7 +1266,7 @@ clock as usual, and takes the pointwise maximum of all other rows.
     \[\vt_i[j', k] := \max(\vt_i[j',k], \vt[j', k]) \quad \textrm{for all $k = 1\ldots N$}.\]
   \end{enumerate}
   After this, $P_i$ advances its own local time according to the rule
-  \[ \vt_i[i] := \vt_i[i] + 1.\]
+  \[ \vt_i[i,i] := \vt_i[i,i] + 1.\]
   This new matrix is the timestamp attached to the receive event.
 \end{enumerate}
 
@@ -1283,15 +1287,15 @@ clock as usual, and takes the pointwise maximum of all other rows.
   \label{fig:message-latencies-matrix}
   \endgroup
 \end{figure}
-\afterpage{\clearpage}
 
-Matrix clocks subsume vector clocks, so they can be used whenever the
-strong consistency condition is needed. The justification for matrix
-clocks is somewhat subtle. In Section \ref{sec:background}, we
-indicated a connection between distributed systems and epistemic
-logic, i.e. reasoning about not just what is true but what is
-known. Matrix clocks can be applied when processes require knowledge
-about the knowledge had by others.
+By comparing Figures \ref{fig:message-latencies-vector} and
+\ref{fig:message-latencies-matrix}, see that $\vt_i[i,-]$ acts
+precisely like a vector clock. All other rows in $\vt_i$ are lower
+bound estimates of other process's vector clocks. In Section
+\ref{sec:background}, we indicated a connection between distributed
+systems and epistemic logic, i.e. reasoning about not just what is
+true but what is known. Matrix clocks can be applied when processes
+require knowledge about the knowledge had by others.
 
 Suppose a group of processes collaborate to replicate updates to a
 shared data structure. We imagine that all updates are submitted by
@@ -1311,9 +1315,9 @@ condition
 for some logical time $t$, $P_i$ can be sure that all other processes
 have seen all updates with timestamps less than or equal to $t$
 originating at $P_O$. Using this principle, matrix clocks have been
-used to discard obsolete information during database replication. In
-Section \ref{sec:continuous-consistency} we will see an example of how
-this can be applied in practice.
+used to discard obsolete information during database replication
+\citationneeded. In Section \ref{sec:continuous-consistency} we will
+see an example of how this sort of scheme can be applied in practice.
 
 \subsection{Message Ordering and Group Communication}
 We have seen that the network latencies cause messages to be delayed
@@ -1330,8 +1334,8 @@ problem.
 In this section we summarize some different assumptions we could
 impose about how messages are ordered. Then we discuss generalizing
 our model to allow messages sent to multiple parties at once, such as
-in a group chat application, where message ordering becomes
-particularly critical.
+in a group chat application, where predictable message ordering
+becomes particularly critical.
 
 \subsubsection{Message Ordering}
 In general, applications should not show messages to the user
@@ -1432,7 +1436,7 @@ following property.
   \label{def:causalorder}
   For any process $P_\mathrm{dest}$ in the system, if we consider all
   messages $m$ and $n$ sent to $P_\mathrm{dest}$ (possibly by
-  different senders), $\msend{} \to n^\textrm{send}$, then
+  different senders), if $\msend{} \to n^\textrm{send}$ then
   $\mrecv{} \to n^\textrm{recv}$. That is, each destination
   receives messages in an order consistent with causality between send
   events.
@@ -1511,16 +1515,17 @@ imagine the following conversation has taken place:
 \item [$P_2$]: ``Understood, the last ambulance has been dispatched.''
 \end{itemize}
 However, $P_3$ witnesses $P_2$'s answer before seeing $P_1$'s
-question. This results in $P_3$ hearing a rather different conversation snippet:
+question. This results in $P_3$ hearing a rather different snippet of
+the conversation:
 \begin{itemize}
 \item [$P_2$]: ``Understood, the last ambulance has been dispatched.''
 \item [$P_1$]: ``I need an ambulance at location A.''
 \end{itemize}
 From $P_3$'s perspective, it seems that $P_1$ is requesting resources
-that are not available. The apparent conflict can lead to requests
+that are not available. The sort of conflict can lead to requests
 going unanswered, or possibly handled twice, leading to a chaotic
 situation and misallocation of resources. Hence, respecting causal
-order is critical in such a setting.
+order is often a critical consideration.
 
 \paragraph{Total order broadcast}
 A total order ensures that all recipients receive the messages in the
@@ -1537,21 +1542,22 @@ not necessarily critical.
   both processes.
 \end{definition}
 
-X satisfies CO, and therefore FIFO, but not TO. Y satisfies TO but not
-CO . Note that, of course, we can also consider hybrid message order
-models that provide both total and causal order.
+\textbf{NEED TO CREATE A FIGURE HERE}. Figure X satisfies CO, and
+therefore FIFO, but not TO. Figure Y satisfies TO but not CO . Note
+that, of course, we can also consider hybrid message order models that
+provide both total and causal order.
 
 \paragraph{Self-delivered messages}
 In some contexts one considers multicast primitives that include the
 original sender among the recipients of a message. For instance,
-suppose the broadcasts involve instructions to update to a database,
-for which purpose one might use totally ordered broadcasts to ensure
-everyone applies updates in the same order. In this setting, one
-should not apply one's own update to a local copy of the database
+suppose the broadcasts involve instructions to apply an update to a
+database, for which purpose one might use totally ordered broadcasts
+to ensure everyone applies updates in the same order. In this setting,
+one should not apply one's own update to a local copy of the database
 immediately, but must wait until others have been notified, so that
 all updates are applied in a common order. In this case, one must wait
-to receive a copy of one's own message with update instructions. Doing
-so ensures we apply the update at the same (logical) time that all
+to receive a copy of one's own message with update instructions, as
+this ensures we apply the update at the same (logical) time that all
 other processes are applying it. For simplicity, the examples in this
 section have not shown this sort of self-delivery.
 
@@ -1598,7 +1604,7 @@ passing. Two kinds of operations are shown:
 \begin{description}
 \item[Reads] A \emph{read} request $\mathsf{R}(x)$ indicates reading the value
   in memory at location $x$, which returns some value $v$. When it is
-  important to indicate the return value is $v$, we write $\memread{x}{v}$.
+  important to indicate that returned value is $v$, we write $\memreadVal{x}{v}$.
 \item[Writes] A \emph{write} operation $\memwrite{x}{v}$ indicates writing
   value $v$ to memory location $x$. In pseudocode this might be written
   $x := v$ or $x \leftarrow v$.
@@ -1606,22 +1612,21 @@ passing. Two kinds of operations are shown:
 We write $\Op$ to indicate an arbitrary (read or write)
 operation. Each operation consists of a horizontal span along the
 worldline of a process, which represents the duration of the
-operation. Each operation begins at a time $\memstart{Op}$
-called its \emph{invocation event}, beginning when the programmer
-invokes the memory manager. The operation ends at some time $\Op.t$
-($t$ for ``terminate'') called its \emph{response event}, when a
-response is given to the caller (either an acknowledgement for a write
-operation, or a value for a read operation). The entire collection of
-invocation and response events, as depicted in a time diagram, is
-called a \emph{history}. If $H$ is a history, we write $H|_P$ for the
-set of operations that happen on process $P$, called the \emph{local
-  history} of $P$.
+operation. Each operation begins at a time $\memstart{\Op}$, beginning
+when the programmer invokes the memory manager. The operation ends at
+some time $\memstop{\Op}$, when a response is given to the caller
+(either an acknowledgement for a write operation, or a value for a
+read operation). The entire collection of operations, as depicted in a
+time diagram, is called a \emph{history}. If $H$ is a history, we
+write $H|_P$ for the set of operations that happen on process $P$,
+called the \emph{local history} of $P$.
 
 In the background, the memory management layer coordinates with other
-processes over the network. While executing a read request $\memread{x}$ it
-may, for example, send messages to another ask them about the current
-value stored at location $x$. This behind-the-scenes coordination is
-transparent to the programmer and not reflected in the diagrams.
+processes over the network. While executing a read request
+$\memread{x}$ it may, for example, send messages to other nodes to ask
+them about the current value of some $x$. This behind-the-scenes
+coordination is transparent to the programmer and not reflected in the
+diagrams.
 
 \subsection{Semantics and consistency}
 
@@ -1645,7 +1650,7 @@ other.
   Consider Figure \ref{fig:smEx0}, depicting just a single
   process. Since there is no ambiguity in the order of events, it is
   clear that this process should execute in the following order.
-  \[ \memwrite{x}{0} \to \memwrite{y}{5} \to \underline{\memread{x}{0}} \to \memwrite{x}{3} \to \underline{\memread{y}{5}} \to \underline{\memread{x}{3}}. \]
+  \[ \memwrite{x}{0} \to \memwrite{y}{5} \to \underline{\memreadVal{x}{0}} \to \memwrite{x}{3} \to \underline{\memreadVal{y}{5}} \to \underline{\memreadVal{x}{3}}. \]
   Note read requests (underlined with their results shown) return the value of most recent write operation to each location.
 \end{example}
 
@@ -1704,21 +1709,23 @@ on different processes requires them to have synchronized clocks,
 which we have seen we cannot assume.
 
 A fundamental relation playing a role somewhat like causal precedence
-in Section \ref{ssec:causality} is that of \emph{external
-  order}. Intuitively, it is the partial order that orders
-non-overlapping events by their physical times, but does not assign an
-ordering to events whose executions overlap in physical time.
+in Section \ref{ssec:causality} (but without any connotations of
+causality) is that of \emph{external order}. Intuitively, it is the
+partial order that orders non-overlapping events by their physical
+times, but does not assign an ordering to events whose executions
+overlap in physical time.
 
 \begin{definition}[External order]
   Let $H$ be a history. An operation $\Op^1$ \emph{externally
-    precedes} operation $\Op^2$ if $\Op^1.t < \Op^2.s$. This induces
-  an irreflexive partial order on $H$ called external order.
+    precedes} operation $\Op^2$ if
+  $\memstop{\Op^1} < \memstart{\Op^2}$. This induces an irreflexive
+  partial order on $H$ called external order.
 \end{definition}
 The definition states that one operation externally precedes another
-if it terminates occurs before other is invoked. Note that we are
-comparing events in terms of real, physical time: external order is
-the partial order that would be expected by an outside observe who can
-see operations executing in real time.
+if it stops before the other is invoked. Note that we are comparing
+events in terms of real, physical time: external order is the partial
+order that would be expected by an outside observer who can see
+operations executing globally in real time.
 \begin{definition}[Physical concurrency]
   Consider two operations $\Op^1$ and $\Op^2$. If neither externally
   precedes the other, in another words if there is some moment in time
@@ -1769,6 +1776,7 @@ acyclic graph (DAG).
 \end{definition}
 
 \subsection{Strong Consistency Models}
+\label{ssec:strong-consistency}
 The first two memory models in the next section require, among other
 things, that any history $H$ must be consistent with some sequential
 rearrangement of $H$.
@@ -1795,7 +1803,7 @@ A linearizable history is defined by three features.
 \item[\textbf{L1}] All processes act like they all see some common sequential
   history of operations.
 \item[\textbf{L2}] Responses are semantically correct, meaning a read request
-  \(\memread{x}{a}\) returns the value of the most recent write request
+  \(\memreadVal{x}{a}\) returns the value of the most recent write request
   \(\memwrite{x}{a}\) to \(x\).
 \item[\textbf{L3}] The sequential history is consistent with external
   order. That is, if the response of $\Op$ precedes the invocation of
@@ -2047,7 +2055,7 @@ immediately get the following lemma.
 \end{proof}
 
 Visually, sequential consistency allows reordering an execution by
-sliding events along each process' time axis like beads along a
+sliding events along each process's time axis like beads along a
 string.  Two events from the same process cannot pass over each other
 (as this would precisely be a violation of program order), but events
 on different processes may be commuted past each other, contravening
@@ -2114,7 +2122,7 @@ sequential consistency is CAP-unavailabile.
 \end{proof}
 
 \subsection{Causal consistency}
-\label{causal-consistency}
+\label{ssec:causal-consistency}
 
 \emph{Causal} consistency\citationneeded is a weaker memory model than
 sequential consistency. Whereas sequential consistency requires the
@@ -2139,7 +2147,7 @@ write operation that ``caused'' it to read a particular value.
   $\rightsquigarrow$ order is any binary relation that satisfies the
   following conditions:
   \begin{itemize}
-  \item If $o \rightsquigarrow o'$, then $o = \memwrite{x}{v}$ and $o' = \memread{x}{v}$ for memory location $x$ and value $v$.
+  \item If $o \rightsquigarrow o'$, then $o = \memwrite{x}{v}$ and $o' = \memreadVal{x}{v}$ for memory location $x$ and value $v$.
   \item For each $o'$, there is exactly one $o$ such that $o \rightsquigarrow o'$
   \end{itemize}
 \end{definition}
@@ -2296,8 +2304,6 @@ have in mind.
 \section{Resilient Network Architectures}
 \label{sec:networking}
 
-
-
 A priori, a network may not deliver a message at all. Alternatively it
 might deliver the message multiple times, for example if a device is
 unaware that a message has already been delivered. In either case, the
@@ -2317,7 +2323,6 @@ transit. We consider these kinds of low-level details in Section
 of abstraction above the transport layer. Note that transport
 reliability mechanisms contribute to the latency in passing messages,
 so they cannot solve the problems under consideration in this section.
-
 
 \subsection{Ad-hoc networking}
 \label{ad-hoc-networking}
@@ -2385,12 +2390,11 @@ operating environment. This requires examining the relationship between
 the application and networking layers, rather than treating them as
 separate blackboxes.
 
-\hypertarget{delay-tolerant-networking}{%
-  \subsection{Delay-tolerant networking}\label{delay-tolerant-networking}}
+\subsubsection{Delay-tolerant networking}
+\label{ssec:delay-tolerant-networking}
 
-\hypertarget{ad-hoc-dtns}{%
-  \subsection{Ad-hoc DTNs}\label{ad-hoc-dtns}}
-
+\subsection{Ad-hoc DTNs}
+\label{ad-hoc-dtns}
 An interesting possibility is for the \emph{network} to automatically
 configure itself to the quality-of-service needs of the application. For
 example, a client that receives a lot of requests may be marked as a
@@ -2403,53 +2407,109 @@ be dispatched to provide overhead communication support. Such an
 arrangement could greatly blur the line between the networking and
 application layers.
 
-\hypertarget{software-defined-networking}{%
-  \subsection{Software-defined
-    networking}\label{software-defined-networking}}
+\subsection{Software-defined networking}
+\label{software-defined-networking}
 
-\hypertarget{verification-of-networking-protocols}{%
-  \subsection{Verification of networking
-    protocols}\label{verification-of-networking-protocols}}
+\subsection{Verification of networking protocols}
+\label{verification-of-networking-protocols}
 
-\newpage
-
-\hypertarget{continuous-consistency}{%
-  \section{Continuous Consistency}\label{continuous-consistency}}
-
+\section{Continuous Consistency}
 \label{sec:continuous-consistency}
+Strong consistency, as defined in Section
+\ref{ssec:strong-consistency}, is an all-or-nothing proposition: an
+application provides strong consistency or it does not. Because of
+considerations such as the CAP theorem, this sort of guarantee is an
+unrealistic requirement for our setting. Causal consistency (Section
+\ref{ssec:causal-consistency}) and other kinds of weaker assumptions
+are tenable, but we have seen that by themselves they provide no upper
+bound on the divergence between replicas of data items. Because of the
+safety-related nature of our system, we would like to do better than
+this.
 
-
-%We shall consider the DSM abstraction and some of the different
-%consistency requirements we can enforce in this setting.
-
-%A fundamental distributed application is the \emph{shared distributed
-%memory} abstraction. We shall assume that all processes maintain a
-%local replica of a globally shared data object, as replication
-%increases system fault tolerance. For simplicitly, we shall discuss
-%the data store as a simple key-value store, but it could be something
-%else like a database, filesystem, persistent object, etc.
-
-
-
-Strong consistency is a discrete proposition: an application provides
-strong consistency or it does not. For many real-world applications, it
-evidently makes sense to work with data that is consistent up to some
-\(\epsilon \in \mathbb{R}^{\geq 0}\). Thus, we shift from thinking about
+This section summarizes the key ideas behind continuous consistency,
+specifically the conit (``consistency unit'') model proposed by Yu and
+Vahdat \citationneeded. Continuous consistency is motivated by the
+observation that for many real-world applications it evidently makes
+sense to work with data that is consistent up to some
+$\epsilon \in \mathbb{R}^{\geq 0}$. Thus, we shift from thinking about
 consistency as an all-or-nothing condition, towards consistency as a
-bound on inconsistency.
+quantiative upper bound on inconsistency.
+
+A precise quantitative definition of consistency seems specific to
+each possible application. To implement a continuous consistency model
+that is not tied to one application, we must first explain how
+inconsistency can be quantified generically in the first
+place. Second, we must explain how a generic protocols can be used to
+enforce. The conit model.
+
+\subsection{The conit model}
+\label{ssec:conits}
+
+\begin{itemize}
+\item Committed versus uncommitted writes
+\item Each process has a vector clock (Section \ref{sssec:vector-clocks})
+\item Anti-entropy
+\end{itemize}
+
+\subsection{Measuring consistency on conits}
+\label{measuring-consistency-on-conits}
+
+\paragraph{Real time staleness}
+\label{sec:real-time-consistency}
+
+Take, say, an application for disseminating the most up-to-date
+visualization of the location of a fire front. It may be acceptable if
+this information appears 5 minutes out of date to a client, but
+unacceptable if it is 30 minutes out of date. That is, we could
+measure consistency with respect to \emph{time}. One should expect the
+exact tolerance for \(\epsilon\) will be depend very much on the
+client, among other things. For example, firefighters who are very
+close to a fire have a lower tolerance for stale information than a
+central client keeping only a birds-eye view of several fire fronts
+simultaneously.
+
+\paragraph{Numerical consistency}
+\label{numerical-consistency}
+
+\paragraph{Order consistency}
+\label{order-consistency}
+When the number of tentative (uncommitted) writes is high, TACT
+executes a write commitment algorithm. This is a \emph{pull-based}
+approach which pulls information from other processes in order to
+advance \(P_i\)'s vector clock, raising the watermark and hence
+allowing \(P_i\) to commit some of its writes.
+
+\subsubsection{Enforcing inconsistency bounds}
+\label{enforcing-inconsistency-bounds}
+
+\paragraph{Numerical consistency}
+\label{numerical-consistency-1}
+We describe split-weight AE. Yu and Vahdat also describe two other
+schemes for bounding numerical error. One, compound AE, bounds absolute
+error trading space for communication overhead. In their simulations,
+they found minimal benefits to this tradeoff in general. It is possible
+that for specific applications the savings are worth it. They also
+consider a scheme, Relative NE, which bounds the relative error.
+
+\paragraph{Order consistency}
+\label{order-consistency-1}
+
+\paragraph{Real time consistency}
+\label{real-time-consistency-1}
+
+
+
+
+
+
+
+
+
+\subsection{Old material}
 
 The definition of \(\epsilon\) evidently requires a more or less
 application-specific notion of divergence between replicas of a shared
-data object. Take, say, an application for disseminating the most
-up-to-date visualization of the location of a fire front. It may be
-acceptable if this information appears 5 minutes out of date to a
-client, but unacceptable if it is 30 minutes out of date. That is, we
-could measure consistency with respect to \emph{time}. One should expect
-the exact tolerance for \(\epsilon\) will be depend very much on the
-client, among other things. For example, firefighters who are very close
-to a fire have a lower tolerance for stale information than a central
-client keeping only a birds-eye view of several fire fronts
-simultaneously.
+data object.
 
 Now suppose many disaster-response agencies coordinate with to update
 and propagate information about the availability of resources. A client
@@ -2510,6 +2570,7 @@ to offer better overall performance.
   consistency requirements because of network issues).
 \end{itemize}
 
+\begin{comment}
 \hypertarget{causal-consistency-1}{%
   \subsection{Causal consistency}\label{causal-consistency-1}}
 
@@ -2597,9 +2658,10 @@ clients must stick to the same processor during partitions.
 The fact that causal consistency can be maintained during partitions
 suggests it is too weak. Indeed, there are no guarantees about the
 difference in values for \(x\) and \(y\) across the two replicas.
+\end{comment}
 
-\hypertarget{tact-system-model}{%
-  \subsection{TACT system model}\label{tact-system-model}}
+\subsection{TACT system model}
+\label{tact-system-model}
 
 As in Section \ref{sec:background}, we assume a distributed set of
 processes collaborate to maintain local replicas of a shared data object
@@ -2613,8 +2675,8 @@ high level, TACT will allow an operation to take place if it does not
 violate user-specific consistency bounds. If allowing an operation to
 proceed would violate consistency constraints, the operation blocks
 until TACT synchronizes with one or more other remote replicas. The
-operation remains blocked until TACT ensures that executing it would not
-violate consistency requirements.
+operation remains blocked until TACT ensures that executing it would
+not violate consistency requirements.
 
 \[\textrm{Consistency} = \langle \textrm{Numerical error, \textrm{Order error}, \textrm{Staleness}} \rangle.\]
 
@@ -2642,54 +2704,14 @@ Consistency is enforced by the application by setting bounds on the
 consistency of read accesses. The TACT framework then enforces these
 consistency levels.
 
-\hypertarget{measuring-consistency-on-conits}{%
-  \subsection{Measuring consistency on
-    conits}\label{measuring-consistency-on-conits}}
 
-\hypertarget{numerical-consistency}{%
-  \paragraph{Numerical consistency}\label{numerical-consistency}}
+\subsubsection{Future work}
+\label{future-work}
 
-\hypertarget{order-consistency}{%
-  \paragraph{Order consistency}\label{order-consistency}}
-
-When the number of tentative (uncommitted) writes is high, TACT executes
-a write commitment algorithm. This is a \emph{pull-based} approach which
-pulls information from other processes in order to advance \(P_i\)'s
-vector clock, raising the watermark and hence allowing \(P_i\) to commit
-some of its writes.
-
-\hypertarget{real-time-consistency}{%
-  \paragraph{Real time consistency}\label{real-time-consistency}}
-
-\hypertarget{enforcing-inconsistency-bounds}{%
-  \subsection{Enforcing inconsistency
-    bounds}\label{enforcing-inconsistency-bounds}}
-
-\hypertarget{numerical-consistency-1}{%
-  \paragraph{Numerical consistency}\label{numerical-consistency-1}}
-
-We describe split-weight AE. Yu and Vahdat also describe two other
-schemes for bounding numerical error. One, compound AE, bounds absolute
-error trading space for communication overhead. In their simulations,
-they found minimal benefits to this tradeoff in general. It is possible
-that for specific applications the savings are worth it. They also
-consider a scheme, Relative NE, which bounds the relative error.
-
-\hypertarget{order-consistency-1}{%
-  \paragraph{Order consistency}\label{order-consistency-1}}
-
-\hypertarget{real-time-consistency-1}{%
-  \paragraph{Real time consistency}\label{real-time-consistency-1}}
-
-\hypertarget{future-work}{%
-  \subsection{Future work}\label{future-work}}
-
-\hypertarget{data-fusion}{%
-  \section{Data Fusion}\label{data-fusion}}
+\section{Data Fusion}
+\label{sec:data-fusion}
 
 \cite{1999:lucien-datafusion}
-
-\label{sec:data-fusion}
 
 Strong consistency models provide the abstraction of an idealized global
 truth. In the case of conits, the numerical, commit-order, and real-time
@@ -2712,17 +2734,14 @@ agree. Ideally, we could use this system to diagnose disagreements
 between sensors, identifying sensors that appear to be malfunctioning,
 or to detect abberations that necessitate a response.
 
-\hypertarget{fusion-centers}{%
-  \subsection{Fusion centers}\label{fusion-centers}}
+\subsection{Fusion centers}
+\label{fusion-centers}
 
-To be written.
+\subsubsection{Sheaf theory}
+\label{sheaf-theory}
 
-\hypertarget{sheaf-theory}{%
-  \subsection{Sheaf theory}\label{sheaf-theory}}
-
-\hypertarget{introduction-to-presheaves}{%
-  \subsubsection{Introduction to
-    presheaves}\label{introduction-to-presheaves}}
+\subsubsection{Introduction to presheaves}
+\label{introduction-to-presheaves}
 
 \begin{definition}
   A \emph{partially order-indexed family of sets} is a family of sets indexed by a partially-ordered set,
@@ -2746,18 +2765,18 @@ This is also called a \emph{monoid action} on the set.
   A presheaf is a *category acting covariantly on a family of sets*.
 \end{definition}
 
-\hypertarget{introduction-to-sheaves}{%
-  \subsubsection{Introduction to sheaves}\label{introduction-to-sheaves}}
+\subsubsection{Introduction to sheaves}
+\label{introduction-to-sheaves}
 
 To be written.
 
-\hypertarget{the-consistency-radius}{%
-  \subsubsection{The consistency radius}\label{the-consistency-radius}}
+\subsubsection{The consistency radius}
+\label{the-consistency-radius}
 
 To be written.
 
-\hypertarget{conclusion}{%
-  \section{Conclusion}\label{conclusion}}
+\section{Conclusion}
+\label{conclusion}
 
 \label{sec:conclusion}
 
