@@ -27,8 +27,8 @@
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}{Corollary}[theorem]
 \newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{example}{Example}
 \theoremstyle{definition}
+\newtheorem{example}{Example}[section]
 \newtheorem{definition}{Definition}[section]
 \include{macros.tex}
 
@@ -617,29 +617,23 @@ many different kinds of data that could be valuable for
 responders. Just some of the kinds of information and communication we
 expect include the following:
 \begin{itemize}
-  \tightlist
-\item
-  Free-form communication, especially recorded voice messages
+\item Free-form communication, especially recorded voice messages
   broadcast to many agents at once, which may need to be processed by
   machines to extract the most pertinent information into a more
   actionable format
-\item
-  The exact or estimated location of victims, firefighters, vehicles,
-  hazards, etc.
-\item
-  Medical information gathered from victims, perhaps stored in and
-  collected from digital triage tags\citationneeded
-\item
-  Data about current and predicted fire or weather patterns
-\item
-  Topographic information about the terrain, highlighting for instance
-  the location of rivers and roads that could form a fire control line
-\item
-  Planned escape routes, rendezvous points, safety zones, and landing
-  zones
-\item
-  Availability and dispatching of assets, e.g.~ambulances, airtankers,
-  or crews on standby\footnote{NOTE Need to mention Monares et al 2011}
+\item The exact or estimated location of victims, firefighters,
+  vehicles, hazards, etc.
+\item Medical information gathered from victims, perhaps stored in and
+  collected from electronic triage tags \cite{2009:triagetag}
+\item Data about current and predicted fire or weather patterns
+\item Topographic information about the terrain, highlighting for
+  instance the location of rivers and roads that could form a fire
+  control line
+\item Planned escape routes, rendezvous points, safety zones, and
+  landing zones
+\item Availability and dispatching of assets, e.g.~ambulances,
+  airtankers, or crews on standby, such as the prototype application
+  considered by Monares et al. \cite{2011:monares}
 \end{itemize}
 In a perfect environment, such information would be shared with all
 necessary agents in whole and instantly. In reality, agents will be
@@ -917,14 +911,15 @@ holds whenever one can put a finger on $e$ in the time diagram and
 trace a ``path of causality'' to $e'$ by following worldlines or
 arrows.
 
-Figure \ref{fig:causal-precedence} illustrates the causal precedence
-relation corresponding to the time diagrams in Figure
-\ref{fig:message-latencies}. For readability we just depict arrows
-between (send, receive) pairs or adjacent events in each process,
-hiding redundant transitive arrows. By comparison to Figure
-\ref{fig:message-latencies}, we note that Figure
-\ref{fig:causal-precedence} only suggests a logical relation among
-events, but not their absolute time or where they occurred.
+\begin{example}
+  Figure \ref{fig:causal-precedence} illustrates the causal precedence
+  relation corresponding to the time diagrams in Figure
+  \ref{fig:message-latencies}. For readability do not show redundant
+  transitive arrows. By comparison to Figure
+  \ref{fig:message-latencies}, we note that Figure
+  \ref{fig:causal-precedence} only suggests a logical relation among
+  events, but not their absolute time or where they occurred.
+\end{example}
 
 Mathematically, causal precedence is an irreflexive partial
 order. Events $e$ and $e'$ that satisfy neither $e \to e'$ nor
@@ -1051,11 +1046,14 @@ non-negative integer initialized at $0$. There are two update rules:
   The updated value is the timestamp associated with the receive
   event.
 \end{enumerate}
+
+\begin{example}
 Figure \ref{fig:message-latencies-scalar} depicts the same events in
 Figure \ref{fig:message-latencies} alongside the scalar timestamp,
 shown in parentheses, that would be assigned to each event. For send
 events, the piggybacked timestamp is shown as a label attached to the
 arrow.
+\end{example}
 
 It is clear that scalar clocks satisfy the clock condition
 \eqref{eq:mp}, which is observed by tracing the path of causality
@@ -1136,18 +1134,22 @@ are two update rules:
 \end{enumerate}
 
 These rules are perhaps more intuitively explained by demonstration.
+
+\begin{example}
 Figure \ref{fig:message-latencies-vector} redepicts the diagrams in
 Figure \ref{fig:message-latencies} showing the vector timestamp that
-would be assigned to each event. The $i^\textrm{th}$ component of
-$P_i$'s vector clock, or $\vt_i[i]$, is called the \emph{local time}
-for $P_i$. For all other $j \neq i$, the $j^\textrm{th}$ component
-$\vt_i[j]$ of $P_i$'s clock represents $P_i$'s \emph{estimate} of
-$P_j$'s local time. This estimate is always a lower bound, since
-$P_j$'s local time may have advanced in the meantime, but we never
-advance our estimate ahead of $P_j$'s actual local time. By examing
-timestamps sent to it by other processes, $P_i$ can learn that $P_j$'s
-local clock has advanced, even without directly communicating with
-$P_j$.
+would be assigned to each event.
+\end{example}
+
+The $i^\textrm{th}$ component of $P_i$'s vector clock, or $\vt_i[i]$,
+is called the \emph{local time} for $P_i$. For all other $j \neq i$,
+the $j^\textrm{th}$ component $\vt_i[j]$ of $P_i$'s clock represents
+$P_i$'s \emph{estimate} of $P_j$'s local time. This estimate is always
+a lower bound, since $P_j$'s local time may have advanced in the
+meantime, but we never advance our estimate ahead of $P_j$'s actual
+local time. By examing timestamps sent to it by other processes, $P_i$
+can learn that $P_j$'s local clock has advanced, even without directly
+communicating with $P_j$.
 
 Vector timestamps are compared component-wise. This is of course a
 partial order, as one vector may be greater than another in some
@@ -1239,17 +1241,14 @@ send and receive events connecting $e$ to $e'$, hence $e \to e'$.
 \label{sssec:matrix-clocks}
 If a vector clock stores an estimate of every other process's local
 time, a matrix clock stores an estimate of every other process's
-vector clock. We give the details below. Figure
-\ref{fig:message-latencies-matrix} shows how our running examples
-would use matrix clock timestamps.
-
-Each process $P_i$ stores an $N\times{}N$ matrix $\vt_i$, initialized to
-all zeros, with the following interpretation. The $i^{\textrm{th}}$
-row from the top, $\vt_i[i, -]$, stores $P_i$'s vector time. All other
-rows $\vt_i[j,-]$ store $P_i$'s estimate of $P_j$'s vector
-time. Matrix timestamps are piggybacked with messages, and the
-receiver uses the sender's vector clock to update their own vector
-clock as usual, and takes the pointwise maximum of all other rows.
+vector clock. Each process $P_i$ stores an $N\times{}N$ matrix
+$\vt_i$, initialized to all zeros, with the following
+interpretation. The $i^{\textrm{th}}$ row from the top, $\vt_i[i, -]$,
+stores $P_i$'s vector time. All other rows $\vt_i[j,-]$ store $P_i$'s
+estimate of $P_j$'s vector time. Matrix timestamps are piggybacked
+with messages, and the receiver uses the sender's vector clock to
+update their own vector clock as usual, and takes the pointwise
+maximum of all other rows.
 
 \begin{enumerate}
 \item[\textbf{R1}] Before a new message is sent, $\vt_i[i]$ is updated according to the rule
@@ -1286,14 +1285,19 @@ clock as usual, and takes the pointwise maximum of all other rows.
   \endgroup
 \end{figure}
 
-By comparing Figures \ref{fig:message-latencies-vector} and
-\ref{fig:message-latencies-matrix}, see that $\vt_i[i,-]$ acts
-precisely like a vector clock. All other rows in $\vt_i$ are lower
-bound estimates of other process's vector clocks. In Section
-\ref{sec:background}, we indicated a connection between distributed
-systems and epistemic logic, i.e. reasoning about not just what is
-true but what is known. Matrix clocks can be applied when processes
-require knowledge about the knowledge had by others.
+\begin{example}
+  Figure \ref{fig:message-latencies-matrix} shows how our running
+  examples would use matrix clock timestamps. By comparing Figures
+  \ref{fig:message-latencies-vector} and
+  \ref{fig:message-latencies-matrix}, see that $\vt_i[i,-]$ acts
+  precisely like a vector clock. All other rows in $\vt_i$ are lower
+  bound estimates of other process's vector clocks.
+\end{example}
+
+In Section \ref{sec:background}, we indicated a connection between
+distributed systems and epistemic logic, i.e. reasoning about not just
+what is true but what is known. Matrix clocks can be applied when
+processes require knowledge about the knowledge had by others.
 
 Suppose a group of processes collaborate to replicate updates to a
 shared data structure. We imagine that all updates are submitted by
@@ -1314,8 +1318,9 @@ for some logical time $t$, $P_i$ can be sure that all other processes
 have seen all updates with timestamps less than or equal to $t$
 originating at $P_O$. Using this principle, matrix clocks have been
 used to discard obsolete information during database replication
-\citationneeded. In Section \ref{sec:continuous-consistency} we will
-see an example of how this sort of scheme can be applied in practice.
+\cite{1987:sarinlynch}. In Section \ref{sec:continuous-consistency} we
+will see an example of how this sort of scheme can be applied in
+practice.
 
 \subsection{Message Ordering and Group Communication}
 We have seen that the network latencies cause messages to be delayed
@@ -1445,10 +1450,12 @@ we consider the set of all messages sent to some fixed destination
 $P_{\mathrm{dest}}$, the function mapping send events to corresponding
 receive events must be monotonic with respect to causal precedence.
 
+\begin{example}
 Figure \ref{fig:message-ordering} demonstrates different message
 ordering conditions. We make a few observations for emphasis.
 
 \begin{itemize}
+  \tightlist
 \item \ref{fig:ordex-non-fifo} violates FIFO because messages $m_1$
   and $m_2$ are both sent from $P_1$ to $P_2$, but the arrive in the wrong order.
 \item \ref{fig:ordex-co-1} satisfies CO and therefore FIFO. Messages
@@ -1461,6 +1468,7 @@ ordering conditions. We make a few observations for emphasis.
 \item \ref{fig:ordex-non-co-2} violates CO because it is equivalent to
   \ref{fig:ordex-non-co-1} with the roles of $P_2$ and $P_3$ swapped.
 \end{itemize}
+\end{example}
 
 \subsubsection{Group Communication}
 Now we generalize the above definitions to the group communication
@@ -1506,9 +1514,11 @@ causality along worldlines and message arrows.
   \label{fig:broadcast-fifo-1}
 \end{figure}
 
+\begin{example}
 Figure \ref{fig:broadcast-fifo-1} shows a violation of CO. We might
 imagine the following conversation has taken place:
 \begin{itemize}
+  \tightlist
 \item [$P_1$]: ``I need an ambulance at location A.''
 \item [$P_2$]: ``Understood, the last ambulance has been dispatched.''
 \end{itemize}
@@ -1516,6 +1526,7 @@ However, $P_3$ witnesses $P_2$'s answer before seeing $P_1$'s
 question. This results in $P_3$ hearing a rather different snippet of
 the conversation:
 \begin{itemize}
+  \tightlist
 \item [$P_2$]: ``Understood, the last ambulance has been dispatched.''
 \item [$P_1$]: ``I need an ambulance at location A.''
 \end{itemize}
@@ -1524,6 +1535,7 @@ that are not available. The sort of conflict can lead to requests
 going unanswered, or possibly handled twice, leading to a chaotic
 situation and misallocation of resources. Hence, respecting causal
 order is often a critical consideration.
+\end{example}
 
 \paragraph{Total order broadcast}
 A total order ensures that all recipients receive the messages in the
@@ -1564,17 +1576,24 @@ not necessarily critical.
   \label{fig:bcast-ordering-examples}
 \end{figure}
 
+\begin{example}
 Figure \ref{fig:bcast-ordering-examples} depicts examples of broadcast
-message orders. Figure \ref{fig:bcast-order-examples-1} trivially
-satisfies FIFO because no process sends more than one multicast, but
-causality is violated because
-$\msend{1} \to \mrecv{1,4} \to \msend{2}$, but $P_2$ receives $m_2$
-before $m_1$. Total order is also violated because $P_2$ and $P_3$
-receive the messages in opposite orders.  Figure
-\ref{fig:bcast-order-examples-2} violates TO for the same reason, but
-satisfies causality because the two send events have no causal
-relation. Figure \ref{fig:bcast-order-examples-3} satisfies TO, but
-$m_2$ arrives at both processes before $m_1$ so FIFO is violated.
+message orders.
+\begin{itemize}
+  \tightlist
+\item Figure \ref{fig:bcast-order-examples-1} trivially satisfies FIFO
+  because no process sends more than one multicast, but causality is
+  violated because $\msend{1} \to \mrecv{1,4} \to \msend{2}$, but
+  $P_2$ receives $m_2$ before $m_1$. Total order is also violated
+  because $P_2$ and $P_3$ receive the messages in opposite orders.
+\item Figure \ref{fig:bcast-order-examples-2} violates TO for the same
+  reason above, but satisfies causality because the two send events
+  have no causal relation.
+\item Figure \ref{fig:bcast-order-examples-3}
+  satisfies TO, but $m_2$ arrives at both processes before $m_1$ so
+  FIFO is violated.
+\end{itemize}
+\end{example}
 
 \paragraph{Self-delivered messages}
 In some contexts one considers multicast primitives that include the
@@ -1659,7 +1678,6 @@ coordination is transparent to the programmer and not reflected in the
 diagrams.
 
 \subsection{Semantics and consistency}
-
 For a sequential application, i.e. one running on a single computer,
 it is clear how read and write requests should be interpreted. A read
 request $\memread{x}$ should return the most recent value $v$ that was
@@ -1729,11 +1747,9 @@ network. Thus, the selection of a memory model requires balancing the
 needs and expectations of the application against the practical
 constraints of the environment.
 
-\subsubsection{Concurrency and External order}
-\label{ssec:externalorder}
-As in Section \ref{ssec:causality}, one might hope to disambiguate
-the global order of memory operations by assigning them with
-sufficiently fine-grained timestamps indicating when they start and
+As in Section \ref{ssec:causality}, one might hope to disambiguate the
+global order of memory operations by assigning them with sufficiently
+fine-grained timestamps indicating when they start and
 terminate. However, comparing physical timestamps between operations
 on different processes requires them to have synchronized clocks,
 which we have seen we cannot assume.
@@ -1756,53 +1772,24 @@ if it stops before the other is invoked. Note that we are comparing
 events in terms of real, physical time: external order is the partial
 order that would be expected by an outside observer who can see
 operations executing globally in real time.
-\begin{definition}[Physical concurrency]
-  Consider two operations $\Op^1$ and $\Op^2$. If neither externally
-  precedes the other, in another words if there is some moment in time
-  during which both operations are executing, the operations are said
-  to be \emph{physically concurrent}, written $\Op^1 || \Op^2$.
-\end{definition}
-If one operation finishes
-before another starts, this must surely come first. If two operations
-are ever seen executed at the same time, then we do not assume
-anything about which one should be considered to execute first.
-
-%Because each process handles operations one-at-a-time, a local history
-%$H|_P$ is totally ordered by external order. However, operations by
-%different process may overlap.
-
-Physical concurrency is a reflexive and symmetric relation, but
-typically not a transitive one. Such structures are generally known as
-compatibility relations, the intuition being that if \(A\) and \(B\) are
-both ``compatible'' with \(C\), it need not be the case that \(A\) and
-\(B\) are compatible with each other. The reader should convince
-themselves that if $\Op^1 || \Op^2$ and $\Op^2 || \Op^3$, it need not
-be the case that $\Op^1 || \Op^3$.
-
-For performance reasons, memory models commonly allow distributed
-operations to have semantics that do not strictly conform to external
-order. For instance, below we show how sequential consistency
-(Definition \ref{def:sequentiallyconsistent}), one of two ``strong''
-models, allows for this possibility. Yet even this model imposes too
-many constraints to be workable for networking environments as
-unpredictable as ours.
 
 \begin{figure}
-    \centering
-    \input{images/pgf/smEx1DAG.pgf}
-    \caption{External order relation among operations in Figure \ref{fig:smEx1}}
-    \label{fig:smEx1DAG}
+  \centering
+  \input{images/pgf/smEx1DAG.pgf}
+  \caption{External order relation among operations in Figure \ref{fig:smEx1}}
+  \label{fig:smEx1DAG}
 \end{figure}
 
 Figure \ref{fig:smEx1DAG} shows the external order among the
 operations in Figure \ref{fig:smEx1} in the form of a directed
 acyclic graph (DAG).
 
-\begin{definition}[Sequential history]
-  Let $H$ be a history of invocation/response events. A
-  \emph{sequential history} of $H$ is any choice of total order among
-  the events in $H$---that is, some rearrangement of the operations as
-  to ensure none of them overlap in time.
+
+\begin{definition}[Physical concurrency]
+  Consider two operations $\Op^1$ and $\Op^2$. If neither externally
+  precedes the other, in another words if there is some moment in time
+  during which both operations are executing, the operations are said
+  to be \emph{physically concurrent}, written $\concurrent{\Op^1}{\Op^2}$.
 \end{definition}
 
 \subsection{Strong Consistency Models}
@@ -1845,15 +1832,16 @@ We return to Example \ref{exmpl:concurrentupdates}. Rule 1 of
 Definition \ref{def:linearizable} requires $P_1$ and $P_2$ to act like
 they both witness the same total order of operations, which in
 particular assigns a total order on the three write operations
-$\memwrite{x}{4}, \memwrite{x}{3},$ and $\memwrite{x}{5}$. By Rule 3 this order must agree with
-external order, meaning $\memwrite{x}{4}$ comes first, followed by $\memwrite{x}{3}$ and
-$\memwrite{x}{5}$ in either order (due to their physical concurrency), followed
-by the three read operations. By Rule 2, the three read operations
-must return the value of $x$ assigned by whichever of $\memwrite{x}{3}$ or
-$\memwrite{x}{5}$ happens last. Altogether, linearizability leaves only two
-possibilities: all three read operations return $3$, or all three
-return $5$. These are known as the possible \emph{linearizations} of
-the history shown in Figure \ref{fig:smEx1}.
+$\memwrite{x}{4}, \memwrite{x}{3},$ and $\memwrite{x}{5}$. By Rule 3
+this order must agree with external order, meaning $\memwrite{x}{4}$
+comes first, followed by $\memwrite{x}{3}$ and $\memwrite{x}{5}$ in
+either order (due to their physical concurrency), followed by the
+three read operations. By Rule 2, the three read operations must
+return the value of $x$ assigned by whichever of $\memwrite{x}{3}$ or
+$\memwrite{x}{5}$ happens last. Altogether, linearizability leaves
+only two possibilities: all three read operations return $3$, or all
+three return $5$. These are known as the possible
+\emph{linearizations} of the history shown in Figure \ref{fig:smEx1}.
 
 A more visually intuitive way of approaching linearizability is by
 defining it in terms of \emph{linearization points.}
@@ -1865,8 +1853,6 @@ defining it in terms of \emph{linearization points.}
   whole and instantaneously.
 \end{definition}
 
-%\begin{example}
-%  \label{exmpl:linearizations}
 The two possible linearizations of Figure \ref{fig:smEx1} are shown in
 Figure \ref{fig:smEx3}. Possible choices for linearization points are
 shown in yellow. Note that only the relative order of linearization
@@ -1902,92 +1888,16 @@ memory manager, the entire system is said to be linearizable.
   of the system are linearizable.
 \end{definition}
 
-\subsubsection{The CAP Theorem}
-Real-world systems often fall short of behaving as a single perfectly
-coherent system. The root of this phenomenon is a deep and
-well-understood tradeoff between system coherence and performance.
-Enforcing consistency comes at the cost of additional communications,
-and communications impose overheads, often unpredictable ones.
-
-\begin{definition}[Network partition]
-  A \emph{network partition} is a span of time where some nodes are
-  unable to communicate with another set of nodes on the network.
-\end{definition}
-
-Fox and Brewer \cite{1999foxbrewer} are crediting with observing a
-particular tension between the three competing goals of consistency,
-availability, and partition-tolerance. This tradeoff was precisely
-stated and proved in 2002 by Gilbert and Lynch
-\cite{2002gilbertlynchCAP}.  The theorem is often somewhat
-misunderstood, as we discuss, so it is worth clarifying the terms
-used.
-
-\begin{description}
-\item[Consistency] Gilbert and Lynch define consistency as linearizability.
-\item[Availability] A CAP-available system is one that responds to
-  every client request in a finite time.
-\item[Partition tolerance] A partition-tolerant system continues to
-  function, in the face of arbitrary partitions in the network. (It is
-  possible that a partition never recovers, say if a critical
-  communications cable is permanently severed.)
-\end{description}
-
-Some reflection shows that the full set of requirements is
-unattainable---a partition tolerant system simply cannot enforce both
-consistency and availability. We give only the informal sketch here,
-leaving the interested reader to consult the more formal analysis by
-Gilbert and Lynch. The key technical assumption is that a process's
-behavior can only be influenced by the messages it actually
-receives---it cannot be affected by messages that are sent to it but
-never delivered.
-
-\begin{theorem}[The CAP Theorem]
-  \label{thm:cap}
-  In the presense of indefinite network partitions, a distributed system
-  cannot guarantee both linearizability and eventual-availability.
-\end{theorem}
-\begin{proof}
-  Consider the concurrent writes by separate processes in Figure
-  \ref{fig:smEx2}.  Figure \ref{fig:smEx3} showed that both possible
-  linearizations of this history require all reads to return the same
-  value, either $3$ or $5$. Now suppose the network is unavailable, so
-  the processes cannot communicate, in particular to share write
-  updates.
-
-  Now there are only two possibilities. First, the processes could
-  proceed despite the lack of communication. In this case, because
-  processes do not otherwise affect each other, $P_1$ could not see
-  the $\memwrite{x}{5}$ operation and its read must return the value
-  $3$. Likewise, $P_2$ does not see $\memwrite{x}{3}$ and its reads return
-  $5$. This situation violates linearizability, hence the 'C' of CAP.
-
-  Alternatively, the processes might detect that the network is
-  unavailable and refuse to respond to read requests. However, this
-  indefinitely suspects progress until the network recovers, which
-  violates the 'A' of CAP.
-\end{proof}
-
-To provide both 'C' and 'A', the last remaining option is to assume
-that the network never suffers from partitions, in other words to
-sacrifice the 'P' of CAP. Clearly this is unacceptable in the systems
-we are considering. Consequently, our systems cannot ensure atomic
-consistency and availability.
-
-\begin{comment}
-A partition-tolerant CAP-available system cannot indefinitely suspend
-handling a request to wait for network activity like receiving a
-message. In the event of a partition that never recovers, this would
-mean the process could wait indefinitely for the partition to heal,
-violating availability.
-
-On the other hand, a CAP-consistent system is not allowed to return
-anything but the most up-to-date value in response to client
-requests. Keep in mind that any (other) process may be the originating
-replica for an update.
-\end{comment}
-
 \subsubsection{Sequential consistency}
 \label{sequential-consistency}
+
+\begin{definition}[Sequential history]
+  Let $H$ be a history of invocation/response events. A
+  \emph{sequential history} of $H$ is any choice of total order among
+  the events in $H$---that is, some rearrangement of the operations as
+  to ensure none of them overlap in time.
+\end{definition}
+
 Enforcing atomic consistency means that an access \(E\) at process
 \(P_i\) cannot return to the client until every other process has been
 informed about \(E\). For many applications this is an unacceptably
@@ -2111,7 +2021,76 @@ example, Figures \ref{fig:smEx4S1} and \ref{fig:smEx4S2} are
 nonlinearizable executions of Figure \ref{fig:smEx2} that are
 nonetheless sequentially consistency.
 
-\subsubsection{The CAP Theorem for SC}
+\subsection{The CAP Theorem}
+Real-world systems often fall short of behaving as a single perfectly
+coherent system. The root of this phenomenon is a deep and
+well-understood tradeoff between system coherence and performance.
+Enforcing consistency comes at the cost of additional communications,
+and communications impose overheads, often unpredictable ones.
+
+\begin{definition}[Network partition]
+  A \emph{network partition} is a span of time where some nodes are
+  unable to communicate with another set of nodes on the network.
+\end{definition}
+
+Fox and Brewer \cite{1999foxbrewer} are crediting with observing a
+particular tension between the three competing goals of consistency,
+availability, and partition-tolerance. This tradeoff was precisely
+stated and proved in 2002 by Gilbert and Lynch
+\cite{2002gilbertlynchCAP}.  The theorem is often somewhat
+misunderstood, as we discuss, so it is worth clarifying the terms
+used.
+
+\begin{description}
+\item[Consistency] Gilbert and Lynch define consistency as linearizability.
+\item[Availability] A CAP-available system is one that responds to
+  every client request in a finite time.
+\item[Partition tolerance] A partition-tolerant system continues to
+  function, in the face of arbitrary partitions in the network. (It is
+  possible that a partition never recovers, say if a critical
+  communications cable is permanently severed.)
+\end{description}
+
+Some reflection shows that the full set of requirements is
+unattainable---a partition tolerant system simply cannot enforce both
+consistency and availability. We give only the informal sketch here,
+leaving the interested reader to consult the more formal analysis by
+Gilbert and Lynch. The key technical assumption is that a process's
+behavior can only be influenced by the messages it actually
+receives---it cannot be affected by messages that are sent to it but
+never delivered.
+
+\begin{theorem}[The CAP Theorem]
+  \label{thm:cap}
+  In the presense of indefinite network partitions, a distributed system
+  cannot guarantee both linearizability and eventual-availability.
+\end{theorem}
+\begin{proof}
+  Consider the concurrent writes by separate processes in Figure
+  \ref{fig:smEx2}.  Figure \ref{fig:smEx3} showed that both possible
+  linearizations of this history require all reads to return the same
+  value, either $3$ or $5$. Now suppose the network is unavailable, so
+  the processes cannot communicate, in particular to share write
+  updates.
+
+  Now there are only two possibilities. First, the processes could
+  proceed despite the lack of communication. In this case, because
+  processes do not otherwise affect each other, $P_1$ could not see
+  the $\memwrite{x}{5}$ operation and its read must return the value
+  $3$. Likewise, $P_2$ does not see $\memwrite{x}{3}$ and its reads return
+  $5$. This situation violates linearizability, hence the 'C' of CAP.
+
+  Alternatively, the processes might detect that the network is
+  unavailable and refuse to respond to read requests. However, this
+  indefinitely suspects progress until the network recovers, which
+  violates the 'A' of CAP.
+\end{proof}
+
+To provide both 'C' and 'A', the last remaining option is to assume
+that the network never suffers from partitions, in other words to
+sacrifice the 'P' of CAP. Clearly this is unacceptable in the systems
+we are considering. Consequently, our systems cannot ensure atomic
+consistency and availability.
 
 Recall Figure \ref{fig:smEx1L1}. This example demonstrated that
 sequential consistency allows the history in Figure \ref{fig:smEx2} to
@@ -2150,6 +2129,33 @@ sequential consistency is CAP-unavailabile.
   requests would require commuting $\memwrite{y}{1}$ with $\memread{x}$ or $\memwrite{x}{1}$ with
   $\memread{y}$, which would violate program order.
 \end{proof}
+
+\subsubsection{Consequences of CAP}
+\label{interpretation-of-the-cap-theorem}
+While the CAP theorem is conceptually simple, its interpretation is
+subtle and has been the subject of much discussion since it was
+introduced \cite{2012CAP12Years}. It is sometimes assumed that the CAP
+theorem claims that a distributed system can only offer two of the
+properties C, A, and P.  In fact, the theorem constrains, but does not
+prohibit the existence of, applications that apply some relaxed amount
+of all three features. The CAP theorem only rules out their
+combination when all three are interpreted in a highly idealized
+sense.
+
+In practice, applications can tolerate much weaker levels of
+consistency than linearizability. Furthermore, network partitions are
+usually not as dramatic as an indefinite communications blackout. Real
+conditions in our context are likely to be chaotic, featuring many
+smaller disruptions and delays and sometimes larger
+ones. Communications between different clients may be affected
+differently, with nearby agents generally likely to have better
+communication channels between them than agents that are far
+apart. Finally, CAP-availability is a suprisingly weak condition.
+Generally one cares about the actual time it takes to handle user
+requests, but the CAP theorem exposes difficulties just ensuring the
+system handles requests at all. Altogether, the extremes of C, A, and
+P in the CAP theorem are not the appropriate conditions to apply to
+many, perhaps most, real-world applications.
 
 \subsection{Causal consistency}
 \label{ssec:causal-consistency}
@@ -2263,33 +2269,6 @@ sense that no processes need to agree on any of the updates applied to
 the database. The effect is that causal consistency is too weak to
 apply any kind of bound on divergence, which suggests it is not strong
 enough for the kinds of safetly-related applications we have in mind.
-
-\subsubsection{Consequences of CAP}
-\label{interpretation-of-the-cap-theorem}
-While the CAP theorem is conceptually simple, its interpretation is
-subtle and has been the subject of much discussion since it was
-introduced \cite{2012CAP12Years}. It is sometimes assumed that the CAP
-theorem claims that a distributed system can only offer two of the
-properties C, A, and P.  In fact, the theorem constrains, but does not
-prohibit the existence of, applications that apply some relaxed amount
-of all three features. The CAP theorem only rules out their
-combination when all three are interpreted in a highly idealized
-sense.
-
-In practice, applications can tolerate much weaker levels of
-consistency than linearizability. Furthermore, network partitions are
-usually not as dramatic as an indefinite communications blackout. Real
-conditions in our context are likely to be chaotic, featuring many
-smaller disruptions and delays and sometimes larger
-ones. Communications between different clients may be affected
-differently, with nearby agents generally likely to have better
-communication channels between them than agents that are far
-apart. Finally, CAP-availability is a suprisingly weak condition.
-Generally one cares about the actual time it takes to handle user
-requests, but the CAP theorem exposes difficulties just ensuring the
-system handles requests at all. Altogether, the extremes of C, A, and
-P in the CAP theorem are not the appropriate conditions to apply to
-many, perhaps most, real-world applications.
 
 \subsection{Summary}
 \label{sec:background-summary}

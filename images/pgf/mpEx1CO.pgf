@@ -670,7 +670,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{60.5093bp}{101.7898bp}}
+\pgftransformshift{\pgfqpoint{60.5093bp}{77.7898bp}}
 \pgftext[base,left]{$\mrecv{1}$}
 \end{pgfscope}
 \begin{pgfscope}

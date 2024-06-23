@@ -404,7 +404,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{225.3648bp}{157.4536bp}}
+\pgftransformshift{\pgfqpoint{217.8964bp}{157.4536bp}}
 \pgftext[base,left]{$\mrecv{4}\timestampnegativespace\matrixtimestamp{3}{1}{0}{3}{2}{0}{0}{0}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
