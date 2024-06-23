@@ -826,8 +826,6 @@ not part of the message itself.
   \label{fig:message-latencies}
 \end{figure}
 
-\afterpage{\clearpage}
-
 Message arrows in time diagrams are diagonal, rather than vertical, as
 to represent the varying effect of network latencies on message
 delivery. Because they arrive delayed, messages may be delivered in a
@@ -1502,7 +1500,7 @@ In the above definition, the happens before relation is defined just
 as in the unicast (non-broadcast) setting by following a path of
 causality along worldlines and message arrows.
 
-\begin{figure}[p]
+\begin{figure}[h]
   \centering \input{images/pgf/mpEx3.pgf}
   \caption{Broadcast example that satisfies FIFO but violates CO}
   \label{fig:broadcast-fifo-1}
@@ -1542,10 +1540,41 @@ not necessarily critical.
   both processes.
 \end{definition}
 
-\textbf{NEED TO CREATE A FIGURE HERE}. Figure X satisfies CO, and
-therefore FIFO, but not TO. Figure Y satisfies TO but not CO . Note
-that, of course, we can also consider hybrid message order models that
-provide both total and causal order.
+\begin{figure}[p]
+  \setlength\belowcaptionskip{5ex}
+  \begin{subfigure}{1\textwidth}
+    \centering
+    \input{images/pgf/bcastEx1.pgf}
+    \caption{Broadcast example that satisfies FIFO but violates CO and TO}
+    \label{fig:bcast-order-examples-1}
+  \end{subfigure}
+  \begin{subfigure}{1\textwidth}
+    \centering
+    \input{images/pgf/bcastEx2.pgf}
+    \caption{Broadcast example that satisfies CO but violates TO}
+    \label{fig:bcast-order-examples-2}
+  \end{subfigure}
+  \begin{subfigure}{1\textwidth}
+    \centering
+    \input{images/pgf/bcastEx3.pgf}
+    \caption{Broadcast example that satisfies TO but violates FIFO}
+    \label{fig:bcast-order-examples-3}
+  \end{subfigure}
+  \caption{Multicast ordering examples}
+  \label{fig:bcast-ordering-examples}
+\end{figure}
+
+Figure \ref{fig:bcast-ordering-examples} depicts examples of broadcast
+message orders. Figure \ref{fig:bcast-order-examples-1} trivially
+satisfies FIFO because no process sends more than one multicast, but
+causality is violated because
+$\msend{1} \to \mrecv{1,4} \to \msend{2}$, but $P_2$ receives $m_2$
+before $m_1$. Total order is also violated because $P_2$ and $P_3$
+receive the messages in opposite orders.  Figure
+\ref{fig:bcast-order-examples-2} violates TO for the same reason, but
+satisfies causality because the two send events have no causal
+relation. Figure \ref{fig:bcast-order-examples-3} satisfies TO, but
+$m_2$ arrives at both processes before $m_1$ so FIFO is violated.
 
 \paragraph{Self-delivered messages}
 In some contexts one considers multicast primitives that include the
@@ -1562,6 +1591,7 @@ other processes are applying it. For simplicity, the examples in this
 section have not shown this sort of self-delivery.
 
 \subsection{Shared Memory}
+\label{ssec:shared-memory}
 Framing a distributed application directly in terms of message passing
 can be challenging, as the low-level details required to implement the
 correct message passing behavior distract from the high-level
@@ -2415,48 +2445,104 @@ application layers.
 
 \section{Continuous Consistency}
 \label{sec:continuous-consistency}
-Strong consistency, as defined in Section
+Strong (i.e. atomic or sequential) consistency, as defined in Section
 \ref{ssec:strong-consistency}, is an all-or-nothing proposition: an
 application provides strong consistency or it does not. Because of
 considerations such as the CAP theorem, this sort of guarantee is an
 unrealistic requirement for our setting. Causal consistency (Section
 \ref{ssec:causal-consistency}) and other kinds of weaker assumptions
-are tenable, but we have seen that by themselves they provide no upper
-bound on the divergence between replicas of data items. Because of the
+are tenable, but by themselves they provide no upper bound on the
+divergence between replicas of data items. Because of the
 safety-related nature of our system, we would like to do better than
 this.
 
-This section summarizes the key ideas behind continuous consistency,
-specifically the conit (``consistency unit'') model proposed by Yu and
-Vahdat \citationneeded. Continuous consistency is motivated by the
-observation that for many real-world applications it evidently makes
-sense to work with data that is consistent up to some
-$\epsilon \in \mathbb{R}^{\geq 0}$. Thus, we shift from thinking about
-consistency as an all-or-nothing condition, towards consistency as a
-quantiative upper bound on inconsistency.
+This section summarizes the key ideas behind \emph{continuous}
+consistency. We specifically outline the conit (``consistency unit'')
+model proposed by Yu and Vahdat \citationneeded. Continuous
+consistency is motivated by the observation that for many real-world
+applications, it evidently makes sense to work with data that is
+consistent up to some error bound $\epsilon \geq 0$. It is not
+immediately obvious what this means formally, but loosely speaking one
+hopes to measure the difference between the user-observed value of a
+database operation and the value that would have been returned if we
+were maintaining strong consistency. By relaxing our error bound, in
+other words by increasing $\epsilon$, we hope sacrifice some
+consistency to gain some availability, unlike the CAP theorem which
+apparently forces a choice of one or the other. Thus, we shift from
+thinking about consistency as an all-or-nothing condition, towards
+consistency as a quantiative upper bound on inconsistency.
 
-A precise quantitative definition of consistency seems specific to
-each possible application. To implement a continuous consistency model
-that is not tied to one application, we must first explain how
-inconsistency can be quantified generically in the first
-place. Second, we must explain how a generic protocols can be used to
-enforce. The conit model.
+A quantitative definition of consistency seems specific to each
+application, but ideally our consistency model can be defined and
+implemented in an application-generic manner. Thus we have a few
+requirements.
+\begin{itemize}
+\item A mechanism to measure (in)consistency of data items
+\item A mechanism for applications to set upper bounds on the allowed
+  inconsistency of each item
+\item A mechanism to efficiently enforce these inconsistency bounds
+\end{itemize}
+
+To implement a continuous consistency model that is not tied to one
+application, we must first explain how inconsistency can be quantified
+generically in the first place. Second, we must explain how a generic
+protocols can be used to enforce.
 
 \subsection{The conit model}
 \label{ssec:conits}
 
+We assume a set $\{P_i\}_{i \in I}$ of processes that coordinate to
+replicate a database $D$. Note that we read ``database'' very loosely
+to mean any kind of data items that can be updated in response to user
+requests.
+
 \begin{itemize}
-\item Committed versus uncommitted writes
-\item Each process has a vector clock (Section \ref{sssec:vector-clocks})
-\item Anti-entropy
+\item The database is replicated in whole at each site.
+\item The group members are fixed in advance. Otherwise we would
+  require a group-membership protocol to update the set of
+  participants dynamically.
 \end{itemize}
+
+The application could be essentially anything---relevant examples for
+our environment could be a group chat application, a system for
+requesting and dispatching resources, or a system for disseminating
+information about weather and fire conditions. Clients can submit
+requests to read or write (or update) values from the database at any
+site. However, the application itself never updates the database
+directly, but instead submits requests to a lower-level ``middleware''
+that is logically situated below the application but above the network
+transport layer (see Section \ref{ssec:shared-memory}). The middleware
+mediates between the application and the local database.
+
+When the application submits a database operation (read or write), the
+middleware does not necessarily respond to the request
+immediately. Instead, it may block (become unavailable) while it
+coordinates with other processes to enforce the sort of consistency
+guarantees defined below. During this time, the middleware can inform
+other sites about new updates, or request that other sites report to
+it any updates that could be relevant to the user's
+request. Eventually, the middleware reads or writes from the local
+copy of the database and returns a value back to the application, who
+gives it to the user.
+
+Separately from the local database itself, the middleware maintains a
+\emph{write log} that stores a history of recent write requests it has
+seen.
 
 \subsection{Measuring consistency on conits}
 \label{measuring-consistency-on-conits}
 
-\paragraph{Real time staleness}
-\label{sec:real-time-consistency}
+We discuss the three consistency dimensions and how they can be
+implemented. Real-time staleness and order error are both bounded by a
+\emph{pull}-based approach: the originating replica of a database
+operation may block while contacting other sites in order to request
+information relevant to the request. Numerical error in contrast is
+bounded by a \emph{push}-approach: A node may have to block during a
+request in order to proactively inform other nodes about the update
+before it can be applied.
 
+\subsubsection{Real time staleness}
+\label{sssec:real-time-consistency}
 Take, say, an application for disseminating the most up-to-date
 visualization of the location of a fire front. It may be acceptable if
 this information appears 5 minutes out of date to a client, but
@@ -2468,8 +2554,32 @@ close to a fire have a lower tolerance for stale information than a
 central client keeping only a birds-eye view of several fire fronts
 simultaneously.
 
-\paragraph{Numerical consistency}
-\label{numerical-consistency}
+To enforce real time staleness, we assume that each site has loosely
+synchronized physical clocks. Note that while we do not assume
+physical clocks can be synchronized precisely enough for the kind of
+causality tracking discussed in Section \ref{sec:background}, it may
+be tenable to assume synchronization precise enough for the purposes
+discussed in this section, depending on how small the allowed
+real-time divergence values are. For example, we estimate that
+synchronization within, say, 30 minutes is tenable using appropriate
+synchronization mechanisms even in deeply challenging network
+environments.
+
+Each site maintains a vector of \emph{physical} timestamp values. The
+\emph{staleness} of a conit is the physical time elapsed since the
+last update not seen by this replica was submitted.
+
+The update rule is simple. When the real time.
+
+\newcommand{\vtphys}[2]{\mathrm{vt}_{#1}}
+\begin{itemize}
+\item First, check whether $t_{\mathrm{now}} - \vt{i}[j] < \delta$
+  holds for each entry $j$ in the real time vector.
+\item If $t_{\mathrm{now}} - \vt{i}[j] \geq \delta$, $P_i$ sends a
+  request to $P_j$ to pull any updates seen by $P_j$ but not by $P_i$.
+\item After receiving the updates, $P_i$ reads the conit's value and
+  returns it to the user.
+\end{itemize}
 
 \paragraph{Order consistency}
 \label{order-consistency}
@@ -2478,6 +2588,9 @@ executes a write commitment algorithm. This is a \emph{pull-based}
 approach which pulls information from other processes in order to
 advance \(P_i\)'s vector clock, raising the watermark and hence
 allowing \(P_i\) to commit some of its writes.
+
+\paragraph{Numerical consistency}
+\label{numerical-consistency}
 
 \subsubsection{Enforcing inconsistency bounds}
 \label{enforcing-inconsistency-bounds}
@@ -2497,13 +2610,55 @@ consider a scheme, Relative NE, which bounds the relative error.
 \paragraph{Real time consistency}
 \label{real-time-consistency-1}
 
+\subsection{Variations and additional features}
 
+One can imagine various ways that the conit model can be augmented
+with additional capabilities.
 
+\paragraph{Dynamic bounds}
+Because real-time staleness and order error are bounded by pull
+approach, it is straightforward to allow the user to dynamically
+change the error bounds at each site. However, numerical error is
+bounded by a push approach that requires every process to be aware of
+all other processes's bounds and proactively cooperation to ensure
+this invariant is maintained. Therefore, dynamically tuning numerical
+error bounds requires a consensus mechanism that allows informing
+other processes of any updates to these bounds. The application cannot
+guarantee the new consistency bound will be enforced until it knows
+that all other processes have seen the newly updated bounds.
 
+\paragraph{Dynamic conits}
+Mechanism for conits to be created. Because the application (whose
+source code is of course is fixed) must specify the weight of each
+update to each conit, this requires that the weight of an update can
+be calculated. Donkervliet's master's thesis \citationneeded explored
+dynamic conits in the context of massive multiplayer online games,
+particularly Minecraft.
 
+\paragraph{Dynamic network tuning}
+We expect a rich interplay between the network protocol and a
+conit-based replication protocol. We previously mentioned an example
+where a UAV or a message ferry could be deployed dynamically to
+provide greater throughput in a particular geographical area. Such a
+resource could be dispatched if the application signals to a network
+controller that it is struggling to enforce conit bounds in a timely
+manner.
 
-
-
+Network packets, or DTN bundles, could be specially marked as
+containing database updates alongside any metadata (such as the weight
+of an update to various conits) that could be used by the network for
+quality-of-service purposes. Such usage may run contrary to the
+conventional wisdom that networking protocols should be agnostic to
+the actual content of a message, e.g. routers should be concerned only
+with the data in IP packet headers but not the data contained in the
+packet. This sort of atypical usage is potentially justified in our
+setting because of a heightened requirement to optimize the user of
+very scarce networking resources, even at the cost of blurring the
+line between the network and application layers. We conjecture that
+SDN would be particularly suitable because it is easier to modify or
+customize software-defined networking protocols, so that custom
+hardware is not required even for extremely specialized networking
+needs.
 
 \subsection{Old material}
 
@@ -2704,9 +2859,6 @@ Consistency is enforced by the application by setting bounds on the
 consistency of read accesses. The TACT framework then enforces these
 consistency levels.
 
-
-\subsubsection{Future work}
-\label{future-work}
 
 \section{Data Fusion}
 \label{sec:data-fusion}
