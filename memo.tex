@@ -4,8 +4,8 @@
 %\DeclareRobustCommand{\mmodels}{\mathrel{|}\joinrel\Relbar}
 
 \usepackage[utf8]{inputenc}
-\usepackage{csquotes}
 \usepackage{setspace}
+\usepackage{csquotes}
 \usepackage{hyperref}
 \usepackage{amsmath, amssymb, amscd, amsthm, amsfonts}
 \usepackage{mathtools}
@@ -23,6 +23,8 @@
 \usepackage{subcaption}
 \usepackage{afterpage}
 \usepackage{comment}
+\usepackage{rotating}%sidewaysfigure
+\usepackage{pdflscape}%alt to sidewaysfigure
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}{Corollary}[theorem]
@@ -75,7 +77,7 @@
 
 \abstract{The System Wide Safety (SWS) program has been investigating
   how crewed and uncrewed aircraft can safely operate in shared
-  airspace. Enforcing safety requirements for distributed agents
+   airspace. Enforcing safety requirements for distributed agents
   requires coordination by passing messages over a communication
   network. Unfortunately, the operational environment will not admit
   reliable high-bandwidth communication between all agents,
@@ -262,7 +264,7 @@ battery power, to name a few.
 Agents in the field generally experience high packet loss, garbled
 transmissions, and unpredictable latencies when passing information
 over the communication network(s). A conservative view suggests
-expecting the worst performance at the most inopportune times, because
+expecting the worst performance at the most inopportune times because
 the conditions that prompt urgent communication tend to correlate with
 those that make communication difficult. It could be that the disaster
 itself damages the communications infrastructure. A more basic
@@ -275,26 +277,26 @@ York public cell phone networks virtually to a halt
 \cite{2011:Reardon}. Other networks along the East Coast, including
 dedicated networks for first responders, experienced similar
 effects. The communication failures of 9/11 eventually became the
-impetus for the creation of a nationwide public safety broadband
-network, FirstNet \cite{2021:firstnet, 2021:firstnet2}.
+impetus for the creation of the nationwide public safety broadband
+network FirstNet \cite{2021:firstnet, 2021:firstnet2}.
 
-From a systems perspective, an unreliable network presents a challenge
-for coordinating distributed agents. Coherent decision-making and
-coordinated action require consistency, i.e.~agreement, among data
-shared between agents. We shall make this somewhat vague notion more
-precise in Section \ref{sec:background}, but the intuition is clear:
-it is very important for everyone to agree which firetrucks should
-respond to which scenes, which tasks should be prioritized, or which
-radios and radio frequencies have been reserved for whom. A general
-observation is that stronger standards for consistency are more
-difficult to maintain than relaxed ones because they require
-exchanging more information in less time, putting a heavier burden on
-the network. When a communications link is slow, system components
-that need to coordinate may have to pause and wait, diminishing the
-efficacy of the system. When this delay is unacceptable, the most
-realistic alternative is to relax the standards for coordination. In
-the next section we demonstrate that such a tradeoff has implications
-for system safety.
+An unreliable network presents a challenge for coordinating
+distributed agents. Coherent decision-making and coordinated action
+require consistency, i.e.~agreement, among data shared between
+agents. We shall make this somewhat vague notion more precise in
+Section \ref{sec:background}, but the intuition is clear: it is very
+important for everyone to agree which firetrucks should respond to
+which scenes, where the helicopter should land, which tasks should be
+prioritized, or which radio frequencies have been reserved for
+whom. Stronger standards for consistency are more difficult to
+maintain than relaxed ones because they require exchanging more
+information in less time, putting a heavier burden on the
+network. When a communications link is slow, system components that
+need to coordinate may have to pause and wait, diminishing the
+efficacy of the system. When this delay is unacceptable, the
+alternative is to relax the standards for coordination. In the next
+section we demonstrate that the nature of this tradeoff from a safety
+perspective.
 
 \subsection{Communication and Safety}
 \label{communication-and-safety}
@@ -303,10 +305,10 @@ environment and react to it quickly and systematically. This
 information is often transmitted over networks, so a poor
 communications environment is a safety problem. Poor communication
 forces agents to choose between delays in sending and receiving
-information or acting with only limited knowledge, but note that
-inaction and uninformed action are both problematic for their own
-reasons. This turns out to be related to a computer science phenomenon
-generally known as the safety/liveness tradeoff.
+information or acting with only limited knowledge, but inaction and
+uninformed action are both problematic. This observation turns out to
+be related to a computer science phenomenon generally known as the
+safety/liveness tradeoff.
 
 As a running example, we consider the use of firefighting airtankers,
 the largest of which are the Very Large Airtankers (VLATs), defined as
@@ -315,12 +317,12 @@ those carrying more than 8,000 gallons of water or fire retardant
 20,000 gallons, weighing about 170,000 pounds, in a single ``drop.''
 In the United States today, a typical policy is to perform drops from
 a mere 250 feet above the tree canopy \cite{2019:airtankerops}, though
-the complexity of the maneuver means errant drops are sometimes
-performed even lower than this, easily crushing a ground vehicle
-\cite{2019:stickney}. A 2018 accident led to the death of one
-firefighter and the injury of three others when an 87-foot Douglas Fir
-tree was knocked down by an unexpectedly forceful drop from a Boeing
-747-400 Supertanker \cite{2018:calfire}.
+it is common to hear of drops performed from lower altitudes. Such a
+maneuver can easily crush a ground vehicle \cite{2019:stickney}. A
+2018 accident led to the death of one firefighter and the injury of
+three others when an 87-foot Douglas Fir tree was knocked down by an
+unexpectedly forceful drop from a Boeing 747-400 Supertanker
+\cite{2018:calfire}.
 
 \begin{figure}[h]
   \label{fig:airtanker}
@@ -331,16 +333,16 @@ tree was knocked down by an unexpectedly forceful drop from a Boeing
 % https://www.flickr.com/photos/apachesitgreavesnf/5837741382
 % Also appears at https://www.nifc.gov/resources/aircraft/airtankers
 
-Suppose that in the future, firefighters are equipped with GPS sensors
-and digital transmitters that are integrated into an environment-wide
-communication system. A reasonable policy would be to prohibit VLATs
-from performing a drop if its computers do not have up-to-date
-information about the location of firefighters on the
-ground. Unfortunately, this information may be difficult or impossible
-to share: perhaps heavy smoke, a damaged radio tower, or a tall ridge
-prevents communications between the air and ground. In these
-scenarios, rigid enforcement of the safety policy would prevent
-airtankers from operating.
+Suppose that in the future, firefighters are equipped with GPS-aware
+devices that are integrated into an environment-wide communication
+system, such as a smartphone running the TAK system \citationneeded. A
+reasonable policy would be to prohibit VLATs from performing a drop if
+its computers do not have up-to-date information about the location of
+firefighters on the ground. Unfortunately, this information may be
+difficult or impossible to share: perhaps heavy smoke, a damaged radio
+tower, or a tall ridge prevents communications between the air and
+ground. In these scenarios, rigid enforcement of the safety policy
+would prevent airtankers from operating.
 
 This scenario exemplifies a classic tradeoff between opposing goals:
 system \emph{safety} and system \emph{availability} (or
@@ -363,7 +365,7 @@ bound. An exemplary liveness property might be the following:
   PBS, the Chief of Flight Operations for Cal Fire cited 20
   \mbox{minutes} as the response time for aerial firefighting units
   within designated responsibility areas
-  \cite{2021:aerialfirefighting}} of receiving a request from an
+  \cite{2021:aerialfirefighting}.} of receiving a request from an
   incident commander.
 \end{quote}
 
@@ -578,13 +580,13 @@ more critical information.
 The Communications Program of the Civil Air Patrol (a civilian
 auxiliary of the U.S. Air Force) is sometimes deployed to provide
 communications for firefighters on the ground using airplane-mounted
-radio repeaters. Air-based repeaters are better than scheme in the
-previous paragraph as they do not require a human to receive and then
-manually re-transmit information. That is, this form of relaying is
-\emph{transparent}. In this future, this sort of service could be
-provided autonomously by base stations mounted to unmanned aerial
-vehicles (UAVs), which might perform additional functions such as
-tracking the fire perimeter.
+radio repeaters. Air-based repeaters are better than the ``telephone''
+scheme in the previous paragraph as they do not require as much human
+intervention to receive and re-transmit information. That is, this
+form of relaying is more \emph{transparent}. In this future, this sort
+of service could be provided autonomously by base stations mounted to
+unmanned aerial vehicles (UAVs), which might perform additional
+functions such as tracking the fire perimeter.
 
 In Section \ref{sec:networking} we imagine a resilient ad-hoc digital
 network built from handheld and ground- and air-vehicle-mounted
@@ -669,19 +671,25 @@ separates it from the everyday internet of things, is ``the
 adversarial nature of the environment.'' To some extent this adversial
 behavior is common also to disaster response. We previously cited a
 real-world example of a critical communications station destroyed by
-wildfire, perhaps not unlike an attack by enemy forces.
+wildfire, perhaps not unlike an attack by enemy forces. In a video
+interview with a member of the volunteer rescue group Cajun Navy
+\citationneeded, a volunteer indicated it was very common to hear
+false rumors, for example that gunshots were being fired at rescuers
+in a particular area. Whether malicious or well-intentioned, but the
+proliferation of false information in this chaotic environment can
+also be considered a kind of adversarial behavior.
 
-Lest we overstate the similarities between a battlefield environment
-and civil disaster response, a distinctive feature of the latter is a
-greater emphasis on the preservation of scarce network resources. More
-so than a tactical military unit, a group of (say) volunteer
-firefighters has to make do with off-the-shelf equipment rather than
-purpose-built, best in class hardware like sophisticated satellite
-links. Dedicated logistical support, and even things like allocated
-radio frequencies, will likely be in shorter supply, while adverse
-conditions like inclement weather will be almost guaranteed. Therefore
-we expect a complex interaction between the high-level needs of
-distributed applications and low-level concerns about network
+We loosely conjecture that communications in disaster response
+environments are even less reliable than in the battlefield, and they
+may require a greater emphasis on the preservation of scarce network
+resources. More so than a tactical military unit, a group of (say)
+volunteer firefighters has to make do with off-the-shelf equipment
+rather than purpose-built, best in class hardware like sophisticated
+satellite links. Dedicated logistical support, and even things like
+allocated radio frequencies, will likely be in shorter supply, while
+adverse conditions like inclement weather will be almost
+guaranteed. We expect a complex interaction between the high-level
+needs of distributed applications and low-level concerns about network
 resources. This is because only the applications have enough
 information to determine which data is the most important and must be
 shared with whom first, while only the network-level protocols have
@@ -689,11 +697,11 @@ enough information and control to make prudent use of scarce network
 availability. In contravention to the common wisdom that applications
 should be relatively blind to network considerations---or conversely
 that network protocols ought to be transparent to applications---our
-setting calls for mechanisms allowing the two layers to have some
-influence over each other. This interaction between the network and
-applications will be considered in more detail in Sections
-\ref{sec:networking}, \ref{sec:continuous-consistency}, and
-\ref{sec:data-fusion}.
+setting calls for mechanisms allowing the two layers to have what
+might be a great deal of influence over the other. This interaction
+between the network and applications will be considered in more detail
+in Sections \ref{sec:networking}, \ref{sec:continuous-consistency},
+and \ref{sec:data-fusion}.
 
 To give an example, a central data fusion center may be used to detect
 and alert responders to a fire that has accidentally moved beyond a
@@ -859,13 +867,13 @@ precisely synchronized clocks.
 
 Clock drift can be corrected for using, for instance, signals from GPS
 satellites, but for example in the wildfire setting GPS signals are
-not reliably available. Protocols like the Network Time Protocol (NTP)
-\cite{rfc1119} try to bring local clocks into synchronization with
-respect to authoritative clocks, typically to within 100ms even over a
-somewhat challenged internet connection, but this may not extend to
-highly chaotic networking environments such as ours. For such reasons
-we do not assume typical corrective measures will be able to reliably
-synchronize the clocks in our system with great precision.
+not necessarily available. Protocols like the Network Time Protocol
+(NTP) \cite{rfc1119} try to bring local clocks into synchronization
+with respect to authoritative clocks, typically to within 100ms even
+over a somewhat challenged internet connection, but this may not
+extend to highly chaotic networking environments such as ours. For
+such reasons we do not assume typical corrective measures will be able
+to reliably synchronize the clocks in our system with great precision.
 
 Fortunately, what seems most important about time for many purposes is
 that \emph{the future cannot influence the past} \cite{1989mattern}, and
@@ -2240,8 +2248,7 @@ We can now define causally consistent executions of memory operations.
   \caption{PLACEHOLDER: Causally consistent and inconsistent executions}
   \label{fig:smEx3}
 \end{figure}
-
-\afterpage{\clearpage}
+\clearpage
 
 \subsubsection{CAP-availability of Causal Consistency}
 \label{the-cap-theorem}
@@ -2310,117 +2317,306 @@ about how far apart replicas of the same data may diverge, which makes
 this model too weak for the kinds of safety-related applications we
 have in mind.
 
-\section{Resilient Network Architectures}
-\label{sec:networking}
+\section{Timestamped Anti-entropy}
 
-A priori, a network may not deliver a message at all. Alternatively it
-might deliver the message multiple times, for example if a device is
-unaware that a message has already been delivered. In either case, the
-network itself does not alert the sender or receiver to the fact---the
-responsibility for detecting such conditions belongs to the sorts of
-protocols considered here and in Section \ref{sec:networking}.
+\newcommand{\ack}[2]{\textsf{ack}_{#1}\left(#2\right)}
+\newcommand{\summary}[2]{\textsf{summary}_{#1}\left(#2\right)}
+\newcommand{\summaryVec}[2]{\textsf{summary}_{#1}}
+\newcommand{\commitline}[1]{\textsf{commit}_{#1}}
+\newcommand{\globalcommit}{\textsf{globalcommit}}
+\newcommand{\knowncommit}[1]{\textsf{purgeline}_{#1}}
+\newcommand{\WL}[1]{\textsf{WL}_{#1}}
+\newcommand{\WLat}[2]{\textsf{WL}_{#1}\left(#2\right)}
+\newcommand{\W}{\textbf{\textsf{Writes}}}
+\newcommand{\Unseen}[1]{\textsf{Unseen}_{#1}}
+\newcommand{\UnseenEst}[2]{\textsf{EstUnseen}_{#1}{\left(#2\right)}}
+\newcommand{\AllProc}{\mathcal{P}}
+\newcommand{\currenttime}[1]{\textsf{currenttime}_{#1}}
 
-If we were to inspect the network blackbox, we would expect to find
-so-called ``transport'' protocols like TCP\citationneeded being used
-to provide the abstraction of reliable delivery over an otherwise
-unreliable network. For example, they might add metadata to messages
-that allow the receiver to arrange them in their intended order,
-discard duplicates, and verify their integrity. Transport protocols
-might also handle retranmission when messages become corrupted in
-transit. We consider these kinds of low-level details in Section
-\ref{sec:networking}; for now, one could say we are working at a level
-of abstraction above the transport layer. Note that transport
-reliability mechanisms contribute to the latency in passing messages,
-so they cannot solve the problems under consideration in this section.
+In this section we summarize Golding's timestamped anti-entropy (TSAE)
+protocol for eventual consistency. Each process sends messages in the
+form of a multicast, i.e. to the entire group rather than individual
+processes. The goal of the protocol is to ensure that every node
+eventually learns about every message. Depending on implementation
+details, the protocol can ensure that messages are delivered to
+applications in FIFO, total, or causal order.
 
-\subsection{Ad-hoc networking}
-\label{ad-hoc-networking}
+In Section \ref{} we will consider the specific scenario where these
+messages contain to operations on a database, where the TSAE protocol
+is used for database replication, but in general the meaning of a
+message is independent of the TSAE protocol itself.
 
-\subsubsection{Physical communications}
-\label{physical-communications}
+In this section we make no prescription as to when anti-entropy
+sessions take place. In some scenarios anti-entropy can be done by
+randomly selecting partners at random times. In Section \ref{}, where
+we use TSAE for database replication, we will consider
+\emph{compulsory} anti-entropy sessions which must be performed at
+specific times to enforce to replica consistency requirements.
 
-The details of the physical communication between processes is outside
-the scope of this memo. We make just a few high-level observations about
-the possibilities, as the details of the network layer are likely to
-have an impact on distributed applications, such as the shared memory
-abstraction we discuss below and in Section
-\ref{sec:continuous-consistency}. For such applications, it may be
-important to optimize for the sorts of usage patterns encountered in
-real scenarios, which are affected by (among other things) the low-level
-details of the network.
+We are interested in application-level ``messages'', which do not
+correspond directly to network messages in Section
+\ref{sec:background}. In this section a message always refers to some
+application and not to a network packet. Indeed, application-level
+messages are delivered in entire batches rather than individually. A
+batch of messages may be sent over the network with one or multiple
+network messages.
 
-The \emph{celluar} model (Figure \ref{fig:centralized}) assumes nodes
-are within range of a powerful, centralized transmission station that
-performs routing functions. Message passing takes place by transmitting
-to the base station (labeled \(R\)), which routes the message to its
-destination. Such a model could be supported by the ad-hoc deployment of
-portable cellphone towers transported into the field, for instance.
+\subsection{TSAE with synchronized clocks}
 
-The \emph{ad-hoc} model (Figure \ref{fig:decentralized}) assumes nodes
-communicate by passing messages directly to each other. This requires
-nodes to maintain information about things like routing and the
-approximate location of other nodes in the system, increasing complexity
-and introducing a possible source of inconsistency. However, it may be
-more workable given (i) the geographic mobility of agents in our
-scenarios (ii) difficult-to-access locations that prohibit setting up
-communication towers (iii) the inherent need for system flexibility
-during disaster scenarios.
+Each process $P_i$ has access to an approximately synchronized physical clock
+The data structures maintain by each process:
 
-\begin{figure}[h]
-  \centering
-  \begin{subfigure}[b]{0.48\textwidth}
+\begin{itemize}
+\item The \emph{message log}, a queue of timestamped messages received by the host
+\item The \emph{summary} vector, containing a \emph{physical} clock value for each host
+\item The \emph{acknowledgement} vector,\ an additional set of $n$ clock values
+\end{itemize}
+
+The summary vector is much like the vector clocks of Section \ref{},
+except they store physical timestamps rather than logical ones. That
+is to say, whenever $P$ timestamps some event it reads the current
+physical time. As usual, summary vectors will be piggybacked used by
+the receiver to update their vector pointwise.
+
+The message log contains a queue of the messages seen by $P$ sent by
+any process.
+
+%\textbf{Invariant}: If the message log of $A$ contains a message with
+%timestamp $(B, t)$, then it also contains every message whose
+%timestamp is $(B, t')$ where $t' < t$.
+
+
+\begin{description}
+\item[Coverage Property] $A$ has seen all from $B$ whose timestamps are less
+  than the maximum timestamp of any message $A$ received from $B$
+  \[ \WLat{A}{B} \overset{covg.}{=} \{w \in \WLat{B}{B} | w.t \leq \summary{A}{B} \} \]
+\item[Acknowledgement Property] $A$'s commit line is less than or equal to the minimum value in $A$'s summary vector. It's ackowledgement entry for $B$ is a lower bound estimate of $B$'s commit line.
+  \begin{align*}
+    \ack{A}{A} &\overset{ack}{\leq} \min_{i \in \AllProc} \left(\summary{A}{i}\right) \\
+    \ack{A}{B} &\overset{ack}{\leq} \ack{B}{B}
+  \end{align*}
+\end{description}
+
+As a corollary, all messages in $\WLat{A}{A}$ (i.e. all the ones
+originating at $A$) have a timestamp less than
+$\summary{A}{A}$. Whenever the TSAE protocol needs to read the value
+of $\summaryVec{A}$, it first updates $\summary{A}{A}$ to
+$\currenttime{A}$. The key property of $\summary{A}{A}$ is that it
+always greater than the maximum timestamp in $\WLat{A}{A}$. It is also
+less than $\currenttime{A}$---otherwise a newly message accepted would
+be timestamped with $\currenttime{A}$ and violate the previous
+inequality.
+
+For all intents and purposes $\ack{A}{A}$ is the minimum value
+timestamp in the summary vector of $A$. For implementors, it would
+suffice that $\ack{A}{A}$ is always less than this value to avoid
+constantly iterating over the summary vector to compute the minimum,
+as long as $\ack{A}{A}$ is periodically updated.
+
+\newpage
+\begin{landscape}
+  \begin{figure}%For some reason this empty figure adds vertical whitespace that makes the next figure positioned similarly to the ones that follow it.
+  \end{figure}
+  \begin{figure}[h]
     \centering
-    \includegraphics[width=\textwidth]{images/Centralized.png}
+    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE1.png}
+    \caption{TSAE at time $t=1$. $A$ has originated a single message with timestamp $t=1$, but $B$ and $C$ have not received it.}
+    \label{fig:tsae1}
+  \end{figure}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE2.png}
+    \caption{TSAE at time $t=2$. $B$ and $C$ have both accepted messages with timestamp $t=2$.}
+    \label{fig:tsae2}
+  \end{figure}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE3.png}
+    \caption{TSAE at time $t=3$. $B$ has accepted another message with timestamp $t = 3$. At this moment we assume $A$ and $B$ initiate an anti-entropy session and exchange summary vectors $\langle 3,0,0\rangle$ and $\langle 0,3,0 \rangle$, which they use to determine which messages have not been seen by the other, shown in shaded boxes.}
+    \label{fig:tsae3}
+  \end{figure}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE4.png}
+    \caption{TSAE at time $t=4$. $A$ and $B$ have finished their TSAE session. Concurrently, $B$ accepted a new message with timestamp $t=4$. Neither $A$ nor $B$ can update their commit line past $0$, because they both contain $\summary{}{C} = 0$, indicating they have not seen any messages from $C$. At this moment we assume $A$ and $C$ initiate a TSAE session and decide to exchange the shaded messages.}
+    \label{fig:tsae4}
+  \end{figure}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE5.png}
+    \caption{TSAE at time $t=5$. $A$ and $C$ have finished their TSAE session. While $A$ was sending messages to $C$ it also accepted a new message with timestamp $t=5$. $A$ and $C$ can both update their commit lines to $3$, because they have seen all messages with timestamps less than or equal to $3$. However, their purge lines remain at $0$, because their acknowlegment vectors satisfy $\ack{\!}{B} = 0$, indicating their (accurate) estimate of $B$'s commit line. In particular, it would be unsafe for them to purge the message with stamp $(C, 2)$ because then $B$ would never receive it. At this moment we assume $B$ and $C$ initiate a TSAE session and decide to exchange the shaded messages.}
+    \label{fig:tsae5}
+  \end{figure}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE6.png}
+    \caption{TSAE at time $t=6$. $A$ accepted a new message. $B$ and $C$ have finished their TSAE session. $B$ and $C$ can both update their commit lines to $4$, because they know they have seen all messages with timestamp less than $4$. However, their purge lines remain at $3$, because their acknowlegment vectors satisfy $\ack{}{A} = 3$, and in particular they cannot purge the message $(B, 4)$ because $A$ has not seen it. $A$ does not purge any messages, because it underestimates $B$'s commit line as $\ack{A}{B} = 0$, so $A$ believes it's possible that $B$ has not received $(C, 2)$.}
+    \label{fig:tsae6}
+  \end{figure}
+
+\begin{comment}
+  \begin{figure}[h]
+    \centering
+  \begin{subfigure}[b]{0.5\textwidth}
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/tsae/Process A Message Log.png}
     \caption{Cellular network topology}
     \label{fig:centralized}
   \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.48\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \centering
-    \includegraphics[width=\textwidth]{images/Decentralized.png}
+    \includegraphics[width=0.9\textwidth]{images/tsae/Process B Message Log.png}
     \caption{Ad-hoc network topology}
     \label{fig:decentralized}
   \end{subfigure}
-  \caption{Network topology models for geodistributed agents. Edges represent communication links (bidirectional for simplicity).}
+  \begin{subfigure}[b]{0.5\textwidth}
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/tsae/Process B Message Log.png}
+    \caption{Ad-hoc network topology}
+    \label{fig:decentralized}
+  \end{subfigure}
+  \caption{States of processes $A$ and $B$ before an anti-entropy session}
   \label{fig:nettopology}
 \end{figure}
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/tsae/Process A Message Log.png}
+    \caption{Cellular network topology}
+    \label{fig:centralized}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.5\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{images/tsae/Process B Message Log.png}
+    \caption{Ad-hoc network topology}
+    \label{fig:decentralized}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.5\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{images/tsae/Process B Message Log.png}
+    \caption{Ad-hoc network topology}
+    \label{fig:decentralized}
+  \end{subfigure}
+  \caption{States of processes $A$ and $B$ before an anti-entropy session}
+  \label{fig:nettopology}
+\end{figure}
+\newpage
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/tsae/Process A Message Log.png}
+    \caption{Cellular network topology}
+    \label{fig:centralized}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.5\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{images/tsae/Process B Message Log.png}
+    \caption{Ad-hoc network topology}
+    \label{fig:decentralized}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.5\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{images/tsae/Process B Message Log.png}
+    \caption{Ad-hoc network topology}
+    \label{fig:decentralized}
+  \end{subfigure}
+  \caption{States of processes $A$ and $B$ before an anti-entropy session}
+  \label{fig:nettopology}
+\end{figure}
+\end{comment}
+\end{landscape}
+\clearpage
 
-One can also imagine hybrid models, such as an ad-hoc arrangement of
-localized cells. In general, one expects more centralized topologies to
-be simpler for application developers to reason about, but to require
-more physical infrastructure and support. On the other hand, the ad-hoc
-model is more fault resistant, but more complicated to implement and
-potentially offering fewer assurancess about performance. In either
-case, higher-level applications such as shared memory abstractions
-should be tuned for the networking environment. It would be even better
-if this tuning can take place dynamically, with applications
-reconfiguring manually or automatically to the particulars of the
-operating environment. This requires examining the relationship between
-the application and networking layers, rather than treating them as
-separate blackboxes.
 
-\subsubsection{Delay-tolerant networking}
-\label{ssec:delay-tolerant-networking}
+\subsection{Properties of TSAE}
 
-\subsection{Ad-hoc DTNs}
-\label{ad-hoc-dtns}
-An interesting possibility is for the \emph{network} to automatically
-configure itself to the quality-of-service needs of the application. For
-example, a client that receives a lot of requests may be marked as a
-preferred client and given higher-priority access to the network. If UAV
-vehicles can be used to route messages by acting as mobile transmission
-base stations, one can imagine selecting a flight pattern based on
-networking needs. For example, if the communication between two
-firefighting teams is obstructed by a geographical feature, a UAV could
-be dispatched to provide overhead communication support. Such an
-arrangement could greatly blur the line between the networking and
-application layers.
+\begin{definition}
+  We provide a couple shorthand definitions
+\begin{description}
+  \item[Global writes] The set of all writes submitted to any replica
+    \[ \W \equiv \bigcup_{i \in \AllProc} \WL{A}\]
+  \item[Unseen Writes] The set of global writes not seen by a particular replica
+    \[\Unseen{A} \equiv \W \setminus \WL{A} \]
+  \item[Estimated Unseen Writes] $A$'s estimate of writes unseen by $B$
+    \[\UnseenEst{A}{B} \equiv \{w \in \WL{A} | w.t > \ack{A}{B} \} \]
+  \item[Commit line] The commit line at $A$ is $A$'s own
+    acknowledgement timestamp and provides a lower bound estimate of
+    messages seen by $A$
+    \[\commitline{A} \equiv \ack{A}{A}\]
+  \item[Global commit line] The global commit line is the minimum
+    value of any process's ackowledgement timestamp and provides an
+    upper bound of messages seen by anyone
+    \[ \globalcommit \equiv \min_{i \in \AllProc} \left( \commitline{A} \right) \]
+  \item[Purge line] $A$'s purge line is $A$'s upper bound estimate of the global commit line
+    \[ \knowncommit{A} \equiv \min_{i \in \AllProc} \left( \ack{A}{i} \right) \]
+  \end{description}
+\end{definition}
 
-\subsection{Software-defined networking}
-\label{software-defined-networking}
 
-\subsection{Verification of networking protocols}
-\label{verification-of-networking-protocols}
+%    \item[Acknowledgement Property] $A$'s acknowledgment entry for $B$ is a lower bound estimate of $B$'s commit line
+%      \[\ack{A}{B} \leq \ack{B}{B} \equiv \commitline{B}\]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{corollary}
+  \label{cor:commitline}
+  $A$ has seen all writes with timestamps less than or equal to its commit line. That is,
+  \[w.t \leq \commitline{A} \implies w.t \in \WL{A}.\]
+\end{corollary}
+\begin{proof}
+  Consider a message $w$ originating at $B$ with timestamp $w.t \leq \commitline{A}$.
+  Then \[w.t \leq  \commitline{A} \equiv \ack{A}{A} \overset{ack}{\leq} \min_{i \in \AllProc}\left(\summary{A}{i}\right) \leq \summary{A}{B}.\]
+  By the coverage property, $w.t \in \WLat{A}{B}$.
+\end{proof}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In particular, a message with a timestamp less than or equal to $\globalcommit$ has been seen by everyone.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{corollary}
+  \label{cor:purgeline}
+  $A$'s purgeline is a lower bound of the global commit line.
+\end{corollary}
+\begin{proof}
+  First we observe that $A$'s purgeline is a lower bound of every process's commit line
+  \[\knowncommit{A} \equiv \min_{i \in \AllProc} \left( \ack{A}{i} \right) \leq \ack{A}{B} \overset{ack}{\leq} \commitline{B}
+  \]
+  But the global commit line is the minimum (greatest lower bound) of all commit lines, so we have
+  \[ \knowncommit{A} \leq \globalcommit. \]
+\end{proof}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{corollary}[Log purging]
+  \label{cor:purge}
+  $A$ can safely discard from its write log all messages whose timestamp is less than or equal to $\knowncommit{A}$.
+\end{corollary}
+\begin{proof}
+  We have $w.t \leq \knowncommit{A} \leq \commitline{B} \implies w \in \WL{B}$ by combining Corollaries \ref{cor:pugreline} and \ref{cor:commitline}.
+  Consequently, $w$ has been seen by every other process and will not be exchanged during any future anti-entropy sessions.
+\end{proof}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{corollary}
+  \label{cor:unseenest}
+  $A$'s estimate of writes unseen by $B$ form an over-approximation of $B$'s true unseen writes.
+\end{corollary}
+\begin{proof}
+  Consider a message $w$ sent by $C$ (where possibly $C = A$ or $C = B$). We must show
+  $w \in \Unseen{B}$ implies $w \in \UnseenEst{A}{B}$.  If $w \in \left(\W \setminus \WL{B}\right)$ then we have
+  \[ \summary{B}{C} < w.t\]
+  (Otherwise $w \in \WLat{B}{C} \subset \WL{B}$ by the coverage property.)
+  We conclude by the following inequality.
+  \[\ack{A}{B} \overset{ack}{\leq} \ack{B}{B} \overset{ack}{\leq} \min_{i \in \AllProc} \left(\summary{B}{i}\right) < \summary{B}{C} < w.t\]
+\end{proof}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The contrapositive of Corollary \ref{cor:unseenest} is that $A$'s
+write log contains a message with timestamp $w.t \leq \ack{A}{B}$,
+then $A$ knows $B$ has already received this message.
+
 
 \section{Continuous Consistency}
 \label{sec:continuous-consistency}
@@ -2436,26 +2632,34 @@ safety-related nature of our system, we would like to do better than
 this.
 
 This section summarizes the key ideas behind \emph{continuous}
-consistency. We specifically outline the conit (``consistency unit'')
-model proposed by Yu and Vahdat \citationneeded. Continuous
-consistency is motivated by the observation that for many real-world
-applications, it evidently makes sense to work with data that is
-consistent up to some error bound $\epsilon \geq 0$. It is not
-immediately obvious what this means formally, but loosely speaking one
-hopes to measure the difference between the user-observed value of a
-database operation and the value that would have been returned if we
-were maintaining strong consistency. By relaxing our error bound, in
-other words by increasing $\epsilon$, we hope sacrifice some
-consistency to gain some availability, unlike the CAP theorem which
-apparently forces a choice of one or the other. Thus, we shift from
-thinking about consistency as an all-or-nothing condition, towards
-consistency as a quantiative upper bound on inconsistency.
+consistency, particularly the conit (``consistency unit'') model
+proposed by Yu and Vahdat
+\cite{2000tact,2000tactalgorithms,10.5555/1251229.1251250,DBLP:conf/icdcs/YuV01,2002tact},
+designed to strike a balance between generality and
+practicality. Continuous consistency is motivated by the observation
+that for many real-world applications, it is evidently acceptable to
+work with data that is only consistent to within some error bound
+$\epsilon \geq 0$. It is not immediately obvious what this means
+formally, but loosely speaking one hopes to measure the difference
+between the user-observed value of a database operation and the value
+that would have been returned if we were maintaining strong
+consistency. By allowing replicas to diverge by some amount, the
+thought goes, we sacrifice strong consistency but gain additional
+flexibility in choosing how often and with which other replicas we
+synchronize our data. In terms of the CAP theorem, by increasing
+$\epsilon$ and thus relaxing our error bound, we trade consistency for
+availability, but without abandoning all guarantees about the relative
+correctness of values observed by the user. Thus, we shift from
+consistency and availability as all-or-nothing conditions, as in CAP,
+towards viewing them as measurable values that can be traded along a
+\emph{spectrum} of possible configurations.
 
 A quantitative definition of consistency seems specific to each
 application, but ideally our consistency model can be defined and
 implemented in an application-generic manner. Thus we have a few
 requirements.
 \begin{itemize}
+  \tightlist
 \item A mechanism to measure (in)consistency of data items
 \item A mechanism for applications to set upper bounds on the allowed
   inconsistency of each item
@@ -2473,16 +2677,18 @@ protocols can be used to enforce.
 We assume a set $\{P_i\}_{i \in I}$ of processes that coordinate to
 replicate a database $D$. Note that we read ``database'' very loosely
 to mean any kind of data items that can be updated in response to user
-requests.
-
+requests---our ownly real requirement is that it is possible to roll
+back (undo) updates if necessary. We also make a couple simplifying
+assumptions about our system.
 \begin{itemize}
+  \tightlist
 \item The database is replicated in whole at each site.
 \item The group members are fixed in advance. Otherwise we would
   require a group-membership protocol to update the set of
   participants dynamically.
 \end{itemize}
 
-The application could be essentially anything---relevant examples for
+The application could be essentially anything. Relevant examples for
 our environment could be a group chat application, a system for
 requesting and dispatching resources, or a system for disseminating
 information about weather and fire conditions. Clients can submit
@@ -2490,8 +2696,9 @@ requests to read or write (or update) values from the database at any
 site. However, the application itself never updates the database
 directly, but instead submits requests to a lower-level ``middleware''
 that is logically situated below the application but above the network
-transport layer (see Section \ref{ssec:shared-memory}). The middleware
-mediates between the application and the local database.
+transport layer (see Section \ref{ssec:shared-memory}). The role of
+the middleware is to mediate between the application and the local
+database.
 
 When the application submits a database operation (read or write), the
 middleware does not necessarily respond to the request
@@ -2508,7 +2715,7 @@ Separately from the local database itself, the middleware maintains a
 \emph{write log} that stores a history of recent write requests it has
 seen.
 
-\subsection{Measuring consistency on conits}
+\subsection{Dimensions of consistency}
 \label{measuring-consistency-on-conits}
 
 We discuss the three consistency dimensions and how they can be
@@ -2560,7 +2767,7 @@ The update rule is simple. When the real time.
   returns it to the user.
 \end{itemize}
 
-\paragraph{Order consistency}
+\subsubsection{Order consistency}
 \label{order-consistency}
 When the number of tentative (uncommitted) writes is high, TACT
 executes a write commitment algorithm. This is a \emph{pull-based}
@@ -2568,14 +2775,9 @@ approach which pulls information from other processes in order to
 advance \(P_i\)'s vector clock, raising the watermark and hence
 allowing \(P_i\) to commit some of its writes.
 
-\paragraph{Numerical consistency}
+\subsubsection{Numerical consistency}
 \label{numerical-consistency}
 
-\subsubsection{Enforcing inconsistency bounds}
-\label{enforcing-inconsistency-bounds}
-
-\paragraph{Numerical consistency}
-\label{numerical-consistency-1}
 We describe split-weight AE. Yu and Vahdat also describe two other
 schemes for bounding numerical error. One, compound AE, bounds absolute
 error trading space for communication overhead. In their simulations,
@@ -2583,16 +2785,6 @@ they found minimal benefits to this tradeoff in general. It is possible
 that for specific applications the savings are worth it. They also
 consider a scheme, Relative NE, which bounds the relative error.
 
-\paragraph{Order consistency}
-\label{order-consistency-1}
-
-\paragraph{Real time consistency}
-\label{real-time-consistency-1}
-
-\subsection{Variations and additional features}
-
-One can imagine various ways that the conit model can be augmented
-with additional capabilities.
 
 \paragraph{Dynamic bounds}
 Because real-time staleness and order error are bounded by pull
@@ -2605,6 +2797,10 @@ error bounds requires a consensus mechanism that allows informing
 other processes of any updates to these bounds. The application cannot
 guarantee the new consistency bound will be enforced until it knows
 that all other processes have seen the newly updated bounds.
+
+\subsection{Variations and additional features}
+One can imagine various ways that the conit model can be augmented
+with additional capabilities.
 
 \paragraph{Dynamic conits}
 Mechanism for conits to be created. Because the application (whose
@@ -2839,79 +3035,6 @@ consistency of read accesses. The TACT framework then enforces these
 consistency levels.
 
 
-\section{Data Fusion}
-\label{sec:data-fusion}
-
-\cite{1999:lucien-datafusion}
-
-Strong consistency models provide the abstraction of an idealized global
-truth. In the case of conits, the numerical, commit-order, and real-time
-errors are measured with respect to an idealized global state of the
-database. This state may not exist on any one replica, but it is the
-state each replica would converge to if it were to see all remaining
-unseen updates.
-
-We consider distributed applications that receive data from many
-different sources, such as from a sensor network (broadly defined). It
-will often be the case that some sources of data should be expected to
-agree with each other, but they may not. A typical scenario, we want to
-integrate these data into a larger model of some kind. Essentially take
-a poll, and attempt to synthesize a global picture that agrees as much
-as possible with the data reported from the sensor network.
-
-Here, we need a consistency model to measure how successful our attempts
-are to synthesize a global image. And to tell us how much our sensors
-agree. Ideally, we could use this system to diagnose disagreements
-between sensors, identifying sensors that appear to be malfunctioning,
-or to detect abberations that necessitate a response.
-
-\subsection{Fusion centers}
-\label{fusion-centers}
-
-\subsubsection{Sheaf theory}
-\label{sheaf-theory}
-
-\subsubsection{Introduction to presheaves}
-\label{introduction-to-presheaves}
-
-\begin{definition}
-  A \emph{partially order-indexed family of sets} is a family of sets indexed by a partially-ordered set,
-  such that orders between the indices correspond to functions between the sets.
-\end{definition}
-
-We can also set \((P, \leq)\) \emph{acts on} the set
-\(\{S_i\}_{i \in I}\).
-
-\begin{definition}
-  A \emph{semiautomaton} is a monoid paired with a set.
-\end{definition}
-
-This is also called a \emph{monoid action} on the set.
-
-\begin{definition}
-  A copresheaf is a *category acting on a family of sets*.
-\end{definition}
-
-\begin{definition}
-  A presheaf is a *category acting covariantly on a family of sets*.
-\end{definition}
-
-\subsubsection{Introduction to sheaves}
-\label{introduction-to-sheaves}
-
-To be written.
-
-\subsubsection{The consistency radius}
-\label{the-consistency-radius}
-
-To be written.
-
-\section{Conclusion}
-\label{conclusion}
-
-\label{sec:conclusion}
-
-To be written.
 
 \section*{Bibliography}\label{bibliography}
 \addcontentsline{toc}{section}{Bibliography}
