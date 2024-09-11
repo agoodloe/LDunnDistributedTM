@@ -1,4 +1,4 @@
-%\newcommand{\msend}[1]{m_{#1}^{\textrm{send}}}
+b%\newcommand{\msend}[1]{m_{#1}^{\textrm{send}}}
 %\newcommand{\mrecv}[1]{m_{#1}^{\textrm{recv}}}
 %\newcommand{\msend}[1]{\mathsf{send}\left({m_{#1}}\right)}
 %\newcommand{\mrecv}[1]{\mathsf{recv}\left({m_{#1}}\right)}
@@ -10,6 +10,7 @@
 \newcommand{\memreadVal}[2]{\mathsf{R}\!\left(#1, #2\right)}
 \newcommand{\memwrite}[2]{\mathsf{W}\!\left(#1, #2\right)}
 \newcommand{\sync}[2]{#1 || #2}
+\newcommand{\syncts}[2]{#1 {\textrm{\texttt{\#}}} #2}% Similar timestamps
 %\newcommand{\timestampnegativespace}{\!}
 \newcommand{\timestampnegativespace}{}
 \newcommand{\vectoropen}{\begingroup\setlength\arraycolsep{1pt}}
