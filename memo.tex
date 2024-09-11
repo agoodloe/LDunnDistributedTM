@@ -723,7 +723,8 @@ building applications relevant to the scenarios described in Section
 \ref{sec:disaster-response}, aiming to highlight obstacles and
 strategies for developing distributed systems that can endure the
 delays and disruptions inherent to these communication-challenged
-environments.
+environments. Readers wishing for a condensed summary of the main
+highlights may skip to Section \label{ssec:background-summary}.
 
 At its core, a distributed system is a network of independent entities
 working together to solve problems too complex for any one part to
@@ -760,7 +761,6 @@ define a distributed computing system as:
 This stands in contrast to a centralized computing environment, where
 processes can seamlessly share data through common memory, and memory
 access times are considered negligible.
-
 
 For our use cases, message-passing latencies are not only significant
 but unpredictable and difficult to control. As a result, we can safely
@@ -833,16 +833,17 @@ measure and enforce a key relation between events, this being their
 
 \subsection{Message Passing and Causality}
 \label{ssec:message-passing}
-We model a distributed system abstractly as a set
-\(\mathcal{P} = \{P_i\}_{i\in I}\) of processes which undergo atomic
-(indivisible) state changes known as \emph{events}. Events are divided
-into three types: internal events, representing state changes inside a
-single process, and send and receive events corresponding to messages
-passed between processes. It may be helpful to imagine processes as
-radios and messages as audio broadcasts, though the framework we are
-using is abstract and applies to any kind of communication
-technology. To draw out the core issues surrounding messaging, the
-diagrams in this section do not depict any internal events.
+We model a distributed system abstractly as a fixed set
+$\mathcal{P} = \{P_1, P_2, \ldots P_n\}$ of \emph{processes} which
+undergo atomic (indivisible) state changes known as
+\emph{events}. Events are divided into three types: internal events,
+representing state changes inside a single process, and send and
+receive events corresponding to messages passed between processes. It
+may be helpful to imagine processes as radios and messages as audio
+broadcasts, though the framework we are using is abstract and applies
+to any kind of communication technology. To draw out the core issues
+surrounding messaging, the diagrams in this section do not depict any
+internal events.
 
 Throughout the section, processes and networks are opaque blackboxes,
 which concentrates our attention on the ramifications of unpredictable
@@ -975,7 +976,6 @@ Relations like $\sync{}{}$ that are reflexive and symmetric but
 not necessarily transitive are sometimes called \emph{compatibility
   relations}.
 
-
 \begin{figure}
   \begingroup
   \setlength\belowcaptionskip{4ex}
@@ -1012,6 +1012,7 @@ each event $e$, let $C(e)$ denote the timestamp attached to that
 event. The fundamental property we want to satisfy is that if $e$
 causally precedes $e'$, it should receive a lesser timestamp. This is
 called the clock consistency condition, commonly just called the clock condition.
+
 \begin{definition}
   A system of timestamps satisfies the \emph{clock consistency
   condition} if the following monotonicity property holds:
@@ -1090,25 +1091,18 @@ initialized to $0$. The clock follows two simple update rules:
   shown as labels on the message arrows.
 \end{example}
 
-Scalar clocks satisfy the clock condition
-\eqref{eq:mp}, which is observed by tracing the path of causality
-between related events and seeing that the clock is incremented at
-each step.
-%\begin{lemma}
-%  Scalar clocks satisfy $e \to e' \implies C(e) < C(e')$.
-%\end{lemma}
-However, they do not satisfy \eqref{eq:sc}.  While $e$ having a lesser
-timestamp than $e'$ rules out $e' \to e$, it does not imply
-$e \to e'$. For instance, in Figure
-\ref{fig:message-latencies-scalar-b}, $\msend{1}$ has a globally
-minimal timestamp value of $1$, but it does not causally precede all
-events with timestamps greater than $1$, or indeed any event except
-$\mrecv{1}$.
+Scalar clocks satisfy the clock condition \eqref{eq:mp}. This can be
+observed by tracing the path of causality between related events and
+seeing that the clock is incremented at each step. However, they do
+not satisfy \eqref{eq:sc}.  While $e$ having a lesser timestamp than
+$e'$ rules out $e' \to e$, it does not imply $e \to e'$. For instance,
+in Figure \ref{fig:message-latencies-scalar-b}, $\msend{1}$ has a
+globally minimal timestamp value of $1$, but it does not causally
+precede all events with timestamps greater than $1$, or indeed any
+event except $\mrecv{1}$.
 
 \subsubsection{Vector clocks}
 \label{sssec:vector-clocks}
-\newcommand{\vt}{\textrm{vt}}
-
 The strong clock condition \eqref{eq:sc} cannot hold either using
 scalar clocks or even synchronized physical clocks. This is because
 both mechanisms assign timestamps whose values form a total order---meaning any
@@ -1177,7 +1171,6 @@ These rules are more intuitively understood by demonstration.
   Figure \ref{fig:message-latencies-scalar} with vector timestamps.
 \end{example}
 
-
 For all $j \neq i$, $\vt_i[j]$ represents $P_i$'s \emph{estimate} of
 $P_j$'s local time, or $\vt_j[j]$. This estimate is always a lower
 bound, since $P_j$'s local time may advance without $P_i$'s knowledge,
@@ -1189,6 +1182,7 @@ $P_j$'s time without communicating directly with $P_j$.
 Vector timestamps are compared component-wise. This forms a partial
 order because one vector may be greater than another in some
 components but less than it in others.
+
 \begin{definition}[Vector comparison]
   Let $v, w$ be two vector clocks. We define the following relations:
   \begin{align*}
@@ -1207,6 +1201,7 @@ components but less than it in others.
  is justified by the fact that vector
 clocks satisfy \ref{eq:sc}, so these otherwise distinct notions will
 coincide.
+
 \begin{lemma}
   Vector clocks satisfy the strong clock consistency condition. That
   is, where $C(e)$ is the vector timestamp of an event, then
@@ -1266,7 +1261,6 @@ maximum of all other rows.
   \label{fig:message-latencies-matrix}
   \endgroup
 \end{figure}
-
 
 \begin{example}
   Figure \ref{fig:message-latencies-matrix} depicts the same events as
@@ -1345,14 +1339,6 @@ message is ready to be presented to the user, it is
 \emph{delivered}. By waiting to deliver some messages, we can ensure
 the stream of messages in order of their delivery satisfies particular
 guarantees.
-
-%to present the illusion that messages arrive in the right
-%order. Thus, we make a distinction between message \emph{receipt} and
-%\emph{delivery}. A message is received at a time determined by the
-%network, but it is not delivered until the process (which could be
-%something like a network protocol driver, a distributed middleware, or
-%a user-facing application) is able to enforce whatever ordering
-%guarantees it is meant to provide.
 
 \subsubsection{FIFO ordering}
 A modest requirement is the \emph{first-in, first-out} (FIFO)
@@ -1453,23 +1439,23 @@ corresponding receive events at $P_{\mathrm{dest}}$ must be monotonic
 with respect to causal precedence.
 
 \begin{example}
-Figure \ref{fig:message-ordering} demonstrates different message
-ordering conditions. We make a few observations for emphasis.
+  Figure \ref{fig:message-ordering} demonstrates different message
+  ordering conditions. We make a few observations for emphasis.
 
-\begin{itemize}
-  \tightlist
-\item \ref{fig:ordex-non-fifo} violates FIFO because messages $m_1$
-  and $m_2$ are both sent from $P_1$ to $P_2$, but the arrive in the wrong order.
-\item \ref{fig:ordex-co-1} satisfies CO and therefore FIFO. Messages
-  $m_1$ and $m_2$ arrive in the opposite order but they are sent to
-  different destinations.
-\item \ref{fig:ordex-non-co-1} violates CO because the send event of
-  $m_1$ happens before that of $m_3$ via the chain
-  $\msend{1} \to \msend{2} \to \mrecv{2} \to \msend{3}$ but
-  $\mrecv{3} \to \mrecv{1}$.
-\item \ref{fig:ordex-non-co-2} violates CO because it is equivalent to
-  \ref{fig:ordex-non-co-1} with the roles of $P_2$ and $P_3$ swapped.
-\end{itemize}
+  \begin{itemize}
+    \tightlist
+  \item \ref{fig:ordex-non-fifo} violates FIFO because messages $m_1$
+    and $m_2$ are both sent from $P_1$ to $P_2$, but the arrive in the wrong order.
+  \item \ref{fig:ordex-co-1} satisfies CO and therefore FIFO. Messages
+    $m_1$ and $m_2$ arrive in the opposite order but they are sent to
+    different destinations.
+  \item \ref{fig:ordex-non-co-1} violates CO because the send event of
+    $m_1$ happens before that of $m_3$ via the chain
+    $\msend{1} \to \msend{2} \to \mrecv{2} \to \msend{3}$ but
+    $\mrecv{3} \to \mrecv{1}$.
+  \item \ref{fig:ordex-non-co-2} violates CO because it is equivalent to
+    \ref{fig:ordex-non-co-1} with the roles of $P_2$ and $P_3$ swapped.
+  \end{itemize}
 \end{example}
 
 \subsection{Multicasting and Broadcasting}
@@ -1516,32 +1502,31 @@ causality along worldlines and message arrows.
 \end{figure}
 
 \begin{example}
-In Figure \ref{fig:broadcast-fifo-1}, causal order is violated. Imagine the following conversation:
-\begin{itemize}
-  \tightlist
-\item [$P_1$]: ``I need an ambulance at location A.''
-\item [$P_2$]: ``Understood, the last ambulance has been dispatched.''
-\end{itemize}
-However, $P_3$ receives $P_2$'s response before $P_1$'s request, resulting in this conflicting view:
-\begin{itemize}
-  \tightlist
-\item [$P_2$]: ``Understood, the last ambulance has been dispatched.''
-\item [$P_1$]: ``I need an ambulance at location A.''
-\end{itemize}
-From $P_3$'s perspective, $P_1$ appears to be requesting resources
-that are no longer available. The sort of conflict can lead to
-confusion, with requests being duplicated or going
-unanswered. Tracking causal order is crucial to avoid such resource
-misallocations.
+  In Figure \ref{fig:broadcast-fifo-1}, causal order is violated. Imagine the following conversation:
+  \begin{itemize}
+    \tightlist
+  \item [$P_1$]: ``I need an ambulance at location A.''
+  \item [$P_2$]: ``Understood, the last ambulance has been dispatched.''
+  \end{itemize}
+  However, $P_3$ receives $P_2$'s response before $P_1$'s request, resulting in this conflicting view:
+  \begin{itemize}
+    \tightlist
+  \item [$P_2$]: ``Understood, the last ambulance has been dispatched.''
+  \item [$P_1$]: ``I need an ambulance at location A.''
+  \end{itemize}
+  From $P_3$'s perspective, $P_1$ appears to be requesting resources
+  that are no longer available. The sort of conflict can lead to
+  confusion, with requests being duplicated or going
+  unanswered. Tracking causal order is crucial to avoid such resource
+  misallocations.
 \end{example}
 
-\paragraph{Total order broadcast}
-A total order ensures that all recipients receive the messages in the
-same order. Note that whatever the final order is, it is not required
-to satisfy any particular constraints except that all recipients agree
-on it. Such a model is appropriate when it is more important that
-everyone agrees on a common order of events but the order itself is
-not necessarily critical.
+A total order broadcast ensures that all recipients receive the
+messages in the same order. This order is not required to satisfy any
+particular constraints except that all recipients agree on it. Such a
+model is appropriate when it is more important that everyone agrees on
+a common order of events but the order itself is not necessarily
+critical.
 
 \begin{definition}[TO broadcast]
   \label{def:totalorderbroadcast} For any processes $P$ and $P'$ and
@@ -1728,16 +1713,16 @@ value.
   \label{fig:smEx2}
 \end{figure}
 
-Consider two features shown in Example
-\ref{exmpl:concurrentupdates}. First, there are three operations that
-write to the value $x$. For a period of time, $P_1$ and $P_2$ are both
-writing to location $x$ at the same time. Second, these operations are
-immediately followed by several read requests, whose return values are
-not shown in the diagram. A memory model answers the question, ``Which
-values might be returned by each of these read requests.'' Such a
-model would have to answer several questions, like the following ones:
+Consider two features shown in Example \ref{exmpl:concurrentupdates}.
+First, there are three operations that write to the value $x$. For a
+period of time, $P_1$ and $P_2$ are both writing to location $x$ at
+the same time. Second, these operations are immediately followed by
+several read requests, whose return values are not shown in the
+diagram. A memory model answers the question, ``Which values might be
+returned by each of these read requests.'' Such a model would have to
+answer several questions, like the following ones:
 \begin{enumerate}
-\item Do the read operations on $P_1$ and $P_2$ have to the same value?
+\item Do the read operations on $P_1$ and $P_2$ have to return the same value?
 \item Can the second read operation at $P_2$ return a different value
   than the first one?
 \item Is it ever possible for any of the $\memread{x}$ operations to
@@ -1767,7 +1752,7 @@ synchronized clocks, which is usually an infeasible assumption. We
 encountered this same challenge in Section \ref{ssec:causality}, where
 we were lead to define a global partial order (causal precedence),
 partly in reaction to the fact that we cannot use physical timestamps
-to arrange all systemwide into a total order. A roughly similar
+to arrange all systemwide events into a total order. A roughly similar
 concept, used in the DSM setting, is that of \emph{external
   order}. Intuitively, it is the partial order that orders
 non-overlapping events by their physical times, but does not assign an
@@ -1805,11 +1790,10 @@ acyclic graph (DAG).
 
 \subsection{Strong Consistency Models}
 \label{ssec:strong-consistency}
-This section considers the two major memory models usually considered
+This section considers the two major memory models usually said
 to provide ``strong'' consistency: linearizability and sequential
 consistency. Both models require that the global history aligns with
-(returns values consistent with) some sequential arrangement of system
-events, maintaining a shared understanding of which operations occur
+(read: returns values consistent with) some total sequential arrangement of the operations, with processes maintaining a shared understanding of which operations occur
 in which order. Where the models differ is in how they constrain which
 sequential arrangements are allowed.
 
@@ -1824,8 +1808,8 @@ instantaneously at some point between its invocation and response.''
 \cite{10.1145/78969.78972} The same condition is known by other names
 like atomic consistency, strict consistency, and external
 consistency. It means almost the same thing as strict serializability,
-except the latter terminology is specific to transactional databases
-and implies other database-related guarantees.
+except the latter terminology is used to discuss transactional
+databases and implies other database-related guarantees.
 
 More formally, a linearizable history is defined by three features.
 \begin{definition}[Linearizable history]
@@ -1850,36 +1834,38 @@ application. When only linearizable executions are permitted by the
 memory manager, the entire system is said to be linearizable.
 
 \begin{definition}[Linearizable system]
-  A DSM application is linearizable if all possible histories of the
-  system are linearizable according to Definition \ref{def:linearizable}.
+  A DSM application is linearizable if all possible executions of the
+  application are linearizable according to Definition \ref{def:linearizable}.
 \end{definition}
 
-Consider Figure \ref{fig:smEx2} again. If we assume this system
-linearizable, then the requirement of global agreement requires $P_1$
-and $P_2$ to agree on the order of write events. The requirement of
-consistency with external order means that $\memwrite{x}{4}$ must be
-ordered before $\memwrite{x}{3}$ and $\memwrite{x}{5}$, but the latter
-operations can occur in any order, as long as $P_1$ and $P_2$
-agree. They must return responses that are consistent with this common
-operating picture. This constrains the system to one of two
-possibilities: all the read operations return $3$, or they all return
-$5$. Note that linearizability leaves room for non-determinism in the
-order of $\memwrite{x}{3}$ and $\memwrite{x}{5}$.
+Consider Figure \ref{fig:smEx2} again. If the distributed system is
+using a linearizable memory manager, then the requirement of global
+agreement requires $P_1$ and $P_2$ to agree on the logical order of
+write events. The requirement of consistency with external order means
+that $\memwrite{x}{4}$ must be ordered before $\memwrite{x}{3}$ and
+$\memwrite{x}{5}$, but the latter operations can be logically
+sequenced in any order, as long as $P_1$ and $P_2$ agree. They must
+return responses that are consistent with this common operating
+picture, which constrains the system to one of two possibilities: all
+the read operations return $3$, or they all return $5$. These
+possibilities are illustrated in Figure \ref{fig:smEx3}.
 
-A more visually intuitive way of approaching linearizability is by
-defining it in terms of \emph{linearization points.}
+A visually intuitive way of approaching linearizability is by defining
+it in terms of \emph{linearization points.}
 
 \begin{definition}
   A \emph{linearization point} $t \in [\memstart{\Op}, \memstop{\Op}]$
   for an operation $\Op$ is a time between the event's invocation and
-  response at which time the operation appears to take effect in
-  whole and instantaneously.
+  response at which time the operation appears to take effect in whole
+  and instantaneously. A \emph{linearization} of a history is an
+  assignment of linearization points consistent with the values
+  returned by the operations.
 \end{definition}
 
-The two possible \emph{linearizations} of Figure \ref{fig:smEx1} are
-shown in Figure \ref{fig:smEx3}. Possible choices for linearization
-points are shown in yellow. Note that only the relative total order of
-linearization points is important.
+Figure \ref{fig:smEx3} shows the two possible linearizable executions
+of Figure \ref{fig:smEx2} along with consistent choice of
+linearization points shown in yellow.  shown in Figure
+\ref{fig:smEx3}.
 
 \begin{figure}
   %\setlength\belowcaptionskip{4ex}
@@ -1887,12 +1873,12 @@ linearization points is important.
     \centering
     \input{images/pgf/smEx3L1.pgf}
     \caption{A linearization where the read operations return 3}
-    \label{fig:smEx1L1}
+    \label{fig:smEx3-a}
   \end{subfigure}
   \begin{subfigure}{1\textwidth}
     \input{images/pgf/smEx3L2.pgf}
         \caption{A linearization where the read operations return 5}
-    \label{fig:smEx3L2}
+    \label{fig:smEx3-b}
   \end{subfigure}
   \caption{Two possible linearizations of Figure \ref{fig:smEx2} with linearization points shown in yellow}
   \label{fig:smEx3}
@@ -1915,21 +1901,10 @@ linear sequence.
   $H$.
 \end{definition}
 
-%Enforcing atomic consistency means that an access \(E\) at process
-%\(P_i\) cannot return to the client until every other process has been
-%informed about \(E\).
-
-%For many applications this is an unacceptably high penalty. A weaker
-% model that is still strong enough for most purposes is
-% \emph{sequential} consistency. This is an appropriate model if a
-% form of strong consistency is required, but the system is agnostic
-% about the precise physical time at which events start and finish,
-% provided they occur in a globally agreed upon order.
-
 Next we define \emph{program order}. This is a partial order among
-events that orders operations in the order they occur \emph{if they
-  occur in the same process}. Recall that because operations in a
-single process do not overlap, this definition is unambiguous.
+operations that imposes constraints on operations in the same
+process. Recall that because operations in a single process do not
+overlap, this definition is unambiguous.
 
 \begin{definition}[Program order]
   An operation $\Op^1$ precedes another operation $\Op^2$ in program
@@ -1945,14 +1920,6 @@ A sequentially consistent system guarantees that any history is
 consistent with some sequential history that respects \emph{program
   order}. Otherwise, the definition follows the same structure as that
 for linearizability.
-
-
-% When real-time constraints are not important, this provides
-% essentially the same benefits as linearizability. For example, it
-% allows programmers to reason about concurrent executions of programs
-% because the result is always guaranteed to represent some possible
-% interleaving of instructions, never allowing instructions from one
-% program to execute out of order.
 
 %\begin{definition}[Legal sequential history]
 %Let $H$ be a history of invocation/response events occurring on a set
@@ -1993,15 +1960,15 @@ for linearizability.
     \centering
     \input{images/pgf/smEx4S1.pgf}
     \caption{Sequentially consistent example where $P_1$ and $P_2$ read different values}
-    \label{fig:smEx3-a}
+    \label{fig:smEx4-a}
   \end{subfigure}
   \begin{subfigure}{1\textwidth}
     \input{images/pgf/smEx4S2.pgf}
     \caption{Sequentially consistent example where $P_2$ observes $x$ with a value of $4$}
-    \label{fig:smEx3-b}
+    \label{fig:smEx4-b}
   \end{subfigure}
   \caption{Sequentially consistent but nonlinearizable executions of Figure \ref{fig:smEx2}}
-  \label{fig:smEx3}
+  \label{fig:smEx4}
 \end{figure}
 \begin{figure}[p]
   %\setlength\belowcaptionskip{5ex}
@@ -2017,51 +1984,47 @@ for linearizability.
     \label{fig:smEx4S2}
   \end{subfigure}
   \caption{Two non-sequentially-consistent executions of Figure \ref{fig:smEx2}}
-  \label{fig:smEx4}
+  \label{fig:smEx4-alt}
 \end{figure}
 
 Visually, we can think of sequential consistency as organizing
 operations like beads on a string. The worldline of each process is
 like its own ``string,'' while the operations occurring in that
 process are like ``beads''. Beads on the same string can move forward
-or backward in time, but they cannot overtake each other; they must
-respect the original order of operations within that process, which
-corresponds to respecting their program order. However, beads on
-different strings---representing operations from different
-processes---are free to slide past each other. Intuitively, this
-flexibility allows the application to reorder events globally,
-creating a consistent history as long as the operations from each
-process still occur in the order they were issued.
+or backward in time, but they cannot overtake each other; this
+corresponds to respecting the program order of operations. However,
+beads on different strings---representing operations from different
+processes---are free to slide past each other. Sequential consistency
+constrains the application to be consistent with some total order of
+operations that can be produced by rearranging them in this fashion.
 
-Figure \ref{fig:smEx3} depicts two nonlinearizable, sequentially
-consistent executions of the same operations depicted in Figure
-\ref{fig:smEx2}. In Figure \ref{fig:smEx3-a}, by ``sliding'' all the
-operations in $P_2$ along their worldline so that they occur after the
-operations in $P_1$, we arrive at a sequentially consistent history
-where $P_1$ and $P_2$ read different values for $x$. By a similar
-sliding, we can also produce a sequentially consistent history in
-Figure \ref{fig:smEx3-b} where the second read operation in $P_2$
-returns $4$ after the first one reads $5$, despite the fact that in
-\emph{real time}, $\memwrite{x}{4}$ occurs \emph{before}
-$\memwrite{x}{5}$.
+\begin{example}
+  Figure \ref{fig:smEx3} depicts two nonlinearizable, sequentially
+  consistent executions of the same operations depicted in Figure
+  \ref{fig:smEx2}. In Figure \ref{fig:smEx3-a}, by ``sliding'' all the
+  operations in $P_2$ along their worldline so that they occur after
+  the operations in $P_1$, we arrive at a sequentially consistent
+  history where $P_1$ and $P_2$ read different values for $x$. By a
+  similar sliding, we can also produce a sequentially consistent
+  history in Figure \ref{fig:smEx3-b} where the second read operation
+  in $P_2$ returns $4$ after the first one reads $5$, despite the fact
+  that in \emph{real time}, $\memwrite{x}{4}$ occurs \emph{before}
+  $\memwrite{x}{5}$.
+\end{example}
 
-Since external order is more strict than external order (meaning it
-imposes more constraints in general), a linearizable system is always
-sequentially consistent, though the converse is not true. Hence, the
-executions in Figure \ref{fig:smEx2} are sequentially consistent.
+Since external order imposes more constraints than program order, a
+linearizable system is always sequentially consistent. Hence, the
+executions in Figure \ref{fig:smEx3} are sequentially consistent.
 \begin{lemma}
   \label{lem:linearsequential}
   A linearizable execution is sequentially consistent.
 \end{lemma}
-%\begin{proof}
-%  This follows because process order is a subset of external order.
-%\end{proof}
 
 The converse of Lemma \ref{lem:linearsequential} does not hold. The
 executions in Figure \ref{fig:smEx3} are sequentially consistent but
-not linearizable---as noted earlier, the only linearizable executions
-would constrain all three read operations to return the same value for
-$x$, either $3$ or $5$.
+not linearizable---as noted earlier, the only two linearizable
+executions require all three read operations to return the same value
+for $x$.
 
 It may seem strange to allow executions, like those in Figure
 \ref{fig:smEx3}, that seem to defy the real time order of
@@ -2071,63 +2034,56 @@ designs an two-process distributed application that executes the
 operations shown in Figure \ref{fig:smEx1}. Before the application is
 actually executed, we do not know the exact moment in time that each
 operation will run, since the processes might run at different speeds
-(they run on distinct computers, after all). The programmer can only
-be sure that each process will run its own operations in program
-order. Therefore, before we run the program, the executions in
-\ref{fig:smEx3-a} and \ref{fig:smEx3-b} are just as expected as the
-execution in Figure \ref{fig:smEx2}.
+(they run on distinct computers, after all). If the processes and
+operations run at certain speeds, then the executions shown in
+\ref{fig:smEx3-a} and \ref{fig:smEx3-b} are possible. Thus,
+sequentially consistent systems are always consistent with some way
+the system could have executed in real time.
 
 
-%Processes in a sequentially consistent system are required to agree on
-%a total order of events, presenting the illusion of a shared database
-%from an application programmer's point of view. However, this order
-%need not be given by external order. Instead, the only requirement is
-%that sequential history must agree with process order, i.e.~the events
-%from each process must occur in the same order as in they do in the
-%process.  This is nearly the definition of linearizability, except
-%that external order has been replaced with merely program order. We
-%immediately get the following lemma.
+% Processes in a sequentially consistent system are required to agree
+% on a total order of events, presenting the illusion of a shared
+% database from an application programmer's point of view. However,
+% this order need not be given by external order. Instead, the only
+% requirement is that sequential history must agree with process
+% order, i.e.~the events from each process must occur in the same
+% order as in they do in the process.  This is nearly the definition
+% of linearizability, except that external order has been replaced
+% with merely program order. We immediately get the following lemma.
 
 
-
-%This sliding allow noe to construct a fairly arbitrary
-%interleaving of events, a totally ordered execution with no events
-%overlapping. From this perspective, while linearizability requires the
-%existence of a linearization, sequential consistency requires the
-%existence of an interleaving.
-
-\begin{comment} %What do?????
-It may seem strange to consider executions such as the one shown in
-REF in which operations appear to take effect at different times for
-different processes, or at times that do not agree with external
-order. The reader should remember that in the background, these
-processes would be engaged in message-passing over the network and are
-therefore subject to all the complexities previous discussed in
-Section \ref{sec:message-passing}, including delayed and out-of-order
-messages. Looser requirements by the memory model impose fewer
-constraints on the message passing layer requiring less coordination,
-and allowing for greater performance.
+\begin{comment}
+  It may seem strange to consider executions such as the one shown in
+  REF in which operations appear to take effect at different times for
+  different processes, or at times that do not agree with external
+  order. The reader should remember that in the background, these
+  processes would be engaged in message-passing over the network and
+  are therefore subject to all the complexities previous discussed in
+  Section \ref{sec:message-passing}, including delayed and
+  out-of-order messages. Looser requirements by the memory model
+  impose fewer constraints on the message passing layer requiring less
+  coordination, and allowing for greater performance.
 \end{comment}
 
 \subsection{The CAP Theorem}
 Real-world systems rarely function as a perfectly coherent,
 integrated, cohesive system. The gap between idealized system behavior
-and the real-world experience stems from a well-understood and
-fundamental tradeoff between coherence and performance. The more
-``coherence'' we demand from the system, the more the processes have
-to communicate over the network, whose unpredicable delays impose
-overheads that degrade performance. Conversely, the more we demand
-immediate answers from our system, the less time a process has to
-communicate with other processes, so the responses we get are not as
-consistent with other parts of the system.
+and real-world behavior stems from a well-understood and fundamental
+tradeoff between coherence and performance. The more ``coherence'' we
+demand from the system, the more processes have to communicate over
+the network, whose unpredictable delays impose overheads that degrade
+performance. Conversely, the more we demand immediate answers from our
+system, the less time a process has to communicate with other
+processes, so the system as a whole does not seem as coherent and
+unified to end users.
 
 This tradeoff is made fully stark by considering the possibility that
 the network suffers from a partition, which prevents some processes
 from communicating with others.
 
-\begin{definition}[Network partition]
-  A \emph{network partition} is a span of time where some nodes are
-  unable to communicate with another set of nodes on the network.
+\begin{definition}[Network partition] A \emph{network partition} is a
+span of time where some nodes are unable to communicate with another
+set of nodes on the network.
 \end{definition}
 
 In 1999, Fox and Brewer \cite{1999foxbrewer} articulated a formal
@@ -2140,11 +2096,12 @@ proof is fairly straightforward, the CAP theorem is sometimes
 misunderstood, so it is worth clarifying its key terms.
 
 \begin{description}
-\item[Consistency] Gilbert and Lynch define consistency as linearizability.
+\item[Consistency] Gilbert and Lynch define consistency as
+  linearizability.
 \item[Availability] A CAP-available system responds to every client
   request (a read or write operation) in a finite time.
 \item[Partition tolerance] A partition-tolerant system continues to
-  function, in the face of arbitrary partitions in the network.
+  function in the face of arbitrary partitions inthe network.
 \end{description}
 
 In the last case, the possibility is allowed that a partition never
@@ -2201,7 +2158,8 @@ consistency is also CAP-unavailabile.
 
 \begin{lemma}[CAP for sequential consistency]
   \label{thm:cap-sequential}
-  An eventually-available system cannot provide sequential consistency in the presense of network partitions.
+  An eventually-available system cannot provide sequential consistency
+  in the presense of network partitions.
 \end{lemma}
 \begin{proof}
   The proof is an adaptation of Theorem \ref{thm:cap}. Suppose $P_1$
@@ -2236,7 +2194,7 @@ consistency is also CAP-unavailabile.
 While the CAP theorem is theoretically simple, its implications are
 more nuanced than they may appear \cite{2012CAP12Years}. A common
 oversimplification is that the CAP theorem is represents a ``choose 2
-of 3" scenario: a system designer can choose at most two of
+of 3'' scenario: a system designer can choose at most two of
 consistency, availability, and partition resilience. In fact, real
 systems may balance weaker forms of all three properties. The CAP
 theorem only rules out the combination of all three properties when
@@ -2260,84 +2218,84 @@ availability for operations that only require coordinating with nearby
 agents. At short time scales, operations that only require local
 coordination are common.
 
-% Real conditions in our context are likely to be chaotic, featuring
-% many smaller disruptions and delays and sometimes larger
-% ones. Communications between different clients may be affected
-% differently, with nearby agents generally likely to have better
-% communication channels between them than agents that are far
-% apart. Finally, CAP-availability is a suprisingly weak condition.
-% Generally one cares about the actual time it takes to handle user
-% requests, but the CAP theorem exposes difficulties just ensuring the
-% system handles requests at all. Altogether, the extremes of C, A,
-% and P in the CAP theorem are not the appropriate conditions to apply
-% to many, perhaps most, real-world applications.
-
 \subsection{Causal Consistency}
-
 \emph{Causal} consistency\citationneeded is a weaker memory model than
 sequential consistency. Whereas sequential consistency requires the
 system as a whole to behave as if all write operations take place in
-some total order (as long as this is consistent with program order),
-causal consistency allows different processes to see write operations
-take effect in different orders. Instead, only write operations that
-are \emph{causally related} need to take effect in a common order
-at all processes.
+some total order (which must also respect program order), causal
+consistency allows different processes to behave as if they witnessed
+past write operations take effect in different orders. Only write
+operations related by \emph{causally precedence} are required to take
+effect in a common order across all processes: ``reads respect the
+order of causally related writes.'' \citationneeded
 
-We have not defined what it means for memory operations to be causally
-related. The notion is very similar to causal precedence in the
-context of message passing (Definition \ref{def:causalprecedence}),
-with a small wrinkle: in a message passing context, each receive event
-is uniquely paired with a send event. However, because multiple
-operations can write the same value into the same location, there is
-generally not a unique way to associate each read operation with the
-write operation that ``caused'' it to read a particular value.
+We have not defined what causal precedence means for memory
+operations. The notion is similar in its motivation to causal
+precedence in message-passing framework (Definition
+\ref{def:causalprecedence}) and the idea of causal broadcast
+\citationneeded..., but the definition of causally related memory
+operations is not as simple as that of causal precedence among
+messages. In message passing, a receive event is always associated
+with a unique send event, but multiple processes can write the same
+value to the same memory location, and for a later operation that
+reads this value, it is not clear which write ``caused'' it. For this
+purpose we define a \emph{writes-into} order.
 
 \begin{definition}[Writes-into order]
-  Consider a set of memory operations. A ``writes into''
-  $\rightsquigarrow$ order is any binary relation that satisfies the
-  following conditions:
+  Let $H$ be a history of memory operations. We are treating $H$ as a
+  \emph{multiset}, meaning for example that two operations of the form
+  $\memwrite{x}{v}$ are considered distinct if they happen at
+  different times or inside different processes. A ``writes into''
+  order $\writesinto$ is any binary relation among the operations
+  in $H$ that satisfies the following conditions:
   \begin{itemize}
-  \item If $o \rightsquigarrow o'$, then $o = \memwrite{x}{v}$ and $o' = \memreadVal{x}{v}$ for memory location $x$ and value $v$.
-  \item For each $o'$, there is exactly one $o$ such that $o \rightsquigarrow o'$
+  \item All pairs of operations related by $\writesinto$ are of
+    the form $\memwrite{x}{v} \writesinto \memreadVal{x}{v}$ for
+    memory some location $x$ and value $v$.
+  \item For each operation of the form $\memreadVal{x}{v}$, there is
+    exactly one write operation in $H$ that
+    $\memwrite{x}{v} \writesinto \memreadVal{x}{v}$
   \end{itemize}
 \end{definition}
+\citationneeded give a slightly more complex definition allowing
+operations that can read uninitialized memory locations---those
+returning a default value because there is no prior write to that
+location. For simplicity we assume each memory location is written to
+before it is read.
 
-This definition is a slight simplication of that found
-in\citationneeded: To avoid talking having to talk about default
-values, we only consider cases here where all read operations are
-preceded by some write operation. Intuitively, the idea is that a
-writes-into order pairs reads with the write operations whose values
-they are ``reading from.'' If all values written into each location
-are unique, the writes-into order is unambiguous, as an operation that
-reads $v$ from location $x$ could only be paired with the operation
-that writes $v$ into $x$.
-
-\begin{definition}[Causal order on memory operations]
+\begin{definition}[Causality order on memory operations]
   \label{def:memorycausalprecedence}
-  For some choice of a writes-into order, we define a binary relation
-  $\to$ on the set of memory operations as follows:
-  \[o \to o' \iff
-  \begin{cases}
-    o <_{P_i} o' \textrm{for some process $P_i$}
-    \textbf{ or} \\
-    o \rightsquigarrow o'
-    \textbf{ or} \\
-    \textrm{there is some } o'' \textrm{ such that } o \to o'' \textrm{ and } o'' \to o'
-  \end{cases}
-  \]
-  If $o \to o'$, we say $o$ causally precedes $o'$.
+  For a given writes-into order $\writesinto$ on
+  $H$, the associated \emph{causality order}
+  $\causalityorder$ is the transitive closure of the union of
+  $\writesinto$ and program order. That is, if $\Op \causalityorder
+  \Op'$, then one of the following holds:
+  \begin{itemize}
+  \item $\Op \programorder{i} \Op'$ for $P_i$
+  \item $\Op \writesinto \Op'$
+  \item There is some $\Op''$ such that $\Op \causalityorder \Op''$ and $\Op'' \causalityorder \Op'$
+  \end{itemize}
+  By \emph{fiat}, we also require that $\causalityorder$ must not be cyclic, meaning their are no ``causality loops'' like $\Op \causalityorder \Op' \causalityorder \Op$.
+  If $\Op \causalityorder \Op'$, we say $\Op$ causally precedes $\Op'$.
 \end{definition}
 
-We can now define causally consistent executions of memory operations.
+We can now define causally consistent executions of memory
+operations. For a history $H$ and each process $P_i$, let $A_i$ be
+union of $H|_P$ and the set of all writes in $H$. In other words,
+$A_i$ is the local history of $P_i$ plus any write operation on any
+other process.
 
 \begin{definition}[Causal consistency]
   \label{def:causalconsistency}
-  A history is causally consistent if each process (acts like it) sees
-  write requests take place in some order that is consistent with
-  causal order for some choice of writes-into order.
+  An execution is causally consistent if each $P_i$ behaves as if it
+  observes some serialization of $A_i$ consistent with $\causalityorder$.
 \end{definition}
 
-\begin{figure}[p]
+Notably, Definition \ref{def:causalconsistency} does not require that
+all processes behave as if they are observing the \emph{same}
+serialization.
+
+\begin{figure}
   \begin{subfigure}{1\textwidth}
     \centering
     \input{images/pgf/smEx4S3.pgf}
@@ -2352,11 +2310,12 @@ We can now define causally consistent executions of memory operations.
   \end{subfigure}
 
   \caption{PLACEHOLDER: Causally consistent and inconsistent executions}
-  \label{fig:smEx3}
+  \label{fig:smCausal}
 \end{figure}
 \clearpage
 
-%\subsubsection{CAP-availability of Causal Consistency}
+Causal consistency not subject to the limits of the CAP theorem.
+
 \begin{lemma}[Causal consistency is CAP-available]
   \label{thm:cap-causal}
   Causal consistency can be enforced during network partitions. That
@@ -2382,44 +2341,45 @@ apply any kind of bound on divergence, which suggests it is not strong
 enough for the kinds of safetly-related applications we have in mind.
 
 \subsection{Section Summary}
-\label{sec:background-summary}
+\label{ssec:background-summary}
+This discussion has explored the key challenges involved in building
+distributed systems that connect geographically dispersed components
+over unpredictable networks. The variability in message delays,
+particularly in the context of broadcasts sent to multiple recipients,
+can result in messages that arrive in different orders.  This
+situation can lead to chaos if a message-ordering discipline is not
+imposed.
 
-We have seen that a distributed system is built from geographically
-distant components that must communicate over a network. Sending
-messages over the network causes messages to suffer unpredictable
-delays. Particularly in the context of broadcasts sent to multiple
-members of a group at once, this varying delay often causes messages
-to arrive in different orders to different members of the group, which
-can lead to chaos if a message-ordering discipline is not imposed.
-
-As part of taming this chaos, it is critical for distributed systems
-to track the causal precedence relation between events. Physical
-clocks cannot usually be relied upon to maintain adequate
-synchronization for this purpose. Instead, logical clocks may be
-employed. The different paradigms---scalar, vector, and matrix
-clocks---vary in how much information they track and how much overhead
-they impose on the system with respect to bandwidth and storage
-space. The latter two require nodes to know about every other member
-of the group, as is typical for many mechanisms in distributed
-systems. If groups can change dynamically, as in our scenarios, then a
-group membership protocol is also needed.
+To mitigate the effects described above, distributed systems must
+track the causal precedence relation between events. Because physical
+clocks are not generally reliable enough for this purpose, especially
+at fine time scales, logical clocks---scalar, vector, and matrix
+clocks---are typically used, each with a different tradeoff in terms
+of precision of the information tracked and the administrative and
+messaging overhead. If groups can change dynamically, as in our use
+cases, then additional group membership protocols are needed to ensure
+that all processes know which other processes are participating in the
+system at any moment.
 
 Programmers may find it easier to frame distributed applications in
-terms of reading and writing from a shared pool of virtual memory
-instead of sending messages over a network. However, the fact that
-many nodes can access this virtual memory at the same time leads to
-non-determinism in how the memory accesses are ordered, which makes it
-non-trivial to decide what it means for the system to be
-consistent. The two strongest notions of consistency---linearizability
-and sequential consistency---essentially provide the illusion of a
-single source of truth, but the CAP theorem makes it virtually
-impossible to realize these consistency models in the kinds of chaotic
-networks we are considering. The causal consistency model ensures a
-minimum of coherence and has the advantage that it is not subject to
-the limitations of the CAP theorem. However, it makes no guarantees
-about how far apart replicas of the same data may diverge, which makes
-this model too weak for the kinds of safety-related applications we
-have in mind.
+terms of reading and writing from a shared pool of virtual memory,
+rather than sending messages, by employing the distributed shared
+memory or DSM abstraction. However, the fact that many processes can
+access the same virtual memory locations at the same time makes it
+challenging to maintain systemwide coherence. Strong consistency
+models like linearizability and sequential consistency provide the
+illusion of a single, unified source of truth, but the CAP theorem
+makes it virtually impossible to guarantee these properties over
+chaotic, disruption-prone networks. Weaker models like causal
+consistency are not subject to the same limitations, but they do not
+enforce any limits bounding how far apart data replicas can
+diverge. This renders weaker models potentially unsuitable for
+safety-critical applications like we aim to build.
+
+In summary, there is no free lunch in distributed systems. Designing
+resilient distributed systems for emergency response scenarios
+requires a careful balancing act between competing properties that is
+carefully calibrated to the use case and the operational environment.
 
 \section{Timestamped Anti-entropy}
 
@@ -2868,12 +2828,12 @@ protocols can be used to enforce.
 \subsection{The conit model}
 \label{ssec:conits}
 
-We assume a set $\{P_i\}_{i \in I}$ of processes that coordinate to
-replicate a database $D$. Note that we read ``database'' very loosely
-to mean any kind of data items that can be updated in response to user
-requests---our ownly real requirement is that it is possible to roll
-back (undo) updates if necessary. We also make a couple simplifying
-assumptions about our system.
+We assume a fixed set $\mathcal{P} = \{P_1, P_2, \ldots P_n\}$ of
+processes that coordinate to replicate a database $D$. Note that we
+read ``database'' very loosely to mean any kind of data items that can
+be updated in response to user requests---our ownly real requirement
+is that it is possible to roll back (undo) updates if necessary. We
+also make a couple simplifying assumptions about our system.
 \begin{itemize}
   \tightlist
 \item The database is replicated in whole at each site.
