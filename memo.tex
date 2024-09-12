@@ -27,11 +27,11 @@
 \usepackage{pdflscape}%alt to sidewaysfigure
 
 \newtheorem{theorem}{Theorem}[section]
-\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{corollary}[theorem]{Corollary}
 \newtheorem{lemma}[theorem]{Lemma}
 \theoremstyle{definition}
-\newtheorem{example}{Example}[section]
-\newtheorem{definition}{Definition}[section]
+\newtheorem{example}[theorem]{Example}
+\newtheorem{definition}[theorem]{Definition}
 \include{macros.tex}
 
 % Globally redefine pgfpicture to use \Large fonts
@@ -402,7 +402,7 @@ prevent. Our goal is to build reliable systems that perform well in a
 wide range of circumstances.
 
 \subsection{Communication Patterns in the Field}
-\label{communication-in-practice}
+\label{ssec:communication-patterns}
 
 We now consider some of the communication patterns that occur in
 wildland firefighting. The layman reader may be surprised to learn
@@ -972,8 +972,8 @@ with every event except $\mrecv{1}$, but those other events are
 totally ordered by causality and not synchronous with each
 other.
 \end{itemize}
-Relations like $\sync{}{}$ that are reflexive and symmetric but
-not necessarily transitive are sometimes called \emph{compatibility
+Relations like $\sync{}{}$ that are reflexive and symmetric but not
+necessarily transitive are sometimes called \emph{compatibility
   relations}.
 
 \begin{figure}
@@ -1752,11 +1752,13 @@ synchronized clocks, which is usually an infeasible assumption. We
 encountered this same challenge in Section \ref{ssec:causality}, where
 we were lead to define a global partial order (causal precedence),
 partly in reaction to the fact that we cannot use physical timestamps
-to arrange all systemwide events into a total order. A roughly similar
-concept, used in the DSM setting, is that of \emph{external
-  order}. Intuitively, it is the partial order that orders
-non-overlapping events by their physical times, but does not assign an
-ordering to events whose executions overlap in physical time.
+to arrange all systemwide events into a total order.
+
+A roughly similar concept, used in the DSM setting, is that of
+\emph{external order}. Intuitively, it is the partial order that
+orders non-overlapping events by their physical times, but does not
+assign an ordering to events whose executions overlap in physical
+time.
 \begin{definition}[External order]
   Let $H$ be a history. An operation $\Op^1$ \emph{externally
     precedes} operation $\Op^2$ if
@@ -1895,7 +1897,8 @@ with respect to external order. First, we define a \emph{sequential
   history} as any way of arranging read and write requests into a
 linear sequence.
 
-\begin{definition}[Sequential history]
+\begin{definition}[serial]
+  \label{def:sequential-history}
   Let $H$ be a history of memory operations. A \emph{sequential
     history} of $H$ is any choice of total order among the events in
   $H$.
@@ -1917,13 +1920,13 @@ program order does not impose any constraints on operations that do
 not occur in the same process.
 
 A sequentially consistent system guarantees that any history is
-consistent with some sequential history that respects \emph{program
+consistent with some serial that respects \emph{program
   order}. Otherwise, the definition follows the same structure as that
 for linearizability.
 
-%\begin{definition}[Legal sequential history]
+%\begin{definition}[Legal serial]
 %Let $H$ be a history of invocation/response events occurring on a set
-%of processes $\{P_i\}_{i = 1 \ldots N}$. A \emph{sequential history}
+%of processes $\{P_i\}_{i = 1 \ldots N}$. A \emph{serial}
 %of $H$ is any choice of total order among the events in $H$---that is,
 %a rearrangement of the operations as to ensure none of them overlap in
 %time. If each $P_i$ issues
@@ -1935,9 +1938,9 @@ for linearizability.
 %possible sequential histories.
 %\end{definition}
 
-\begin{definition}[Sequentially consistent history]
-  \label{def:linearizable}
-  A \emph{sequentially consistent history} is one satisfying the following three rules.
+\begin{definition}[Sequentially consistent execution]
+  \label{def:sequentially-consistent-execution}
+  A \emph{sequentially consistent execution} is one satisfying the following three rules.
 \begin{enumerate}
   \tightlist
 \item \textbf{Global Agreement on Order}: All processes behave as if
@@ -2045,7 +2048,7 @@ the system could have executed in real time.
 % on a total order of events, presenting the illusion of a shared
 % database from an application programmer's point of view. However,
 % this order need not be given by external order. Instead, the only
-% requirement is that sequential history must agree with process
+% requirement is that serial must agree with process
 % order, i.e.~the events from each process must occur in the same
 % order as in they do in the process.  This is nearly the definition
 % of linearizability, except that external order has been replaced
@@ -2382,31 +2385,55 @@ requires a careful balancing act between competing properties that is
 carefully calibrated to the use case and the operational environment.
 
 \section{Timestamped Anti-entropy}
+\label{sec:TSAE}
+In this section, we present Golding's Timestamped Anti-Entropy (TSAE)
+protocol. TSAE is a \emph{weak consistency group communication}
+mechanism, a concept whose meaning will become clearer as we progress
+through the section. It is important to note that the version of TSAE
+presented here is not fully specified---certain implementation details
+can be altered depending on the specific needs of the higher-level
+distributed application that utilizes TSAE as its group communication
+layer.
 
-\newcommand{\ack}[2]{\textsf{ack}_{#1}\left(#2\right)}
-\newcommand{\summary}[2]{\textsf{summary}_{#1}\left(#2\right)}
-\newcommand{\summaryVec}[1]{\textsf{summary}_{#1}}
-\newcommand{\commitline}[1]{\textsf{commit}_{#1}}
-\newcommand{\globalcommit}{\textsf{globalcommit}}
-\newcommand{\knowncommit}[1]{\textsf{purgeline}_{#1}}
-\newcommand{\WL}[1]{\textsf{WL}_{#1}}
-\newcommand{\WLat}[2]{\textsf{WL}_{#1}\left(#2\right)}
-\newcommand{\W}{\textbf{\textsf{Writes}}}
-\newcommand{\Unseen}[1]{\textsf{Unseen}_{#1}}
-\newcommand{\UnseenEst}[2]{\textsf{EstUnseen}_{#1}{\left(#2\right)}}
-\newcommand{\AllProc}{\mathcal{P}}
-\newcommand{\currenttime}[1]{\textsf{currenttime}_{#1}}
+Here, we imagine TSAE as one part of a middleware used to coordinate
+first responders throughout a wide area (possibly statewide, or even
+distributed throughout a US region) responding to major events like
+natural disasters and massive wildfires. Section
+\ref{sec:disaster-response} discusses exemplary application features
+like monitoring firefighter's GPS locations, tracking the current fire
+boundaries, sharing weather data, and providing mechanisms to dispatch
+resources.
 
-In this section we summarize Golding's timestamped anti-entropy (TSAE)
-protocol for eventual consistency \citationneeded. TSAE is a
-middleware-level protocol that provides reliable group messaging over
-a lower-level network. Depending on the implementation details, which
-are determined by the needs of the higher-level application, TSAE can
-provide any of the message ordering guarantees discussed in Section
-\ref{}. For instance, TSAE can be used to implement a totally ordered
-group broadcast service that communicates by passing unicast messages
-over a TCP/IP network, where the TCP/IP component only guarantees FIFO
-ordering by itself.
+TSAE allows replicating the underlying data managed by the application
+throughout a distributed system. That is, it facilitates storing
+multiple copies of the same data in different places. For some
+applications, this might involve storing a complete set of data on
+each user's cell phone. For more data-intensive applications running
+on centralized servers, it might be that multiple emergency operating
+centers or incident command systems store a copy of the data.
+
+Replication supports \emph{scalability} because application services
+can be provided by any processes that maintains a replica of the data,
+distributing the load amongst a set of processes rather than a
+centralized server. For the same reason, replication supports
+resiliency, as there is not a single point of failure. But perhaps
+above all, replication improves \emph{locality}, first discussed in
+Section \ref{ssec:communication-patterns}. Users of the application
+can receive service by contacting the nearest replica over a
+low-latency, high-reliability communications link.
+
+% TSAE is a middleware-level protocol that provides reliable group
+% messaging over a lower-level network. Depending on the
+% implementation details, which are determined by the needs of the
+% higher-level application, TSAE can provide any of the message
+% ordering guarantees discussed in Section \ref{}. For instance, TSAE
+% can be used to implement a totally ordered group broadcast service
+% that communicates by passing unicast messages over a TCP/IP network,
+% where the TCP/IP component only guarantees FIFO ordering by itself.
+
+
+% The point of replicating is to improve locality. See Golding
+% dissertation Section 1.2
 
 The reliability of TSAE means every message is eventually delivered to
 every functioning group member, assuming the underlying network does
