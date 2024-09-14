@@ -309,6 +309,7 @@ known as the safety/liveness tradeoff.
   \caption{A DC-10 airtanker, rated for 9,400 gallons, drops retardant
     above Greer, Arizona. Image source: Kari Greer/US Forest Service.}\label{fig:airtanker}
 \end{figure}
+% TODO: How to cite picture?
 % https://www.flickr.com/photos/apachesitgreavesnf/5837741382
 % Also appears at https://www.nifc.gov/resources/aircraft/airtankers
 
@@ -316,8 +317,10 @@ known as the safety/liveness tradeoff.
   \centering
   \includegraphics[scale=0.15]{images/forestfire-videox-scaled.jpg}
   \caption{Screenshot of a firefighter using ATAK, where the left
-    panel shows a map and the right is a video stream from an air vehicle.}\label{fig:atak}
+    panel shows a map and the right is a video stream from an air
+    vehicle. Image source: Andreas ``AJ'' Johansson}\label{fig:atak}
 \end{figure}
+% TODO: How to cite picture?
 %https://www.civtak.org/2020/08/04/tak-used-in-ca-firefighting-w-aircraft-video/
 
 For example, consider the use of firefighting airtankers, particularly
@@ -334,10 +337,10 @@ others were injured, when an unexpectedly powerful drop from a Boeing
 \cite{2018:calfire}.
 
 Improving firefighter communications can be expected to lead to better
-safety outcomes. On such improvement is the through the use of
+safety outcomes. One such improvement is the through the use of
 applications like ATAK---the Android Team Awareness Kit, developed by
 the U.S. military in 2010 and later released in a civilian
-version. Wildland firefighters are increasing using ATAK, extended
+version. Wildland firefighters are increasingly using ATAK, extended
 with aftermarket plugins, on ordinary cell phones to coordinate their
 activities in the field (Figure \ref{fig:atak}). A key application of
 this tool could be tracking the real-time GPS locations of
@@ -346,14 +349,14 @@ firefighters for safety monitoring.
 Given the risks of VLAT drops, a seemingly reasonable safety measure
 might be to disallow drops unless a VLAT's computers have up-to-date
 information about the location of ground personnel. Unfortunately,
-system-wide safety is not so easily achieved. The proposed measure is
-exactly the sort of thing subject to the safety/liveness tradeoff
-inherent to distributed systems. Here, it is important to recognize a
-linguistic nuance: ``safety'' in a computing systems context is a
-property of a system, and not inherently related to the safety of
-people. A \emph{safety} property is a prohibition that stops a system
-taking an action that might be ``bad'' in some way. Here is an
-exemplary safety property for the example above:
+system-wide safety is not so easily achieved, as the proposed measure
+is precisely the sort of thing subject to the safety/liveness
+tradeoff. Here, it is important to recognize a linguistic nuance:
+``safety'' in a computing systems context is a property of a system,
+and not inherently related to the safety of people. A \emph{safety}
+property is a prohibition that stops a system from taking an action
+that might be ``bad'' in some way. Here is an exemplary safety
+property for the example above:
 \begin{quote}
   $\textbf{P}_\textrm{safe}$: Ground agents are known to be at least
   100 feet outside the drop zone, and this information is current to
@@ -365,17 +368,17 @@ characteristic of liveness properties is that they place an upper
 bound on the allowable delay of something. An exemplary liveness
 property for our scenario might be the following:
 \begin{quote}
-  $\textbf{P}_\textrm{live}$: A VLAT on the ground will takeoff and
+  $\textbf{P}_\textrm{live}$: A VLAT on the ground will take off and
   perform a drop within 20 minutes of receiving a request from an
   incident commander.
 \end{quote} (In an interview with PBS \cite{2021:aerialfirefighting},
 the Chief of Flight Operations for Cal Fire cited 20 minutes as an
 upper bound on the response time for aerial firefighting units within
 designated responsibility areas.) Note that $\textbf{P}_\textrm{live}$
-is a liveness property, not a safety property in the technical sense,
-but it impacts human safety: it might be critical for VLATs to perform
-drops quickly if a wildfire is threatening the safety of ground
-personnel.
+is a liveness property, not a safety property in the narrow technical
+sense, but it impacts human safety: it might be critical for VLATs to
+perform drops quickly if a wildfire is threatening the safety of
+ground personnel.
 
 Safety and liveness are frequently dual mandates that cannot be
 guaranteed simultaneously. Such is the case in our example: though
@@ -393,92 +396,27 @@ without knowing the locations of ground personnel, maintaining
 $\textbf{P}_\textrm{live}$ at the cost of $\textbf{P}_\textrm{safe}$,
 or should it be cautious and wait for more information, maintaining
 $\textbf{P}_\textrm{safe}$ at the cost of $\textbf{P}_\textrm{live}$?
-There is no simple answer, and either choice has a downside respect to
-the broader goal of system-wide safety (in the ordinary sense of the
-word).
-
-
-\begin{comment}
-Here we see an example of the safety/liveness tradeoff. Unfortunately,
-system-wide safety is not so easily achieved, as information from
-agents in the field may be difficult or impossible to gather for a
-wide variety of reasons. The wildland firefighting environment is
-frequently GPS-denied: heavy smoke, multipath effects, and so on can
-easily prevent a consumer-grade cellphone from obtaining reliable GPS
-coordinates. Additionally, factors like a damaged radio tower or
-environmental obstructions (e.g. a tall mountain) can prevent
-communications between the air and ground. Such conditions would
-prevent a VLAT's computers from knowing the locations of ground
-agents, in which case rigid enforcement of the safety policy would
-prevent them from operating. Of course, simply grounding the VLATs
-would itself be a safety challenge, since they are a major tool in
-controlling wildfires.
-
-The previous scenario exemplifies a classic tradeoff between opposing
-goals in computer science: system \emph{safety} (which in this context
-takes on a narrow technical meaning) and system \emph{availability} or
-\emph{liveness}. In the distributed computing context, safety
-properties guarantee that a system will not perform an action that
-violates a constraint. An exemplary safety property could look like
-the following:
-\begin{quote} \interlinepenalty=10000 % Punish pagebreaks inside this
-quote!  $\textbf{P}_\textrm{safe}$: Ground agents are known to be at
-least 100 feet outside the drop zone, and this information is current
-to within 30 seconds, or airtankers will not perform a drop.
-\end{quote} By contrast, liveness properties stipulate that the system
-will certainly perform requested actions, typically within some time
-bound. An exemplary liveness property might be the following:
-\begin{quote} $\textbf{P}_\textrm{live}$: A VLAT on the ground will
-takeoff and perform a drop within 20 minutes of receiving a request
-from an incident commander.
-\end{quote} (In an interview with PBS \cite{2021:aerialfirefighting},
-the Chief of Flight Operations for Cal Fire cited 20 minutes as an
-upper bound on the response time for aerial firefighting units within
-designated responsibility areas.)
-
-Safety and liveness are frequently dual mandates: safety, in the
-technical sense used here, is a requirement for a system to
-\textbf{never} to perform certain actions, while liveness is a
-requirement to \textbf{always} perform certain actions. The tension
-between these ideals means they often cannot be guaranteed
-simultaneously. Such is the case in our example: if firefighters are
-unable to broadcast their locations to the pilot, then one of
-\(\textbf{P}_\textrm{safe}\) or \(\textbf{P}_\textrm{live}\) must be
-sacrificed to maintain the other.
-
-It is worth emphasizing a slight linguistic idiosyncrasy exhibited
-above, specifically by $\textbf{P}_\textrm{live}$: liveness
-properties---not just ``safety'' properties---can be relevant to human
-safety. Thus, the narrow technical meaning of safety properties for
-computing systems does not capture the whole meaning of System Wide
-Safety. The tension between ``safety'' (in the narrow sense) and
-liveness is a more-or-less unavoidable challenge for any distributed
-computing system relevant to human safety (in the ordinary sense).
-
-Besides the safety/liveness tradeoff, the previous example exhibits
-two other themes common in the field of distributed systems, both of
-which will be revisited throughout this document. We pause to draw
-attention to them.
-%%%%%%
-\end{comment}
-
+There is no simple answer, with either choice presenting a downside
+with respect to the broader goal of system-wide safety.
 
 Besides the safety/liveness tradeoff, the previous example exhibits
 two other themes important in distributed systems, both of which will
 be explored further in this document. The first is the
-\emph{epistomological} nature of reasoning about distributed
-systems---concerned with what information is \emph{known} by
-\emph{whom}. This aspect is reflected in wording of
+\emph{epistomological} nature---concerned with what information is
+\emph{known} by \emph{whom}---of reasoning about distributed
+systems. This aspect is reflected in wording of
 $\textbf{P}_\textrm{safe}$ in VLAT example: Ground agents are known
 (by the VLAT's computers) to be outside of a dangerous area. This
 situation requires a deeper and more sophisticated analysis than one
 simply considering what is true, but not necessarily
 known. Mathematically, the logic of distributed agents is not the
-``propositional'' logic but the modal logic S4
-\citationneeded. Spreading knowledge requires communication between
-agents over a period of time. Communication imposes a burden on the
-network, which is not instantaneous and reliable, and it is from these
-imperfections that the safety/liveness arises.
+``propositional'' logic but the modal logic S5\footnote{The
+  application of S5 to reason about distributed systems is the topic
+  of \cite{kshemkalyani_singhal_2008}, Chapter 8.}, which incorporates
+axioms governing knowledge. Distributing knowledge requires
+communication between agents over a period of time over the network,
+which is not instantaneous and reliable, and it is from these
+imperfections that the safety/liveness tradeoff arises.
 
 The second aspect exhibited above, albeit negatively, is that of
 \emph{continuity}. A continuous system can flexibly adopt to its
@@ -491,8 +429,8 @@ are known to be $500$ feet outside the drop zone, but the information
 is only current to within 31 seconds---this extra second technically
 violates $\mathbf{P}_\textrm{safe}$, though it should be inferrable
 that the ground agents are well away from danger. In particular, this
-example demonstrates that safety more of a quantitative concept than a
-Boolean (true-or-false) one. A distributed system in a
+example highlights that system-wide safety is more of a quantitative
+concept than a Boolean (true-or-false) one. A distributed system in a
 network-challenged environment should exhibit smoothly varying
 properties in response to its inputs, and ideally allow ``tuning'' the
 system's properties for the particulars of its environment at any
@@ -504,26 +442,27 @@ moment. The technical aspects of this theme are the focus of Section
 We now consider some of the communication patterns that occur in
 wildland firefighting. Readers may be surprised to learn that the
 state of the art is somewhat primitive, largely due to the sparse
-permanent communications infrastructure in this setting. This fact is
-also what makes wildfires an interesting and generalizable example for
-other kinds of civil disaster environments where the network is
+permanent communications infrastructure that exists in this
+setting. This makes wildfires an interesting and generalizable example
+for other kinds of civil disaster environments where the network is
 unreliable.
 
 One important concept to draw attention to is a kind of ``geospatial
 locality of reference'' that system designers should consider. By
 this, we mean the concomitance of two observations which, while not
 guaranteed rules, are approximately true in many circumstances. The
-first observation is simple:
+first observation states that nearby agents have aligned interests:
 \begin{quote}
   $\textbf{O}_1$: Agents with the most urgent need to coordinate their
   actions will usually be located closer together and require similar
   kinds of information.
 \end{quote}
-The second observation is as follows:
+The second observation states that nearby agents have more reliable
+communications:
 \begin{quote}
   $\textbf{O}_2$: Agents that are located closer together generally
   enjoy more reliable communications between them than agents that are
-  far apart. Conversely, information travels long distances tends to
+  far apart. Conversely, information that travels long distances tends to
   be delayed or degrade in quality.
 \end{quote}
 
@@ -531,16 +470,16 @@ These related observations are what is meant by simply the
 ``locality'' principle. Locality is a crucial factor to analyze
 because, as presented in Section \ref{sec:background}, there are major
 theoretical and practical limits to how well agents can coordinate
-\emph{globally}, meaning with all agents know and agree on
-everything. To the extent the system exhbitis locality, global
-agreement is not as urgently required: it may be enough for nearby
-agents to coordinate over more efficient shorter-range links, than
-less efficient long-range ones. This raises the question of how to
-decide which information must be shared with whom, and how to use this
-knowledge to best exploit the communication network. This question is
-revisited in Section \ref{sec:continuous-consistency}.
+\emph{globally}, meaning with all agents knowing and agreeing on
+everything. To the extent the system exhibits locality, global
+agreement is not as strict a requirement: for system-wide safety it
+may suffice for nearby agents to coordinate over efficient short-range
+links than less efficient long-range ones. This raises the question of
+how to decide which information must be shared with whom, and how to
+use this knowledge to best exploit the communication network. This
+question is revisited in Section \ref{sec:continuous-consistency}.
 
-\subsubsection{Communication on the ground}
+\subsubsection{Communication on the Ground}
 \label{sssec:ground-communication}
 In the field, communication between firefighters and other agents is
 often facilitated by handheld (analog) land-mobile radios, which are
@@ -550,15 +489,14 @@ smoke.
 
 As an alternative to using a radio, it is common for wildland
 firefighters in the field simply to shout commands and notifications
-to nearby personnel. This is a clear manifestation of the locality
-principle: a substantial amount of communication occurs directly
-between nearby firefighters working on the same or closely related
-tasks, and in some cases they are so nearby they can communicate
-without any network infrastructure at all. In a future environment
-where agents might be equipped with body-worn sensors and heads-up
-displays (HUDs), this sort of local communication might be facilitated
-by simple low-power technologies such as Bluetooth, without the need
-for more sophisticated (and heavy) equipment.
+to nearby personnel. This exhibits the locality principle: a
+substantial amount of communication occurs directly between nearby
+firefighters working on closely related tasks that can communicate
+without network infrastructure. In a future environment where agents
+might be equipped with body-worn sensors and heads-up displays (HUDs),
+this sort of low-range local communication might be facilitated by
+simple low-power technologies such as Bluetooth, without the need for
+more sophisticated (and heavy) equipment.
 
 Communication over a long distance requires infrastructural support,
 such as the use of cell towers and repeater stations. Typically,
@@ -568,55 +506,64 @@ nearby watch tower. Ad-hoc infrastructure, such as Cells On Wheels
 (COWs) or Cells on Light Trucks (COLTs)---i.e. portable cellular
 towers---can sometimes be deployed on an as-needed basis if the
 location allows for it. Similar kinds of equipment can also be mounted
-to backpacks and carried into the field by specially-trained agents.
-
-An extremely common issue is making sure that all
-equipment is properly configured, for instance that all radios are
-listening on the correct frequencies, particularly when different
-agencies and groups need to interoperate (another problem highlighted
-during the September $11^\textrm{th}$ attacks).
+to backpacks and carried into the field by specially-trained users. A
+common issue is making sure that all equipment is properly configured,
+for instance that radios are listening on the correct
+frequencies. Configuration is especially critical when different
+agencies and groups need to interoperate---another problem highlighted
+during the September $11^\textrm{th}$ attacks.
 
 \begin{figure}[t]
   \centering
   \includegraphics[scale=0.085]{images/ironside.jpg}
-  \caption{The Ironside Mountain lookout and radio repeater station, destroyed in the 2021
-    Monument fire, shown with protective foil on August
-    $10^\textrm{th}$, 2015 during the 2015 River Complex fire. This
-    particular fire burned 77,077 acres over 77 days. \citationneeded}
+  \caption{The Ironside Mountain lookout and radio repeater station,
+    shown here with protective foil on August $10^\textrm{th}$, 2015
+    during the 2015 River Complex fire. This particular fire burned
+    77,077 acres over 77 days.}
   \label{fig:ironside}
 \end{figure}
+% TODO: How to cite picture?
 %https://web.archive.org/web/20150923190323/http://inciweb.nwcg.gov/incident/photograph/4431/44/45122/
 
 Use of centralized infrastructure comes with the potential for
 widespread failure when the infrastructure breaks down. For example,
-in California, the Ironside Mountain lookout/repeater station, seen in
-Figure \ref{fig:ironside}, was destroyed during the 2021 Monument
+in California, the Ironside Mountain lookout/repeater station (seen in
+Figure \ref{fig:ironside}) was destroyed during the 2021 Monument
 Fire, which burned approximately 223,124 acres over 88 days
 \cite{2021:monumentfire}. The Ironside Mountain station had strategic
 importance, being located on a tall ridge. According to a video blog
-from a volunteer firefighter involved in the incident \cite{2022:mechfire},
-% See also https://web.archive.org/web/20220809061927/https://www.youtube.com/watch?v=4F2dDKMgAME
-its loss prevented communication between operators on different sides
-of the ridge, in networking parlance creating a \emph{partition} that
-lasted until crews could ascend the ridge to deploy a temporary
-station:
+from a volunteer firefighter involved in the incident, its loss
+prevented communication between operators on different sides of the
+ridge, in networking parlance creating a \emph{partition} that lasted
+until crews could ascend the ridge to deploy a temporary station:
 \begin{quote}
   ``When {[}the Ironside Mountain lookout station{]} burned down the
   radio repeater went with it. And so communications were lost across
   the fire\ldots{} one side of the fire couldn't talk to the other
   side\ldots.  So it was kind of a critical job to get that road
   cleared so that the radio crews could go back up there and set up a
-  temporary radio tower.''
+  temporary radio tower.'' \cite{2022:mechfire}% See also https://web.archive.org/web/20220809061927/https://www.youtube.com/watch?v=4F2dDKMgAME
 \end{quote}
 A scenario where communication between two groups is completely
 severed is exactly the sort of thing considered by the CAP theorem in
 Section \ref{sec:background}.
 
 \paragraph{Ground vehicles}
-Large numbers of ground vehicles---sometimes on the order of 100 during a major response---are involved in wildfire suppression. Besides various types of firetrucks, bulldozers and similar vehicles are commonly used to control the landscape and perimeter of the fire. An advantage of vehicles is that they can carry
-heavier and higher-power communications equipment than a human. For instance, a vehicle could be equipped with a BGAN or VSAT satellite terminal or cellular equipment as mentioned previously. Additionally equipping the vehicle with something like a wireless local area network (WLAN) base station, i.e. WiFi access point, would let the vehicle serve as a bridge between agents in the field and central coordinators such as incident commanders or 911 dispatchers.
+Large numbers of ground vehicles---sometimes on the order of 100
+during a major response---are involved in wildfire
+suppression. Besides various types of firetrucks, bulldozers and
+similar vehicles are commonly used to control the landscape and
+perimeter of the fire. An advantage of vehicles is that they can carry
+heavier and higher-power communications equipment than a human. For
+instance, a vehicle could be equipped with a BGAN or VSAT satellite
+terminal to maintain a high-bandwidth connection back to a central
+location. Additionally equipping the vehicle with something like a
+Wi-Fi or cellular base station using the satellite connection as
+backhaul would let the vehicle act as a bridge agents in the field
+with central coordinators such as incident commanders or 911
+dispatchers.
 
-\subsubsection{Communication in the air}
+\subsubsection{Communication in the Air}
 Wildland firefighting increasingly involves the use of helicopters and
 fixed wing aircraft. Civil aviation has traditionally employed simpler
 communication patterns than this use case demands. For instance,
@@ -659,30 +606,34 @@ of service could be provided autonomously by repeaters mounted to
 unmanned aerial vehicles (UAVs), which might perform additional
 functions such as tracking the fire perimeter.
 
-In Section \ref{sec:networking} we imagine a resilient ad-hoc digital
-network built from handheld and ground- and air-vehicle-mounted
+In future environments we imagine a resilient mobile ad-hoc
+internetwork assembled from a heterogeneous collection of smaller
+networks, combining from handheld and ground- and air-vehicle-mounted
 devices, permanent base stations, portable temporary infrastructure,
-and so on. In effect, this would be a high-tech modernization of the
-sort of informal relay schemes operating today over traditional radio
-channels.
-
-%More generally, future systems should transparently facilitate
-%exchanging information between agents in a decentralized fashion that
-%is robust to the failure of any one component.
+and so on. Integrating a collection of networks that experience
+intermittent connectivity calls for technologies such as
+disruption-tolerant networking (DTN) \cite{2021:intro-dtn}, that
+support a store-carry-forward model to propagate information without
+end-to-end connectivity.
 
 \subsection{Data Collection and Processing}
 \label{ssec:data-collection}
-%So far we have said a lot about the state of disaster response
-%today. A distributed system for this sort of challenge should be
-%designed for the kinds of environments and conditions expected in the
-%near- to medium-term future, so we briefly turn our attention to some
-%of our expectations for this topic.
-
-Perhaps the most prominent expectation for future disaster response
-events is a heavy reliance on \emph{data} gathered from both humans and various types of sensors. Besides improvements to
+Perhaps the most universally acknowledged expectation for future
+disaster response environments is a heavy reliance on \emph{data}
+gathered from both humans and sensors. Besides improvements to
 communications that facilitate information sharing, we expect advances
 in machine intelligence to greatly influence how this data is
-processed and used.
+handled. How agents process and respond to all of this information
+using computer interfaces is a sigificant topic whose study should be
+informed by, among other things, insights from the field of
+Human-Computer Interaction (HCI), which has been defined as follows.
+\begin{quote}
+  ``Human-Computer Interaction (HCI) is a subfield within computer
+  science concerned with the study of the interaction between people
+  (users) and computers and the design, evaluation and implementation
+  of user interfaces for computer systems that are receptive to the
+  user's needs and habits.'' \cite{2009:hci-definition}
+\end{quote}
 
 Agents in disaster response environments will be both
 producers and consumers of data, and this data will need to processed
@@ -691,7 +642,7 @@ to support their decision-making. Our background research indicated
 many different kinds of data that could be valuable for
 responders, just some of which are listed here:
 \begin{itemize}
-\item Free-form communication, especially recorded voice messages
+\item Free-form communication, especially real-time or recorded voice messages
   broadcast to many agents at once, which may need to be processed by
   machines to extract the most pertinent information into a more
   actionable format
@@ -719,19 +670,14 @@ distract agents from their important tasks.
 
 In some ways, future systems for disaster response will bear
 resemblence to future systems for warfighting, such as the conceptual
-\emph{Internet of Battle Things} (IoBT) \cite{2016:iobt}. To quote from that paper,
-agents ``under extreme cognitive and physical stress'' will be subject
-to a highly dynamic and dangerous environment. Various kinds of
-technology will assist humans by providing data to support
-sensemaking, but a contraindicating concern will be flooding agents with a
-``massive, complex, confusing, and potentially
-deceptive\footnote{While deliberately adversarial network behavior
-seems like less of a concern for disaster response agents than
-warfighters, we conjecture that a similar ``fog of war'' may
-lead to confusing or contradictory reports that share similarities
-with intentionally deceptive behavior.} ocean of information.'' To
-avoid ``swimming in sensors and drowning in data''
-\cite{2010:magnuson}:
+\emph{Internet of Battle Things} (IoBT) \cite{2016:iobt}. To quote
+from that paper, agents ``under extreme cognitive and physical
+stress'' will be subject to a highly dynamic and dangerous
+environment. Various kinds of technology will assist humans by
+providing data to support sensemaking, but a contraindicating concern
+will be flooding agents with a ``massive, complex, confusing, and
+potentially deceptive ocean of information.'' To avoid ``swimming in
+sensors and drowning in data'' \cite{2010:magnuson}:
 \begin{quote}
 ``Humans seek well-formed, reasonably-sized, essential information
   that is highly relevant to their cognitive needs, such as effective
@@ -739,28 +685,43 @@ avoid ``swimming in sensors and drowning in data''
   mission.'' \cite{2016:iobt}
 \end{quote}
 
+\subsubsection{Adversarial Behavior}
 One feature of the Internet of Battle Things worth highlighting is
-``the adversarial nature of the environment.'' To some extent this
-adversial behavior is common also to disaster response. We previously
-cited a real-world example of a critical communications station
-destroyed by wildfire, perhaps not unlike an attack by enemy
-forces. In a video interview with a member of the volunteer rescue
-group Cajun Navy \citationneeded, one volunteer indicated it was very
-common to hear rumors, for example that gunshots were being fired at
-rescuers in a particular area, which were later found to be presumably
-false. Whether malicious or well-intentioned, the proliferation of
-false information in this chaotic environment can be considered a kind
-of adversarial behavior. Thus, battlefields and civil disaster
-response environments might have more in common than a superficial
-examination might suggest.
+``the adversarial nature of the environment.'' This feature is common
+also to disaster environments, whether resulting incidentally from
+``fog of war'' effects or deliberately caused by malicious actors
+seeking to exploit a civil disaster. Section
+\ref{ssec:communication-patterns} cited a real-world example of a
+critical communications station destroyed by wildfire, perhaps
+comparable to an attack by enemy forces.
 
-Setting aside the possibility of offensive behavior like signal
-jamming, communications in disaster response environments might even
-be less reliable than in the battlefield, requiring a greater emphasis
-on the preservation of scarce network resources. Certainly a group of
-(say) volunteer firefighters would have fewer resources than a
-tactical military unit, making do with commercial off-the-shelf (COTS)
-equipment rather than best in class hardware like sophisticated
+% TODO \citationneeded below
+There is a general trend in disaster response towards ``crowdsourced''
+information that gathers reports from the general public for
+processing by public safety officials. However, a vulnerability of
+crowdsourced information is that agents may be met with confusing or
+contradictory reports in ways that share similarities with
+intentionally deceptive behavior. Furthermore, it is not always easy
+to trace reports back to their source. A member of the volunteer
+rescue group Cajun Navy reported it was very common to hear rumors,
+for example that gunshots were being fired at rescuers in a particular
+area, that were later presumed to be false \citationneeded. Even fully
+malicious activity like SWATing---placing a fake 911 call to cause a
+large number of police to be dispatched a particular location---is
+hardly unknown in the public safety industry. Whether malicious or
+well-intentioned, the proliferation of false information in this
+chaotic environment can be considered adversarial and should be
+anticipated as part of a cautious approach to modernizing systems in
+this space.
+
+\subsubsection{Allocation of Network Resources}
+Communications in disaster response environments might even be less
+reliable than in the battlefield (setting aside offensive behavior
+like signal jamming), requiring a greater emphasis on the preservation
+of scarce network resources. For instance, a group of volunteer
+firefighters would have fewer resources than a tactical military unit.
+The firefireghters have to make do with commercial off-the-shelf
+(COTS) equipment instead of best in class hardware like sophisticated
 handheld satellite links. High bandwidth channels will often be in
 short supply, while adverse conditions like inclement weather are
 assumed.
@@ -773,25 +734,34 @@ resources. This is because only the applications have enough
 information to determine which data is the most important and must be
 shared with whom first, while only the network-level protocols have
 enough information and control to make prudent use of scarce network
-availability. While there is a generally accepted wisdom in computing
-(the end-to-end principle \citationneeded) which, applications should be
-relatively agnostic about network considerations---or conversely that
-network protocols ought to be transparent to applications---our
-setting calls for mechanisms allowing the two layers to have what
-might be a great deal of influence over the other. This interaction
-between the network and applications will be considered in more detail
-in Sections \ref{sec:networking}, \ref{sec:continuous-consistency},
-and \ref{sec:data-fusion}.
+availability.
 
-Consider a centralized data fusion application that runs in an edge
-data center \citationneeded that might be managed by a wireless
-carrier, a cloud hyperscaler, or government agency like NIFC. This
-application could detect critical events like a fire crossing a
-control line (a phenomenon called \emph{slopover}) and alert ground
-responders. It might also warn responders who have strayed too far
-from an escape route or safety zone. These are high-priority
-notifications, so it would be worthwhile to allocate scarce network
-resources to convey them to the relevant parties in real-time.
+There is a widely accepted wisdom in computing---the end-to-end
+principle \cite{1984:end-to-end}---which suggests roughly that
+applications should not make assumptions about the network, and that
+the network should be relatively agnostic to high-level application
+logic. However, in natural disaster environments where resources are
+scarce and reliable communication is critical, these subsystems may
+need to be more tightly integrated in how they influence each other to
+achieve the best performance. This approach would not contravene the
+end-to-end principle, but would involve carefully considering its
+application in this relatively extreme context.
+
+Consider, say 5 to 10 years in the future, a centralized data fusion
+application that running in an edge data center.\footnote{An
+  \emph{edge} data center is one located closer to a network's edge,
+  nearer to users, to provide low-latency communications for
+  time-sensitive applications. Edge centers support applications that
+  require significant amounts of information processing---enough that
+  the application must be hosted in a datacenter, where compute
+  resources can be scaled dynamically, rather than colocated with
+  users where resources are limited.} This application could detect
+critical events like a fire crossing a control line (a phenomenon
+called \emph{slopover}) and alert ground responders. It might also
+warn responders who have strayed too far from an escape route or
+safety zone. These are high-priority notifications, so it would be
+worthwhile to allocate scarce network resources to convey them to the
+relevant parties in real-time.
 
 On the other hand, while it may be beneficial for each firefighter to
 have real-time information about the GPS location of every other
@@ -801,13 +771,16 @@ other crews or nearby teams should be sent. If the network is
 extremely constrained, communication may be restricted to only
 information strictly relevant to preserving life to ensure this is
 delivered swiftly and reliably. Thus, network allocation is a dynamic
-calculation influenced both by the criticality of the information and
-the availability of network bandwidth at any a particular
-location. Advanced systems should provide mechanisms like Quality of
-Service (QoS) indicators to allow prioritizing certain
-communication. Such mechanisms can be incorporated into a control loop
-where applications generate feedback that drives the decision-making
-process in lower-level parts of the network.
+calculation influenced both by the criticality of the information
+(which is determined by the application logic) and the availability of
+network resources at a particular location. Advanced systems should
+provide mechanisms like Quality of Service (QoS) values to allow
+prioritizing certain communication. Such mechanisms can be
+incorporated into a control loop where applications generate feedback
+that drives the decision-making process in lower-level parts of the
+network. However, traditional QoS mechanisms may not be enough---even
+the routing protocol of the network may need to be more specialized to
+higher-level applications than in traditional environments.
 
 \section{Introduction to Distributed Systems}
 \label{sec:background}
@@ -884,7 +857,7 @@ this section will delve into these issues with more technical depth,
 while later sections will examine how some of these challenges can be
 reflected in the middleware design.
 
-\subsection{The challenge of physical  synchrony}
+\subsection{Physical Synchrony}
 \label{ssec:physical-synchrony}
 A lot of challenges in distributed computing could be
 straightforwardly overcome if we assume that all participants have
@@ -1555,7 +1528,7 @@ with respect to causal precedence.
   \end{itemize}
 \end{example}
 
-\subsection{Multicasting and Broadcasting}
+\subsubsection{Multicasting and Broadcasting}
 We now extend the above definitions to the group communication setting
 by allowing messages to have multiple recipients. For simplicity, we
 suppose messages are broadcast to all other recipients, though the
@@ -1802,7 +1775,7 @@ acyclic graph (DAG).
   to be \emph{physically concurrent}, written $\concurrent{\Op^1}{\Op^2}$.
 \end{definition}
 
-\subsection{Semantics and consistency}
+\subsection{Semantics and Consistency}
 In a sequential application running on a single computer, it is clear
 how read and write requests should be interpreted. A read request
 $\memread{x}$ should return the most recent value $v$ that was written
@@ -2482,8 +2455,8 @@ resilient distributed systems for emergency response scenarios
 requires a careful balancing act between competing properties that is
 carefully calibrated to the use case and the operational environment.
 
-\section{Timestamped Anti-entropy}
-\label{sec:TSAE}
+\section{Continuous Consistency}
+\label{sec:continuous-consistency}
 In this section, we present Golding's Timestamped Anti-Entropy (TSAE)
 protocol. TSAE is a \emph{weak consistency group communication}
 mechanism, a concept whose meaning will become clearer as we progress
@@ -2552,9 +2525,9 @@ earlier than $m$ (i.e. having a lesser timestamp). Hence, the write
 log at any moment is completely determined by knowing the gre
 
 
-\subsection{Assumptions and data structures}
+\subsubsection{Assumptions and Data Structures}
 
-\subsubsection{Assumptions}
+\paragraph{Assumptions}
 
 \[
   \textbf{A1}: \textrm{The set of group members is static and known to every member.}
@@ -2593,7 +2566,7 @@ expect sufficiently fine clock synchronization is indeed realistic in
 many cases, provided timekeeping mechanisms like GPS signals or NTP
 are available often enough to correct for drift.
 
-\subsubsection{Message Log}
+\paragraph{Message Log}
 
 Messages are added to the message log when they are received. The
 message log is linear, and typically the order will differ among
@@ -2615,7 +2588,7 @@ $C$ with timestamp less than $t$. Below, this corresponds to the
 
 \subsubsection{Invariants}
 
-\subsection{The algorithm}
+\subsection{The Algorithm}
 
 Each process $P_i$ has access to an approximately synchronized physical clock
 The data structures maintain by each process:
@@ -2874,7 +2847,7 @@ The contrapositive of Corollary \ref{cor:unseenest} is that $A$'s
 write log contains a message with timestamp $w.t \leq \ack{A}{B}$,
 then $A$ knows $B$ has already received this message.
 
-\subsection{Conit definitions}
+\subsection{Conit Definitions}
 
 
 \newcommand{\UnseenWeight}[1]{\textsf{Unseen}_{#1}}
@@ -2897,8 +2870,6 @@ then $A$ knows $B$ has already received this message.
 
 
 
-\section{Continuous Consistency}
-\label{sec:continuous-consistency}
 Strong (i.e. atomic or sequential) consistency, as defined in Section
 \ref{ssec:strong-consistency}, is an all-or-nothing proposition: an
 application provides strong consistency or it does not. Because of
@@ -2950,7 +2921,7 @@ application, we must first explain how inconsistency can be quantified
 generically in the first place. Second, we must explain how a generic
 protocols can be used to enforce.
 
-\subsection{The conit model}
+\subsection{The Conit Model}
 \label{ssec:conits}
 
 We assume a fixed set $\mathcal{P} = \{P_1, P_2, \ldots P_n\}$ of
@@ -2994,7 +2965,7 @@ Separately from the local database itself, the middleware maintains a
 \emph{write log} that stores a history of recent write requests it has
 seen.
 
-\subsection{Dimensions of consistency}
+\subsubsection{Dimensions of consistency}
 \label{measuring-consistency-on-conits}
 
 We discuss the three consistency dimensions and how they can be
@@ -3077,7 +3048,7 @@ other processes of any updates to these bounds. The application cannot
 guarantee the new consistency bound will be enforced until it knows
 that all other processes have seen the newly updated bounds.
 
-\subsection{Variations and additional features}
+\subsubsection{Variations and Additional Features}
 One can imagine various ways that the conit model can be augmented
 with additional capabilities.
 
@@ -3269,8 +3240,8 @@ suggests it is too weak. Indeed, there are no guarantees about the
 difference in values for \(x\) and \(y\) across the two replicas.
 \end{comment}
 
-\subsection{TACT system model}
-\label{tact-system-model}
+%\subsection{TACT system model}
+%\label{tact-system-model}
 
 As in Section \ref{sec:background}, we assume a distributed set of
 processes collaborate to maintain local replicas of a shared data object
