@@ -98,7 +98,7 @@
 \newpage
 
 \section{Introduction}
-\label{introduction}
+\label{sec:introduction}
 Civil aviation has traditionally focused primarily on the efficient
 and safe transportation of people and goods via the airspace. Despite
 the inherent risks, the application of sound engineering practices and
@@ -146,7 +146,7 @@ performance and consistency, the topic of Section
 \ref{sec:background}.
 
 \subsection{Summaries of the sections}
-\label{summaries-of-the-sections}
+\label{ssec:summaries-of-the-sections}
 
 Sections \ref{sec:disaster-response}--\ref{sec:desiderata} contain
 background material on disaster response, distributed systems, and the
@@ -239,215 +239,309 @@ simulation and experimentation in the field.
 
 \section{Coordination Challenges in Disaster Response}
 \label{sec:disaster-response}
-This section explains aspects of disaster response, particularly
-firefighting, that motivate the remainder of this document. We
-describe how real-world environments give rise to foundational
-challenges that must be addressed through the application of
-distributed computing principles. Even deploying the best
-communications technology cannot avoid the fundamental computer
-scientific problems raised when distributed agents must coordinate
-their actions over a widespread area.
+This section explores key aspects of disaster response, particularly
+firefighting, that shape the focus of this document. We highlight how
+real-world environments create fundamental challenges that require
+solutions based on distributed computing principles. Even with the
+best communications technologies, core issues arise when distributed
+agents need to coordinate their actions across wide areas.
 
-Disaster response settings, such as wildfire suppression or hurricane
+Disaster response settings, like wildfire suppression or hurricane
 relief, are marked by systemic communications challenges. A 2023
 report by the President’s Council of Advisors on Science and
-Technology (PCAST) cites the need to address ``the vulnerabilities and
-shortfalls in wildland firefighter communications, connectivity, and
-technology interoperability'' in their top recommendation
-\cite{pcast2023} for wildland firefighting modernization. Many of
-these shortfalls can be partly attributed to factors inherent to
-disaster response: remote locations, difficult terrain, damaged
-infrastructure, harsh weather, and limited power, to name a few.
+Technology (PCAST) highlights the need to address ``the
+vulnerabilities and shortfalls in wildland firefighter communications,
+connectivity, and technology interoperability'' as its top
+recommendation for wildland firefighting modernization
+\cite{pcast2023}. Many of these vulnerabilities and shortfalls stem
+from factors inherent to disaster response: remote locations,
+difficult terrain, damaged infrastructure, harsh weather, and limited
+power, to name a few.
 
-Field agents generally face high message loss, distorted signals, and
-unpredictable latencies when communicating. A conservative view
-suggests preparing for the worst performance at critical times:
-network difficulties often coincide with the sorts of conditions that
-demand urgent, reliable contact. Disasters often damage and degrade
-the communications infrastructure, and sudden overwhelming demand can
-often overwhelms a network completely. This was starkly evident in the
-immediate aftermath of the September $11^\textrm{th}$ terrorist
-attacks, when sudden user demand and severed trunk cables crippled New
-York public cell phone networks, including dedicated networks for
-first responders \cite{2011:Reardon}. These failures later became the
-impetus for the creation of FirstNet \cite{2021:firstnet,
-2021:firstnet2}, a national public safety broadband network (NPSBN).
+Field agents often face high message loss, distorted signals, and
+unpredictable delays in communication. A cautious approach suggests
+preparing for the worst performance at critical times---network
+failures often coincide with the sorts of conditions that demand
+urgent, reliable contact. Disasters often damage and degrade the
+communications infrastructure, which is accompanied by a sudden surge
+in user demand that can overwhelm a network completely. This was
+starkly evident in the immediate aftermath of the September
+$11^\textrm{th}$ attacks, when sudden user demand and severed trunk
+cables crippled New York public and private communication networks,
+including dedicated networks for first responders
+\cite{2011:Reardon}. These failures later became the impetus for the
+creation of FirstNet \cite{2021:firstnet, 2021:firstnet2}, a national
+public safety broadband network (NPSBN).
 
-An unreliable network presents a challenge for coordinating
-distributed agents. Coherent decision-making and coordinated action
-require consistency, i.e.~agreement, among data shared between
-agents. We shall make this somewhat vague notion more precise in
-Section \ref{sec:background}, but the intuition is clear: it is very
-important for everyone to agree which firetrucks should respond to
-which scenes, where the helicopter should land, which tasks should be
-prioritized, or which radio frequencies have been reserved for
-which purposes. Stronger standards for consistency are more difficult to
-maintain than relaxed ones because they require exchanging more
-information in less time, putting a heavier burden on the
-network. When a communications link is slow, system components that
-need to coordinate may have to pause and wait, diminishing the
-efficacy of the system. In response, standards for consistency may have to be relaxed, which presents its own issues.
+Unreliable networks make coordinating distributed agents a significant
+challenge. Coherent decision-making and coordinated action require
+consistency, meaning agreement on the data shared between agents. We
+define consistency more precisely in Section \ref{sec:background}, but
+the idea is clear: it is critical for everyone to agree which
+firetrucks should respond to which areas, where helicopters should
+land, which tasks should be prioritized, or which radio frequencies
+are in use. Achieving stronger standards for consistency requires
+sending more information in a shorter time frame, which places a
+heavier strain on the network. When a communications link is slow,
+system components may have to pause and wait before agreement can be
+reached, diminishing the efficacy of the system. To avoid waiting in
+such scenarios, standards for consistency may have to be relaxed,
+meaning distributed agents have less agreement, which comes with its
+own challenges. In sum, there is an inherent tension between
+consistency and latency (delay) of action.
 
-\subsection{Communication and Safety}
-\label{communication-and-safety}
-We shall turn our attention to the fundamental nature of the consistency/latency tradeoff from a safety
-perspective. Operational safety requires agents to gather information about their
-environment and react to it quickly and systematically. This
-information is transmitted over communication networks, so a poor
-communications environment is a safety problem. Poor communication
-forces agents to choose between delays in sending and receiving
-information or acting with only limited knowledge, but inaction and
-uninformed action are both problematic. This observation turns out to
-be related to a deep computer science phenomenon generally known as the
-safety/liveness tradeoff.
+\subsection{Communication and User Safety}
+\label{ssec:communication-and-safety}
+We turn our attention to the implications of the consistency/latency
+tradeoff from a user safety perspective. Operational safety depends on
+agents quickly gathering and responding to information about their
+environment. This information is relayed through communication
+networks, so poor communication becomes a safety problem. When
+communication falters, agents face a difficult choice: either wait for
+more information before acting, or acting now with incomplete
+knowledge. Both inaction and uninformed action carry risks. This
+dilemma is closely related to a fundamental computer science principle
+known as the safety/liveness tradeoff.
 
-As a running example, we consider the use of firefighting airtankers,
-the largest of which are the Very Large Airtankers (VLATs), defined as
-those carrying more than 8,000 gallons of water or fire retardant
-\cite{2019:airtankerops}. The largest VLATs can deposit more than
-20,000 gallons, weighing about 170,000 pounds, in a single ``drop.''
-In the United States today, a typical policy is to perform drops from
-a mere 250 feet above the tree canopy \cite{2019:airtankerops}, though
-it is common to hear of drops performed from lower altitudes. Such a
-maneuver can easily crush a ground vehicle \cite{2019:stickney}. A
-2018 accident led to the death of one firefighter and the injury of
-three others when an 87-foot Douglas Fir tree was knocked down by an
-unexpectedly forceful drop from a Boeing 747-400 Supertanker
-\cite{2018:calfire}.
-
-\begin{figure}[h]
-  \label{fig:airtanker}
+\begin{figure}
   \centering
   \includegraphics[scale=0.4]{images/dc10.jpg}
-  \caption{A DC-10 airtanker, rated for 9,400 gallons, drops retardant above Greer, Arizona. \citationneeded.}
+  \caption{A DC-10 airtanker, rated for 9,400 gallons, drops retardant
+    above Greer, Arizona. Image source: Kari Greer/US Forest Service.}\label{fig:airtanker}
 \end{figure}
 % https://www.flickr.com/photos/apachesitgreavesnf/5837741382
 % Also appears at https://www.nifc.gov/resources/aircraft/airtankers
 
-Increasingly, wildland firefighters are using tactical applications on
-ordinary cellphones to coordinate their activities in the field. The Android Team Awareness Kit (ATAK), initially developed by the American military in 2010 and released (in a stripped-down version) for civilian use, has seen particularly widespread adoption. One possible use of ATAK would be to systematically track the GPS locations of firefighters on the ground for safety monitoring purposes. A seemingly reasonable policy then would be to prohibit VLATs from performing a drop if its computers do not have up-to-date information about the location of firefighters on the ground.
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.15]{images/forestfire-videox-scaled.jpg}
+  \caption{Screenshot of a firefighter using ATAK, where the left
+    panel shows a map and the right is a video stream from an air vehicle.}\label{fig:atak}
+\end{figure}
+%https://www.civtak.org/2020/08/04/tak-used-in-ca-firefighting-w-aircraft-video/
 
-Unfortunately, system-wide safety is not so easily achieved, as information from agents in the field may be
-difficult or impossible to gather for a wide variety of reasons. The wildland firefighting environment is frequently GPS-denied: heavy smoke, multipath effects, and so on can easily prevent a consumer-grade cellphone from obtaining reliable GPS coordinates. Additionally, factors like a damaged radio tower or environmental obstructions (e.g. a tall mountain) can prevent communications between the air and
-ground. Such conditions would prevent a VLAT's computers from knowing the locations of ground agents, in which case rigid enforcement of the safety policy would prevent them from operating. Of course, simply grounding the VLATs would itself be a safety challenge, since they are a major tool in controlling wildfires.
+For example, consider the use of firefighting airtankers, particularly
+Very Large Airtankers (VLATs), which can carry over 8,000 gallons of
+water or fire retardant \cite{2019:airtankerops}
+(Figure \ref{fig:airtanker}). The largest VLATs can drop more than
+20,000 gallons---about 170,000 pounds' worth---in a single pass. In
+the U.S., these drops are typically made from just 250 feet above the
+tree canopy \cite{2019:airtankerops}, and sometimes lower in
+practice. This sort of maneuver can easily crush a ground vehicle
+\cite{2019:stickney}. In 2018, a firefighter was killed, and three
+others were injured, when an unexpectedly powerful drop from a Boeing
+747-400 Supertanker knocked down an 87-foot Douglas Fir tree
+\cite{2018:calfire}.
 
-The previous scenario exemplifies a classic tradeoff between opposing goals in computer science:
-system \emph{safety} (which in this context takes on a narrow technical meaning) and system \emph{availability} or \emph{liveness}. In
-the distributed computing context, safety properties guarantee that a
-system will not perform an action that violates a constraint. An
-exemplary safety property could look like the following:
+Improving firefighter communications can be expected to lead to better
+safety outcomes. On such improvement is the through the use of
+applications like ATAK---the Android Team Awareness Kit, developed by
+the U.S. military in 2010 and later released in a civilian
+version. Wildland firefighters are increasing using ATAK, extended
+with aftermarket plugins, on ordinary cell phones to coordinate their
+activities in the field (Figure \ref{fig:atak}). A key application of
+this tool could be tracking the real-time GPS locations of
+firefighters for safety monitoring.
+
+Given the risks of VLAT drops, a seemingly reasonable safety measure
+might be to disallow drops unless a VLAT's computers have up-to-date
+information about the location of ground personnel. Unfortunately,
+system-wide safety is not so easily achieved. The proposed measure is
+exactly the sort of thing subject to the safety/liveness tradeoff
+inherent to distributed systems. Here, it is important to recognize a
+linguistic nuance: ``safety'' in a computing systems context is a
+property of a system, and not inherently related to the safety of
+people. A \emph{safety} property is a prohibition that stops a system
+taking an action that might be ``bad'' in some way. Here is an
+exemplary safety property for the example above:
 \begin{quote}
-  \interlinepenalty=10000 % Punish pagebreaks inside this quote!
   $\textbf{P}_\textrm{safe}$: Ground agents are known to be at least
   100 feet outside the drop zone, and this information is current to
   within 30 seconds, or airtankers will not perform a drop.
 \end{quote}
-By contrast, liveness properties stipulate that the system will
-certainly perform requested actions, typically within some time
-bound. An exemplary liveness property might be the following:
+By contrast, a \emph{liveness} property demands some kind of action
+from a system, usually one that is ``good'' in some way. A
+characteristic of liveness properties is that they place an upper
+bound on the allowable delay of something. An exemplary liveness
+property for our scenario might be the following:
 \begin{quote}
   $\textbf{P}_\textrm{live}$: A VLAT on the ground will takeoff and
   perform a drop within 20 minutes of receiving a request from an
   incident commander.
-\end{quote}
-(In an interview with PBS \cite{2021:aerialfirefighting}, the Chief of Flight Operations for Cal Fire cited 20
-	minutes as an upper bound on the response time for aerial firefighting units
-	within designated responsibility areas.)
+\end{quote} (In an interview with PBS \cite{2021:aerialfirefighting},
+the Chief of Flight Operations for Cal Fire cited 20 minutes as an
+upper bound on the response time for aerial firefighting units within
+designated responsibility areas.) Note that $\textbf{P}_\textrm{live}$
+is a liveness property, not a safety property in the technical sense,
+but it impacts human safety: it might be critical for VLATs to perform
+drops quickly if a wildfire is threatening the safety of ground
+personnel.
 
-Safety and liveness are frequently dual mandates: safety, in the technical sense
-used here, is a requirement for a system to \textbf{never} to perform certain
-actions, while liveness is a requirement to \textbf{always} perform
-certain actions. The tension between these ideals means they often
-cannot be guaranteed simultaneously. Such is the case in our example:
-if firefighters are unable to broadcast their locations to the pilot,
-then one of \(\textbf{P}_\textrm{safe}\) or \(\textbf{P}_\textrm{live}\) must be sacrificed to maintain the other.
+Safety and liveness are frequently dual mandates that cannot be
+guaranteed simultaneously. Such is the case in our example: though
+$\textbf{P}_\textrm{safe}$ and $\textbf{P}_\textrm{live}$ are both
+desirable, certain situations will force policymakers to prefer one
+over the other. Consider the fact that the wildland firefighting
+environment is frequently GPS-denied: heavy smoke, multipath effects,
+and so on can easily prevent a consumer-grade cellphone from obtaining
+reliable GPS coordinates. Additionally, factors like a damaged radio
+tower or environmental obstructions like a tall mountain can prevent
+communications between the air and ground. Such conditions would
+prevent a VLAT's computers from knowing the locations of ground
+agents, which immediately presents a dilemma: should the crew proceed
+without knowing the locations of ground personnel, maintaining
+$\textbf{P}_\textrm{live}$ at the cost of $\textbf{P}_\textrm{safe}$,
+or should it be cautious and wait for more information, maintaining
+$\textbf{P}_\textrm{safe}$ at the cost of $\textbf{P}_\textrm{live}$?
+There is no simple answer, and either choice has a downside respect to
+the broader goal of system-wide safety (in the ordinary sense of the
+word).
 
-It is worth emphasizing a slight linguistic idiosyncrasy exhibited above, specifically by $\textbf{P}_\textrm{live}$:
-liveness properties---not just ``safety'' properties---can
-be relevant to human safety. Thus, the narrow technical meaning of
-safety properties for computing systems does not capture the whole
-meaning of System Wide Safety. The tension between ``safety'' (in the narrow sense) and liveness is a more-or-less unavoidable challenge for any distributed computing system relevant to human safety (in the ordinary sense).
+
+\begin{comment}
+Here we see an example of the safety/liveness tradeoff. Unfortunately,
+system-wide safety is not so easily achieved, as information from
+agents in the field may be difficult or impossible to gather for a
+wide variety of reasons. The wildland firefighting environment is
+frequently GPS-denied: heavy smoke, multipath effects, and so on can
+easily prevent a consumer-grade cellphone from obtaining reliable GPS
+coordinates. Additionally, factors like a damaged radio tower or
+environmental obstructions (e.g. a tall mountain) can prevent
+communications between the air and ground. Such conditions would
+prevent a VLAT's computers from knowing the locations of ground
+agents, in which case rigid enforcement of the safety policy would
+prevent them from operating. Of course, simply grounding the VLATs
+would itself be a safety challenge, since they are a major tool in
+controlling wildfires.
+
+The previous scenario exemplifies a classic tradeoff between opposing
+goals in computer science: system \emph{safety} (which in this context
+takes on a narrow technical meaning) and system \emph{availability} or
+\emph{liveness}. In the distributed computing context, safety
+properties guarantee that a system will not perform an action that
+violates a constraint. An exemplary safety property could look like
+the following:
+\begin{quote} \interlinepenalty=10000 % Punish pagebreaks inside this
+quote!  $\textbf{P}_\textrm{safe}$: Ground agents are known to be at
+least 100 feet outside the drop zone, and this information is current
+to within 30 seconds, or airtankers will not perform a drop.
+\end{quote} By contrast, liveness properties stipulate that the system
+will certainly perform requested actions, typically within some time
+bound. An exemplary liveness property might be the following:
+\begin{quote} $\textbf{P}_\textrm{live}$: A VLAT on the ground will
+takeoff and perform a drop within 20 minutes of receiving a request
+from an incident commander.
+\end{quote} (In an interview with PBS \cite{2021:aerialfirefighting},
+the Chief of Flight Operations for Cal Fire cited 20 minutes as an
+upper bound on the response time for aerial firefighting units within
+designated responsibility areas.)
+
+Safety and liveness are frequently dual mandates: safety, in the
+technical sense used here, is a requirement for a system to
+\textbf{never} to perform certain actions, while liveness is a
+requirement to \textbf{always} perform certain actions. The tension
+between these ideals means they often cannot be guaranteed
+simultaneously. Such is the case in our example: if firefighters are
+unable to broadcast their locations to the pilot, then one of
+\(\textbf{P}_\textrm{safe}\) or \(\textbf{P}_\textrm{live}\) must be
+sacrificed to maintain the other.
+
+It is worth emphasizing a slight linguistic idiosyncrasy exhibited
+above, specifically by $\textbf{P}_\textrm{live}$: liveness
+properties---not just ``safety'' properties---can be relevant to human
+safety. Thus, the narrow technical meaning of safety properties for
+computing systems does not capture the whole meaning of System Wide
+Safety. The tension between ``safety'' (in the narrow sense) and
+liveness is a more-or-less unavoidable challenge for any distributed
+computing system relevant to human safety (in the ordinary sense).
 
 Besides the safety/liveness tradeoff, the previous example exhibits
-two other themes common in the field of distributed systems, both of which will be revisited throughout this document. We pause to draw attention to them.
+two other themes common in the field of distributed systems, both of
+which will be revisited throughout this document. We pause to draw
+attention to them.
+%%%%%%
+\end{comment}
 
-\paragraph{Epistemology}
-Observe that the issue in the VLAT example does not simply disappear
-if no ground personnel are actually within 100 feet of a drop
-zone. That is, it is not simply a matter of whether a danger is
-factually present. To guarantee \(\textbf{P}_\textrm{safe}\), an
-airtanker's actions must be restricted when its computers do not
-\emph{know} whether an action would violate
-\(\textbf{P}_\textrm{safe}\)---knowledge of the fact, and not merely
-the fact of it, is the crucial part. In philosophical terms, the logic
-of distributed agents is inherently an \emph{epistemic} one, meaning
-it must take into account not just what is true but what is known. The
-need to share knowledge is what drives communication and puts a burden
-on the network.
 
-\paragraph{Discontinuity}
-The properties $\mathbf{P}_\textrm{safe}$ and
-$\mathbf{P}_\textrm{live}$ are inflexible, all-or-nothing
-propositions. The complexity of the operational environment demands
-considering more flexible kinds of properties. Suppose that agents are
-known to be $500$ feet outside the drop zone, the extra margin meaning
-they are well away from any danger, but the information is only
-current to within 35 seconds. Clearly this is good enough information
-to authorize a drop, but strictly speaking the 5-second difference is
-a violation of $\mathbf{P}_\textrm{safe}$. When safety properties are
-this rigid, the system's behavior becomes overly sensitive to the
-particulars of the environment and therefore difficult to predict,
-which is precisely the kind of \emph{discontinuity} that we aim to
-prevent. Our goal is to build reliable systems that perform well in a
-wide range of circumstances.
+Besides the safety/liveness tradeoff, the previous example exhibits
+two other themes important in distributed systems, both of which will
+be explored further in this document. The first is the
+\emph{epistomological} nature of reasoning about distributed
+systems---concerned with what information is \emph{known} by
+\emph{whom}. This aspect is reflected in wording of
+$\textbf{P}_\textrm{safe}$ in VLAT example: Ground agents are known
+(by the VLAT's computers) to be outside of a dangerous area. This
+situation requires a deeper and more sophisticated analysis than one
+simply considering what is true, but not necessarily
+known. Mathematically, the logic of distributed agents is not the
+``propositional'' logic but the modal logic S4
+\citationneeded. Spreading knowledge requires communication between
+agents over a period of time. Communication imposes a burden on the
+network, which is not instantaneous and reliable, and it is from these
+imperfections that the safety/liveness arises.
+
+The second aspect exhibited above, albeit negatively, is that of
+\emph{continuity}. A continuous system can flexibly adopt to its
+environment, but a discontinuous system is rigid and may exhibit
+suddenly different behavior in response to only small changes in the
+environment. The properties $\mathbf{P}_\textrm{safe}$ and
+$\mathbf{P}_\textrm{live}$ exhibit a stark lack of continuity because
+they are inflexible, all-or-nothing propositions. Suppose that agents
+are known to be $500$ feet outside the drop zone, but the information
+is only current to within 31 seconds---this extra second technically
+violates $\mathbf{P}_\textrm{safe}$, though it should be inferrable
+that the ground agents are well away from danger. In particular, this
+example demonstrates that safety more of a quantitative concept than a
+Boolean (true-or-false) one. A distributed system in a
+network-challenged environment should exhibit smoothly varying
+properties in response to its inputs, and ideally allow ``tuning'' the
+system's properties for the particulars of its environment at any
+moment. The technical aspects of this theme are the focus of Section
+\ref{sec:continuous-consistency}.
 
 \subsection{Communication Patterns in the Field}
 \label{ssec:communication-patterns}
-
 We now consider some of the communication patterns that occur in
-wildland firefighting. The layman reader may be surprised to learn
-that the state of the art is somewhat primitive, which is partly
-attributable to the fact that very little permanent infrastructure
-exists in this setting. This fact is also what makes wildfires an
-interesting and generalizable example for other kinds of civil
-disaster environments.
+wildland firefighting. Readers may be surprised to learn that the
+state of the art is somewhat primitive, largely due to the sparse
+permanent communications infrastructure in this setting. This fact is
+also what makes wildfires an interesting and generalizable example for
+other kinds of civil disaster environments where the network is
+unreliable.
 
-One trend we will draw attention to is a kind of ``geospatial locality
-of reference'' principle that system designers should take into
-account. By this, we mean the happy coincidence of two observations
-which, if not exactly guaranteed rules, are at least approximately
-true in many circumstances. The first observation is simple:
+One important concept to draw attention to is a kind of ``geospatial
+locality of reference'' that system designers should consider. By
+this, we mean the concomitance of two observations which, while not
+guaranteed rules, are approximately true in many circumstances. The
+first observation is simple:
 \begin{quote}
-  $\textbf{O}_1$: Agents with the most urgent need to
-  coordinate their actions will tend to be located closer to each
-  other and require the same kinds of information.
+  $\textbf{O}_1$: Agents with the most urgent need to coordinate their
+  actions will usually be located closer together and require similar
+  kinds of information.
 \end{quote}
 The second observation is as follows:
 \begin{quote}
-  $\textbf{O}_2$: Agents that are located closer together
-  will tend to have more reliable communications between them than
-  agents that are far apart. Conversely, information that must travel
-  a long distance tends to be delayed or degrade in quality.
+  $\textbf{O}_2$: Agents that are located closer together generally
+  enjoy more reliable communications between them than agents that are
+  far apart. Conversely, information travels long distances tends to
+  be delayed or degrade in quality.
 \end{quote}
 
-We will refer to the concomitance of these two facts as simply the
-``locality'' principle. The reason the locality principle is crucial
-is that, as we see in Section \ref{sec:background}, there are major
-theoretical and practical limits to how well \emph{all} agents in the
-system can share \emph{all} information with each other, i.e. how well
-a system can achieve global consistency. As luck would have it, in
-many cases this will not be required: it will be often be enough for
-\emph{some} agents to share \emph{some} information with each other, a
-fact that raises opportunities to optimize scare network resources. Of
-course, this does raise the question of how to decide which
-information must be shared with whom, and how to use this knowledge to
-best exploit the communication network. We will revisit this question,
-without the pretense of answering it conclusively, throughout Sections
-\ref{sec:networking}, \ref{sec:continuous-consistency} and
-\ref{sec:data-fusion}. For now, we resume our examination of what
-communication patterns look like today.
+These related observations are what is meant by simply the
+``locality'' principle. Locality is a crucial factor to analyze
+because, as presented in Section \ref{sec:background}, there are major
+theoretical and practical limits to how well agents can coordinate
+\emph{globally}, meaning with all agents know and agree on
+everything. To the extent the system exhbitis locality, global
+agreement is not as urgently required: it may be enough for nearby
+agents to coordinate over more efficient shorter-range links, than
+less efficient long-range ones. This raises the question of how to
+decide which information must be shared with whom, and how to use this
+knowledge to best exploit the communication network. This question is
+revisited in Section \ref{sec:continuous-consistency}.
 
-\paragraph{Communication on the ground}
+\subsubsection{Communication on the ground}
+\label{sssec:ground-communication}
 In the field, communication between firefighters and other agents is
 often facilitated by handheld (analog) land-mobile radios, which are
 inherently limited in their battery life, bandwidth, effective range,
@@ -462,18 +556,19 @@ between nearby firefighters working on the same or closely related
 tasks, and in some cases they are so nearby they can communicate
 without any network infrastructure at all. In a future environment
 where agents might be equipped with body-worn sensors and heads-up
-displays (HUDs) \citationneeded, this sort of local communication
-might be facilitated by simple low-power technologies such as
-Bluetooth, without the need for more sophisticated (and heavy)
-equipment.
+displays (HUDs), this sort of local communication might be facilitated
+by simple low-power technologies such as Bluetooth, without the need
+for more sophisticated (and heavy) equipment.
 
 Communication over a long distance requires infrastructural support,
 such as the use of cell towers and repeater stations. Typically,
 disaster response environments have scarce permanent infrastructure:
 in a wildland fire setting, perhaps a few repeaters mounted to a
-nearby watch tower. Ad-hoc infrastructure, such as cells on wheels
-(COWs) or cells on light trucks (COLTs)---i.e. portable cellular towers---can sometimes be deployed on an as-needed basis if the location
-allows for it. Similar kinds of equipment can also be mounted to backpacks and carried into the field by specially-trained agents.
+nearby watch tower. Ad-hoc infrastructure, such as Cells On Wheels
+(COWs) or Cells on Light Trucks (COLTs)---i.e. portable cellular
+towers---can sometimes be deployed on an as-needed basis if the
+location allows for it. Similar kinds of equipment can also be mounted
+to backpacks and carried into the field by specially-trained agents.
 
 An extremely common issue is making sure that all
 equipment is properly configured, for instance that all radios are
@@ -517,11 +612,11 @@ A scenario where communication between two groups is completely
 severed is exactly the sort of thing considered by the CAP theorem in
 Section \ref{sec:background}.
 
-\paragraph{Vehicles on the ground}
+\paragraph{Ground vehicles}
 Large numbers of ground vehicles---sometimes on the order of 100 during a major response---are involved in wildfire suppression. Besides various types of firetrucks, bulldozers and similar vehicles are commonly used to control the landscape and perimeter of the fire. An advantage of vehicles is that they can carry
 heavier and higher-power communications equipment than a human. For instance, a vehicle could be equipped with a BGAN or VSAT satellite terminal or cellular equipment as mentioned previously. Additionally equipping the vehicle with something like a wireless local area network (WLAN) base station, i.e. WiFi access point, would let the vehicle serve as a bridge between agents in the field and central coordinators such as incident commanders or 911 dispatchers.
 
-\paragraph{Communication in the air}
+\subsubsection{Communication in the air}
 Wildland firefighting increasingly involves the use of helicopters and
 fixed wing aircraft. Civil aviation has traditionally employed simpler
 communication patterns than this use case demands. For instance,
@@ -542,7 +637,6 @@ case calls for more sophisticated coordination schemes between
 airborne and ground-based elements than solutions like ADS-B provide
 by themselves.
 
-\paragraph{Message relaying}
 As aircraft generally have better line-of-site to ground crews than
 ground crews have to each other, firefighters sometimes relay messages
 to air-based units over the radio, which in turn is relayed back down
@@ -577,7 +671,7 @@ channels.
 %is robust to the failure of any one component.
 
 \subsection{Data Collection and Processing}
-\label{towards-the-future}
+\label{ssec:data-collection}
 %So far we have said a lot about the state of disaster response
 %today. A distributed system for this sort of challenge should be
 %designed for the kinds of environments and conditions expected in the
@@ -645,17 +739,20 @@ avoid ``swimming in sensors and drowning in data''
   mission.'' \cite{2016:iobt}
 \end{quote}
 
-One feature of the Internet of Battle Things worth highlighting is ``the
-adversarial nature of the environment.'' To some extent this adversial
-behavior is common also to disaster response. We previously cited a
-real-world example of a critical communications station destroyed by
-wildfire, perhaps not unlike an attack by enemy forces. In a video
-interview with a member of the volunteer rescue group Cajun Navy
-\citationneeded, one volunteer indicated it was very common to hear
-rumors, for example that gunshots were being fired at rescuers
-in a particular area, which were later found to be presumably false. Whether malicious or well-intentioned, the
-proliferation of false information in this chaotic environment can
-be considered a kind of adversarial behavior. Thus, battlefields and civil disaster response environments might have more in common than a superficial examination might suggest.
+One feature of the Internet of Battle Things worth highlighting is
+``the adversarial nature of the environment.'' To some extent this
+adversial behavior is common also to disaster response. We previously
+cited a real-world example of a critical communications station
+destroyed by wildfire, perhaps not unlike an attack by enemy
+forces. In a video interview with a member of the volunteer rescue
+group Cajun Navy \citationneeded, one volunteer indicated it was very
+common to hear rumors, for example that gunshots were being fired at
+rescuers in a particular area, which were later found to be presumably
+false. Whether malicious or well-intentioned, the proliferation of
+false information in this chaotic environment can be considered a kind
+of adversarial behavior. Thus, battlefields and civil disaster
+response environments might have more in common than a superficial
+examination might suggest.
 
 Setting aside the possibility of offensive behavior like signal
 jamming, communications in disaster response environments might even
@@ -677,7 +774,7 @@ information to determine which data is the most important and must be
 shared with whom first, while only the network-level protocols have
 enough information and control to make prudent use of scarce network
 availability. While there is a generally accepted wisdom in computing
-(the end-to-end principle \citationneeded) that applications should be
+(the end-to-end principle \citationneeded) which, applications should be
 relatively agnostic about network considerations---or conversely that
 network protocols ought to be transparent to applications---our
 setting calls for mechanisms allowing the two layers to have what
@@ -788,7 +885,7 @@ while later sections will examine how some of these challenges can be
 reflected in the middleware design.
 
 \subsection{The challenge of physical  synchrony}
-\label{ssec:causality}
+\label{ssec:physical-synchrony}
 A lot of challenges in distributed computing could be
 straightforwardly overcome if we assume that all participants have
 instantaneous access to a common time base, i.e.  synchronized
@@ -1641,12 +1738,17 @@ faster performance.
     \centering
     \input{images/pgf/smEx1NoEdges.pgf}
     \caption{Time diagram for memory operations}
-    \label{fig:smEx1}
+    \label{fig:dsm-example-1}
 \end{figure}
 
-\newcommand{\Op}{\mathrm{Op}}
+\begin{figure}
+  \centering
+  \input{images/pgf/smEx1DAG.pgf}
+  \caption{External order relation among operations in Figure \ref{fig:dsm-example-1}}
+  \label{fig:dsm-example-1DAG}
+\end{figure}
 
-Figure \ref{fig:smEx1} depicts an exemplary time diagram for the
+Figure \ref{fig:dsm-example-1} depicts an exemplary time diagram for the
 shared memory abstraction, similar to those for message passing. Two
 kinds of operations are shown: \emph{reads} and \emph{writes}. A read
 operation, $\mathsf{R}(x)$, retrieves the value stored at (virtual)
@@ -1656,17 +1758,49 @@ operation, $\memwrite{x}{v}$, indicates writing value $v$ to memory
 location $x$, which in code might be written as something like
 $x := v$.
 
-An arbitrary read or write operation, $\Op$, spans the duration from
-when the operation is invoked by the application ($\memstart{\Op}$),
+An operation does not happen instantly, but has a \emph{duration}. An
+arbitrary read or write operation, $\Op$, spans from the moment of
+time the operation is invoked by the application ($\memstart{\Op}$),
 to when it finished ($\memstop{\Op}$), returning either the read value
-or an acknowledgment of the write request. Between the start and stop
-times, the memory management layer is usually coordinating in the
-background with other processes over the network, say by looking up
-the current value of a memory location, but this is not shown in the
-diagrams. The entire sequence of requests across all processes forms
-what we call a \emph{history}. If $H$ is a history, we write $H|_P$ to
-mean just the sequence of operations happen on process $P$, called the
-\emph{local history} of $P$.
+or an acknowledgment of the write request. During this span, the
+memory management layer is usually coordinating in the background with
+other processes over the network, say by looking up the current value
+of a memory location, but this is not shown in the diagrams. The
+entire sequence of requests across all processes forms what we call a
+\emph{history}. If $H$ is a history, we write $H|_P$ to mean just the
+sequence of operations happen on process $P$, called the \emph{local
+  history} of $P$.
+
+Because they have duration, memory operations on different
+processes---including ones that access the same virtual memory
+locations---can occur simultaneously. A fundamental relation among
+operations is their \emph{external order}, the partial order that
+orders non-overlapping events by their physical times, but does not
+assign an ordering to events whose executions overlap in physical
+time.
+\begin{definition}[External order]
+  Let $H$ be a history. An operation $\Op^1$ \emph{externally
+    precedes} operation $\Op^2$ if
+  $\memstop{\Op^1} < \memstart{\Op^2}$. This induces an irreflexive
+  partial order on $H$ called external order.
+\end{definition}
+The definition states that one operation externally precedes another
+if it stops before the other is invoked. Note that we are comparing
+events in terms of real, physical time: external order is the partial
+order that would be expected by an outside observer who can see
+operations executing globally in real time.
+
+Figure \ref{fig:dsm-example-1DAG} shows the external order among the
+operations in Figure \ref{fig:dsm-example-1} in the form of a directed
+acyclic graph (DAG).
+
+
+\begin{definition}[Physical concurrency]
+  Consider two operations $\Op^1$ and $\Op^2$. If neither externally
+  precedes the other, in another words if there is some moment in time
+  during which both operations are executing, the operations are said
+  to be \emph{physically concurrent}, written $\concurrent{\Op^1}{\Op^2}$.
+\end{definition}
 
 \subsection{Semantics and consistency}
 In a sequential application running on a single computer, it is clear
@@ -1678,19 +1812,16 @@ unambiguous because we assume that in a single process, operations do
 not overlap in time, so there is always a sense of which one happened
 first. In a transactional database, this property can be achieved
 using standard \emph{serialization} mechanisms.
-\begin{figure}
-  \input{images/pgf/smEx0.pgf}
-  \caption{Memory operations on a single process}
-  \label{fig:smEx0}
-\end{figure}
 
 \begin{example}
-  \label{exmpl:updatesoneprocess}
-  Consider Figure \ref{fig:smEx0}, depicting just a single
-  process. Since there is no ambiguity in the order of events, it is
-  clear that this process should execute in the following order.
+  Consider the following history of operations running inside a single process.
+  Note that this diagram does not indicate what values are returned by the read operations.
+  \[\input{images/pgf/smEx0.pgf}\]
+  Since there is no ambiguity in the order of events, it is clear
+  which values \emph{should} be returned. Read requests, underline
+  below with their results shown, should return the value of most
+  recent write operation to each location.
   \[ \memwrite{x}{0} \to \memwrite{y}{5} \to \underline{\memreadVal{x}{0}} \to \memwrite{x}{3} \to \underline{\memreadVal{y}{5}} \to \underline{\memreadVal{x}{3}}. \]
-  Note read requests (underlined with their results shown) return the value of most recent write operation to each location.
 \end{example}
 
 In a distributed system, operations on different processes can run
@@ -1700,27 +1831,26 @@ of ``most recent'' operation is ambiguous, so it does not even make
 sense to say that read requests always return the most recent written
 value.
 
-\begin{example}
-  \label{exmpl:concurrentupdates}
-  Consider Figure \ref{fig:smEx2}. Two writes are depicted that overlap
-  in physical time, making it unclear whether $\memwrite{x}{3}$ or $\memwrite{x}{5}$
-  should be considered as happening first.
-\end{example}
-
-\begin{figure}
+\begin{figure}[h]
   \input{images/pgf/smEx2.pgf}
-  \caption{Concurrent updates by two processes}
-  \label{fig:smEx2}
+  \caption{A history featuring concurrent writes to the same location}
+  \label{fig:dsm-example-2}
 \end{figure}
 
-Consider two features shown in Example \ref{exmpl:concurrentupdates}.
-First, there are three operations that write to the value $x$. For a
-period of time, $P_1$ and $P_2$ are both writing to location $x$ at
-the same time. Second, these operations are immediately followed by
-several read requests, whose return values are not shown in the
-diagram. A memory model answers the question, ``Which values might be
-returned by each of these read requests.'' Such a model would have to
-answer several questions, like the following ones:
+%\begin{example}
+%  \label{exmpl:concurrentupdates}
+%\end{example}
+
+Consider Figure \ref{fig:dsm-example-2}. First, there are three operations that write to the value $x$.  Two of
+these writes are executed at overlapping moments in physical time,
+making it unclear whether $\memwrite{x}{3}$ or $\memwrite{x}{5}$
+should be considered as happening first. For a period of time, $P_1$
+and $P_2$ are both writing to location $x$ at the same time. Second,
+these operations are immediately followed by several read requests,
+whose return values are not shown in the diagram. A memory model
+answers the question, ``Which values might be returned by each of
+these read requests.'' Such a model would have to answer several
+questions, like the following ones:
 \begin{enumerate}
 \item Do the read operations on $P_1$ and $P_2$ have to return the same value?
 \item Can the second read operation at $P_2$ return a different value
@@ -1748,47 +1878,11 @@ To resolve the ambiguity caused by overlapping memory operations, one
 might attempt to assign timestamps to them, and use this to define
 some global total order based on when the operations occur. However,
 this would require sufficiently fine-grained timestamps from
-synchronized clocks, which is usually an infeasible assumption. We
-encountered this same challenge in Section \ref{ssec:causality}, where
-we were lead to define a global partial order (causal precedence),
-partly in reaction to the fact that we cannot use physical timestamps
-to arrange all systemwide events into a total order.
-
-A roughly similar concept, used in the DSM setting, is that of
-\emph{external order}. Intuitively, it is the partial order that
-orders non-overlapping events by their physical times, but does not
-assign an ordering to events whose executions overlap in physical
-time.
-\begin{definition}[External order]
-  Let $H$ be a history. An operation $\Op^1$ \emph{externally
-    precedes} operation $\Op^2$ if
-  $\memstop{\Op^1} < \memstart{\Op^2}$. This induces an irreflexive
-  partial order on $H$ called external order.
-\end{definition}
-The definition states that one operation externally precedes another
-if it stops before the other is invoked. Note that we are comparing
-events in terms of real, physical time: external order is the partial
-order that would be expected by an outside observer who can see
-operations executing globally in real time.
-
-\begin{figure}
-  \centering
-  \input{images/pgf/smEx1DAG.pgf}
-  \caption{External order relation among operations in Figure \ref{fig:smEx1}}
-  \label{fig:smEx1DAG}
-\end{figure}
-
-Figure \ref{fig:smEx1DAG} shows the external order among the
-operations in Figure \ref{fig:smEx1} in the form of a directed
-acyclic graph (DAG).
-
-
-\begin{definition}[Physical concurrency]
-  Consider two operations $\Op^1$ and $\Op^2$. If neither externally
-  precedes the other, in another words if there is some moment in time
-  during which both operations are executing, the operations are said
-  to be \emph{physically concurrent}, written $\concurrent{\Op^1}{\Op^2}$.
-\end{definition}
+synchronized clocks, which is usually an infeasible assumption (see
+Section \ref{ssec:physical-synchrony}). %In that section, we were lead
+% to define a global partial order, causal precedence, partly in
+% reaction to the fact that we cannot use physical timestamps to
+% arrange all systemwide events into a total order.
 
 \subsection{Strong Consistency Models}
 \label{ssec:strong-consistency}
@@ -1840,7 +1934,7 @@ memory manager, the entire system is said to be linearizable.
   application are linearizable according to Definition \ref{def:linearizable}.
 \end{definition}
 
-Consider Figure \ref{fig:smEx2} again. If the distributed system is
+Consider Figure \ref{fig:dsm-example-2} again. If the distributed system is
 using a linearizable memory manager, then the requirement of global
 agreement requires $P_1$ and $P_2$ to agree on the logical order of
 write events. The requirement of consistency with external order means
@@ -1865,25 +1959,25 @@ it in terms of \emph{linearization points.}
 \end{definition}
 
 Figure \ref{fig:smEx3} shows the two possible linearizable executions
-of Figure \ref{fig:smEx2} along with consistent choice of
+of Figure \ref{fig:dsm-example-2} along with consistent choice of
 linearization points shown in yellow.  shown in Figure
 \ref{fig:smEx3}.
 
 \begin{figure}
-  %\setlength\belowcaptionskip{4ex}
+  % \setlength\belowcaptionskip{4ex}
   \begin{subfigure}{1\textwidth}
     \centering
     \input{images/pgf/smEx3L1.pgf}
     \caption{A linearization where the read operations return 3}
-    \label{fig:smEx3-a}
+    \label{fig:dsm-example-2-linearizations-a}
   \end{subfigure}
   \begin{subfigure}{1\textwidth}
     \input{images/pgf/smEx3L2.pgf}
         \caption{A linearization where the read operations return 5}
-    \label{fig:smEx3-b}
+    \label{fig:dsm-example-2-linearizations-b}
   \end{subfigure}
-  \caption{Two possible linearizations of Figure \ref{fig:smEx2} with linearization points shown in yellow}
-  \label{fig:smEx3}
+  \caption{Two possible linearizations of Figure \ref{fig:dsm-example-2} with linearization points shown in yellow}
+  \label{fig:dsm-example-2-linearizations}
 \end{figure}
 
 \subsubsection{Sequential consistency}
@@ -1957,37 +2051,35 @@ for linearizability.
 \end{enumerate}
 \end{definition}
 
-\begin{figure}[p]
-  %\setlength\belowcaptionskip{5ex}
+Since external order imposes more constraints than program order, a
+linearizable system is always sequentially consistent. Hence, the
+executions in Figure \ref{fig:dsm-example-2-linearizations} are
+sequentially consistent.
+\begin{lemma}
+  \label{lem:linearsequential}
+  A linearizable execution is sequentially consistent.
+\end{lemma}
+
+The converse of Lemma \ref{lem:linearsequential} does not hold. The
+executions in Figure \ref{fig:dsm-example-2-linearizations} are
+sequentially consistent but not linearizable---as noted earlier, the
+only two linearizable executions require all three read operations to
+return the same value for $x$.
+
+\begin{figure}
   \begin{subfigure}{1\textwidth}
     \centering
     \input{images/pgf/smEx4S1.pgf}
     \caption{Sequentially consistent example where $P_1$ and $P_2$ read different values}
-    \label{fig:smEx4-a}
+    \label{fig:dsm-example-2-sequential-a}
   \end{subfigure}
   \begin{subfigure}{1\textwidth}
     \input{images/pgf/smEx4S2.pgf}
     \caption{Sequentially consistent example where $P_2$ observes $x$ with a value of $4$}
-    \label{fig:smEx4-b}
+    \label{fig:dsm-example-2-sequential-b}
   \end{subfigure}
-  \caption{Sequentially consistent but nonlinearizable executions of Figure \ref{fig:smEx2}}
-  \label{fig:smEx4}
-\end{figure}
-\begin{figure}[p]
-  %\setlength\belowcaptionskip{5ex}
-  \begin{subfigure}{1\textwidth}
-    \centering
-    \input{images/pgf/smEx4S3.pgf}
-    \caption{}
-    \label{fig:smEx4L2}
-  \end{subfigure}
-  \begin{subfigure}{1\textwidth}
-    \input{images/pgf/smEx4S4.pgf}
-    \caption{}
-    \label{fig:smEx4S2}
-  \end{subfigure}
-  \caption{Two non-sequentially-consistent executions of Figure \ref{fig:smEx2}}
-  \label{fig:smEx4-alt}
+  \caption{Sequentially consistent but nonlinearizable executions of Figure \ref{fig:dsm-example-2}}
+  \label{fig:dsm-example-2-sequential}
 \end{figure}
 
 Visually, we can think of sequential consistency as organizing
@@ -2002,44 +2094,33 @@ constrains the application to be consistent with some total order of
 operations that can be produced by rearranging them in this fashion.
 
 \begin{example}
-  Figure \ref{fig:smEx3} depicts two nonlinearizable, sequentially
-  consistent executions of the same operations depicted in Figure
-  \ref{fig:smEx2}. In Figure \ref{fig:smEx3-a}, by ``sliding'' all the
+  Figure \ref{fig:dsm-example-2-sequential} depicts two
+  nonlinearizable, sequentially consistent executions of the same
+  operations depicted in Figure \ref{fig:dsm-example-2}. In Figure
+  \ref{fig:dsm-example-2-sequential-a}, by ``sliding'' all the
   operations in $P_2$ along their worldline so that they occur after
   the operations in $P_1$, we arrive at a sequentially consistent
   history where $P_1$ and $P_2$ read different values for $x$. By a
   similar sliding, we can also produce a sequentially consistent
-  history in Figure \ref{fig:smEx3-b} where the second read operation
-  in $P_2$ returns $4$ after the first one reads $5$, despite the fact
-  that in \emph{real time}, $\memwrite{x}{4}$ occurs \emph{before}
-  $\memwrite{x}{5}$.
+  history in Figure \ref{fig:dsm-example-2-sequential-b} where the
+  second read operation in $P_2$ returns $4$ after the first one reads
+  $5$, despite the fact that in \emph{real time}, $\memwrite{x}{4}$
+  occurs \emph{before} $\memwrite{x}{5}$.
 \end{example}
 
-Since external order imposes more constraints than program order, a
-linearizable system is always sequentially consistent. Hence, the
-executions in Figure \ref{fig:smEx3} are sequentially consistent.
-\begin{lemma}
-  \label{lem:linearsequential}
-  A linearizable execution is sequentially consistent.
-\end{lemma}
-
-The converse of Lemma \ref{lem:linearsequential} does not hold. The
-executions in Figure \ref{fig:smEx3} are sequentially consistent but
-not linearizable---as noted earlier, the only two linearizable
-executions require all three read operations to return the same value
-for $x$.
 
 It may seem strange to allow executions, like those in Figure
-\ref{fig:smEx3}, that seem to defy the real time order of
-operations. However, sequential consistency is a very intuitive
-property for programmers to reason about. Consider this: A programmer
-designs an two-process distributed application that executes the
-operations shown in Figure \ref{fig:smEx1}. Before the application is
-actually executed, we do not know the exact moment in time that each
-operation will run, since the processes might run at different speeds
-(they run on distinct computers, after all). If the processes and
-operations run at certain speeds, then the executions shown in
-\ref{fig:smEx3-a} and \ref{fig:smEx3-b} are possible. Thus,
+\ref{fig:dsm-example-2-linearizations}, that seem to defy the real
+time order of operations. However, sequential consistency is a very
+intuitive property for programmers to reason about. Consider this: A
+programmer designs an two-process distributed application that
+executes the operations shown in Figure \ref{fig:smEx1}. Before the
+application is actually executed, we do not know the exact moment in
+time that each operation will run, since the processes might run at
+different speeds (they run on distinct computers, after all). If the
+processes and operations run at certain speeds, then the executions
+shown in \ref{fig:dsm-example-2-linearizations-a} and
+\ref{fig:dsm-example-2-linearizations-b} are possible. Thus,
 sequentially consistent systems are always consistent with some way
 the system could have executed in real time.
 
@@ -2126,7 +2207,7 @@ cannot be affected by messages that are sent to it but never received.
   eventual availability.
 \end{theorem}
 \begin{proof}
-  Consider again the execution in Figure \ref{fig:smEx2}. We have seen
+  Consider again the execution in Figure \ref{fig:dsm-example-2}. We have seen
   that there are only two possible linearizations of this history, and
   both of them require all reads to return the same value, either $3$
   or $5$. Now suppose the network suffers from a partition so that
@@ -2287,6 +2368,23 @@ operations. For a history $H$ and each process $P_i$, let $A_i$ be
 union of $H|_P$ and the set of all writes in $H$. In other words,
 $A_i$ is the local history of $P_i$ plus any write operation on any
 other process.
+
+\begin{figure}[p]
+  %\setlength\belowcaptionskip{5ex}
+  \begin{subfigure}{1\textwidth}
+    \centering
+    \input{images/pgf/smEx4S3.pgf}
+    \caption{}
+    \label{fig:smEx4L2}
+  \end{subfigure}
+  \begin{subfigure}{1\textwidth}
+    \input{images/pgf/smEx4S4.pgf}
+    \caption{}
+    \label{fig:smEx4S2}
+  \end{subfigure}
+  \caption{Two non-sequentially-consistent executions of Figure \ref{fig:dsm-example-2}}
+  \label{fig:smEx4-alt}
+\end{figure}
 
 \begin{definition}[Causal consistency]
   \label{def:causalconsistency}
