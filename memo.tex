@@ -836,9 +836,17 @@ commanders, public safety answering points (PSAPs), and emergency
 operations centers (EOCs). We imagine these components being woven
 together by a patchwork of communication technologies ranging from
 analog and digital radios to Bluetooth, Wi-Fi, LTE, 5G, satellite
-links, and ad-hoc mesh networks like Meshtastic \citationneeded and
-DECT-2020 NR \citationneeded. Together, the systems form a dynamic
-mosaic of elements cooperating to save lives and protect proprty.
+communications, and ad-hoc mesh networks like
+Meshtastic\footnote{The website of the
+  Meshtastic project describes it as an ``open source, off-grid,
+  decentralized, mesh network built to run on affordable, low-power
+  devices''. See \url{https://meshtastic.org} or
+  \url{https://github.com/meshtastic}.}, DECT-2020
+NR\footnote{DECT-2020 NR, also called NR$^{+}$, is a non-cellular 5G
+  standard intended for Internetof Things (IoT) operations. For a
+  technical discussion see \cite{2022:dect-2020-nr}.}, and
+others. Together, the systems form a dynamic mosaic of elements
+cooperating to save lives and protect proprty.
 
 Given the unpredictable nature of the environment and the locality
 principle outlined in Section \ref{sec:disaster-response},
@@ -899,12 +907,12 @@ rate. Experienced IT administrators will testify that clocks can also
 be prone to misconfiguration. An incorrect date, time, timezone, or
 daylight saving time policy setting is a common source of IT issues,
 typically causing time-based security mechanisms like TLS
-authentication \citationneeded to misbehave. Consider also that
-devices may spend a long time sitting unpowered in storage without
-maintaining an always-on clock. For these sorts of reasons, we would
-not want to rest the integrity of a safety-related system on the
-assumption that a numerous and diverse assortment of devices have
-precisely synchronized internal clocks.
+authentication to misbehave. Consider also that devices may spend a
+long time sitting unpowered in storage without maintaining an
+always-on clock. For these sorts of reasons, we would not want to rest
+the integrity of a safety-related system on the assumption that a
+numerous and diverse assortment of devices have precisely synchronized
+internal clocks.
 
 Clock drift can be corrected for using, for instance, signals from GPS
 satellites, but as mentioned in Section \ref{sec:disaster-response},
@@ -912,13 +920,12 @@ civil disaster environments are frequently GPS-denied: factors like
 mountainous terrain, heavy smoke, and subterranean operations can lead
 to errors or block signals entirely. Protocols like the Network Time
 Protocol (NTP) \cite{rfc1119} work to bring clocks into
-synchronization with respect to an authoritative source. Over a
-moderately challenged connection, NTP typically achieves synchrony to
-within values on the order of 100ms \citationneeded, but it is not
-clear the level of synchrony that can be expected from NTP in the
-sorts of use cases we have in mind. A field device initialized without
-internet access may have no idea what the time is, but it must still
-operate.
+synchronization with respect to an authoritative source. On the public
+internet, NTP typically achieves synchrony to within values on the
+order of tens of milliseconds \cite{rfc1128}, but it is not clear the
+level of synchrony that can be expected from NTP in the sorts of use
+cases we have in mind. A field device initialized without internet
+access may have no idea what the time is, but it must still operate.
 
 For our use case, what seems most important about time is that
 \emph{the future cannot influence the past}
@@ -951,7 +958,8 @@ arrives at some point in the future, but we cannot say anything about
 when or in what order compared to other messages. At times, we
 consider the possibility that a message may never arrive. The choice
 depends on which networking technology (or which layer of the OSI
-networking model \citationneeded) is under consideration.
+networking model \cite{1983:osi-reference-model}) is under
+consideration.
 
 Figure \ref{fig:message-latencies} illustrates a series of time
 diagrams for messages exchanged between three processes: $P_1$, $P_2$,
