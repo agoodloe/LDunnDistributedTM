@@ -476,7 +476,7 @@ everything. To the extent the system exhibits locality, coordination
 can be achieved using more efficient short-range communication than
 less efficient long-range communication. Here, ``efficient'' should be
 read broadly, measured with respect to things like battery life,
-message delay, reliability, cost-effectiveness, equipment weight, or
+message delay, reliability, cost-effectiveness, equipment weight, and
 so on. This raises the question of how to most efficiently utilize
 network resources to achieve adequate levels of consistency. This
 question is revisited in Section \ref{sec:continuous-consistency}.
@@ -562,8 +562,8 @@ instance, a vehicle could be equipped with a BGAN or VSAT satellite
 terminal to maintain a high-bandwidth connection back to a central
 location. Additionally equipping the vehicle with something like a
 Wi-Fi or cellular base station using the satellite connection as
-backhaul would let the vehicle act as a bridge agents in the field
-with central coordinators such as incident commanders or 911
+backhaul would let the vehicle act as a bridge between agents in the
+field and central coordinators such as incident commanders or 911
 dispatchers.
 
 \subsubsection{Communication in the Air}
@@ -716,24 +716,23 @@ seeking to exploit a civil disaster. Section
 critical communications station destroyed by wildfire, perhaps
 comparable to an attack by enemy forces.
 
-% TODO \citationneeded below
-There is a general trend in disaster response towards ``crowdsourced''
-information that gathers reports from the general public for
-processing by public safety officials. However, a vulnerability of
-crowdsourced information is that agents may be met with confusing or
-contradictory reports in ways that share similarities with
-intentionally deceptive behavior. Furthermore, it is not always easy
-to trace reports back to their source. A member of the volunteer
-rescue group Cajun Navy reported it was very common to hear rumors,
-for example that gunshots were being fired at rescuers in a particular
-area, that were later presumed to be false \citationneeded. Even fully
-malicious activity like ``swatting''---placing a fake 911 call to
-cause a large number of police to be dispatched a particular
-location---has long been observed in public safety. Whether malicious
-or well-intentioned, the proliferation of false information in this
-chaotic environment can be considered adversarial and should be
-anticipated as part of a cautious approach to modernizing systems in
-this space.
+There is a growing trend in disaster response to rely on
+``crowdsourced'' information, where public safety officials process
+reports from the general public over non-traditional channels like
+social media. However, a significant vulnerability of crowdsourcing
+information is the potential for confusing of contradictory reports,
+which can resemble intentional deception. Rumors frequently plague
+disaster relief environments, which are quite susceptible to
+misinformation. For instance, during Hurricane Harvey in 2017, there
+were unconfirmed rumors of shots being fired at volunteer rescuers
+\cite{2017:cajun-navy-rumors}. Tracing reports back to their source is
+often difficult. Even fully malicious activity like
+``swatting''---placing a fake 911 call to cause a large police
+response---is often observed in public safety. Whether misinformation
+is spread with malicious intent or through well-meaning confusion, the
+proliferation of false information in this chaotic environment can
+have adversarial effects. This should be anticipated as part of a
+careful approach to modernizing systems in this space.
 
 \subsubsection{Allocation of Network Resources}
 Communications in disaster response environments might even be less
