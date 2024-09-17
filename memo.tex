@@ -298,7 +298,7 @@ agents quickly gathering and responding to information about their
 environment. This information is relayed through communication
 networks, so poor communication becomes a safety problem. When
 communication falters, agents face a difficult choice: either wait for
-more information before acting, or acting now with incomplete
+more information before acting, or acting now with incomplete %TODO should be act now
 knowledge. Both inaction and uninformed action carry risks. This
 dilemma is closely related to a fundamental computer science principle
 known as the safety/liveness tradeoff.
@@ -351,12 +351,12 @@ might be to disallow drops unless a VLAT's computers have up-to-date
 information about the location of ground personnel. Unfortunately,
 system-wide safety is not so easily achieved, as the proposed measure
 is precisely the sort of thing subject to the safety/liveness
-tradeoff. Here, it is important to recognize a linguistic nuance:
-``safety'' in a computing systems context is a property of a system,
-and not inherently related to the safety of people. A \emph{safety}
-property is a prohibition that stops a system from taking an action
-that might be ``bad'' in some way. Here is an exemplary safety
-property for the example above:
+tradeoff. Here, it is important to recognize a linguistic nuance: in
+the context of distributed systems, ``safety'' refers to a specific
+type of system property; the concept in not inherently related to the
+safety of people. A \emph{safety} property is a prohibition that stops
+a system from taking an action that might be ``bad'' in some way. Here
+is an exemplary safety property for the example above:
 \begin{quote}
   $\textbf{P}_\textrm{safe}$: Ground agents are known to be at least
   100 feet outside the drop zone, and this information is current to
@@ -370,11 +370,11 @@ property for our scenario might be the following:
 \begin{quote}
   $\textbf{P}_\textrm{live}$: A VLAT on the ground will take off and
   perform a drop within 20 minutes of receiving a request from an
-  incident commander.
-\end{quote} (In an interview with PBS \cite{2021:aerialfirefighting},
-the Chief of Flight Operations for Cal Fire cited 20 minutes as an
-upper bound on the response time for aerial firefighting units within
-designated responsibility areas.) Note that $\textbf{P}_\textrm{live}$
+  incident commander. \footnote{The Chief of Flight Operations for Cal
+    Fire cited 20 minutes as an upper bound on the response time for
+    aerial firefighting units within designated responsibility areas
+    in an interview with PBS \cite{2021:aerialfirefighting}.}
+\end{quote} Note that $\textbf{P}_\textrm{live}$
 is a liveness property, not a safety property in the narrow technical
 sense, but it impacts human safety: it might be critical for VLATs to
 perform drops quickly if a wildfire is threatening the safety of
@@ -410,13 +410,14 @@ $\textbf{P}_\textrm{safe}$ in VLAT example: Ground agents are known
 situation requires a deeper and more sophisticated analysis than one
 simply considering what is true, but not necessarily
 known. Mathematically, the logic of distributed agents is not the
-``propositional'' logic but the modal logic S5\footnote{The
-  application of S5 to reason about distributed systems is the topic
-  of \cite{kshemkalyani_singhal_2008}, Chapter 8.}, which incorporates
-axioms governing knowledge. Distributing knowledge requires
-communication between agents over a period of time over the network,
-which is not instantaneous and reliable, and it is from these
-imperfections that the safety/liveness tradeoff arises.
+ordinary propositional logic but the modal logic S5, which extends
+propositional logic with additional axioms governing
+knowledge.\footnote{The application of S5 to reason about distributed
+  systems is the topic of \cite{kshemkalyani_singhal_2008}, Chapter
+  8.} Distributing knowledge requires communication between agents
+over a period of time over the network, which is not instantaneous and
+reliable, and it is from these imperfections that the safety/liveness
+tradeoff arises.
 
 The second aspect exhibited above, albeit negatively, is that of
 \emph{continuity}. A continuous system can flexibly adopt to its
@@ -471,12 +472,13 @@ These related observations are what is meant by simply the
 because, as presented in Section \ref{sec:background}, there are major
 theoretical and practical limits to how well agents can coordinate
 \emph{globally}, meaning with all agents knowing and agreeing on
-everything. To the extent the system exhibits locality, global
-agreement is not as strict a requirement: for system-wide safety it
-may suffice for nearby agents to coordinate over efficient short-range
-links than less efficient long-range ones. This raises the question of
-how to decide which information must be shared with whom, and how to
-use this knowledge to best exploit the communication network. This
+everything. To the extent the system exhibits locality, coordination
+can be achieved using more efficient short-range communication than
+less efficient long-range communication. Here, ``efficient'' should be
+read broadly, measured with respect to things like battery life,
+message delay, reliability, cost-effectiveness, equipment weight, or
+so on. This raises the question of how to most efficiently utilize
+network resources to achieve adequate levels of consistency. This
 question is revisited in Section \ref{sec:continuous-consistency}.
 
 \subsubsection{Communication on the Ground}
@@ -493,10 +495,11 @@ to nearby personnel. This exhibits the locality principle: a
 substantial amount of communication occurs directly between nearby
 firefighters working on closely related tasks that can communicate
 without network infrastructure. In a future environment where agents
-might be equipped with body-worn sensors and heads-up displays (HUDs),
-this sort of low-range local communication might be facilitated by
-simple low-power technologies such as Bluetooth, without the need for
-more sophisticated (and heavy) equipment.
+might be equipped with body-worn sensors and or even some form of
+heads-up display (HUD), this sort of low-range local communication
+might be facilitated by relatively inexpensive, low-power technologies
+such as Bluetooth, without the need for more sophisticated (and heavy)
+equipment.
 
 Communication over a long distance requires infrastructural support,
 such as the use of cell towers and repeater stations. Typically,
@@ -576,7 +579,7 @@ aircraft. The locality principle is exhibited here, too: aircraft have
 the highest need to coordinate when they are physically close and
 therefore in range of each other's ADS-B broadcasts.
 
-In our setting, a large number or aircraft, easily a half dozen or
+In our setting, a large number or aircraft, easily on the order of 10 or
 more, may need to operate in a small area, near complex terrain,
 during adverse conditions, often at low altitude. In other words, the
 demands are many and the margins for error are small. This sort of use
@@ -602,55 +605,54 @@ radio repeaters. Air-based repeaters are better than the ``telephone''
 scheme in the previous paragraph as they do not require as much human
 intervention to receive and re-transmit information. That is, this
 form of relaying is more \emph{transparent}. In this future, this sort
-of service could be provided autonomously by repeaters mounted to
-unmanned aerial vehicles (UAVs), which might perform additional
-functions such as tracking the fire perimeter.
+of service could be provided autonomously by portable infrastructure
+futuremounted to unmanned aerial vehicles (UAVs), which might perform
+additional functions such as tracking the fire perimeter.
 
-In future environments we imagine a resilient mobile ad-hoc
-internetwork assembled from a heterogeneous collection of smaller
-networks, combining from handheld and ground- and air-vehicle-mounted
-devices, permanent base stations, portable temporary infrastructure,
-and so on. Integrating a collection of networks that experience
-intermittent connectivity calls for technologies such as
-disruption-tolerant networking (DTN) \cite{2021:intro-dtn}, that
-support a store-carry-forward model to propagate information without
-end-to-end connectivity.
+In future environments, we envision resilient networks formed from
+heterogeneous collections of smaller networks, incorporating various
+communication technologies such as digital radios, Wi-Fi, 4G/LTE, and
+satellite communications. Communications in the field may incorporate
+aspects of mesh networks and mobile ad-hoc networks (MANETs). The
+infrastructure will be comprised of both permanent infrastructure and
+temporary equipment carried into the field by responders, vehicles on
+the ground or in the air. Given the environmental challenges, we
+assume that two agents will often only have intermittent end-to-end
+connectivity, if any. Facilitating communication through such a
+dynamic and chaotic mobile network calls for a disruption-tolerant
+networking (DTN) architecture, which provides a custody transfer and
+store-carry-forward model that is resilient to disruption
+\cite{2021:intro-dtn}. The exact form of such a network remains an
+open question for future investigation.
 
 \subsection{Data Collection and Processing}
 \label{ssec:data-collection}
 Perhaps the most universally acknowledged expectation for future
-disaster response environments is a heavy reliance on \emph{data}
+disaster response environments is a heavy reliance on data
 gathered from both humans and sensors. Besides improvements to
 communications that facilitate information sharing, we expect advances
 in machine intelligence to greatly influence how this data is
-handled. How agents process and respond to all of this information
-using computer interfaces is a sigificant topic whose study should be
-informed by, among other things, insights from the field of
-Human-Computer Interaction (HCI), which has been defined as follows.
-\begin{quote}
-  ``Human-Computer Interaction (HCI) is a subfield within computer
-  science concerned with the study of the interaction between people
-  (users) and computers and the design, evaluation and implementation
-  of user interfaces for computer systems that are receptive to the
-  user's needs and habits.'' \cite{2009:hci-definition}
-\end{quote}
+handled.
 
-Agents in disaster response environments will be both
-producers and consumers of data, and this data will need to processed
-by humans and machines in ways that agents can readily make sense of
-to support their decision-making. Our background research indicated
-many different kinds of data that could be valuable for
-responders, just some of which are listed here:
+Agents in disaster response environments will be both producers and
+consumers of data, and this data will need to processed by humans and
+machines in ways that agents can readily make sense of to support
+their decision-making. Just some of the possible sources and types of
+pertinent data are as follows:
 \begin{itemize}
 \item Free-form communication, especially real-time or recorded voice messages
   broadcast to many agents at once, which may need to be processed by
   machines to extract the most pertinent information into a more
   actionable format
 \item The exact or estimated location of victims, firefighters,
-  vehicles, hazards, etc.
+  vehicles, hazards, and so on displayed on applications like ATAK
 \item Medical information gathered from victims, perhaps stored in and
   collected from electronic triage tags \cite{2009:triagetag}
-\item Data about current and predicted fire or weather patterns
+\item Data about current and predicted fire behavior gathered from
+  systems like Fire Integrated Real-time Intelligence System (FIRIS)
+  or NASA's Fire Information for Resource Management
+  System (FIRMS)
+\item Weather data from the National Weather Service
 \item Topographic information about the terrain, highlighting for
   instance the location of rivers and roads that could form a fire
   control line
@@ -685,6 +687,25 @@ sensors and drowning in data'' \cite{2010:magnuson}:
   mission.'' \cite{2016:iobt}
 \end{quote}
 
+We propose that researchers in field of Human-Computer Interaction
+(HCI) should take up the question of how public safety agents under
+stress can process and respond to the flood of information they may
+face as public safety systems become more complex. HCI has been
+defined as follows:
+\begin{quote}
+  ``A subfield within computer science concerned with the study of the
+  interaction between people (users) and computers and the design,
+  evaluation and implementation of user interfaces for computer
+  systems that are receptive to the user's needs and habits.'' \cite{2009:hci-definition}
+\end{quote}
+HCI research offers insights into how interfaces should be structured
+to avoid cognitive overload and facilitate intuitive control without
+distracting users. As emergency control becomes increasingly
+data-driven, particularly in centralized hubs like dispatch centers
+that aggregate diverse streams of information, the challenge of
+ensuring that users can interactive effectively with these systems
+will become increasingly important.
+
 \subsubsection{Adversarial Behavior}
 One feature of the Internet of Battle Things worth highlighting is
 ``the adversarial nature of the environment.'' This feature is common
@@ -706,10 +727,10 @@ to trace reports back to their source. A member of the volunteer
 rescue group Cajun Navy reported it was very common to hear rumors,
 for example that gunshots were being fired at rescuers in a particular
 area, that were later presumed to be false \citationneeded. Even fully
-malicious activity like SWATing---placing a fake 911 call to cause a
-large number of police to be dispatched a particular location---is
-hardly unknown in the public safety industry. Whether malicious or
-well-intentioned, the proliferation of false information in this
+malicious activity like ``swatting''---placing a fake 911 call to
+cause a large number of police to be dispatched a particular
+location---has long been observed in public safety. Whether malicious
+or well-intentioned, the proliferation of false information in this
 chaotic environment can be considered adversarial and should be
 anticipated as part of a cautious approach to modernizing systems in
 this space.
@@ -781,6 +802,9 @@ that drives the decision-making process in lower-level parts of the
 network. However, traditional QoS mechanisms may not be enough---even
 the routing protocol of the network may need to be more specialized to
 higher-level applications than in traditional environments.
+
+%TODO: Mention DTN again
+
 
 \section{Introduction to Distributed Systems}
 \label{sec:background}
@@ -1789,7 +1813,7 @@ using standard \emph{serialization} mechanisms.
 \begin{example}
   Consider the following history of operations running inside a single process.
   Note that this diagram does not indicate what values are returned by the read operations.
-  \[\input{images/pgf/smEx0.pgf}\]
+  \[\input{images/pgf/dsm_example_1.pgf}\]
   Since there is no ambiguity in the order of events, it is clear
   which values \emph{should} be returned. Read requests, underline
   below with their results shown, should return the value of most
@@ -1805,7 +1829,7 @@ sense to say that read requests always return the most recent written
 value.
 
 \begin{figure}[h]
-  \input{images/pgf/smEx2.pgf}
+  \input{images/pgf/dsm_example_2.pgf}
   \caption{A history featuring concurrent writes to the same location}
   \label{fig:dsm-example-2}
 \end{figure}
@@ -1907,21 +1931,21 @@ memory manager, the entire system is said to be linearizable.
   application are linearizable according to Definition \ref{def:linearizable}.
 \end{definition}
 
-Consider Figure \ref{fig:dsm-example-2} again. If the distributed system is
-using a linearizable memory manager, then the requirement of global
-agreement requires $P_1$ and $P_2$ to agree on the logical order of
-write events. The requirement of consistency with external order means
-that $\memwrite{x}{4}$ must be ordered before $\memwrite{x}{3}$ and
-$\memwrite{x}{5}$, but the latter operations can be logically
-sequenced in any order, as long as $P_1$ and $P_2$ agree. They must
-return responses that are consistent with this common operating
-picture, which constrains the system to one of two possibilities: all
-the read operations return $3$, or they all return $5$. These
-possibilities are illustrated in Figure \ref{fig:smEx3}.
+Consider Figure \ref{fig:dsm-example-2} again. If the distributed
+system is using a linearizable memory manager, then the requirement of
+global agreement requires $P_1$ and $P_2$ to agree on the logical
+order of write events. The requirement of consistency with external
+order means that $\memwrite{x}{4}$ must be ordered before
+$\memwrite{x}{3}$ and $\memwrite{x}{5}$, but the latter operations can
+be logically sequenced in any order, as long as $P_1$ and $P_2$
+agree. They must return responses that are consistent with this common
+operating picture, which constrains the system to one of two
+possibilities: all the read operations return $3$, or they all return
+$5$. These possibilities are illustrated in Figure
+\ref{fig:dsm-example-2-linearizations}.
 
 A visually intuitive way of approaching linearizability is by defining
 it in terms of \emph{linearization points.}
-
 \begin{definition}
   A \emph{linearization point} $t \in [\memstart{\Op}, \memstop{\Op}]$
   for an operation $\Op$ is a time between the event's invocation and
@@ -1930,22 +1954,19 @@ it in terms of \emph{linearization points.}
   assignment of linearization points consistent with the values
   returned by the operations.
 \end{definition}
-
-Figure \ref{fig:smEx3} shows the two possible linearizable executions
-of Figure \ref{fig:dsm-example-2} along with consistent choice of
-linearization points shown in yellow.  shown in Figure
-\ref{fig:smEx3}.
+The subfigures in \ref{fig:dsm-example-2-linearizations} each depict a
+consistent choice of linearization points in yellow.
 
 \begin{figure}
-  % \setlength\belowcaptionskip{4ex}
   \begin{subfigure}{1\textwidth}
+    \setlength\belowcaptionskip{4ex}
     \centering
-    \input{images/pgf/smEx3L1.pgf}
+    \input{images/pgf/dsm_example_2_linear_1.pgf}
     \caption{A linearization where the read operations return 3}
-    \label{fig:dsm-example-2-linearizations-a}
+    \label{fig:dsm-example-2-linearizations-1}
   \end{subfigure}
   \begin{subfigure}{1\textwidth}
-    \input{images/pgf/smEx3L2.pgf}
+    \input{images/pgf/dsm_example_2_linear_2.pgf}
         \caption{A linearization where the read operations return 5}
     \label{fig:dsm-example-2-linearizations-b}
   \end{subfigure}
@@ -2041,15 +2062,16 @@ return the same value for $x$.
 
 \begin{figure}
   \begin{subfigure}{1\textwidth}
+    \setlength\belowcaptionskip{4ex}
     \centering
     \input{images/pgf/smEx4S1.pgf}
     \caption{Sequentially consistent example where $P_1$ and $P_2$ read different values}
-    \label{fig:dsm-example-2-sequential-a}
+    \label{fig:dsm-example-2-sequential-1}
   \end{subfigure}
   \begin{subfigure}{1\textwidth}
     \input{images/pgf/smEx4S2.pgf}
     \caption{Sequentially consistent example where $P_2$ observes $x$ with a value of $4$}
-    \label{fig:dsm-example-2-sequential-b}
+    \label{fig:dsm-example-2-sequential-2}
   \end{subfigure}
   \caption{Sequentially consistent but nonlinearizable executions of Figure \ref{fig:dsm-example-2}}
   \label{fig:dsm-example-2-sequential}
@@ -2070,12 +2092,12 @@ operations that can be produced by rearranging them in this fashion.
   Figure \ref{fig:dsm-example-2-sequential} depicts two
   nonlinearizable, sequentially consistent executions of the same
   operations depicted in Figure \ref{fig:dsm-example-2}. In Figure
-  \ref{fig:dsm-example-2-sequential-a}, by ``sliding'' all the
+  \ref{fig:dsm-example-2-sequential-1}, by ``sliding'' all the
   operations in $P_2$ along their worldline so that they occur after
   the operations in $P_1$, we arrive at a sequentially consistent
   history where $P_1$ and $P_2$ read different values for $x$. By a
   similar sliding, we can also produce a sequentially consistent
-  history in Figure \ref{fig:dsm-example-2-sequential-b} where the
+  history in Figure \ref{fig:dsm-example-2-sequential-2} where the
   second read operation in $P_2$ returns $4$ after the first one reads
   $5$, despite the fact that in \emph{real time}, $\memwrite{x}{4}$
   occurs \emph{before} $\memwrite{x}{5}$.
@@ -2083,17 +2105,18 @@ operations that can be produced by rearranging them in this fashion.
 
 
 It may seem strange to allow executions, like those in Figure
-\ref{fig:dsm-example-2-linearizations}, that seem to defy the real
-time order of operations. However, sequential consistency is a very
+\ref{fig:dsm-example-2-sequential}, that seem to defy the real time
+order of operations. However, sequential consistency is a very
 intuitive property for programmers to reason about. Consider this: A
 programmer designs an two-process distributed application that
-executes the operations shown in Figure \ref{fig:smEx1}. Before the
-application is actually executed, we do not know the exact moment in
-time that each operation will run, since the processes might run at
-different speeds (they run on distinct computers, after all). If the
-processes and operations run at certain speeds, then the executions
-shown in \ref{fig:dsm-example-2-linearizations-a} and
-\ref{fig:dsm-example-2-linearizations-b} are possible. Thus,
+executes the operations shown in Figure
+\ref{fig:dsm-example-2}. Before the application is actually executed,
+we do not know the exact moment in time that each operation will run,
+since the processes might run at different speeds (they run on
+distinct computers, after all). If the processes and operations run at
+certain speeds, then the executions shown in
+\ref{fig:dsm-example-2-sequential-1} and
+\ref{fig:dsm-example-2-sequential-2} are possible. Thus,
 sequentially consistent systems are always consistent with some way
 the system could have executed in real time.
 
@@ -2213,37 +2236,68 @@ of sequential consistency can be used to avoid the ramifications of
 the CAP theorem. Unfortunately the answer is negative: sequential
 consistency is also CAP-unavailabile.
 
+\begin{figure}
+  \input{images/pgf/dsmCAPex2.pgf}
+  \caption{An execution that cannot maintain sequential consistency during a network partition}
+  \label{fig:dsm-cap-example-2}
+\end{figure}
+
+\begin{figure}
+  \setlength\belowcaptionskip{5ex}
+  \begin{subfigure}{1\textwidth}
+    \centering
+    \input{images/pgf/dsmCAPex2_serial1.pgf}
+    \caption{A serial order where $\memread{y}$ precedes $\memwrite{y}{1}$ which forces $\memwrite{x}{1}$ to precede $\memreadVal{x}{0}$}
+    \label{fig:dsm-cap-example-2-serial1}
+  \end{subfigure}
+  \begin{subfigure}{1\textwidth}
+    \centering
+    \input{images/pgf/dsmCAPex2_serial2.pgf}
+    \caption{A serial order where $\memread{x}$ precedes $\memwrite{x}{1}$ which forces $\memwrite{y}{1}$ to precede $\memreadVal{y}{0}$}
+    \label{fig:dsm-cap-example-2-serial2}
+  \end{subfigure}
+  \caption{Possible two serializations of the execution in Figure \ref{fig:dsm-cap-example-2}}
+  \label{fig:dsm-cap-example-2-serial}
+\end{figure}
+
 \begin{lemma}[CAP for sequential consistency]
   \label{thm:cap-sequential}
   An eventually-available system cannot provide sequential consistency
   in the presense of network partitions.
 \end{lemma}
 \begin{proof}
-  The proof is an adaptation of Theorem \ref{thm:cap}. Suppose $P_1$
-  and $P_2$ form of CAP-available distributed system and consider the
-  following execution: $P_1$ reads $x$, then assigns $y$ the value
-  $1$. $P_2$ reads $y$, then assigns $x$ the value $1$. (Note that
-  this is the sequence of requests shown in Figure
-  \ref{fig:nonsequential1}, but we make no assumptions about the
-  values returned by the read requests). By availability, we know the
-  requests will be handled (with responses sent back to clients) after
-  a finite amount of time. Now suppose $P_1$ and $P_2$ are separated
-  by a partition so they cannot read each other's writes during this
-  process. For contradiction, suppose the execution is equivalent to a
-  sequential order.
+  We assume that all uninitialized variables start with the value
+  $0$. Consider two processes, $P_1$ and $P_2$, which perform the
+  following sequences of operations:
+  \begin{itemize}
+  \item $P_1$ writes $y := 1$, then reads the value of $x$.
+  \item $P_2$ writes $x := 1$, then reads the value of $y$.
+  \end{itemize}
+  Suppose $P_1$ and $P_2$ are separated by a partition. Since $P_1$
+  cannot hear any updates from $P_2$, and its behavior is not affected
+  by messages it does not receive, then $P_1$'s behavior will be same
+  as in case where $P_2$ does not write to $x$. Therefore, $P_1$ will
+  read $x$ as having value 0. Likewise $P_2$ will read $y$ with the
+  value $0$. See Figure \ref{fig:dsm-cap-example-2}.
 
-  If $\memwrite{y}{1}$ precedes $\memread{y}$ in the sequential order,
-  then $\memread{y}$ would be constrained to return to $1$. But $P_2$
-  cannot pass information to $P_1$, so this is ruled out. To avoid
-  this situation, suppose the sequential order places $\memread{y}$
-  before $\memwrite{y}{1}$, in which case $\memread{y}$ could
-  correctly return the initial value of $0$. However, by transitivity
-  the $\memread{x}$ event would occur after $\memwrite{x}{1}$ event,
-  so it would have to return $1$. But there is no way to pass this
-  information from $P_1$ to $P_2$. Thus, any attempt to consistently
-  order the requests would require commuting $\memwrite{y}{1}$ with
-  $\memread{x}$ or $\memwrite{x}{1}$ with $\memread{y}$, which would
-  violate program order.
+  If the system maintains sequential consistency, the read operations
+  must return values that are consistency with a global serialization
+  of the history. There are two possibilities for this history:
+  \begin{enumerate}
+  \item It could be that $\memreadVal{y}{0}$ precedes
+    $\memwrite{y}{1}$. In this case, $\memwrite{x}{1}$ would have to
+    precede $\memreadVal{x}{0}$. See Figure
+    \ref{fig:dsm-cap-example-2-serial1}.
+  \item It could be that $\memreadVal{x}{0}$ precedes
+    $\memwrite{x}{1}$. In this case, $\memwrite{y}{1}$ would have to
+    precede $\memreadVal{y}{0}$. See Figure
+    \ref{fig:dsm-cap-example-2-serial2}.
+  \end{enumerate}
+  However, both possibilities above are incorrect. In either case, the
+  second read operation returns an incorrect value.  Thus, during a
+  partition, the processes cannot return values from read operations
+  in a way that is consistent with some global serial order. Hence, a
+  sequentially consistent system is not CAP-available.
 \end{proof}
 
 \subsubsection{Consequences of CAP}
@@ -2276,6 +2330,7 @@ agents. At short time scales, operations that only require local
 coordination are common.
 
 \subsection{Causal Consistency}
+\label{ssec:causal-consistency}
 \emph{Causal} consistency\citationneeded is a weaker memory model than
 sequential consistency. Whereas sequential consistency requires the
 system as a whole to behave as if all write operations take place in
@@ -2343,7 +2398,6 @@ $A_i$ is the local history of $P_i$ plus any write operation on any
 other process.
 
 \begin{figure}[p]
-  %\setlength\belowcaptionskip{5ex}
   \begin{subfigure}{1\textwidth}
     \centering
     \input{images/pgf/smEx4S3.pgf}
@@ -2599,11 +2653,12 @@ The data structures maintain by each process:
 \item The \emph{acknowledgement} vector,\ an additional set of $n$ clock values
 \end{itemize}
 
-The summary vector is much like the vector clocks of Section \ref{},
-except they store physical timestamps rather than logical ones. That
-is to say, whenever $P$ timestamps some event it reads the current
-physical time. As usual, summary vectors will be piggybacked used by
-the receiver to update their vector pointwise.
+The summary vector is much like the vector clocks of Section
+\ref{sssec:vector-clocks}, except they store physical timestamps
+rather than logical ones. That is to say, whenever $P$ timestamps some
+event it reads the current physical time. As usual, summary vectors
+will be piggybacked used by the receiver to update their vector
+pointwise.
 
 The message log contains a queue of the messages seen by $P$ sent by
 any process.

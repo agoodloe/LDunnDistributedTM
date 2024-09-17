@@ -649,7 +649,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{289.2312bp}{7.4907bp}}
+\pgftransformshift{\pgfqpoint{290.0615bp}{7.4907bp}}
 \pgftext[base,left]{$\memread{x}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -670,7 +670,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{289.2312bp}{47.4907bp}}
+\pgftransformshift{\pgfqpoint{290.0615bp}{47.4907bp}}
 \pgftext[base,left]{$\memread{x}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -691,7 +691,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{248.1959bp}{87.4907bp}}
+\pgftransformshift{\pgfqpoint{249.0262bp}{87.4907bp}}
 \pgftext[base,left]{$\memwrite{y}{2}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -712,7 +712,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{212.9700bp}{7.4907bp}}
+\pgftransformshift{\pgfqpoint{213.8002bp}{7.4907bp}}
 \pgftext[base,left]{$\memwrite{x}{3}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -733,7 +733,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{149.4572bp}{7.4907bp}}
+\pgftransformshift{\pgfqpoint{150.2874bp}{7.4907bp}}
 \pgftext[base,left]{$\memread{y}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -754,7 +754,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{142.9700bp}{47.4907bp}}
+\pgftransformshift{\pgfqpoint{143.8002bp}{47.4907bp}}
 \pgftext[base,left]{$\memwrite{x}{1}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -775,7 +775,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{149.4572bp}{87.4907bp}}
+\pgftransformshift{\pgfqpoint{150.2874bp}{87.4907bp}}
 \pgftext[base,left]{$\memread{y}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -796,7 +796,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{72.9700bp}{87.4907bp}}
+\pgftransformshift{\pgfqpoint{73.8002bp}{87.4907bp}}
 \pgftext[base,left]{$\memwrite{x}{4}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -817,7 +817,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{9.2312bp}{47.4907bp}}
+\pgftransformshift{\pgfqpoint{10.0615bp}{47.4907bp}}
 \pgftext[base,left]{$\memread{x}$}
 \end{pgfscope}
 \end{pgfpicture}

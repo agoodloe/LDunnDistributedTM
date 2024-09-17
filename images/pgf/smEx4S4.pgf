@@ -18,7 +18,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{259.5266bp}{25.0093bp}}
+\pgftransformshift{\pgfqpoint{260.3568bp}{25.0093bp}}
 \pgftext[base,left]{$\memreadVal{x}{5}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -38,7 +38,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{197.5266bp}{25.0093bp}}
+\pgftransformshift{\pgfqpoint{198.3568bp}{25.0093bp}}
 \pgftext[base,left]{$\memreadVal{x}{5}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -58,7 +58,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{122.9700bp}{25.0093bp}}
+\pgftransformshift{\pgfqpoint{123.8002bp}{25.0093bp}}
 \pgftext[base,left]{$\memwrite{x}{5}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -110,7 +110,7 @@
 \end{pgfscope}
 \begin{pgfscope}
 \pgftransformshift{\pgfqpoint{15.0000bp}{15.0000bp}}
-\pgftext[base,left]{$p_2$}
+\pgftext[base,left]{$P_2$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.8627,0.1490,0.4980}
@@ -129,7 +129,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{192.0266bp}{85.0093bp}}
+\pgftransformshift{\pgfqpoint{192.8568bp}{85.0093bp}}
 \pgftext[base,left]{$\memreadVal{x}{4}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -149,7 +149,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{121.9700bp}{85.0093bp}}
+\pgftransformshift{\pgfqpoint{122.8002bp}{85.0093bp}}
 \pgftext[base,left]{$\memwrite{x}{3}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -169,7 +169,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{58.4700bp}{85.0093bp}}
+\pgftransformshift{\pgfqpoint{59.3002bp}{85.0093bp}}
 \pgftext[base,left]{$\memwrite{x}{4}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -221,6 +221,6 @@
 \end{pgfscope}
 \begin{pgfscope}
 \pgftransformshift{\pgfqpoint{15.0000bp}{75.0000bp}}
-\pgftext[base,left]{$p_1$}
+\pgftext[base,left]{$P_1$}
 \end{pgfscope}
 \end{pgfpicture}

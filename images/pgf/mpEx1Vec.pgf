@@ -273,7 +273,7 @@
 \pgftext[base,left]{$P_3$}
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{333.4784bp}{3.4870bp}}
+\pgftransformshift{\pgfqpoint{324.1989bp}{3.4870bp}}
 \pgftext[base,left]{$\mrecv{5}\timestampnegativespace\vectortimestamp{3}{3}{3}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -293,7 +293,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{273.4784bp}{3.4870bp}}
+\pgftransformshift{\pgfqpoint{264.1989bp}{3.4870bp}}
 \pgftext[base,left]{$\mrecv{2}\timestampnegativespace\vectortimestamp{1}{0}{2}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -313,7 +313,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{141.4784bp}{3.4870bp}}
+\pgftransformshift{\pgfqpoint{131.6232bp}{3.4870bp}}
 \pgftext[base,left]{$\msend{3}\timestampnegativespace\vectortimestamp{0}{0}{1}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -384,7 +384,7 @@
 \pgftext[base,left]{$P_2$}
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{291.4481bp}{87.4870bp}}
+\pgftransformshift{\pgfqpoint{281.5930bp}{87.4870bp}}
 \pgftext[base,left]{$\msend{5}\timestampnegativespace\vectortimestamp{3}{3}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -404,7 +404,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{227.7620bp}{98.4684bp}}
+\pgftransformshift{\pgfqpoint{218.4826bp}{98.4684bp}}
 \pgftext[base,left]{$\mrecv{4}\timestampnegativespace\vectortimestamp{3}{2}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -424,7 +424,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{43.4784bp}{63.4870bp}}
+\pgftransformshift{\pgfqpoint{33.6232bp}{63.4870bp}}
 \pgftext[base,left]{$\msend{1}\timestampnegativespace\vectortimestamp{0}{1}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -495,7 +495,7 @@
 \pgftext[base,left]{$P_1$}
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{328.4784bp}{147.4870bp}}
+\pgftransformshift{\pgfqpoint{319.1989bp}{147.4870bp}}
 \pgftext[base,left]{$\mrecv{3}\timestampnegativespace\vectortimestamp{4}{1}{1}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -515,7 +515,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{165.4784bp}{147.4870bp}}
+\pgftransformshift{\pgfqpoint{155.6232bp}{147.4870bp}}
 \pgftext[base,left]{$\msend{4}\timestampnegativespace\vectortimestamp{3}{1}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -535,7 +535,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{108.4784bp}{147.4870bp}}
+\pgftransformshift{\pgfqpoint{99.1989bp}{147.4870bp}}
 \pgftext[base,left]{$\mrecv{1}\timestampnegativespace\vectortimestamp{2}{1}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
@@ -555,7 +555,7 @@
 \pgfusepathqfillstroke
 \end{pgfscope}
 \begin{pgfscope}
-\pgftransformshift{\pgfqpoint{51.4784bp}{147.4870bp}}
+\pgftransformshift{\pgfqpoint{41.6232bp}{147.4870bp}}
 \pgftext[base,left]{$\msend{2}\timestampnegativespace\vectortimestamp{1}{0}{0}$}
 \end{pgfscope}
 \begin{pgfscope}
