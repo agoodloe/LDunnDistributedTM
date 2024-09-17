@@ -101,118 +101,125 @@
 \label{sec:introduction}
 Civil aviation has traditionally focused primarily on the efficient
 and safe transportation of people and goods via the airspace. Despite
-the inherent risks, the application of sound engineering practices and
+inherent risks, the application of sound engineering practices and
 conservative operating procedures has made flying the safest mode of
-transport today. Now the desire not to compromise this safety makes it
-difficult to integrate unmanned vehicles into the airspace, accomodate
-emerging applications, and keep pace with unprecedented recent growth
-in commercial aviation. To that end, the System Wide Safety (SWS)
-project of the NASA Aeronautics' Airspace Operations and Safety
-Program (AOSP) has been investigating technologies and methods by
-which crewed and uncrewed aircraft may safely operate in shared
-airspace.
+transport today. Now, the industry's strong requirements for safety
+make it difficult to integrate unmanned vehicles into the airspace,
+accomodate emerging applications, and keep pace with significant
+recent growth in commercial aviation. To that end, the NASA
+Aeronautics' Airspace Operations and Safety Program (AOSP) has
+initiated the System Wide Safety (SWS) project to investigate
+technologies and methods to enable crewed and uncrewed aircraft to
+safely operate in shared airspace.
 
 This memo surveys topics in computing that are relevant to maintaining
 system-wide safety across large, physically distributed data and
-communication systems. It aims to be self-contained and accessible to
-a technical audience without a deep background in distributed
-systems. Our primary motivating use cases have been taken from civil
+communication systems. It is intended to be self-contained and
+accessible to a technical audience without a deep background in
+distributed systems. Our primary motivating use cases come from civil
 emergency response scenarios, especially wildfire suppression and
-hurricane relief, primarily for three reasons. First, improved
-technology for wildfire suppression, especially related to
-communications and data sharing, is frequently cited as a national
-priority \cite{pcast2023}.  Second, the rules for operating in the US
-national airspace are typically relaxed during natural disasters and
-relief efforts, so this is a suitable setting for testing new
-technologies. Finally, this setting is an excellent microcosm for the
-sorts of general challenges faced by other, non-emergency
-applications.
+hurricane relief. These were chosen primarily for three
+reasons. First, improved technology for wildfire suppression,
+especially related to communications and data sharing, is frequently
+cited as a national priority \cite{pcast2023}.  Second, the rules for
+operating in the US national airspace are typically relaxed during
+natural disasters and relief efforts, so this is a suitable setting
+for testing new technologies. Finally, this setting is an excellent
+microcosm for the sorts of general challenges faced by other,
+non-emergency applications.
 
-If there is a central theme uniting the sections of this manuscript,
-it is \emph{continuity} in the sense considered by
-topology.\footnote{For a typical introductory textbook see
-  \cite{mendelson2012introduction}.} The systems we consider will be
-subject to harsh operating conditions that limit how well they can
-perform---for example, wireless communication is typically less
-reliable during inclement weather. To build a system that is
-predictable (clearly a prerequisite for safety), one must ensure the
-system is flexible enough to perform reasonably well under a wide
-variety of adverse conditions. In other words, the behavior of a safe
+One theme uniting this manuscript is \emph{continuity} in the sense
+considered by topology.\footnote{For an introductory textbook see
+  \cite{mendelson2012introduction}.}  The systems we examine must
+function under harsh operating conditions that limit their
+performance---for example, wireless communication is less reliable
+during severe weather. To design a system whose behavior and
+performance is predictable---this is clearly a prerequisite for
+safety---it must flexible enough to perform reliably under a wide
+range of adverse conditions. In other words, the behavior of a safe
 system should in some sense be a \emph{continuous} function of its
-inputs and environment. This sort of robust design is particularly
-challenging because distributed systems designers are forced to make
-delicate tradeoffs between competing objectives, most famously between
-performance and consistency, the topic of Section
-\ref{sec:background}.
+inputs and environment. Achieving this sort of robust design is
+challenging because distributed systems designers must navigate
+delicate tradeoffs between competing objectives. At a high level,
+these tradeoffs stem from an inherent tension between designing a
+system that handles user requests quickly and one that prioritizes
+maintaining a strong level of global consistency between system
+components.
+
+The key insight the reader should take away from this document is that
+achieving system-wide safety is not solely a matter of improving
+communications hardware and physical infrastructure. It is also in
+large part a computer science and software problem concerned with the
+high-level applications that execute on top of the communications
+infrastructure. These software systems must be engineered to maintain
+a common operating picture between distributed users while making
+efficient use of networking and compute resources in a dynamic and
+even adversarial environment.
 
 \subsection{Summaries of the sections}
 \label{ssec:summaries-of-the-sections}
 
-Sections \ref{sec:disaster-response}--\ref{sec:desiderata} contain
-background material on disaster response, distributed systems, and the
-specifics of our use case. The critical takeaway of these sections is
-that system-wide safety is, at least in part, a computer science
-problem, indeed a software problem, and not ``just'' a matter of
-engineering better hardware. Sections
-\ref{sec:networking}--\ref{sec:data-fusion} survey particular topics
-from the distributed systems literature, proceeding from lower-level
-considerations to higher-level ones; these sections may be read
-independently of each other. Below we summarize each section.
+Section \ref{sec:disaster-response} opens with a practical overview of
+disaster response and some of the computing challenges encountered in
+this setting. Real-world examples from disaster response scenarios are
+presented that demonstrate the role of distributed systems principles
+in achieving system-wide safety.
 
-Section \ref{sec:disaster-response} starts with a pragmatic summary of
-disaster response and some of the relevant computing challenges in
-that setting. We aim to justify and explain the role of distributed
-systems theory in system-wide safety by citing real examples
-encountered in disaster response scenarios.
+Section \ref{sec:background} summarizes fundamental concepts in
+distributed systems, culminating in a illustrative result: the ``CAP''
+theorem, which we present for both the linearizable and sequential
+consistency models (Theorems \ref{thm:cap} and
+\ref{thm:cap-sequential}, respectively). CAP is considered a
+``negative'' result because it proves that something cannot be
+done. Namely, a distributed system cannot guarantee that it will
+maintain strong consistency and remain available to users at all
+times, even if the network fails. The practical takeaway of the CAP
+theorem is that agents in emergency response environments will always
+act with incomplete information about the global system, a key
+motivation for Section \ref{sec:continuous-consistency}. While the CAP
+theorem is often presented as a kind of unfortunate prohibition, it
+merely highlights a general kind of tradeoff. Furthermore, real-world
+systems often exhibit a kind of ``locality'' that works around some of
+the limitations implied by the CAP theorem.
 
-Section \ref{sec:background} is an introduction to distributed
-systems, culminating in a illustrative result: the ``CAP'' theorem(s)
-for the atomic and sequential consistency models (Theorems
-\ref{thm:cap} and \ref{thm:cap-sequential}, respectively). CAP is
-considered a ``negative'' result, meaning it proves something cannot
-be done. The CAP theorem proves that strong consistency for a
-distributed system makes systemwide network performance an upper bound
-on the availability of a system to do useful work for clients, which
-for our purposes is an unacceptable restriction. The practical
-significance of CAP is that in emergency response environments, agents
-will always act with incomplete information about the global system, a
-key motivation for Section \ref{sec:continuous-consistency}.
-
-Section \ref{sec:desiderata} refines our assumptions and identifies
-desirable properties of systems for our use case. We use these points to
-frame the discussion of systems and protocols in subsequent sections.
-
-Section \ref{sec:networking} examines networking considerations. Our
-vision of future emergency communication networks integrates concepts
-from delay/disruption-tolerant networks (DTN) and mobile ad-hoc
-networks (MANET) to provide digital communications that are robust to
-a turbulent operational environment. We also examine the state of
-software-defined networking (SDN). SDN is an emerging field that puts
-networking protocols on the same footing as ordinary computer
-programs. In theory, this should furnish computer networking with all
-the benefits of modern software engineering, such as reprogrammable
-hardware, rapid iteration, version control, and especially formal
-verification.
+% Section \ref{sec:networking} examines networking considerations. Our
+% vision of future emergency communication networks integrates
+% concepts from delay/disruption-tolerant networks (DTN) and mobile
+% ad-hoc networks (MANET) to provide digital communications that are
+% robust to a turbulent operational environment. We also examine the
+% state of software-defined networking (SDN). SDN is an emerging field
+% that puts networking protocols on the same footing as ordinary
+% computer programs. In theory, this should furnish computer
+% networking with all the benefits of modern software engineering,
+% such as reprogrammable hardware, rapid iteration, version control,
+% and especially formal verification.
 
 Section \ref{sec:continuous-consistency} describes a hypothetical
-application that might be used in a disruption-heavy network: a data
-replication service built on Yu and Vahdat's theory of ``conits"
-(short for ``consistency unit'') \cite{2002tact}. This framework
-realizes a \emph{continuous} consistency model in the sense that, as
-typically configured, it provides neither strong consistency nor
-guaranteed high-availability, but rather a quantifiable and
-controllable tradeoff between the two. The key idea is that many
-applications can tolerate inconsistency among replicas of a data item
-if an upper bound on the divergence between replicas is enforced. A
-conit-based database replication framework would allow system
-designers to define units of replicated data whose consistency is of
-interest, enforce policies bounding inconsistency between replicas of
-these items, and even dynamically tune these policies on the fly. We
-believe that only a conit-based replication infrastructure can provide
-the strict guarantees required for safety-related systems while also
-tolerating the adverse environments and real-world limitations of the
-systems we have in mind.
+application suitable for networks with frequent disruptions: a data
+replication service built on the theory of ``conits'' (short for
+``consistency unit'') investigated by Yu and Vahdat
+\cite{2002tact}. This framework provides a \emph{continuous}
+consistency model that balances the competing objects of consistency
+and availability in a quantifiable and controllable way. The idea is
+that applications can tolerate some level of inconsistency between
+replicas of a data item as long as it can enforce an upper bound on
+the allowable divergence between them. A conit-based framework would
+allow applications to define units of replicated data whose
+consistency is of interest, enforce policies bounding inconsistency
+between replicas of these items, and change these policies
+dynamically. This sort of service can provide the sort of strict
+guarantees required of safety-related use cases while tolerating the
+adverse environments and real-world limitations of the environment.
 
+We conclude in Section \ref{sec:conclusion} by recapping some of the
+main themes in this document and highlighting areas for further
+investigation. Ultimately, building distributed systems for any
+environment involves design decisions tuned to the particulars of that
+environment. We expect that many of these decisions cannot be made a
+priori---they will ultimately be informed by a combination of
+simulation and testing in the field.
+
+\begin{comment}
 Section \ref{sec:data-fusion} concerns data fusion. Now and in the
 future, agents in disaster scenarios will make decisions informed by
 many different kinds of information. Efficient integration,
@@ -236,6 +243,7 @@ decisions at various levels must be made to build a system that is
 tuned to the exact conditions we can expect from real-world
 scenarios. Such decisions might be informed by a combination of
 simulation and experimentation in the field.
+\end{comment}
 
 \section{Coordination Challenges in Disaster Response}
 \label{sec:disaster-response}
@@ -649,9 +657,9 @@ pertinent data are as follows:
 \item Medical information gathered from victims, perhaps stored in and
   collected from electronic triage tags \cite{2009:triagetag}
 \item Data about current and predicted fire behavior gathered from
-  systems like Fire Integrated Real-time Intelligence System (FIRIS)
-  or NASA's Fire Information for Resource Management
-  System (FIRMS)
+  systems like the Fire Integrated Real-time Intelligence System
+  (FIRIS) or NASA's Fire Information for Resource Management System
+  (FIRMS)
 \item Weather data from the National Weather Service
 \item Topographic information about the terrain, highlighting for
   instance the location of rivers and roads that could form a fire
@@ -703,8 +711,8 @@ to avoid cognitive overload and facilitate intuitive control without
 distracting users. As emergency control becomes increasingly
 data-driven, particularly in centralized hubs like dispatch centers
 that aggregate diverse streams of information, the challenge of
-ensuring that users can interactive effectively with these systems
-will become increasingly important.
+ensuring that users can interact effectively with these systems will
+become increasingly important.
 
 \subsubsection{Adversarial Behavior}
 One feature of the Internet of Battle Things worth highlighting is
@@ -739,12 +747,11 @@ Communications in disaster response environments might even be less
 reliable than in the battlefield (setting aside offensive behavior
 like signal jamming), requiring a greater emphasis on the preservation
 of scarce network resources. For instance, a group of volunteer
-firefighters would have fewer resources than a tactical military unit.
-The firefireghters have to make do with commercial off-the-shelf
-(COTS) equipment instead of best in class hardware like sophisticated
-handheld satellite links. High bandwidth channels will often be in
-short supply, while adverse conditions like inclement weather are
-assumed.
+firefighters would have fewer resources than a tactical military unit,
+relying on commercial off-the-shelf (COTS) equipment rather than best
+in class hardware like sophisticated handheld satellite links. High
+bandwidth channels will often be in short supply, while adverse
+conditions like inclement weather are assumed.
 
 Given the heavy reliance on data and the scarcity of reliable
 communication channels, we expect a complex interaction between the
@@ -3337,6 +3344,10 @@ multiple forms of control:
 Consistency is enforced by the application by setting bounds on the
 consistency of read accesses. The TACT framework then enforces these
 consistency levels.
+
+
+\section{Conclusion and Summary}
+\label{sec:conclusion}
 
 
 
