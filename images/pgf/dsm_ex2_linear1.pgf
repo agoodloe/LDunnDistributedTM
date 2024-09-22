@@ -39,7 +39,7 @@
 \end{pgfscope}
 \begin{pgfscope}
 \pgftransformshift{\pgfqpoint{198.3568bp}{25.0093bp}}
-\pgftext[base,left]{$\memreadVal{x}{3}$}
+\pgftext[base,left]{$\memreadVal{x}{5}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.3922,0.5608,1.0000}
@@ -130,7 +130,7 @@
 \end{pgfscope}
 \begin{pgfscope}
 \pgftransformshift{\pgfqpoint{192.8568bp}{85.0093bp}}
-\pgftext[base,left]{$\memreadVal{x}{3}$}
+\pgftext[base,left]{$\memreadVal{x}{5}$}
 \end{pgfscope}
 \begin{pgfscope}
 \definecolor{fc}{rgb}{0.3922,0.5608,1.0000}

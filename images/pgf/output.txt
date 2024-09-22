@@ -1,0 +1,17 @@
+Unknown diagram: dsm_ex1
+Unknown diagram: dsm_ex1_NoEdges
+Unknown diagram: dsm_ex2_seq1_serial
+Unknown diagram: dsm_ex2_seq2_serial
+Unknown diagram: dsm_ex2_seq2
+Unknown diagram: dsm_ex2_seq2
+Build profile: -w ghc-9.4.8 -O1
+In order, the following will be built (use -v for more details):
+ - generator-0.1.0.0 (exe:generator) (file generator/SharedMemory.hs changed)
+Preprocessing executable 'generator' for generator-0.1.0.0..
+Building executable 'generator' for generator-0.1.0.0..
+[6 of 7] Compiling SharedMemory     ( generator/SharedMemory.hs, /home/lawrence/academia/NASA/MemoArt/repo/dist-newstyle/build/x86_64-linux/ghc-9.4.8/generator-0.1.0.0/x/generator/build/generator/generator-tmp/SharedMemory.o ) [Source file changed]
+[7 of 7] Compiling Main             ( generator/Main.hs, /home/lawrence/academia/NASA/MemoArt/repo/dist-newstyle/build/x86_64-linux/ghc-9.4.8/generator-0.1.0.0/x/generator/build/generator/generator-tmp/Main.o ) [SharedMemory changed]
+[8 of 8] Linking /home/lawrence/academia/NASA/MemoArt/repo/dist-newstyle/build/x86_64-linux/ghc-9.4.8/generator-0.1.0.0/x/generator/build/generator/generator [Objects changed]
+Unknown diagram: dsm_ex2_seq2
+Unknown diagram: dsm_ex2_seq2
+Unknown diagram: dsm_ex2_seq2
