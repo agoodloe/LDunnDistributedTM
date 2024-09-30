@@ -1080,11 +1080,90 @@
 }
 
 @article{1995:causal-memory,
-  title={Causal memory: definitions, implementation, and programming},
-  author={Mustaque Ahamad and Gil Neiger and James E. Burns and Prince Kohli and Phillip W. Hutto},
-  journal={Distributed Computing},
-  year={1995},
-  volume={9},
-  pages={37-49},
-  url={https://api.semanticscholar.org/CorpusID:6435056}
+  title        = {Causal memory: definitions, implementation, and
+                  programming},
+  author       = {Mustaque Ahamad and Gil Neiger and James E. Burns
+                  and Prince Kohli and Phillip W. Hutto},
+  journal      = {Distributed Computing},
+  year         = 1995,
+  volume       = 9,
+  pages        = {37-49},
+  url          = {https://api.semanticscholar.org/CorpusID:6435056}
+}
+
+@phdthesis{1992:golding-thesis,
+  author       = {Golding, Richard Andrew},
+  title        = {Weak-consistency group communication and membership},
+  year         = 1992,
+  publisher    = {University of California at Santa Cruz},
+  address      = {USA},
+  abstract     = {Many distributed systems for wide-area networks can
+                  be built conveniently, and operate efficiently and
+                  correctly, using a weak consistency group
+                  communication mechanism. This mechanism organizes a
+                  set of principals into a single logical entity, and
+                  provides methods to multicast messages to the
+                  members. A weak consistency distributed system
+                  allows the principals in the group to differ on the
+                  value of shared state at any given instant, as long
+                  as they will eventually converge to a single,
+                  consistent value. A group containing many principals
+                  and using weak consistency can provide the
+                  reliability, performance, and scalability necessary
+                  for wide-area systems. I have developed a framework
+                  for constructing group communication systems, for
+                  classifying existing distributed system tools, and
+                  for constructing and reasoning about a particular
+                  group communication model. It has four components:
+                  message delivery, message ordering, group
+                  membership, and the application. Each component may
+                  have a different implementation, so that the group
+                  mechanism can be tailored to application
+                  requirements.The framework supports a new message
+                  delivery protocol, called timestamped anti-entropy,
+                  which provides reliable, eventual message delivery;
+                  is efficient; and tolerates most transient processor
+                  and network failures. It can be combined with
+                  message ordering implementations that provide
+                  ordering guarantees ranging from unordered to total,
+                  causal delivery. A new group membership protocol
+                  completes the set, providing temporarily
+                  inconsistent membership views resilient to up to k
+                  simultaneous principal failures.The Refdbms
+                  distributed bibliographic database system, which has
+                  been constructed using this framework, is used as an
+                  example. Refdbms databases can be replicated on many
+                  different sites, using the group communication
+                  system described here.},
+  note         = {UMI Order No. GAX93-12435}
+}
+
+@misc{rfc3986,
+  series       = {Request for Comments},
+  number       = 3986,
+  howpublished = {RFC 3986},
+  publisher    = {RFC Editor},
+  doi          = {10.17487/RFC3986},
+  url          = {https://www.rfc-editor.org/info/rfc3986},
+  author       = {Tim Berners-Lee and Roy T. Fielding and Larry M
+                  Masinter},
+  title        = {{Uniform Resource Identifier (URI): Generic Syntax}},
+  pagetotal    = 61,
+  year         = 2005,
+  month        = jan,
+  abstract     = {A Uniform Resource Identifier (URI) is a compact
+                  sequence of characters that identifies an abstract
+                  or physical resource. This specification defines the
+                  generic URI syntax and a process for resolving URI
+                  references that might be in relative form, along
+                  with guidelines and security considerations for the
+                  use of URIs on the Internet. The URI syntax defines
+                  a grammar that is a superset of all valid URIs,
+                  allowing an implementation to parse the common
+                  components of a URI reference without knowing the
+                  scheme-specific requirements of every possible
+                  identifier. This specification does not define a
+                  generative grammar for URIs; that task is performed
+                  by the individual specifications of each URI
+                  scheme. {[}STANDARDS-TRACK{]}},
 }

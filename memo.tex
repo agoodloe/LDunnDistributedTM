@@ -943,12 +943,12 @@ $\mathcal{P} = \{P_1, P_2, \ldots P_n\}$ of \emph{processes} which
 undergo atomic (indivisible) state changes known as
 \emph{events}. Events are divided into three types: internal events,
 representing state changes inside a single process, and send and
-receive events corresponding to messages passed between processes. It
-may be helpful to imagine processes as radios and messages as audio
-broadcasts, though the framework we are using is abstract and applies
-to any kind of communication technology. To draw out the core issues
-surrounding messaging, the diagrams in this section do not depict any
-internal events.
+receive events corresponding to \emph{messages} passed between
+processes. Note that this framework is quite abstract and applies to
+any kind of packet-based communication technology. To draw out the
+core issues surrounding messaging, the diagrams in this section do not
+depict any internal events, as they represent state changes that are
+not directly viewable to the network or other processes.
 
 Throughout the section, processes and networks are opaque blackboxes,
 which concentrates our attention on the ramifications of unpredictable
@@ -1424,6 +1424,7 @@ practice.
 \end{comment}
 
 \subsection{Message Ordering}
+\label{ssec:message-ordering}
 Coulouris et al. \cite{coulouris2005distributed} aptly summarized why
 it is a problem for unpredictable network latencies to cause messages
 to arrive in a different order than they were sent in.
@@ -1471,17 +1472,16 @@ unless they are from the same sender and to the same recipient.
 \end{definition}
 
 The Internet Protocol (IPv4 or IPv6) by itself does not provide FIFO
-semantics. In the OSI model, FIFO ordering is often provided by the
-transport layer, in practice usually in the form of the transmission
-control protocol or TCP. (The other classic internet transport, the %TODO Make into a footnote
-user datagram protocol or UDP, does not provide any ordering or
-reliability guarantees). Applications built on top of TCP or a similar
-transport can take therefore take FIFO for granted. Providing FIFO can
-be as simple as marking messages sent from $P$ to $P'$ with
-consecutive numbers $(1,2,3\ldots)$. If message $1$ arrives and then
-$3$ arrives, $P'$ infers that $2$ is lagging behind, delivering $1$ to
-the user immediately but withholding delivery of $3$ until after $2$
-is received and delivered.
+semantics. In the OSI model, FIFO ordering with reliable delivery is
+typically provided at the transport layer by the transmission control
+protocol (TCP).\footnote{The other classic internet transport, user
+  datagram protocol (UDP), does not provide any ordering or
+  reliability guarantees.} Applications built on top of TCP or a
+similar transport can take therefore take FIFO for granted. Providing
+FIFO can be as simple as marking messages sent from $P$ to $Q$ with
+consecutive integers. If message $1$ arrives and then $3$ arrives, $Q$
+infers that $2$ is lagging behind, delivering $1$ to the user but
+withholding delivery of $3$ until after $2$ is received and delivered.
 
 The guarantees provided by FIFO are minimal because they only apply on
 a per-link basis: every link requires its own numbering scheme, so
@@ -1572,6 +1572,7 @@ with respect to causal precedence.
 \end{example}
 
 \subsubsection{Multicasting and Broadcasting}
+\label{sssec:multicasting}
 We now extend the above definitions to the group communication setting
 by allowing messages to have multiple recipients. For simplicity, we
 suppose messages are broadcast to all other recipients, though the
@@ -1642,11 +1643,17 @@ a common order of events but the order itself is not necessarily
 critical.
 
 \begin{definition}[TO broadcast]
-  \label{def:totalorderbroadcast} For any processes $P$ and $P'$ and
+  \label{def:totalorderbroadcast} For any processes $P$ and $Q$ and
   messages $m$ and $m'$ that arrive at \emph{both} destinations, $m$
   arrives before $m'$ at both processes or $m'$ arrives before $m$ at
   both processes.
 \end{definition}
+
+Total order is independent of causal order, as causality is not total
+and a total order does not generally respect causality. Thus it
+sensible to consider also a hybrid notion of \emph{total-causal} order
+in which all messages are received in a total order respecting
+causality.
 
 \begin{figure}[p]
   \setlength\belowcaptionskip{5ex}
@@ -1796,6 +1803,7 @@ relates non-overlapping events their physical times, but does not
 assign an ordering to events whose executions overlap in physical
 time.
 \begin{definition}[External order]
+  \label{def:external-order}
   Let $H$ be a history. An operation $\Op^1$ \emph{externally
     precedes} operation $\Op^2$ if
   $\memstop{\Op^1} < \memstart{\Op^2}$. This induces an irreflexive
@@ -2631,189 +2639,334 @@ carefully calibrated to the use case and the operational environment.
 
 \section{Continuous Consistency}
 \label{sec:continuous-consistency}
-In this section, we present Golding's Timestamped Anti-Entropy (TSAE)
-protocol. TSAE is a \emph{weak consistency group communication}
-mechanism, a concept whose meaning will become clearer as we progress
-through the section. It is important to note that the version of TSAE
-presented here is not fully specified---certain implementation details
-can be altered depending on the specific needs of the higher-level
-distributed application that utilizes TSAE as its group communication
-layer.
+In this section, we present a \emph{continuous} consistency model
+developed by Yu and Vahdat \cite{2002tact} that we argue is
+well-suited for distributed shared memory across a wide area connected
+by disruption-prone networks. Rather than viewing consistency as an
+all-or-nothing proposition, continuous consistency makes the
+consistency/availability tradeoff first class by providing conceptual
+knobs and dials to ``tune'' the strength of the model based on the
+application and the capacity of the network.
 
-Here, we imagine TSAE as one part of a middleware used to coordinate
-first responders throughout a wide area (possibly statewide, or even
-distributed throughout a US region) responding to major events like
-natural disasters and massive wildfires. Section
-\ref{sec:disaster-response} discusses exemplary application features
-like monitoring firefighter's GPS locations, tracking the current fire
-boundaries, sharing weather data, and providing mechanisms to dispatch
-resources.
+Before we present the memory model, we present a key mechanism that
+can be used to implement it: Golding's Timestamped Anti-Entropy (TSAE)
+protocol \cite{1992:golding-thesis}. TSAE is a \emph{weak consistency
+  group communication} mechanism that provides a form of multicasting
+to applications. We picture TSAE as a key driver of communication
+across a distributed system spanning a region or state, supporting
+first responders during large-scale events like natural disasters and
+massive wildfires. As discussed in Section
+\ref{sec:disaster-response}, such a system might track firefighters'
+GPS locations, monitor a fire's boundaries, disseminate weather data,
+and orchestrate resource deployment. TSAE would form the message
+delivery component of the middleware, with responsibility for ensuring
+that every multicast message eventually reaches each of its
+destinations. By itself, this does not provide strong
+guarantees. Following Yu and Vahdat \cite{2002tact}, we show how an
+implementation of the continuous consistency model on top of TSAE can
+be used to enforce (though so-called compulsory anti-entropy sessions)
+consistency requirements on this message propagation component.
 
-TSAE allows replicating the underlying data managed by the application
-throughout a distributed system. That is, it facilitates storing
-multiple copies of the same data in different places. For some
-applications, this might involve storing a complete set of data on
-each user's cell phone. For more data-intensive applications running
-on centralized servers, it might be that multiple emergency operating
-centers or incident command systems store a copy of the data.
+\subsection{Timestamped Anti-Entropy}
+\label{ssec:tsae}
+Golding's thesis \cite{1992:golding-thesis} outlines TSAE as one
+component of a bigger toolkit for developing distributed
+applications. Before laying out the algorithm itself, we describe its
+usage from the point of view of an application developer. We imagine a
+group of cooperating processes---Golding calls them
+``principals''---that manage shared state and communicate by
+exchanging messages. These messages are an application-specific
+construct and do not map one-to-one with low-level network messages
+like those considered in Section \ref{ssec:message-passing}. We assume
+the network provides unicast (point-to-point) messaging, but it does
+not guarantee FIFO ordering, and it may duplicate messages but not
+create new ones. The network may not be reliable, but we assume that
+if a process repeatedly attempts to communicate with a distant node,
+it is eventually successful. The network might provide built-in
+support for multicasting network-level messages, which could be used
+as part of an implementation of TSAE, but the TSAE layer itself
+provides a form of multicasting to the application regardless of the
+network infrastructure.
 
-Replication supports \emph{scalability} because application services
-can be provided by any processes that maintains a replica of the data,
-distributing the load amongst a set of processes rather than a
-centralized server. For the same reason, replication supports
-resiliency, as there is not a single point of failure. But perhaps
-above all, replication improves \emph{locality}, first discussed in
-Section \ref{ssec:communication-patterns}. Users of the application
-can receive service by contacting the nearest replica over a
-low-latency, high-reliability communications link.
+A typical use case of TSAE is to replicate copies of a database at
+multiple sites throughout the system. More generally, this data
+represents any shared state. This data is updated according to some
+logical data model, such as a relational database with a particular
+schema, a key-value store, or a document store. For simplicity, we
+will assume that every process maintains a complete replica of the
+data. Besides copying the data, each process may also update it by
+sending a message (at the application level, using TSAE) announcing
+the update. TSAE ensures that this message is delivered to every
+process; when this happens, the process applies the update to its own
+replica. Of course, the semantic meaning of updates is entirely
+decided by the application. If, for instance, the underlying data
+model required updates to be applied in the same order at all sites to
+ensure they reach the same final state, then the application would
+combine TSAE with a totally-ordered ordering component to ensure that
+updates are received in the same order everywhere, as we do in
+\ref{sssec:tsae-message-ordering}.
 
-% TSAE is a middleware-level protocol that provides reliable group
-% messaging over a lower-level network. Depending on the
-% implementation details, which are determined by the needs of the
-% higher-level application, TSAE can provide any of the message
-% ordering guarantees discussed in Section \ref{}. For instance, TSAE
-% can be used to implement a totally ordered group broadcast service
-% that communicates by passing unicast messages over a TCP/IP network,
-% where the TCP/IP component only guarantees FIFO ordering by itself.
+Replication is an alternative to managing shared state in a central
+location, such as in a datacenter. This provides resiliency by
+removing single points of failure. It supports scalability by allowing
+any process with a replia to deliver services to clients, distributing
+the load. Finally, replication exploits locality (introduced in
+Section \ref{ssec:communication-patterns}) because by servicing user
+requests at the nearest replica, we can rely on communications links
+that are generally faster and more reliable.
 
+One highly relevant use case of globally replicating shared state is
+to support offline usage of applications. This represents taking
+locality to its limit. Agents in the field may not be able to connect
+to a datacenter, but in the meantime they can interact with their
+local instance of the application backed by their own replica of the
+data. This is useful for as long as the agents can be confident that
+their local replica has not diverged too far from the rest of the
+system. A key point is that this is an application-level matter. How
+quickly shared state evolves, how to quantify divergence, and how far
+apart is ``too'' divergent are determined by user intent, usage
+patterns, and operational environment, among other things. The
+advantage of the framework presented in this section is that the
+middleware provides the application with flexible methods for tuning
+consistency guarantees, allowing these decisions to be encoded into
+the application logic on a per-process basis.
 
-% The point of replicating is to improve locality. See Golding
-% dissertation Section 1.2
+We now discuss TSAE in terms of its assumptions
+(\ref{sssec:tsae-assumptions}), data structures and invariants
+(\ref{sssec:tsae-message-log} and \ref{sssec:tsae-summary-vectors}),
+ordering component (\ref{sssec:tsae-message-ordering}), and storage
+reclamation procedure (\ref{sssec:tsae-message-purging}). Finally, we
+discuss how matrix clocks can be used instead of the loosely
+synchronized physical clocks assumed below
+(\ref{sssec:tsae-unsynchronized}).
 
-The reliability of TSAE means every message is eventually delivered to
-every functioning group member, assuming the underlying network does
-not suffer from permanent partitions. A canonical use of TSAE is to
-replicate some kind of database at multiple sites. As TSAE only
-provides a messaging service, this usage scenario does not dictate
-whether to prefer availability or consistency during a partition. We
-return to this discussion in Section \ref{ref} which unites the
-preceding and present material.
+\subsubsection{Assumptions}
+\label{sssec:tsae-assumptions}
+We assume each process is associated with an identifier. In a real
+system, these might be Uniform Resource Identifiers (URIs)
+\cite{rfc3986} following a structured format like
+\texttt{firefighter116@<agency>.<state>.us}. However, in the text we
+will not make a distinction between a process $P$ and its
+identifier. The first assumption we make is as follows:
+\begin{quote}
+  \textbf{A1}: The set of group members is a fixed set of processes
+  $\mathcal{P} = \{P_1, P_2, \ldots P_n\}$ where the identifier of
+  each process is known to all of them.
+\end{quote}
 
-The basic idea of TSAE is simple if we assume principals have
-approximately synchronized clocks. All principals maintain a write log
-containing messages sent by themselves are other principals. All
-entries are tagged with the principal identifier and a timestamp. As
-an invariant, if a write log contains a message $m$ originating from
-$P$, then it also contains every message originating at $P$ sent
-earlier than $m$ (i.e. having a lesser timestamp). Hence, the write
-log at any moment is completely determined by knowing the gre
+Golding's thesis describes how to connect TSAE with a dynamic group
+membership management component, but we do not describe it here for
+simplicity.
 
-
-\subsubsection{Assumptions and Data Structures}
-
-\paragraph{Assumptions}
-
-\[
-  \textbf{A1}: \textrm{The set of group members is static and known to every member.}
-\]
-In particular, we assume member knows their own identity. This
-statement is necessary because in a dynamic group environment,
-mechanisms are required to assign unique identifiers to principals and
-inform them of this assignment. For instance, in a typical
-TCP/IP-based network, a central DHCP service assigns IP addresses to
-computers when they added to the network, ensuring there are no
-conflicts.
-
-TSAE can be augmented with a service that provides dynamic group
-membership, ensuring all members are informed of changes to the
-membership list. See Golding.
-
-\[
-  \textbf{A2}: \textrm{Members have approximately synchronized physical clocks}
-\]
+The second assumption we make is that processes have nearly
+sychronized clocks. We write $\clock{P, t}$ for the clock value at $P$
+at real time $t$.
+\begin{quote}
+  \textbf{A2}: Processes' physical clocks are approximately
+  synchronized, meaning the clocks of any two processes differ by at
+  most some small constant $\delta$:
+  \[ \forall t,\, \forall P, Q \in \mathcal{P}, |\clock{P, t} - \clock{Q, t}| < \delta
+  \]
+\end{quote}
 
 The clock resolution must be fine-grained enough for each principal to
-assign unique timestamps to all important events (e.g. receiving a
-message) occurring in that process. We assume clocks are pairwise
-synchronized to within some fixed $\delta$, which requires some
-mechanism like NTP to correct for clock drift. Messages originating
-from processes with fast clocks may experience a $\delta$-length
-latency after they are received before they are delivered to the
-application.
-
-The assumption of clock synchronization can be weakened. Section 5.4.4
-of Golding \citationneeded discusses a form of matrix-based
-acknowledgement vectors. This requires no synchronization but adds
-storage and protocol overhead. For the applications we have in mind
-(database replication over a heavily disrupted ad-hoc network), we
-expect sufficiently fine clock synchronization is indeed realistic in
-many cases, provided timekeeping mechanisms like GPS signals or NTP
-are available often enough to correct for drift.
-
-\paragraph{Message Log}
-
-Messages are added to the message log when they are received. The
-message log is linear, and typically the order will differ among
-principals. (Nonetheless the message \emph{delivery} can enforce
-things like a total order.)
-
-\begin{itemize}
-\item When a message originates at process $P$, $P$ tags it with $(P, \currenttime{P})$
-\end{itemize}
-
-Messages are always transmitted in batches. For instance, if $A$
-updates $B$, $A$ will send $B$ the entire set of messages sent by $C$
-that $A$ estimates $B$ has not heard. If this batch includes a message
-with timestamp $t$, then it also includes every other message sent by
-$C$ with timestamp less than $t$. Below, this corresponds to the
-\emph{coverage property}.
-
-\subsubsection{Clock vectors}
-
-\subsubsection{Invariants}
-
-\subsection{The Algorithm}
-
-Each process $P_i$ has access to an approximately synchronized physical clock
-The data structures maintain by each process:
-
-\begin{itemize}
-\item The \emph{message log}, a queue of timestamped messages received by the host
-\item The \emph{summary} vector, containing a \emph{physical} clock value for each host
-\item The \emph{acknowledgement} vector,\ an additional set of $n$ clock values
-\end{itemize}
-
-The summary vector is much like the vector clocks of Section
-\ref{sssec:vector-clocks}, except they store physical timestamps
-rather than logical ones. That is to say, whenever $P$ timestamps some
-event it reads the current physical time. As usual, summary vectors
-will be piggybacked used by the receiver to update their vector
-pointwise.
-
-The message log contains a queue of the messages seen by $P$ sent by
-any process.
-
-%\textbf{Invariant}: If the message log of $A$ contains a message with
-%timestamp $(B, t)$, then it also contains every message whose
-%timestamp is $(B, t')$ where $t' < t$.
+assign unique timestamps to all important events occurring in that
+process. Though physical clock synchronicity is not a reliable
+assumption in all contexts, we expect that for many useful purposes,
+sufficient synchronization can be achieved with a protocol like NTP.
+Section \ref{sssec:tsae-unsynchronized} explains how the use of
+synchronized physical clocks can be replaced with matrix clocks at the
+cost of quadratic storage requirement. Our sense is also that for
+purposes of implementing continuous consistency, conventional scalar
+logical clocks can be used in place of physical clocks below---indeed,
+this seems to have been how it was implemented by Yu and Vahdat
+\cite{2000tact}.\footnote{Golding's requirement for synchronized
+  clocks stems from a need to ensure that messages are delivered in a
+  reasonable time; messages from a very fast clock may never be
+  delivered (from a database point of view, writes may never be
+  committed). However, the conit framework below bounds the number of
+  uncommitted writes by pull-based compulsory anti-entropy sessions,
+  so it is enough that these sessions ensure progress.} The real-time
+consistency metric discussed in Section
+\ref{sssec:real-time-consistency} requires each process to keep a
+physical clock to measure elapsed time, though synchronization does
+not appear to be key here either, assuming each clock runs at a
+consistent rate. We assume synchronization here to follow Golding's
+presentation.
 
 
-\begin{description}
-\item[Coverage Property] $A$ has seen all from $B$ whose timestamps are less
-  than the maximum timestamp of any message $A$ received from $B$
-  \[ \WLat{A}{B} \overset{covg.}{=} \{w \in \WLat{B}{B} | w.t \leq \summary{A}{B} \} \]
-\item[Acknowledgement Property] $A$'s commit line is less than or equal to the minimum value in $A$'s summary vector. It's ackowledgement entry for $B$ is a lower bound estimate of $B$'s commit line.
-  \begin{align*}
-    \ack{A}{A} &\overset{ack}{\leq} \min_{i \in \AllProc} \left(\summary{A}{i}\right) \\
-    \ack{A}{B} &\overset{ack}{\leq} \ack{B}{B}
-  \end{align*}
-\end{description}
+\subsubsection{Message Log}
+\label{sssec:tsae-message-log}
 
-As a corollary, all messages in $\WLat{A}{A}$ (i.e. all the ones
-originating at $A$) have a timestamp less than
-$\summary{A}{A}$. Whenever the TSAE protocol needs to read the value
-of $\summaryVec{A}$, it first updates $\summary{A}{A}$ to
-$\currenttime{A}$. The key property of $\summary{A}{A}$ is that it
-always greater than the maximum timestamp in $\WLat{A}{A}$. It is also
-less than $\currenttime{A}$---otherwise a newly message accepted would
-be timestamped with $\currenttime{A}$ and violate the previous
-inequality.
+Each process $P$ manages a \emph{message log} containing all
+application messages of which the process is aware. These are
+precisely the messages sent by $P$ or received by it from other
+processes. We denote $P$'s message log with $\WL{P}$. Messages stored
+in the log are tagged with the identifier of the process that
+originally created the message. We write $\WLat{P}{Q}$ to stand for
+the messages in $P$'s log that originated at $Q$.
 
-For all intents and purposes $\ack{A}{A}$ is the minimum value
-timestamp in the summary vector of $A$. For implementors, it would
-suffice that $\ack{A}{A}$ is always less than this value to avoid
-constantly iterating over the summary vector to compute the minimum,
-as long as $\ack{A}{A}$ is periodically updated.
+When $P$ intends to send a message, the message is simply
+\emph{submitted} into its log, leaving a separate component to deliver
+it later. At time of submission, the message is tagged with a pair
+$(P, \clock{P,t})$ containing $P$'s identifier and current time. The
+timestamp of message $m$ is written $\timestamp{m}$. Note that
+$\WLat{P}{P}$ represents the set of all messages originating at
+$P$. We define the set of global messages as the (disjoint) union of
+messages originating at any process.
+\[\W \equiv \bigcup_{X \in \AllProc} \WLat{X}{X}.\]
+
+Submitted messages are not sent to other processes right away.
+Instead, a delivery component is responsible for periodically
+examining the log and transmitting batches of new messages during
+\emph{anti-entropy sessions} following a protocol described
+later. When $P$ sends a batch of messages to $Q$, the set always
+contains at least the ones originating at $P$ that $Q$ has not already
+received. This is part of an invariant we later term the
+\emph{coverage property}: if $Q$ has received $m$ from $P$, and $m'$
+is another message originating at $P$ with an earlier timestamp
+(meaning $\timestamp{m'} < \timestamp{m}$), then $Q$ has received $m'$
+too. This ensures there are no ``gaps'' in the stream of messages $Q$
+receives from $P$.
+
+Just as $P$ periodically sends batches of messages to other processes,
+it likewise receives messages from other processes, adding them to
+$\WL{P}$.  Note that the set of messages that $P$ has not seen yet is
+$\W \setminus \WL{P}.$ Since TSAE provides eventual delivery, assuming
+processes do not fail, if they were to stop originating new messages
+(so $\W$ remains fixed), if processes are able to communicate, then
+$\WL{P}$ would eventually converge to $\W$.
+
+Figure \ref{fig:message-log} shows a message log for process $P$
+containing four messages. Note that $P$'s message log is linearly
+ordered, but for readability later we depict logs whose contents are
+disaggregated by sender into $\WLat{P}{P}$, $\WLat{P}{Q}$, and so
+on. Disaggregating by sender in figures has the downside of obscuring
+the fact that messages in $\WL{P} \cap \WL{Q}$---in other words
+contained in both of $P$ and $Q$'s logs---generally occur in different
+orders in each log, so if ordering is important, a separate message
+ordering component is required before messages in the log can be
+delivered to the application.
+
+\begin{figure}
+  \setlength\belowcaptionskip{0ex}
+  \begin{subfigure}{1\textwidth}
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/figure\_placeholder.png}
+    \caption{A message log with entries accumulating linearly}
+    \label{fig:message-log-a}
+  \end{subfigure}
+  \begin{subfigure}{1\textwidth}
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/figure\_placeholder.png}
+    \caption{The same message log shown with messages from different senders disaggregated}
+    \label{fig:message-log-b}
+  \end{subfigure}
+  \caption{A message log displayed linearly and disaggregated}
+  \label{fig:message-log}
+\end{figure}
+
+The main idea of TSAE is simple. At certain times, $P$ contacts some
+other process $Q$ and conducts an \emph{anti-entropy session}. The two
+processes exchange \emph{summary vectors} (defined below) that quickly
+inform the other about which messages the process has seen. Then they
+propagate messages the other hasn't seen, at which point both sides
+have received the same messages. As long as the delivery component
+runs periodically, all processes would eventually reach the same state
+if the network is not partitioned.
+
+\subsubsection{Summary Vectors and Invariants}
+\label{sssec:tsae-summary-vectors}
+Besides the message log, the delivery component manages two data
+structures, defined below, summarizing which messages $P$ has received
+and what it knows about other processes.
+
+The summary vector $\summaryVec{P}$ is a vector clock, albeit here we
+assume it stores physical rather than logical timestamps. The value
+$\summary{P}{P}$ essentially represents the time at which $P$'s last
+originated a message---its invariant is that it is an upper bound of
+this value. $\summary{P}{Q}$ is an upper bound of the originating
+time, measured by $Q$'s clock, of the last message $P$ received from
+$Q$.
+
+The message log satisfies an invariant, termed the coverage property,
+stipulating that $P$ is downward-closed with respect to the set of
+messages originating at every other process $Q$, ordered by time. That
+is, this set has no gaps.
+\begin{quote}
+  \textbf{Coverage Property}: $P$ has received all messages submitted
+  by $Q$ whose timestamps are less than the $Q^\textrm{th}$ entry in
+  $P$'s summary timestamp vector.
+  \[ \WLat{P}{Q} \overset{covg}{=} \{m \in \WLat{Q}{Q} | \timestamp{m} \leq \summary{P}{Q} \} \]
+\end{quote}
+We overset this equality with a reminder that it is an invariant
+maintained by the algorithm.
+
+After $P$ receives $Q$'s summary vector during an anti-entropy
+session, for each process $X \in \AllProc$, $P$ sends the set of
+messages in $\WLat{P}{X}$ with timestamps greater than
+$\summary{Q}{X}$. Likewise it receives messages from $Q$. Then both
+sides advance their vector clocks by taking the pointwise maximum of
+$\summaryVec{P}$ and $\summaryVec{Q}$ as described in Section
+\ref{sssec:vector-clocks}. It is easy to see that if the coverage
+property holds before the session, then it holds afterwards too.
+
+% When $P$ receives messages during an anti-entropy session with $Q$,
+% $Q$ it updates its summary vector to the maximum timestamp of any
+% message it has received from $Q$. Because $Q$ always sends at least
+% the messages originating at $Q$ and not yet received by $P$, the
+% timestamp of the largest message completely summarizes which
+% messages originated by $Q$ are known to $P$.
+
+When $P$ submits a message to its own log, that message is timestamped
+with $\clock{P, t}$ and $\summary{P}{P}$ is advanced to this
+value. Additionally, $P$ sets $\summary{P}{P}$ to $\clock{P,t}$ at the
+beginning of each anti-entropy session. This reflects the fact that
+after the session, $P$'s partner will have received all messages
+originating from $P$ before $\clock{P,t}$. Thus, the following
+inequalities hold at all times.
+\[
+  \max_{m \in \WLat{P}{P}}\left({\timestamp{m}}\right) \leq \summary{P}{P} \leq \clock{P,t}.
+\]
+
+Because it is a vector clock, $\summaryVec{P}$ also satisfies
+$\summary{P}{Q} \leq \summary{Q}{Q}$. That is, $P$'s estimate of $Q$'s
+local time is always a lower bound.
+
+$P$'s summary vector enables processes to quickly learn which messages
+$P$ has already seen. $P$ would like to maintain its own information
+about which messages other process have seen. For this purpose it uses
+the \emph{acknowledgement} vector $\ackVec{P}$. When $\summaryVec{P}$
+is updated, $P$ updates the value $\ack{P}{P}$ to the minimum clock
+value in its summary vector:
+\[\ack{P}{P} := \min_{X \in \AllProc} \left(\summary{P}{X}\right)\]
+This value, which we call $P$'s \emph{commit line} for reasons that
+become more apparent in Section \ref{ssec:consistency-units}, acts as
+an even more concise summary than $\summaryVec{P}$ about which
+messages $P$ has seen. Namely, $P$ has clearly seen any message whose
+timestamp is less than $\ack{P}{P}$. While $\summaryVec{P}$ contains
+perfect information but requires a whole vector, $\ack{P}{P}$ offers
+only an approximation, since $P$ has usually seen messages whose
+timestamps are greater than
+$\min_{X \in \AllProc} \left(\summary{P}{X}\right)$, but only requires
+a scalar. As an invariant, it is enough that the following inequality
+always holds:
+\begin{quote}
+\textbf{Acknowledgement Property}: $P$'s commit line is less than or equal to the minimum value in $P$'s summary vector.
+\[ \ack{P}{P} \overset{ack}{\leq} \min_{X \in \AllProc} \left(\summary{P}{X}\right)\]
+\end{quote}
+(This could become a strict inequality while $P$ is updating
+$\summary{P}{X}$ and has not yet had a chance to recompute the
+minimum, particularly if $P$ is a multi-threaded process handling
+multiple anti-entropy sessions at the same time.)
+
+Both sides of an anti-entropy session exchange acknowledgment vectors
+at the start, alongside their summary vectors, and update their
+acknowledgement vectors by taking the pointwise maximum with the one
+sent by the other party. The following inequality clearly holds: $\ack{P}{Q} \leq \ack{Q}{Q}$.
+
+Figures \ref{fig:tsae1}---\ref{fig:tsae6} depict the evolution of TSAE
+executing across three distributed processes $P$, $Q$, and $R$.
 
 \newpage
 \begin{landscape}
@@ -2855,387 +3008,499 @@ as long as $\ack{A}{A}$ is periodically updated.
     \caption{TSAE at time $t=6$. $A$ accepted a new message. $B$ and $C$ have finished their TSAE session. $B$ and $C$ can both update their commit lines to $4$, because they know they have seen all messages with timestamp less than $4$. However, their purge lines remain at $3$, because their acknowlegment vectors satisfy $\ack{}{A} = 3$, and in particular they cannot purge the message $(B, 4)$ because $A$ has not seen it. $A$ does not purge any messages, because it underestimates $B$'s commit line as $\ack{A}{B} = 0$, so $A$ believes it's possible that $B$ has not received $(C, 2)$.}
     \label{fig:tsae6}
   \end{figure}
-
-\begin{comment}
-  \begin{figure}[h]
-    \centering
-  \begin{subfigure}[b]{0.5\textwidth}
-    \centering
-    \includegraphics[width=0.9\textwidth]{images/tsae/Process A Message Log.png}
-    \caption{Cellular network topology}
-    \label{fig:centralized}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.5\textwidth}
-    \centering
-    \includegraphics[width=0.9\textwidth]{images/tsae/Process B Message Log.png}
-    \caption{Ad-hoc network topology}
-    \label{fig:decentralized}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.5\textwidth}
-    \centering
-    \includegraphics[width=0.9\textwidth]{images/tsae/Process B Message Log.png}
-    \caption{Ad-hoc network topology}
-    \label{fig:decentralized}
-  \end{subfigure}
-  \caption{States of processes $A$ and $B$ before an anti-entropy session}
-  \label{fig:nettopology}
-\end{figure}
-\begin{figure}[h]
-  \centering
-  \begin{subfigure}[b]{0.5\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{images/tsae/Process A Message Log.png}
-    \caption{Cellular network topology}
-    \label{fig:centralized}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.5\textwidth}
-    \centering
-    \includegraphics[width=1\textwidth]{images/tsae/Process B Message Log.png}
-    \caption{Ad-hoc network topology}
-    \label{fig:decentralized}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.5\textwidth}
-    \centering
-    \includegraphics[width=1\textwidth]{images/tsae/Process B Message Log.png}
-    \caption{Ad-hoc network topology}
-    \label{fig:decentralized}
-  \end{subfigure}
-  \caption{States of processes $A$ and $B$ before an anti-entropy session}
-  \label{fig:nettopology}
-\end{figure}
-\newpage
-\begin{figure}[h]
-  \centering
-  \begin{subfigure}[b]{0.5\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{images/tsae/Process A Message Log.png}
-    \caption{Cellular network topology}
-    \label{fig:centralized}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.5\textwidth}
-    \centering
-    \includegraphics[width=1\textwidth]{images/tsae/Process B Message Log.png}
-    \caption{Ad-hoc network topology}
-    \label{fig:decentralized}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.5\textwidth}
-    \centering
-    \includegraphics[width=1\textwidth]{images/tsae/Process B Message Log.png}
-    \caption{Ad-hoc network topology}
-    \label{fig:decentralized}
-  \end{subfigure}
-  \caption{States of processes $A$ and $B$ before an anti-entropy session}
-  \label{fig:nettopology}
-\end{figure}
-\end{comment}
 \end{landscape}
 \clearpage
 
-\subsubsection{Message delivery}
+\subsubsection{Message Ordering}
+\label{sssec:tsae-message-ordering}
+TSAE only ensures the messages are eventually received by other
+processes, but the write logs of different processes may order
+messages very differently. Recall from Section
+\ref{ssec:message-ordering} that when applications require guarantees
+about the order of received messages, messages that arrive at a
+process are not immediately delivered to the application. Instead, a
+message-ordering layer buffers the delivery of fast messages while
+waiting for slow ones to arrive. When this is a concern, a separate
+component periodically inspects the message log and delivers messages
+when ready, remembering which messages which message it has already
+delivered.
 
-\subsubsection{Message purging}
+As messages in the log accummulate, the ordering component becomes
+ready to deliver some to the application. Let us suppose the
+application requires a total order. (Golding also describes
+straightfoward mechanisms to enforce total-causal and causal non-total
+orders in Section 5.5 in his dissertation.)
 
-\subsection{Properties of TSAE}
+To enforce total order, the delivery component periodically delivers
+messages whose timestamp is less than or equal to $P$'s commit line,
+$\ack{P}{P}$. These messages will be delivered in the same order
+everywhere if they are delivered in order of their timestamps, using
+the identifiers of their senders to resolve ties. (Recall that $P$ has
+seen all messages $m$ whose timestamp is less than $\ack{P}{P}$,
+ensuring there are messages missing in this sequence.) This total
+order mechanism dates to the introduction of scalar clocks
+\cite{1978:lamportclocks} and ensures messages will eventually be
+delivered as long as $\ack{P}{P}$ is guaranteed to eventually
+increase.
 
-\begin{definition}
-  We provide a couple shorthand definitions
-\begin{description}
-  \item[Global writes] The set of all writes submitted to any replica
-    \[ \W \equiv \bigcup_{i \in \AllProc} \WL{A}\]
-  \item[Unseen Writes] The set of global writes not seen by a particular replica
-    \[\Unseen{A} \equiv \W \setminus \WL{A} \]
-  \item[Estimated Unseen Writes] $A$'s estimate of writes unseen by $B$
-    \[\UnseenEst{A}{B} \equiv \{w \in \WL{A} | w.t > \ack{A}{B} \} \]
-  \item[Commit line] The commit line at $A$ is $A$'s own
-    acknowledgement timestamp and provides a lower bound estimate of
-    messages seen by $A$
-    \[\commitline{A} \equiv \ack{A}{A}\]
-  \item[Global commit line] The global commit line is the minimum
-    value of any process's ackowledgement timestamp and provides an
-    upper bound of messages seen by anyone
-    \[ \globalcommit \equiv \min_{i \in \AllProc} \left( \commitline{A} \right) \]
-  \item[Purge line] $A$'s purge line is $A$'s upper bound estimate of the global commit line
-    \[ \knowncommit{A} \equiv \min_{i \in \AllProc} \left( \ack{A}{i} \right) \]
-  \end{description}
-\end{definition}
-
-
-%    \item[Acknowledgement Property] $A$'s acknowledgment entry for $B$ is a lower bound estimate of $B$'s commit line
-%      \[\ack{A}{B} \leq \ack{B}{B} \equiv \commitline{B}\]
+\subsubsection{Message Purging}
+\label{sssec:tsae-message-purging}
+As presented, the message log at each host grows without limit, so it
+requires an unbounded amount of storage. This is obviously untenable,
+so a separate purging process can be used to remove old entries when
+they are no longer required. There are two requirements for a message
+to be safe to delete. First, the message must have been delivered to
+$P$ already by the message ordering component, obviously, or it would
+never be delivered. Additionally, its timestamp must be less than or
+equal to $P$'s \emph{purge line}, defined
+\[ \min_{X \in \AllProc} \left( \ack{P}{X} \right). \] To see why,
+consider some $m$ with a greater timestamp
+$\timestamp{m} > \ack{P}{Q}$. This indicates $P$ has not seen
+acknowledgement by $Q$ of receipt of $m$---during the next
+anti-entropy session, it might be one of the messages $P$ needs to
+send to $Q$, so it cannot be deleted if we are to provide reliable
+delivery. On the other hand, the opposite condition would imply $m$
+has been received by $Q$. This is formalized below.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{corollary}
-  \label{cor:commitline}
-  $A$ has seen all writes with timestamps less than or equal to its commit line. That is,
-  \[w.t \leq \commitline{A} \implies w.t \in \WL{A}.\]
-\end{corollary}
+\begin{lemma}[Log purging]
+  \label{lem:purge}
+  $P$ can safely discard all messages in $\WL{P}$ with timestamps less
+  than or equal to its purge line, after they have been delivered.
+\end{lemma}
 \begin{proof}
-  Consider a message $w$ originating at $B$ with timestamp $w.t \leq \commitline{A}$.
-  Then \[w.t \leq  \commitline{A} \equiv \ack{A}{A} \overset{ack}{\leq} \min_{i \in \AllProc}\left(\summary{A}{i}\right) \leq \summary{A}{B}.\]
-  By the coverage property, $w.t \in \WLat{A}{B}$.
+  Let message $m \in \WL{P}$ originate at $R$ with timestamp less than
+  $P$'s purge line. Now the following inequalities hold for all $Q$:
+  \begin{align*}
+    \timestamp{m} & \leq \min_{X \in \AllProc}\left(\ack{P}{X}\right) \\
+                  & \leq \ack{P}{Q} \\
+                  & \leq \ack{Q}{Q} \\
+                  & \overset{ack}{\leq} \min_{X \in
+                    \AllProc}\left(\summary{Q}{X}\right)\\
+                  & \leq \summary{Q}{R}
+  \end{align*}
+  The coverage property implies $m \in \WL{Q}$, and since $Q$ is
+  arbitrary, $m$ has been received everywhere. Thus, if $m$ has been
+  delivered to $P$, it has been received by every other process (where
+  it will eventually be delivered to them) and can be purged from the
+  log to reclaim storage space.
 \end{proof}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-In particular, a message with a timestamp less than or equal to $\globalcommit$ has been seen by everyone.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{corollary}
-  \label{cor:purgeline}
-  $A$'s purgeline is a lower bound of the global commit line.
-\end{corollary}
-\begin{proof}
-  First we observe that $A$'s purgeline is a lower bound of every process's commit line
-  \[\knowncommit{A} \equiv \min_{i \in \AllProc} \left( \ack{A}{i} \right) \leq \ack{A}{B} \overset{ack}{\leq} \commitline{B}
-  \]
-  But the global commit line is the minimum (greatest lower bound) of all commit lines, so we have
-  \[ \knowncommit{A} \leq \globalcommit. \]
-\end{proof}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{corollary}[Log purging]
-  \label{cor:purge}
-  $A$ can safely discard from its write log all messages whose timestamp is less than or equal to $\knowncommit{A}$.
-\end{corollary}
-\begin{proof}
-  We have $w.t \leq \knowncommit{A} \leq \commitline{B} \implies w \in \WL{B}$ by combining Corollaries \ref{cor:pugreline} and \ref{cor:commitline}.
-  Consequently, $w$ has been seen by every other process and will not be exchanged during any future anti-entropy sessions.
-\end{proof}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{corollary}
-  \label{cor:unseenest}
-  $A$'s estimate of writes unseen by $B$ form an over-approximation of $B$'s true unseen writes.
-\end{corollary}
-\begin{proof}
-  Consider a message $w$ sent by $C$ (where possibly $C = A$ or $C = B$). We must show
-  $w \in \Unseen{B}$ implies $w \in \UnseenEst{A}{B}$.  If $w \in \left(\W \setminus \WL{B}\right)$ then we have
-  \[ \summary{B}{C} < w.t\]
-  (Otherwise $w \in \WLat{B}{C} \subset \WL{B}$ by the coverage property.)
-  We conclude by the following inequality.
-  \[\ack{A}{B} \overset{ack}{\leq} \ack{B}{B} \overset{ack}{\leq} \min_{i \in \AllProc} \left(\summary{B}{i}\right) < \summary{B}{C} < w.t\]
-\end{proof}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-The contrapositive of Corollary \ref{cor:unseenest} is that $A$'s
-write log contains a message with timestamp $w.t \leq \ack{A}{B}$,
-then $A$ knows $B$ has already received this message.
-
-\subsection{Conit Definitions}
-
-
-\newcommand{\UnseenWeight}[1]{\textsf{Unseen}_{#1}}
-\newcommand{\UnseenWeightEst}[2]{\textsf{EstUnseen}_{#1}{\left(#2\right)}}
-
-
-\begin{definition}
-  We provide a couple shorthand definitions
-\begin{description}
-  \item[Total Weight] $\textsf{NumWeight}(W) = \sum_{w \in W} \textsf{numweight}{\left(w\right)}$
-  \item[Unseen Numerical Weight] $\textsf{UnseenNumWeight}_{A} = \textsf{NumWeight}\left(\Unseen{A}\right)$
-  \item[CorrectHistory] $\WL{A}|_{\mathcal{F}} \cap \WL{\mathsf{ideal}}|_{\mathcal{F}}$
-  \item[IncorrectHistory] $\WL{A} - \left(WL{A}|_{\mathcal{F}} \cap \WL{\mathsf{ideal}}|_{\mathcal{F}}\right)$
-  \item[Unseen Order Weight] $\textsf{OrdWeight}\left(\Unseen{A}\right)$
-  \item[Estimated Unseen Positive Weight] $\textsf{NumWeight}\left(\{w \in \Unseen{A} | w.\textsf{numweight} \geq 0 \}\right)$
-  \item[Estimated Unseen Negative Weight] $\textsf{NumWeight}\left(\{w \in \Unseen{A} | w.\textsf{numweight} \leq 0 \}\right)$
-  \end{description}
-\end{definition}
 
 
 
+Because every message is eventually delivered and acknowledged by each
+process, $P$ will eventually be able to remove each message from its
+log. It is still possible for $\WL{P}$ to grow without bound if the
+rate of message arrival exceeds the speed at which they are
+purged. This is likely to coincide with periods of high network usage
+or network partitions, as during a partition $P$ will eventually
+become unable to advance $\ack{P}{Q}$ if $Q$ is on the other side
+(though it might advance $\ack{P}{Q}$ for a bounded time if other
+nodes in its connected component have information about $Q$ that $P$
+has not seen yet). The storage requirements of the message log in a
+particular use case and environment should be determined empirically
+as part of an application optimization strategy.
 
-Strong (i.e. atomic or sequential) consistency, as defined in Section
-\ref{ssec:strong-consistency}, is an all-or-nothing proposition: an
-application provides strong consistency or it does not. Because of
-considerations such as the CAP theorem, this sort of guarantee is an
-unrealistic requirement for our setting. Causal consistency (Section
-\ref{ssec:causal-consistency}) and other kinds of weaker assumptions
-are tenable, but by themselves they provide no upper bound on the
-divergence between replicas of data items. Because of the
-safety-related nature of our system, we would like to do better than
-this.
+\subsubsection{TSAE using Matrix Clocks}
+\label{sssec:tsae-unsynchronized}
+If clocks are not approximately synchronized, the clock value at one
+process may greatly exceed that of another. Because the minimal entry
+in $\summaryVec{P}$ is used to concisely summarize which messages $P$
+has seen, if $Q$ has a very fast clock, messages $P$ receives from $Q$
+may not ever be acknowledged, since the minimal entry will remain less
+than $\summary{P}{Q}$ for a long time.
+
+% For the same reason, timestamps using a conventional logical scalar
+% clock also cannot be used, since there is no bound on how far apart
+% two scalar clocks may diverge at any moment.
+
+Rather than concisely summarizing which messages $P$ has seen using
+the minimum entry in $\summaryVec{P}$, the entire vector offers a more
+precise measure. For $P$ itself, that means tracking what other
+process know about by keeping a copy of $\summaryVec{Q}$ for each $Q$
+in the system. Thus, we do away with $\ackVec$ and simply keep
+\emph{vector-of-vectors}, which is to say a matrix clock. With this
+option, $\ackMatrix{P}[P]$ stores $P$'s summary vector
+$\summaryVec{P}$, while $\ackMatrix{P}\left[Q\right]$ represents $P$'s
+lower bound estimate of $Q$'s summary vector. $\ackMatrix{P}[Q][R]$ is
+then $P$'s lower bound estimate of the greatest timestamp of any
+message $Q$ has received from $R$. The rest of the TSAE protocol is
+otherwise essentially the same, with the only difference being in how
+the purging routine decides when a message has been received
+everywhere: $P$ knows a message $m$ originating at $R$ has been
+received by $Q$ when $\timestamp{m} \leq \ackMatrix{P}[Q][R]$, and by
+everyone when
+\[ \timestamp{m} \leq \min_{X \in \AllProc}\ackMatrix{P}[X][R].\]
+
+Of course, matrices require $\Theta(n^2)$ storage at each site for a
+process group with $n$ members, which quickly becomes untenable for
+systems where $n$ is on the order of 1,000 or greater.
+
+\subsection{Consistency Unit Framework}
+\label{ssec:consistency-units}
+
+Using periodic timestamped anti-entropy sessions to synchronize
+replicas only provides a progress guarantee: all messages will
+eventually be received, acknowledged, delivered, and purged from the
+write log of all processes, assuming the devices do not fail and
+network partitions do not last forever. This implements a \emph{weak
+  consistency} model: using TSAE to replicate state allows replicas to
+diverge, but ensures they will eventually converge to an agreement if
+allowed to communicate, at least if new updates do not outpace the
+rate of convergence. Unfortunately, this property does not say
+anything about how far apart replicas might diverge in the meantime.
 
 This section summarizes the key ideas behind \emph{continuous}
 consistency, particularly the conit (``consistency unit'') model
 proposed by Yu and Vahdat
-\cite{2000tact,2000tactalgorithms,10.5555/1251229.1251250,DBLP:conf/icdcs/YuV01,2002tact},
-designed to strike a balance between generality and
-practicality. Continuous consistency is motivated by the observation
-that for many real-world applications, it is evidently acceptable to
-work with data that is only consistent to within some error bound
-$\epsilon \geq 0$. It is not immediately obvious what this means
-formally, but loosely speaking one hopes to measure the difference
-between the user-observed value of a database operation and the value
-that would have been returned if we were maintaining strong
-consistency. By allowing replicas to diverge by some amount, the
-thought goes, we sacrifice strong consistency but gain additional
-flexibility in choosing how often and with which other replicas we
-synchronize our data. In terms of the CAP theorem, by increasing
-$\epsilon$ and thus relaxing our error bound, we trade consistency for
-availability, but without abandoning all guarantees about the relative
-correctness of values observed by the user. Thus, we shift from
-consistency and availability as all-or-nothing conditions, as in CAP,
-towards viewing them as measurable values that can be traded along a
-\emph{spectrum} of possible configurations.
+\cite{2000tact,2000tactalgorithms,10.5555/1251229.1251250,DBLP:conf/icdcs/YuV01,2002tact}. Continuous
+consistency is motivated by the observation that the real-world
+tolerance of many applications to the divergence of replicated data
+exists within some bound. That is, it is typically acceptable for
+applications to work with replicas that deviate from the ``true''
+value to within some margin of error $\epsilon \geq 0$. However,
+different applications have different data models and measure this
+error in different ways, so it is not clear how to build a completely
+general framework for applications to enforce quantitative error
+bounds on replicas without making detailed assumptions about the
+nature of the data. The conit framework strikes a desirable balance
+between being general enough to work in applications with very
+different data models, and practical enough to efficiently enforce
+error bounds with straightforward protocols.
 
-A quantitative definition of consistency seems specific to each
-application, but ideally our consistency model can be defined and
-implemented in an application-generic manner. Thus we have a few
-requirements.
-\begin{itemize}
-  \tightlist
-\item A mechanism to measure (in)consistency of data items
-\item A mechanism for applications to set upper bounds on the allowed
-  inconsistency of each item
-\item A mechanism to efficiently enforce these inconsistency bounds
-\end{itemize}
 
-To implement a continuous consistency model that is not tied to one
-application, we must first explain how inconsistency can be quantified
-generically in the first place. Second, we must explain how a generic
-protocols can be used to enforce.
+\subsubsection{System Model}
+\label{sssec:system-model}
+We use TSAE as a core part of the continuous consistency framework,
+though this usage of TSAE is more concrete than the general framework
+described above. We adopt the terminology of Yu and Vahdat for this
+purpose (particularly Section 3 of \cite{2002tact}). We assume
+processes in $\AllProc$ replicate data using TSAE to exchange updates
+of two types, read or write requests, as in Section
+\ref{ssec:shared-memory}. We call actions of both types
+\emph{accesses}. We think of writes as encoding a semantic action to
+be performed against a database image, rather than directly carrying
+the final value of some data item after performing that action (for
+this reason they might be better described as ``updates,'' but we
+stick we current terminology). Previously we talked about a message
+log $\WL{P}$ as a buffer of undelivered messages waiting to be
+delivered to $P$ by a message-ordering component. Here, we describe
+$\WL{P}$ as a \emph{write log} containing writes that are
+\emph{uncommitted} until they are eventually committed by a
+message-committing component. In general, the database should support
+a mechanism for undoing (rolling back) write requests, for purposes
+described below.
 
-\subsection{The Conit Model}
-\label{ssec:conits}
+When $P$ receives a read access from a client, the value is read from
+$P$'s local image immediately and returned to the client---nothing is
+written in $\WL{P}$. When $P$ receives a write access, the action is
+performed against $P$'s image and an acknowledgment is returned to the
+client. $P$ is said to be the \emph{originating replica} of that
+write, and all other processes are said to be \emph{remote}. The write
+is added to the write log $\WL{P}$, where TSAE ensures it will
+eventually be delivered to remote processes' logs too.
 
-We assume a fixed set $\mathcal{P} = \{P_1, P_2, \ldots P_n\}$ of
-processes that coordinate to replicate a database $D$. Note that we
-read ``database'' very loosely to mean any kind of data items that can
-be updated in response to user requests---our ownly real requirement
-is that it is possible to roll back (undo) updates if necessary. We
-also make a couple simplifying assumptions about our system.
-\begin{itemize}
-  \tightlist
-\item The database is replicated in whole at each site.
-\item The group members are fixed in advance. Otherwise we would
-  require a group-membership protocol to update the set of
-  participants dynamically.
-\end{itemize}
+The goal of TSAE is to ensure that $P$'s database image is never ``too
+far'' from the ``true'' database image, thought of as the ideal image
+that would be converged to if all processes were able to share all
+updates to each other. This ensures that clients reading data from $P$
+never receive data that is too far from correct. Of course, the
+difficulty here defining these notions formally.
 
-The application could be essentially anything. Relevant examples for
-our environment could be a group chat application, a system for
-requesting and dispatching resources, or a system for disseminating
-information about weather and fire conditions. Clients can submit
-requests to read or write (or update) values from the database at any
-site. However, the application itself never updates the database
-directly, but instead submits requests to a lower-level ``middleware''
-that is logically situated below the application but above the network
-transport layer (see Section \ref{ssec:shared-memory}). The role of
-the middleware is to mediate between the application and the local
-database.
+All processes are initialized with their replicas in an initial state
+$\mathsf{D}_{\textrm{init}}$. Let $D + W$ denote the result of
+applying write action $W$ against database image $D$. If $H$ is an
+ordered history of writes, let $D + H$ denote the result of apply
+these in order against $D$. We define the global set of writes as the
+union of all write logs (in analogy to $\W$ earlier):
 
-When the application submits a database operation (read or write), the
-middleware does not necessarily respond to the request
-immediately. Instead, it may block (become unavailable) while it
-coordinates with other processes to enforce the sort of consistency
-guarantees defined below. During this time, the middleware can inform
-other sites about new updates, or request that other sites report to
-it any updates that could be relevant to the user's
-request. Eventually, the middleware reads or writes from the local
-copy of the database and returns a value back to the application, who
-gives it to the user.
+\[ \Writes \equiv \bigcup_{X \in \AllProc} \WL{X}\]
 
-Separately from the local database itself, the middleware maintains a
-\emph{write log} that stores a history of recent write requests it has
-seen.
+External order is defined as in Definition \ref{def:external-order}:
+one (read or write) request externally precedes all requests that are
+not submitted until after the first request has completed. Yu and
+Vahdat also consider a particular notion of causality: an access $A$
+\emph{causally precedes} $A'$ if $A$ was already in the local history
+of the originating replica when $A'$ was submitted. That is, if $A'$
+is first applied to a database image that been affected by $A$, which
+might change something about how $A'$ is executed. It may seem that
+external order already implies this notion of causal order, but the
+distinction seems to be motivated by the fact that if $A$ and $A'$
+represent long-running transactions, it is possible for $A$ to
+logically precede $A'$ even if the result of $A$ has not returned to
+the user at the time $A'$ begins executing.
 
-\subsubsection{Dimensions of consistency}
-\label{measuring-consistency-on-conits}
+\begin{comment}
+we assume that messages are delivered by TSAE in a total order,
+forming a linear chain of delivered messages. We say that the
+delivered messages are \emph{committed}. When a message is sitting in
+the message buffer, received but not delivered by the ordering
+component, we say it is \emph{uncommitted}. Recalling that the message
+log accumulates linearly, this means each replica has a linear chain
+of messages, some of which are committed and some of which are
+not. Thus, the committed messages of any two replicas are the same or
+one is a prefix of the other, but messages in their uncommitted parts
+may be different, and uncommitted messages in both lots are generally
+in different orders.
+\end{comment}
 
-We discuss the three consistency dimensions and how they can be
-implemented. Real-time staleness and order error are both bounded by a
-\emph{pull}-based approach: the originating replica of a database
-operation may block while contacting other sites in order to request
-information relevant to the request. Numerical error in contrast is
-bounded by a \emph{push}-approach: A node may have to block during a
-request in order to proactively inform other nodes about the update
-before it can be applied.
+\begin{definition}[Ideal image]
+  An ECG (externally consistent, causally consistent, global) history
+  is the set of accesses across the system in some total order that
+  respects both external and causal order as defined above.
+  % particular time $t$, the state that all
+  % replicas would eventually converge to if further updates stop and
+  % all processes are able to communicate. $\WL{\mathsf{ideal}}$
+\end{definition}
 
-\subsubsection{Real time staleness}
-\label{sssec:real-time-consistency}
-Take, say, an application for disseminating the most up-to-date
-visualization of the location of a fire front. It may be acceptable if
-this information appears 5 minutes out of date to a client, but
-unacceptable if it is 30 minutes out of date. That is, we could
-measure consistency with respect to \emph{time}. One should expect the
-exact tolerance for \(\epsilon\) will be depend very much on the
-client, among other things. For example, firefighters who are very
-close to a fire have a lower tolerance for stale information than a
-central client keeping only a birds-eye view of several fire fronts
-simultaneously.
+The intention of the conit framework is this: at any moment in time,
+there exists some ECG history of system accesses such that no
+individual replica deviates from too far this history. To define what
+it means to deviate, we now define conceptual units of data whose
+relative (in)consistency can be quantified.
 
-To enforce real time staleness, we assume that each site has loosely
-synchronized physical clocks. Note that while we do not assume
-physical clocks can be synchronized precisely enough for the kind of
-causality tracking discussed in Section \ref{sec:background}, it may
-be tenable to assume synchronization precise enough for the purposes
-discussed in this section, depending on how small the allowed
-real-time divergence values are. For example, we estimate that
-synchronization within, say, 30 minutes is tenable using appropriate
-synchronization mechanisms even in deeply challenging network
-environments.
+\subsubsection{Consistency Units}
+\label{ssec:consistency-units}
 
-Each site maintains a vector of \emph{physical} timestamp values. The
-\emph{staleness} of a conit is the physical time elapsed since the
-last update not seen by this replica was submitted.
+Formally, Yu and Vahdat define a conit as function
+$F\colon \mathsf{Database} \to \mathbb{R}$ that maps a database image
+to a real number. Given a conit $F$ and database images $D$ and $D'$,
+we are interested in measuring the difference between the images (as a
+real number) with respect to $F$; we define this value formally as
+$|F(D) - F(D')|$.
 
-The update rule is simple. When the real time.
+When the application submits a write request $W$, it provides the
+middleware with the following information:
+\begin{quote}
+  Given a write update $W$, how much does $W$ change conit $F$?
+  \[ \mathsf{NumWeight}\left(W\right) = F(D + W) - F(D) \]
+\end{quote}
+Yu and Vahdat assume that each write is independent of $D$ itself. For
+example, if database is a key value store and the meaning of $W$ is
+``increment the value at key $x$ by $2$'', the application would
+specify that $W$ has a positive weight of $2$ on the $x$ conit.
 
-\newcommand{\vtphys}[2]{\mathrm{vt}_{#1}}
-\begin{itemize}
-\item First, check whether $t_{\mathrm{now}} - \vt{i}[j] < \delta$
-  holds for each entry $j$ in the real time vector.
-\item If $t_{\mathrm{now}} - \vt{i}[j] \geq \delta$, $P_i$ sends a
-  request to $P_j$ to pull any updates seen by $P_j$ but not by $P_i$.
-\item After receiving the updates, $P_i$ reads the conit's value and
-  returns it to the user.
-\end{itemize}
+A read request depends on a set of conits $\mathcal{F}$. That is to
+say, it assumed that the read will return the same value for any two
+database images $D$ and $D'$ such that $F(D) - F(D') = 0$ for each
+conit $F$ in $\mathcal{F}$. This access will be associated with a
+consistency requirement for each conit in $\mathcal{F}$.
+
+The application can specify the consistency requirements for each
+conit along a three-dimensional axis:
+\[\textrm{Consistency} = \langle \textrm{Numerical error,
+    \textrm{Order error}, \textrm{Staleness}} \rangle.\]
+
+Nsummariumerical error bounded by a \emph{push}-approach: $P$ may have to
+block during a request in order to proactively inform $Q$ about the
+update before it can be applied. This consists of $P$ obtaining $Q$'s
+current summary vector and then forwarding messages in $P$'s write log
+that $Q$ hasn't seen.
+
+Real-time staleness and order error are both bounded by a
+\emph{pull}-based approach: $P$ may have to block during an operation
+while contacting other sites in order to request information from
+them.
+
+We write $\WL{P}|_\mathcal{F}$ to indicate the history of $P$
+restricted to just the messages with non-zero weight on any of the
+conits in the set $\mathcal{F}$.
+
+\subsubsection{Numerical consistency}
+\label{numerical-consistency}
+
+We describe \emph{split-weight AE} (absolute error) algorithm, which
+Yu and Vahdat explicate most at length in a 2000 paper
+\cite{2000tactalgorithms}. We need to make an assumption that
+processes are able and willing to cooperate to maintain each other's
+numerical consistency requirements.
+\begin{quote}
+  \textbf{Global knowledge of error bounds}: Every process knows the
+  numerical consistency bounds of each other process for each conit.
+\end{quote}
+If $P$ wishes to dynamically update its consistency bounds for a conit
+$F$, it must invoke some mechanism to inform all other processes of
+this change. For this reason, though theoretically possible,
+individual accesses at $P$ cannot easily specify their own tailored
+numerical consistency requirements for each access. Instead, $P$
+maintains a requirement per conit (not per accesses).
+\begin{quote}
+  \textbf{Approximate knowledge of remote knowledge}: Every process
+  $P$ maintains a conservative estimate of which writes originating at
+  $P$ have been received by each other process.
+\end{quote}
+
+Each process $P$ has a \emph{view} of which messages it has originated
+that each other process $Q$ has not seen. If TSAE is implemented with
+vector clocks, $P$ stores an additional vector $\mathsf{last}^P$ where
+$\mathsf{last}^P(Q)$ stores the value of $\summaryVec{P}$ at the time
+of the last push to $Q$, and conservatively estimates $Q$ has not
+received any other writes (though it might have indirectly through a
+third party $R$). If matrix clocks are used, $P$ conservatively
+estimates that $Q$ has not seen any messages from $P$ with timestamp
+newer than $\ackMatrix{P}[Q][P]$.
+
+Regardless, for each other process $Q$, $P$ maintains two values
+$\mathsf{PosWeight}(Q)$ and $\mathsf{NegWeight}(Q)$. When $P$ submits
+a new write (in response to a client's request), $P$ first checks for
+each $Q$ whether $\mathsf{tnw}_{P}(Q)$\ldots
+
+Yu and Vahdat also describe two other schemes for bounding numerical
+error. \emph{Compound-weight absolute error} is similar to
+split-weight AE, but saves space at the cost of extra communication
+overhead. They also consider a scheme, \emph{inductive relative
+  error}, which bounds the relative error
+$|1 - \frac{V_i}{V_{\textrm{final}}}|$. Notably, this algorithm only
+relies on $P$'s local knowledge; how to do bound relative error
+efficiently without knowing the ideal value $V_{\textrm{final}}$ is
+non-obvious.
+
+\begin{comment}
+  \begin{description}
+  \item[Total Weight] $\textsf{NumWeight}(W) = \sum_{w \in W} \textsf{numweight}{\left(w\right)}$
+  \item[Unseen Numerical Weight] $\textsf{UnseenNumWeight}_{A} = \textsf{NumWeight}\left(\Unseen{A}\right)$
+  \item[Estimated Unseen Positive Weight] $\textsf{NumWeight}\left(\{w \in \Unseen{A} | w.\textsf{numweight} \geq 0 \}\right)$
+  \item[Estimated Unseen Negative Weight]
+    $\textsf{NumWeight}\left(\{w \in \Unseen{A} | w.\textsf{numweight}
+      \leq 0 \}\right)$
+  \end{description}
+
+
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \begin{corollary}
+    \label{lem:unseenest}
+    $P$'s estimate of messages seen by $P$ but not by $Q$ is an overapproximation of the true value.
+  \end{corollary}
+  \begin{proof}
+    Consider a message $m$ sent by $Z$ (where possibly $Z$ is one of $P$
+    or $Q$). $P$'s estimate of writes seen by $P$ but unseen by $Q$ is
+    the set $\{m \in \WL{P} | \timestamp{m} > \ack{P}{Q} \}$. Let $m$ be
+    a message in the true set, which is $\WL{P} \setminus \WL{Q}$.  We
+    must have $\summary{Q}{Z} < \timestamp{m}$---otherwise
+    $m \in \WLat{Q}{Z} \subset \WL{Q}$ by the coverage property. The
+    property follows by the following chain of inequalities:
+    \[\ack{P}{Q} \leq \ack{Q}{Q} \overset{ack}{\leq} \min_{X \in \AllProc} \left(\summary{Q}{X}\right) \leq \summary{Q}{Z} < \timestamp{m}\]
+  \end{proof}
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  The contrapositive of Corollary \ref{lem:unseenest} is that if $P$'s
+  message log contains a message $m$ with timestamp
+  $\timestamp{m} \leq \ack{P}{Q}$, then $P$ knows $Q$ has already
+  received this message.
+\end{comment}
 
 \subsubsection{Order consistency}
 \label{order-consistency}
+Recall that we think of message logs as a linear structure. As updates
+submitted by $P$ are written to $P$'s log, the message ordering
+component delivers some of them to $P$. Messages that haven't been
+delivered come with the liability that, when they are delivered, they
+will take effect in different order than when they were entered into
+$P$'s write log. We say that these updates are \emph{uncommitted}.
+
+
 When the number of tentative (uncommitted) writes is high, TACT
 executes a write commitment algorithm. This is a \emph{pull-based}
 approach which pulls information from other processes in order to
 advance \(P_i\)'s vector clock, raising the watermark and hence
 allowing \(P_i\) to commit some of its writes.
 
-\subsubsection{Numerical consistency}
-\label{numerical-consistency}
+Let $\mathcal{F}$ be a set of conits:
 
-We describe split-weight AE. Yu and Vahdat also describe two other
-schemes for bounding numerical error. One, compound AE, bounds absolute
-error trading space for communication overhead. In their simulations,
-they found minimal benefits to this tradeoff in general. It is possible
-that for specific applications the savings are worth it. They also
-consider a scheme, Relative NE, which bounds the relative error.
+Some of $P$'s write log is correct:
+$\WL{P}|_{\mathcal{F}} \cap \WL{\mathsf{ideal}}|_{\mathcal{F}}$. The rest of $P$'s log is wrong:
+\[\WL{P}|_\mathcal{F} - \left(\WL{P}|_{\mathcal{F}} \cap
+    \WL{\mathsf{ideal}}|_{\mathcal{F}}\right).\]
 
+$P$ does not actually know the value
+$\WL{P}|_{\mathcal{F}} \cap \WL{\mathsf{ideal}}|_{\mathcal{F}}$ since
+the right-hand value is the eventual final image. $P$ must estimate
+this intersection as
+$\mathsf{Committed}{\left(\WL{P}|_{\mathcal{F}}\right)}$, which is a of
+  this value. Now $P$'s upper bound estimate of its local order error
+  is
 
-\paragraph{Dynamic bounds}
-Because real-time staleness and order error are bounded by pull
-approach, it is straightforward to allow the user to dynamically
-change the error bounds at each site. However, numerical error is
-bounded by a push approach that requires every process to be aware of
-all other processes's bounds and proactively cooperation to ensure
-this invariant is maintained. Therefore, dynamically tuning numerical
-error bounds requires a consensus mechanism that allows informing
-other processes of any updates to these bounds. The application cannot
-guarantee the new consistency bound will be enforced until it knows
-that all other processes have seen the newly updated bounds.
+  \[\mathsf{OrdWeight}\left(\mathsf{Uncommitted}{\left(\WL{P}|_{\mathcal{F}}\right)\right).\]
 
-\subsubsection{Variations and Additional Features}
+    To reduce this value, $P$ can commit some of the updates in its
+    write log. Using TSAE, this process would consist of contact nodes
+    where $\summary{P}{Q}$ is small. By raising the minimum entry in
+    $\summaryVec{P}$, $P$ can raise its commit line $\ack{P}{P}$.$P$
+    can then use the total order delivery of
+    \ref{sssec:tsae-message-ordering} to commit some of its updates.
+
+\subsubsection{Real time staleness}
+\label{sssec:real-time-consistency}
+Take, say, an application for disseminating the most up-to-date
+visualization of the location of a fire front. A client may find this
+it acceptable for this information to appears 30 seconds out of date
+to a client, but unacceptable if it is 30 minutes out of date. For
+example, firefighters who are very close to a fire have a lower
+tolerance for stale information than a central client keeping only a
+birds-eye view of several fire fronts simultaneously.
+
+The \emph{real time staleness} metric allows these clients to maintain
+their by requiring them to maintain an additional vector
+$\vtphys{P}{}$ of physical timestamp values. $\vtphys{P}{Q}$ stores
+the value $\clock{P,t}$ of $P$'s clock at the last time $P$ received a
+batch of messages from $Q$. The \emph{staleness} of a conit is the
+physical time elapsed since the last update not seen by this replica
+was submitted.
+
+Let $\epsilon$ be $P$'s real-time staleness bound for a conit $F$. Any
+time $P$ handles a client request with a read dependency on $F$, $P$
+checks whether $\clock{P,t} - \vtphys{P}{Q} < \epsilon$ holds for each
+$Q$. If the difference is greater than $\epsilon$, $P$ pulls from $Q$
+to advance $\vtphys{P}{Q}$, as well as its own database image, before
+processing the request. This ensures the client will not read a stale
+value, assuming $P$'s clock progresses at a uniform rate.
+
+In some cases, $\summaryVec{P}$ might be used instead of a new vector
+$\vtphys{P}{}$, but this is somewhat fraught too: $\summary{P}{Q}$
+stores a timestamp from $Q$'s clock, not $P$'s. Whether these values
+are comparable depending on the degree of clock synchronization and
+the relative scale of $\epsilon$.
+
+\subsubsection{Conit Variations and Extensions}
 One can imagine various ways that the conit model can be augmented
 with additional capabilities.
 
-\paragraph{Dynamic conits}
-Mechanism for conits to be created. Because the application (whose
-source code is of course is fixed) must specify the weight of each
-update to each conit, this requires that the weight of an update can
-be calculated. Donkervliet's master's thesis \citationneeded explored
-dynamic conits in the context of massive multiplayer online games,
-particularly Minecraft.
+\paragraph{Dynamic bounds}
+Because real-time staleness and order error are bounded by pull-based
+anti-entropy sessions, it is straightforward to allow the user to
+dynamically change the error bounds at each site. However, numerical
+error is bounded by a push-absed approach that requires every process
+to be aware of all other processes' bounds and proactively cooperation
+to ensure this invariant is maintained. Therefore, dynamically tuning
+numerical error bounds requires a consensus mechanism that allows
+informing other processes of any updates to these bounds.
 
-\paragraph{Dynamic network tuning}
+Yu and Vahdat do not propose a particular mechanism for consensus. One
+possible approach may be to reuse the existing message-propagating
+mechanism to announce changes to error bounds, similar to Golding's
+approach for handling dynamic group membership. However, $P$ cannot be
+sure its new bounds will be respected until every process acknowledges
+this message.
+
+\paragraph{Dynamic conits}
+The framework we have described above assumes the set of conits is
+fixed in advance. We can imagine situations where new conits need to
+be created on-the-fly. For instance, data related to a new wildfire
+that has emerged may require forming new conits to set consistency
+bounds.
+
+Donkervliet's master's thesis \citationneeded explored the subject of
+dynamic conit creation in the context of massive multiplayer online
+games, particularly Minecraft. In that work, new conits may be
+associated with newly encountered objects in an area, and their
+consistency bounds tuned as the user approaches them, exploiting a
+form of locality to allocate network resources for information the
+where inconsistency would most readily be perceived by the player.
+
+\paragraph{Interaction with the Network}
 We expect a rich interplay between the network protocol and a
 conit-based replication protocol. We previously mentioned an example
 where a UAV or a message ferry could be deployed dynamically to
@@ -3260,210 +3525,11 @@ customize software-defined networking protocols, so that custom
 hardware is not required even for extremely specialized networking
 needs.
 
-\subsection{Old material}
-
-The definition of \(\epsilon\) evidently requires a more or less
-application-specific notion of divergence between replicas of a shared
-data object.
-
-Now suppose many disaster-response agencies coordinate with to update
-and propagate information about the availability of resources. A client
-may want to lookup the number of vehicles of a certain type that are
-available to be dispatched within a certain geographic range. We may
-stipulate that the value read by a client should always be \(4\) of the
-actual number, i.e.~we could measure inconsistency with respect to some
-numerical value.
-
-In the last example, the reader may wonder we should tolerate a client
-to read a value that is incorrect by 4, when clearly it is better to be
-incorrect by 0. Intuitively, the practical benefit of tolerating weaker
-values is to tolerate a greater level of imperfection in network
-communications. For example, suppose Alice and Bob are individually
-authorized to dispatch vehicles from a shared pool. In the event that
-they cannot share a message.
-
-Or, would could ask that the the value is a conservative estimate,
-possibly lower but not higher than the actual amount. In these examples,
-we measure inconsistency in terms of a numerical value.
-
-As a third example,
-
-By varying \(\epsilon\), one can imagine consistency as a continuous
-spectrum. In light of the CAP theorem, we should likewise expect that
-applications with weaker consistency requirements (high \(\epsilon\))
-should provide higher availability, all other things being equal.
-
-Yu and Vahdat explored the CAP tradeoff from this perspective in a
-series of papers \cite{2000tact,2000tactalgorithms,10.5555/1251229.1251250,DBLP:conf/icdcs/YuV01,2002tact}
-propose a theory of \emph{conits}, a logical unit of data subject to
-their three metrics for measuring consistency. By controlling the
-threshold of acceptable inconsistency of each conit as a continuous
-quantity, applications can exercise precise control the tradeoff between
-consistency and performance, trading one for the other in a gradual
-fashion.
-
-They built a prototype toolkit called TACT, which allows applications to
-specify precisely their desired levels of consistency for each conit. An
-interesting aspect of this work is that consistency can be tuned
-\emph{dynamically}. This is desirable because one does not know a priori
-how much consistency or availability is acceptable.
-
-The biggest question one must answer is the competing goals of
-generality and practicality. Generality means providing a general notion
-of measuring \(\epsilon\), while practicality means enforcing
-consistency in a way that can exploit weakened consistency requirements
-to offer better overall performance.
-
-\begin{itemize}
-\item
-  The tradeoff of CAP is a continuous spectrum between linearizability
-  and high-availability. More importantly, it can be tuned in real time.
-\item
-  TACT captures neither CAP-consistency (i.e.~neither atomic nor
-  sequential consistency) nor CAP-availability (read and write requests
-  may be delayed indefinitely if the system is unable to enforce
-  consistency requirements because of network issues).
-\end{itemize}
-
-\begin{comment}
-\hypertarget{causal-consistency-1}{%
-  \subsection{Causal consistency}\label{causal-consistency-1}}
-
-Causal consistency is that each clients is consistent with a total order
-that contains the happened-before relation. It does not put a bound on
-divergence between replicas. Violations of causal consistency can
-present clients with deeply counterintuitive behavior.
-
-\begin{itemize}
-  \tightlist
-\item
-  In a group messaing application, Alice posts a message and Bob
-  replies. On Charlie's device, Bob's reply appears before Alice's
-  original message.
-\item
-  Alice sees a deposit for \$100 made to her bank account and, because
-  of this, decides to withdraw \$50. When she refreshes the page, the
-  deposit is gone and her account is overdrawn by \(50\). A little while
-  later, she refreshes the page and the deposit reappears, but a penalty
-  has been assessed for overdrawing her account.
-\end{itemize}
-
-In these scenarios, one agent takes an action \emph{in response to} an
-event, but other processes observe these causally-related events taking
-place in the opposite order. In the first example, Charlie is able to
-observe a response to a message he does not see, which does not make
-sense to him. In the second example, Alice's observation at one instance
-causes her to take an action, but at a later point the cause for her
-actions appears to have occurred after her response to it. Both of these
-scenarios already violate atomic and sequential consistency because
-those models enforce a system-wide total order of events. Happily, they
-are also ruled out by causally consistent systems. The advantage of the
-causal consistency model is that it rules out this behavior without
-sacrificing system availability, as shown below.
-
-Causal consistency enforces a global total order on events that are
-\emph{causally related}. Here, causal relationships are estimated very
-conservatively: two events are potentially causally if there is some way
-that the outcome of one could have influenced another.
-
-\begin{figure}
-  \center
-  \includegraphics[scale=0.4]{images/causal1.png}
-  \caption{A causally consistent, non-sequentially-consistent execution}
-\end{figure}
-
-\begin{lemma}
-  Sequential consistency implies causal consistency.
-\end{lemma}
-\begin{proof}
-  This is immediate from the definitions. Sequential consistency
-  requires all processes to observe the same total order of events,
-  where this total order must respect program order. Causal consistency
-  only requires processes to agree on events that are potentially
-  causally related. Program order is a subset of causal order, so any
-  sequential executions also respects causal order.
-\end{proof}
-
-However, causal consistency is not nearly as strong as sequential
-consistency, as processes do not need to agree on the order of events
-with no causal relation between them. This weakness is evident in the
-fact that the CAP theorem does not rule out highly available systems
-that maintain causal consistency even during network partitions.
-
-\begin{lemma}
-  A causally consistent system need not be unavailabile during partitions.
-\end{lemma}
-\begin{proof}
-
-  Suppose $P_1$ and $P_2$ maintain replicas of a key-value store, as
-  before, and suppose they are separated by a partition. The strategy is
-  simple: each process immediately handles read requests by reading from
-  its local replica, and handles write requests by applying the update
-  to its local replica. It is easy to see this leads to causally
-  consistent histories. Intuitively, the fact that no information flows
-  between the processes also means the events of each process are not
-  related by causality, so causality is not violated.  \end{proof}
-
-Note that in this scenario, a client's requests are always routed to the
-same processor. If a client's requests can be routed to any node, causal
-consistency cannot be maintained without losing availability. One
-sometimes says that causal consistency is ``sticky available'' because
-clients must stick to the same processor during partitions.
-
-The fact that causal consistency can be maintained during partitions
-suggests it is too weak. Indeed, there are no guarantees about the
-difference in values for \(x\) and \(y\) across the two replicas.
-\end{comment}
-
-%\subsection{TACT system model}
-%\label{tact-system-model}
-
-As in Section \ref{sec:background}, we assume a distributed set of
-processes collaborate to maintain local replicas of a shared data object
-such as a database. Processes accept read and write requests from
-clients to update items, and they communicate with each other to ensure
-to ensure that all replicas remain consistent.
-
-However, access to the data store is mediated by a middleware library,
-which sits between the local copy of the replica and the client. At a
-high level, TACT will allow an operation to take place if it does not
-violate user-specific consistency bounds. If allowing an operation to
-proceed would violate consistency constraints, the operation blocks
-until TACT synchronizes with one or more other remote replicas. The
-operation remains blocked until TACT ensures that executing it would
-not violate consistency requirements.
-
-\[\textrm{Consistency} = \langle \textrm{Numerical error, \textrm{Order error}, \textrm{Staleness}} \rangle.\]
-
-Processes forward accesses to TACT, which handles commiting them to the
-store. TACT may not immediately process the request---instead it may
-need to coordinate with other processes to enforce consistency. When
-write requests are processed (i.e.~when a response is sent to the
-originating client), they are only commited in a \emph{tenative} state.
-Tentative writes eventually become fully committed at some point in the
-future, but when they are commited, they may be reordered. After
-fullying committing, writes are in a total order known to all processes.
-
-\begin{figure}[h]
-  \center
-  \includegraphics[scale=0.4]{images/TACT Logs.png}
-  \caption{Snapshot of two local replicas using TACT}
-  \label{fig:tact_logs}
-\end{figure}
-
-A write access \(W\) can separately quantify its \emph{numerical weight}
-and \emph{order weight} on conit \(F\). Application programmers have
-multiple forms of control:
-
-Consistency is enforced by the application by setting bounds on the
-consistency of read accesses. The TACT framework then enforces these
-consistency levels.
-
+Yu and Vahdat discuss quality of service as one of the features that
+might itself use conits.
 
 \section{Conclusion and Summary}
 \label{sec:conclusion}
-
-
 
 \section*{Bibliography}\label{bibliography}
 \addcontentsline{toc}{section}{Bibliography}
@@ -3471,102 +3537,6 @@ consistency levels.
 \bibliographystyle{abbrv}
 \bibliography{bibliography}
 \end{document}
-
-%%% Local Variables:
-%%% mode: LaTeX
-%%% TeX-master: t
-%%% End:
-
-
-\begin{figure}[p]
-  \begin{subfigure}[a]{1\textwidth} \center
-    \includegraphics[scale=0.4]{images/linear1.png} \caption{A
-      linearizable execution. Any choice of linearization works here.}
-    \label{fig:linear_example11} \end{subfigure}
-  \begin{subfigure}[b]{1\textwidth} \center
-    \includegraphics[scale=0.4]{images/nonlinear0.png} \caption{A
-      non-linearizable execution. The request to read $y$ returns a
-      stale value. } \label{fig:linear_example12} \end{subfigure}
-  \caption{A linearizable and non-linearizable execution.}
-  \label{fig:linear_example1} \end{figure}
-
-\begin{figure}[p]
-  \begin{subfigure}[a]{1\textwidth}
-    \center
-    \includegraphics[scale=0.4]{images/linearTemplate.png}
-    \caption{An execution with read responses left unspecified.}
-    \label{fig:nonlinear}
-  \end{subfigure}
-  \begin{subfigure}[b]{1\textwidth}
-    \center
-    \includegraphics[scale=0.4]{images/linear3.png}
-    \caption{A linearizable execution for which both reads return $1$.}
-  \end{subfigure}
-  \begin{subfigure}[c]{1\textwidth}
-    \center
-    \includegraphics[scale=0.4]{images/linear2.png}
-    \caption{A linearizable execution for which both reads return $2$.}
-  \end{subfigure}
-  \caption{Two linearizable executions of the same underlying events that return different responses. Possible linearization points are shown in red.}
-  \label{fig:linearization}
-\end{figure}
-
-\begin{figure}[p]
-  \begin{subfigure}[a]{1\textwidth}
-    \center
-    \includegraphics[scale=0.4]{images/nonlinear1.png}
-    \caption{A nonlinearizable execution with the read access returning disagreeing values. We will see later (Figure \ref{fig:sequential}) that this execution is still sequentially consistent. }
-    \label{fig:nonlinear1}
-  \end{subfigure}
-  \begin{subfigure}[b]{1\textwidth}
-    \center
-    \includegraphics[scale=0.4]{images/nonlinear2.png}
-    \caption{Another nonlinearizable execution with read access values swapped. This execution is not sequentially consistent.}
-    \label{fig:nonlinear2}
-  \end{subfigure}
-  \caption{Two non-linearizable executions of the same events shown in Figure \ref{fig:linearization}.}
-  \label{fig:nonlinearizable}
-\end{figure}
-
-\begin{figure}
-  \begin{subfigure}[a]{1\textwidth}
-    \center
-    \includegraphics[scale=0.4]{images/sequential1.png}
-    \caption{A non-linearizable, sequentially consistent execution.}
-    \label{fig:sequential1}
-  \end{subfigure}
-  \begin{subfigure}[b]{1\textwidth}
-    \center
-    \includegraphics[scale=0.4]{images/sequential2.png}
-    \caption{An equivalent interleaving of \ref{fig:sequential1}.}
-    \label{fig:interleaving1}
-  \end{subfigure}
-  \caption{A sequentially consistent execution and a possible interleaving.}
-  \label{fig:sequential}
-\end{figure}
-
-\begin{figure}
-  \begin{subfigure}[a]{1\textwidth}
-    \center
-    \includegraphics[scale=0.4]{images/nonsequential1.png}
-    \caption{A non-sequentially consistent execution.}
-    \label{fig:nonsequential1}
-  \end{subfigure}
-  \begin{subfigure}[b]{1\textwidth}
-    \center
-    \includegraphics[scale=0.4]{images/nonsequential_x.png}
-    \caption{The sequentially consistent history of $x$.}
-    \label{fig:sequentialx}
-  \end{subfigure}
-  \begin{subfigure}[b]{1\textwidth}
-    \center
-    \includegraphics[scale=0.4]{images/nonsequential_y.png}
-    \caption{The sequentially consistent history of $y$.}
-    \label{fig:sequentialy}
-  \end{subfigure}
-  \caption{A non-sequentially consistent execution with sequentially-consistent executions at each variable.}
-  \label{fig:nonsequential}
-\end{figure}
 
 %%% Local Variables:
 %%% mode: LaTeX

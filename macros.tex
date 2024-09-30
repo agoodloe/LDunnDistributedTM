@@ -27,17 +27,27 @@
 \newcommand{\programorder}[1]{\underset{#1}{\to}}
 \newcommand{\vt}{\textrm{vt}}
 \newcommand{\concurrent}[2]{#1 || #2}
-\newcommand{\ack}[2]{\textsf{ack}_{#1}\left(#2\right)}
-\newcommand{\summary}[2]{\textsf{summary}_{#1}\left(#2\right)}
-\newcommand{\summaryVec}[1]{\textsf{summary}_{#1}}
-\newcommand{\commitline}[1]{\textsf{commit}_{#1}}
+\newcommand{\ack}[2]{\textsf{ack}^{#1}\left[#2\right]}
+\newcommand{\summary}[2]{\textsf{summary}^{#1}\left[#2\right]}
+\newcommand{\summaryVec}[1]{\textsf{summary}^{#1}}
+\newcommand{\commitline}[1]{\textsf{commit}^{#1}}
 \newcommand{\globalcommit}{\textsf{globalcommit}}
-\newcommand{\knowncommit}[1]{\textsf{purgeline}_{#1}}
-\newcommand{\WL}[1]{\textsf{WL}_{#1}}
-\newcommand{\WLat}[2]{\textsf{WL}_{#1}\left(#2\right)}
-\newcommand{\W}{\textbf{\textsf{Writes}}}
+\newcommand{\knowncommit}[1]{\textsf{purgeline}^{#1}}
+\newcommand{\WL}[1]{\textsf{Log}_{#1}}
+\newcommand{\WLat}[2]{\textsf{Log}_{#1}\left(#2\right)}
+\newcommand{\W}{\textbf{\textsf{Messages}}}
 \newcommand{\Unseen}[1]{\textsf{Unseen}_{#1}}
 \newcommand{\UnseenEst}[2]{\textsf{EstUnseen}_{#1}{\left(#2\right)}}
 \newcommand{\AllProc}{\mathcal{P}}
 \newcommand{\currenttime}[1]{\textsf{currenttime}_{#1}}
 \newcommand{\Op}{\mathrm{Op}}
+% New ones
+\newcommand{\clock}[1]{\textsf{clock}\left(#1\right)}
+\newcommand{\UnseenWeight}[1]{\textsf{Unseen}_{#1}}
+\newcommand{\UnseenWeightEst}[2]{\textsf{EstUnseen}_{#1}{\left(#2\right)}}
+\newcommand{\vtphys}[2]{\mathrm{vt}_{#1}}
+\newcommand{\timestamp}[1]{\mathsf{time}\left(#1\right)}
+\newcommand{\Uncommitted}[1]{\textsf{Uncommitted}_{#1}}
+\newcommand{\ackVec}[1]{\textsf{ack}^{#1}}
+\newcommand{\ackMatrix}[1]{\textsf{matrix}^{#1}}
+\newcommand{\Writes}{\textbf{\textsf{Writes}}}
