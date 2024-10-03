@@ -27,34 +27,49 @@
 \newcommand{\programorder}[1]{\underset{#1}{\to}}
 \newcommand{\vt}{\textrm{vt}}
 \newcommand{\concurrent}[2]{#1 || #2}
-\newcommand{\ack}[2]{\textsf{ack}^{#1}\left[#2\right]}
-\newcommand{\summary}[2]{\textsf{summary}^{#1}\left[#2\right]}
-\newcommand{\summaryVec}[1]{\textsf{summary}^{#1}}
-\newcommand{\commitline}[1]{\textsf{commit}^{#1}}
-\newcommand{\globalcommit}{\textsf{globalcommit}}
-\newcommand{\knowncommit}[1]{\textsf{purgeline}^{#1}}
-\newcommand{\WL}[1]{\textsf{Log}^{#1}}
-\newcommand{\WLat}[2]{\textsf{Log}^{#1}\left(#2\right)}
-\newcommand{\W}{\textbf{\textsf{Messages}}}
-\newcommand{\Unseen}[1]{\textsf{Unseen}_{#1}}
-\newcommand{\EstUnseen}[2]{\textsf{EstUnseen}_{#1}{\left(#2\right)}}
+\newcommand{\ack}[2]{\mathsf{ack}^{#1}\left[#2\right]}
+\newcommand{\summary}[2]{\mathsf{summary}^{#1}\left[#2\right]}
+\newcommand{\summaryVec}[1]{\mathsf{summary}^{#1}}
+%\newcommand{\commitline}[1]{\mathsf{commit}^{#1}}
+%\newcommand{\globalcommit}{\mathsf{globalcommit}}
+%\newcommand{\knowncommit}[1]{\mathsf{purgeline}^{#1}}
+\newcommand{\WL}[1]{\mathsf{Log}^{#1}}
+\newcommand{\WLat}[2]{\mathsf{Log}^{#1}\left(#2\right)}
+\newcommand{\W}{\mathbf{\mathsf{Messages}}}
+%\newcommand{\Unseen}[1]{\mathsf{Unseen}_{#1}}
+%\newcommand{\EstUnseen}[2]{\mathsf{EstUnseen}_{#1}{\left(#2\right)}}
 \newcommand{\AllProc}{\mathcal{P}}
-\newcommand{\currenttime}[1]{\textsf{currenttime}_{#1}}
+%\newcommand{\currenttime}[1]{\mathsf{currenttime}_{#1}}
 \newcommand{\Op}{\mathrm{Op}}
 % New ones
-\newcommand{\clock}[1]{\textsf{clock}\left(#1\right)}
-\newcommand{\UnseenWeight}[1]{\textsf{Unseen}_{#1}}
-\newcommand{\UnseenWeightEst}[2]{\textsf{EstUnseen}_{#1}{\left(#2\right)}}
-\newcommand{\vtphys}[1]{\mathrm{vt}^{#1}}
+\newcommand{\clock}[1]{\mathsf{clock}\left(#1\right)}
+%\newcommand{\UnseenWeight}[1]{\mathsf{Unseen}_{#1}}
+%\newcommand{\UnseenWeightEst}[2]{\mathsf{EstUnseen}_{#1}{\left(#2\right)}}
 \newcommand{\timestamp}[1]{\mathsf{time}\left(#1\right)}
-\newcommand{\Uncommitted}[1]{\textsf{Log}_{\textrm{uncom}}^{#1}}
-\newcommand{\ackVec}[1]{\textsf{ack}^{#1}}
-\newcommand{\ackMatrix}[1]{\textsf{matrix}^{#1}}
-\newcommand{\Writes}{\textbf{\textsf{Writes}}}
+\newcommand{\Uncommitted}[1]{\mathsf{Log}_{\textrm{uncom}}^{#1}}
+\newcommand{\last}[2]{\mathsf{last}^{#1}[#2]}
+\newcommand{\lastVec}[1]{\mathsf{last}^{#1}}
+\newcommand{\ackVec}[1]{\mathsf{ack}^{#1}}
+\newcommand{\ackMatrix}[1]{\mathsf{matrix}^{#1}}
+\newcommand{\Writes}{\mathbf{\mathsf{Writes}}}
 \newcommand{\NumWeight}{\mathsf{NumWeight}}
-\newcommand{\View}[2]{\textsf{View}^{#1}\left(#2\right)}
+\newcommand{\View}[2]{\mathsf{View}^{#1}\left(#2\right)}
 \newcommand{\twp}[2]{\mathsf{twp}^{#1}\left(#2\right)}
 \newcommand{\twn}[2]{\mathsf{twn}^{#1}\left(#2\right)}
 \newcommand{\Dinit}{D_\textrm{init}}
 \newcommand{\PH}{\mathsf{PH}}
 \newcommand{\Conits}{\mathcal{F}}
+\newcommand{\Psafe}{\textbf{P}_\textrm{safe}}
+\newcommand{\Plive}{\textbf{P}_\textrm{live}}
+\newcommand{\Dideal}{D_{\textrm{ideal}}}
+\newcommand{\Videal}{V_{\textrm{ideal}}}
+\newcommand{\Val}{\mathcal{V}}
+\newcommand{\eprt}{\epsilon_{\textrm{rt}}}
+\newcommand{\vtphys}[1]{\mathsf{last}_{rt}^{#1}}
+\newcommand{\OrderWeight}{\mathsf{OrderWeight}}
+\newcommand{\epoe}{\epsilon_{\textrm{oe}}}
+
+%%% Local Variables:
+%%% mode: LaTeX
+%%% TeX-master: t
+%%% End:

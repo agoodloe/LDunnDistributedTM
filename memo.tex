@@ -366,7 +366,7 @@ safety of people. A \emph{safety} property is a prohibition that stops
 a system from taking an action that might be ``bad'' in some way. Here
 is an exemplary safety property for the example above:
 \begin{quote}
-  $\textbf{P}_\textrm{safe}$: Ground agents are known to be at least
+  $\Psafe$: Ground agents are known to be at least
   100 feet outside the drop zone, and this information is current to
   within 30 seconds, or airtankers will not perform a drop.
 \end{quote}
@@ -376,13 +376,13 @@ characteristic of liveness properties is that they place an upper
 bound on the allowable delay of something. An exemplary liveness
 property for our scenario might be the following:
 \begin{quote}
-  $\textbf{P}_\textrm{live}$: A VLAT on the ground will take off and
+  $\Plive$: A VLAT on the ground will take off and
   perform a drop within 20 minutes of receiving a request from an
   incident commander. \footnote{The Chief of Flight Operations for Cal
     Fire cited 20 minutes as an upper bound on the response time for
     aerial firefighting units within designated responsibility areas
     in an interview with PBS \cite{2021:aerialfirefighting}.}
-\end{quote} Note that $\textbf{P}_\textrm{live}$
+\end{quote} Note that $\Plive$
 is a liveness property, not a safety property in the narrow technical
 sense, but it impacts human safety: it might be critical for VLATs to
 perform drops quickly if a wildfire is threatening the safety of
@@ -390,7 +390,7 @@ ground personnel.
 
 Safety and liveness are frequently dual mandates that cannot be
 guaranteed simultaneously. Such is the case in our example: though
-$\textbf{P}_\textrm{safe}$ and $\textbf{P}_\textrm{live}$ are both
+$\Psafe$ and $\Plive$ are both
 desirable, certain situations will force policymakers to prefer one
 over the other. Consider the fact that the wildland firefighting
 environment is frequently GPS-denied: heavy smoke, multipath effects,
@@ -401,9 +401,9 @@ communications between the air and ground. Such conditions would
 prevent a VLAT's computers from knowing the locations of ground
 agents, which immediately presents a dilemma: should the crew proceed
 without knowing the locations of ground personnel, maintaining
-$\textbf{P}_\textrm{live}$ at the cost of $\textbf{P}_\textrm{safe}$,
+$\Plive$ at the cost of $\Psafe$,
 or should it be cautious and wait for more information, maintaining
-$\textbf{P}_\textrm{safe}$ at the cost of $\textbf{P}_\textrm{live}$?
+$\Psafe$ at the cost of $\Plive$?
 There is no simple answer, with either choice presenting a downside
 with respect to the broader goal of system-wide safety.
 
@@ -413,7 +413,7 @@ be explored further in this document. The first is the
 \emph{epistomological} nature---concerned with what information is
 \emph{known} by \emph{whom}---of reasoning about distributed
 systems. This aspect is reflected in wording of
-$\textbf{P}_\textrm{safe}$ in VLAT example: Ground agents are known
+$\Psafe$ in VLAT example: Ground agents are known
 (by the VLAT's computers) to be outside of a dangerous area. This
 situation requires a deeper and more sophisticated analysis than one
 simply considering what is true, but not necessarily
@@ -431,12 +431,12 @@ The second aspect exhibited above, albeit negatively, is that of
 \emph{continuity}. A continuous system can flexibly adopt to its
 environment, but a discontinuous system is rigid and may exhibit
 suddenly different behavior in response to only small changes in the
-environment. The properties $\mathbf{P}_\textrm{safe}$ and
-$\mathbf{P}_\textrm{live}$ exhibit a stark lack of continuity because
+environment. The properties $\Psafe$ and
+$\Plive$ exhibit a stark lack of continuity because
 they are inflexible, all-or-nothing propositions. Suppose that agents
 are known to be $500$ feet outside the drop zone, but the information
 is only current to within 31 seconds---this extra second technically
-violates $\mathbf{P}_\textrm{safe}$, though it should be inferrable
+violates $\Psafe$, though it should be inferrable
 that the ground agents are well away from danger. In particular, this
 example highlights that system-wide safety is more of a quantitative
 concept than a Boolean (true-or-false) one. A distributed system in a
@@ -1401,31 +1401,6 @@ vector and matrix clocks (or rather, very similar mechanisms called
 version vectors and matrices) can be used in the context of
 replicating a database over a disruption-heavy network.
 
-\begin{comment}
-Suppose a group of processes collaborate to replicate updates to a
-shared data structure. We imagine that all updates are submitted by
-users to some process, say $P_O$ ($O$ for ``origin''), whereupon it is
-timestamped with $P_O$'s local time (value $\vt_O[O,O]$) and with the
-value $O$ to indicate which process originally accepted the update
-from a user. As an invariant, we ensure that no process $P_j$ updates
-its estimate $\vt_j[j, O]$ of $O$'s local time to a value $t$ until
-$P_j$ has been informed about all updates submitted to $P_O$ with
-timestamps less than or equal to $t$. With these assumptions, any
-process $P_i$ can use the value $\vt_i[j, O]$ as a lower bound
-estimate of which updates originating from $P_O$ have already been
-seen by $P_j$. In particular, once we have the
-condition
-\[ \textrm{for all $j$}, \vt_i[j, O] \geq t
-\]
-for some logical time $t$, $P_i$ can be sure that all other processes
-have seen all updates with timestamps less than or equal to $t$
-originating at $P_O$. Using this principle, matrix clocks have been
-used to discard obsolete information during database replication
-\cite{1987:sarinlynch}. In Section \ref{sec:continuous-consistency} we
-will see an example of how this sort of scheme can be applied in
-practice.
-\end{comment}
-
 \subsection{Message Ordering}
 \label{ssec:message-ordering}
 Coulouris et al. \cite{coulouris2005distributed} aptly summarized why
@@ -1779,7 +1754,7 @@ and faster performance.
 Figure \ref{fig:dsm-example-1} depicts an exemplary time diagram for
 the shared memory abstraction, similar to those for message
 passing. Two kinds of operations are shown: \emph{reads} and
-\emph{writes}. A read operation, $\mathsf{R}(x)$, retrieves the value
+\emph{writes}. A read operation, $\memread{x}$, retrieves the value
 stored at (virtual) location $x$, which returns some value $v$. When
 we want to indicate the value returned by the read, we write
 $\memreadVal{x}{v}$. A write operation, $\memwrite{x}{v}$, indicates
@@ -2365,44 +2340,7 @@ CAP-unavailabile.
   $\memwrite{x}{1}$. The situation is symmetric: to order
   $\memreadVal{x}{0}$ before $\memwrite{x}{1}$ results in an order where
   $\memwrite{y}{1}$ precedes $\memreadVal{y}{0}$ (Figure \ref{fig:dsm-cap-example-2-serial2}).
-
 \end{proof}
-
-\begin{comment}
-  We assume that all
-  uninitialized variables start with the value $0$. Consider two
-  processes, $P_1$ and $P_2$, which perform the following sequences of
-  operations:
-  \begin{itemize}
-  \item $P_1$ writes $y := 1$, then reads the value of $x$.
-  \item $P_2$ writes $x := 1$, then reads the value of $y$.
-  \end{itemize}
-  Suppose $P_1$ and $P_2$ are separated by a partition. Since $P_1$
-  cannot hear any updates from $P_2$, and its behavior is not affected
-  by messages it does not receive, then $P_1$'s behavior will be same
-  as in case where $P_2$ does not write to $x$. Therefore, $P_1$ will
-  read $x$ as having value 0. Likewise $P_2$ will read $y$ with the
-  value $0$. See Figure \ref{fig:dsm-cap-example-2}.
-
-  If the system maintains sequential consistency, the read operations
-  must return values that are consistency with a global serialization
-  of the history. There are two possibilities for this history:
-  \begin{enumerate}
-  \item It could be that $\memreadVal{y}{0}$ precedes
-    $\memwrite{y}{1}$. In this case, $\memwrite{x}{1}$ would have to
-    precede $\memreadVal{x}{0}$. See Figure
-    \ref{fig:dsm-cap-example-2-serial1}.
-  \item It could be that $\memreadVal{x}{0}$ precedes
-    $\memwrite{x}{1}$. In this case, $\memwrite{y}{1}$ would have to
-    precede $\memreadVal{y}{0}$. See Figure
-    \ref{fig:dsm-cap-example-2-serial2}.
-  \end{enumerate}
-  However, both possibilities above are incorrect. In either case, the
-  second read operation returns an incorrect value.  Thus, during a
-  partition, the processes cannot return values from read operations
-  in a way that is consistent with some global serial order. Hence, a
-  sequentially consistent system is not CAP-available.
-\end{comment}
 
 \subsubsection{Consequences of CAP}
 \label{interpretation-of-the-cap-theorem}
@@ -2658,17 +2596,23 @@ protocol \cite{1992:golding-thesis}. TSAE is a \emph{weak consistency
   group communication} mechanism that provides a form of multicasting
 to applications. We picture TSAE as a key driver of communication
 across a distributed system supporting first responders across a
-region or state during a wide-area event, as discussed in Section
-\ref{sec:disaster-response}. Such a system might track firefighters'
-GPS locations, monitor a fire's boundaries, disseminate weather data,
-and orchestrate resource deployment. In this context, TSAE would have
-responsibility for ensuring that every multicast message eventually
-reaches each of its intended recipients. On its own, TSAE does not
-provide strong guarantees of consistency. However, following Yu and
-Vahdat \cite{2002tact}, we show how an implementation of the
-continuous consistency model on top of TSAE can be used to enforce,
-through so-called compulsory anti-entropy sessions, consistency
-requirements on this message propagation component.
+region or state during a wide-area event, like the kind discussed in
+Section \ref{sec:disaster-response}. Such a system might track
+firefighters' locations, monitor a wildfire's boundaries, disseminate
+weather data, and orchestrate resource deployment. In this context,
+TSAE would have responsibility for ensuring that every multicast
+update eventually reaches each of its intended recipients.
+
+TSAE provides reliable eventual delivery, which makes it useful as a
+fault-tolerant messaging component in an implementation of distributed
+shared memory. Because updates are merely propagated
+\emph{eventually}, TSAE used this way does not bound the divergence of
+each replica from the ``ideal'' value of the shared state (the value
+it would have if strong consistency were maintained). However,
+following Yu and Vahdat \cite{2002tact}, we show how an implementation
+of the conit (consistency unit) model on top of TSAE can be used to
+enforce, through so-called compulsory anti-entropy sessions,
+consistency requirements on this message propagation component.
 
 \subsection{Timestamped Anti-Entropy}
 \label{ssec:tsae}
@@ -2807,7 +2751,6 @@ Golding's presentation, highlighting where the assumption is used.
 
 \subsubsection{Message Log}
 \label{sssec:tsae-message-log}
-
 Each process $P$ manages a \emph{message log} containing all messages
 sent or received by $P$.\footnote{Some implementations of TSAE may not
   require a message log and can operate directly on the shared state
@@ -2980,7 +2923,7 @@ hold at all times for all $P$ and $Q$ (including when $P = Q$):
   also depict acknowledgment vectors, shown in red, and what we later
   term the commit line, shown underlined. These are explained below.
 
-  \begin{centering}\\
+  \begin{centering}
     \begin{tabular}{rl}\\
       \textbf{Time}    & \textbf{Action} \\
       $t = 1$   & $A$ submits a write                                            \\
@@ -3358,16 +3301,23 @@ To define quantify deviation from strong consistency, we must give a
 few definitions. Recall the notion of external order (Definition
 \ref{def:external-order}): an access $A$ externally precedes $A'$ if
 $A$ has returned to the caller before $A'$ is invoked. Yu and Vahdat
-also define a particular notion of causality: $A$ \emph{causally
-  precedes} $A'$ if $A$ was already in the local history of the
-originating replica when $A'$ was submitted, and so could have
-influenced how $A'$ executed.\footnote{At face value it may seem that
-  external order implies this notion of causal order. However, if $A$
-  and $A'$ represent long-running database transactions, it is
-  possible for $A$ to logically precede $A'$ in the local history even
-  if $A$ has not returned to the user at the time $A'$ begins
-  executing.}  With these definitions, we can define a strongly
-consistent execution as a reference point for measuring deviation:
+also define a notion of causality:
+\begin{definition}[Causal precedence of accesses]
+  \label{def:conit-causal-precedence}
+  $A$ \emph{causally precedes} $A'$ if $A$ was already in the local
+  history of the originating replica when $A'$ was submitted, and so
+  could have influenced how $A'$ executed.\footnote{At face value it
+    may seem that if $A$ is in a replica's write log before $A'$, then
+    it must have completed before $A'$ started and thus already
+    precedes $A'$ externally. However, if these represent long-running
+    database transactions, it is possible that $A$ logically takes
+    effect before $A'$ at some replia, though the two transactions may
+    be physically concurrently.}
+\end{definition}
+
+With these definitions, we can define a strongly consistent execution
+as a reference point for measuring deviation.
+
 \begin{definition}[Ideal image]
   An ECG (externally consistent, causally consistent, global) history
   is the set of accesses across the system arranged in some total
@@ -3382,27 +3332,28 @@ The initial database state at each replica is $\Dinit$.  Write
 accesses encode an action to be performed against a database image
 (rather than the final value the data after performing that
 action). The result of applying write action $w$ to a database state
-$D$ is denoted $D + w$. Let $D + H$ denote the result of applying each of
-the writes in $H$ to $D$ in order. The
+$D$ is denoted $D + w$. Let $D + H$ denote the result of applying each
+of the writes in $H$ to $D$ in order.  Each process $P$ maintains a
+write log, $\WL{P}$, containing the history of all writes applied to
+its local database image in the order they were applied (making
+$\WL{P}$ equivalent to the local history of $P$ restricted to write
+requests). Note that the current state of $P$ is uniquely determined
+by a combination of the starting state ($\Dinit$) and $\WL{P}$. In the
+above notation, the current value $D_P$ of $P$'s replia is
+$\Dinit + \WL{P}$. When a read request is submitted to $P$, the
+requested value is read immediately from $D_P$ and returned to the
+caller. When a write request $w$ is submitted, the action is performed
+against the local replica and $w$ is added to $\WL{P}$. With either
+type of access, $P$ is said to be the \emph{originating replica}, and
+all other processes are \emph{remote}. The value of $D_P$ is said to
+be the \emph{observed state} of the access.  We assume some ECG
+history as a reference point. The \emph{ideal result} of an access $a$
+is the value $\Dinit + \PH_\textrm{a}$.  The following equations hold.
+\begin{gather}
+  D_P = \Dinit + \WL{P} \label{eq:conit-DP} \\
+  \Dideal = \Dinit + \WL{\textrm{ideal}} \label{eq:conit-Dideal}
+\end{gather}
 
-
-
-Each process $P$ maintains a write log, $\WL{P}$, containing the
-history of all writes applied to its local database image in the order
-they were applied (making $\WL{P}$ equivalent to the local history of
-$P$ restricted to write requests). Note that the current state of $P$
-is uniquely determined by a combination of the starting state
-($\Dinit$) and $\WL{P}$. In the above notation, the current value
-$D_P$ of $P$'s replia is $\Dinit + \WL{P}$. When a read request is
-submitted to $P$, the requested value is read immediately from $D_P$
-and returned to the caller. When a write request $w$ is submitted, the
-action is performed against the local replica and $w$ is added to
-$\WL{P}$. With either type of access, $P$ is said to be the
-\emph{originating replica}, and all other processes are
-\emph{remote}. The value of $D_P$ is said to be the \emph{observed
-  state} of the access.
-We assume some ECG history as a reference point. The \emph{ideal
-  result} of an access $a$ is the value $\Dinit + \PH_\textrm{a}$.
 
 Timestamped anti-entropy is used to propagate writes to remote
 replicas, with $\WL{P}$ acting as the message log. When a remote
@@ -3424,42 +3375,6 @@ replicas. Taking the place of the message ordering component, a write
 committment component is responsible for ultimately committing writes
 accesses. Commitment is an adaptation of the total ordering mechanism
 in \ref{sssec:tsae-message-ordering}.
-
-
-
-\begin{comment}
-When $P$ receives a read access
-from a client, the value is read from $P$'s local image immediately
-and returned to the client. $\WL{P}$ comes into play when $P$ receives
-a write access from a client, which is handled differently. Previously
-we called a $\WL{P}$ a message log and used it to buffer undelivered
-messages waiting to be delivered to $P$ by a message-ordering
-component. Now, we describe $\WL{P}$ as a \emph{write log}. When $P$
-receives a write accesses, it is added to the write log $\WL{P}$ in
-linear order and applied to $P$'s local replica. However, we say it is
-in an \emph{uncommitted} state. Uncommitted writes are applied
-tentatively---The backing data model should provide a mechanism for
-undoing (rolling back) write requests, which is used by the commitment
-component in \ref{sssec:conit-order-consistency}.
-
-
-The goal of TSAE is to ensure that $P$'s database image is never ``too
-far'' from the ``true'' database image, thought of as the ideal image
-that would be converged to if all processes were able to share all
-updates to each other. This ensures that clients reading data from $P$
-never receive data that is too far from correct. Of course, the
-difficulty here defining these notions formally.
-
-All processes are initialized with their replicas in an initial state
-$\mathsf{D}_{\textrm{init}}$. Let $D + W$ denote the result of
-applying write action $W$ against database image $D$. If $H$ is an
-ordered history of writes, let $D + H$ denote the result of apply
-these in order against $D$. We define the global set of writes as the
-union of all write logs (in analogy to $\W$ earlier):
-
-\[ \Writes \equiv \bigcup_{X \in \AllProc} \WL{X}\]
-
-\end{comment}
 
 \subsubsection{Conits}
 The intention of the conit framework is this: at any moment in time,
@@ -3483,11 +3398,28 @@ conit along a three-dimensional axis:
 \[\textrm{Consistency} = \langle \textrm{Numerical error,
     \textrm{Order error}, \textrm{Staleness}} \rangle.\]
 
+Anti-entropy can be push- or pull-based. To push updates from $P$ to
+$Q$, $P$ obtains $Q$'s summary vector $\summaryVec{Q}$ and pushes all
+unseen messages in $\WL{P}$ to $Q$. To pull updates, $P$ sends its
+version vector and requests any messages in $\WL{Q}$ that $P$ has not
+seen.
+
 Numerical error bounded by a \emph{push}-approach: $P$ may have to
 block during a request in order to proactively inform $Q$ about the
 update before it can be applied. This consists of $P$ obtaining $Q$'s
 current summary vector and then forwarding messages in $P$'s write log
 that $Q$ hasn't seen.
+
+Take, say, an application for disseminating the most up-to-date
+visualization of the location of a fire front. A client may find this
+it acceptable for this information to appears 30 seconds out of date
+to a client, but unacceptable if it is 30 minutes out of date. For
+example, firefighters who are very close to a fire have a lower
+tolerance for stale information than a central client keeping only a
+birds-eye view of several fire fronts simultaneously. The \emph{real
+  time staleness} metric allows each process $P$ to bound the maximum
+amount of time between an access affecting a conit being issued and
+$P$ seeing that access.
 
 Real-time staleness and order error are both bounded by a
 \emph{pull}-based approach: $P$ may have to block during an operation
@@ -3496,6 +3428,30 @@ them.
 
 \subsubsection{Numerical consistency}
 \label{sssec:conit-numerical-consistency}
+We imagine that a conit $F$ is associated with a valuation function,
+\[
+  \Val^F\colon \mathsf{Database\ Image} \to \mathbb{R}
+\]
+that maps a database state to some real value. Then,
+$\Val^F(D)$ is thought of as the value of conit $F$ for a
+database state $D$. Let $V_P$ denote the current value of $F$ at $P$'s
+replica $D_P$. Let $\Videal$ represents the value of $F$ at $\Dideal$.
+
+Each write update $w$ is associated with a value, $\NumWeight^F(w)$,
+for each conit $F$, codifying the effect of $F$ of applying $w$ to a
+database. That is, $w$ represents the value
+\[ \NumWeight\left(w, F\right) = \Val^F(D + w) - \Val^F(D), \] which
+we assume is independent of $D$ itself. Note that $F$ distributes over
+$+$ in the sense that $F(D + w) = F(D) + \NumWeight(w, F)$. Combining
+this with Equations \eqref{eq:conit-DP} and \eqref{eq:conit-Dideal}
+gives
+\begin{gather}
+  V_P = V_{\textrm{init}} + \sum \{\NumWeight(w, F) | w \in \WL{P}\} \\
+  \Videal = V_{\textrm{init}} + \sum \{\NumWeight(w, F) | w \in \WL{\textrm{ideal}}\}
+  %\sum \{\NumWeight(w) | w \in \WL{P}\} = \left(\mathsf{SeenPosWeight}_F^P\left(X\right) + \mathsf{SeenNegWeight}_F^P\left(X\right)\right) \\
+\end{gather*}
+
+\begin{comment}
 Formally, Yu and Vahdat define a conit as function
 $F\colon \mathsf{Database} \to \mathbb{R}$ that maps a database image
 to a real number. Given a conit $F$ and database images $D$ and $D'$,
@@ -3508,68 +3464,73 @@ $|F(D) - F(D')|$.
   $F$, the propagation layer is provided with a real value
   $\NumWeight(w, F) \in \mathbb{R}$ called the \emph{numerical weight}
   of the write on $F$.  Intuitively, the value is meant to represent
-  \[ \NumWeight\left(W, F\right) = F(D + W) - F(D) \]
 \end{definition}
 The Yu and Vahdat assume that each write is independent of $D$ itself. For
 example, if database is a key value store and the meaning of $W$ is
 ``increment the value at key $x$ by $2$'', the application would
 specify that $W$ has a positive weight of $2$ on the $x$ conit.
-
+\end{comment}
+We assume each process $P$ maintains a conservative estimate, called
+its \emph{view}, of which writes originating at $P$ have been received
+by each other process. $P$'s view of $Q$ is denoted by
+$\View{P}{Q}$. This estimate must be safe, meaning $P$ will not assume
+$Q$ has received a message that it has not.
 \begin{quote}
-  \textbf{Approximate knowledge of remote knowledge}: Every process
-  $P$ maintains a conservative estimate of which writes originating at
-  $P$ have been received by each other process.
+  \textbf{Approximate local knowledge of remote knowledge}: For each $Q$,
+  $P$ can compute a set $\View{P}{Q}$ subject to the following
+  invariant:
+  \begin{equation*}
+    \View{P}{Q} \subseteq \WL{Q}(P)
+  \end{equation*}
+  $P$ must also implement a mechanism to advance its view by
+  synchronizing with $Q$.
 \end{quote}
-
-Each process $P$ has a \emph{view} of which messages it has originated
-that each other process $Q$ has not seen.
-
-\begin{definition}[View, view update]
-  Each $P$ maintains, for each $Q \in \AllProc$, a conservative
-  \emph{view} $\View{P}{Q}$ of the messages $P$ has originated that
-  $Q$ has received. This view is generally a lower bound estimate:
-  \[\View{P}{Q} \subseteq \WL{Q}(P) \]
-  Conversely, $P$ has an estimate of the messages it has originated
-  that $Q$ has not received yet, $\WL{P}{P} \setminus \View{P}{Q}$.
-\end{definition}
-
+Its view also provides $P$ with an estimate of the messages it has
+originated that $Q$ has not received yet, namely
+$\WLat{P}{P} \setminus \View{P}{Q}$. Yu and Vahdat do not prescribe a
+particular mechanism for a process to maintain its view. However, the
+following policies seem to be implicit.
 \begin{itemize}
-\item If TSAE is implemented with version vectors, $P$ stores an
-  additional vector $\mathsf{last}^P$ where $\mathsf{last}^P(Q)$
-  stores the value of $\clock{P,t}$ at the time of the last push to
-  $Q$, and conservatively estimates $Q$ has not received any other
-  writes:
-  \[ \View{P}{Q} := \{ m \in \WLat{P}{P} | \timestamp{m} \leq
-    \mathsf{last}^P\left(Q)\right) \}\] This view is very
-  conservative: since the time of $P$'s last push to $Q$, $Q$ might
-  have indirectly received new messages from $P$ through a third party
-  $R$.
-\item If version matrices used, $P$ conservatively estimates that $Q$
-  has not seen any messages from $P$ with timestamp newer than
-  $\ackMatrix{P}[Q][P]$.
-  \[ \View{P}{Q} := \{ m \in \WLat{P}{P} | \timestamp{m} \leq
-    \ackMatrix{P}[Q][P] \} \] The advantage of matrices over the
-  previous approach is that scenarios like the following are possible:
-  $P$ learns through a process $R$ that $Q$ has received some messages
-  that originated at $P$ (maybe through some other party $S$)
+\item If TSAE is implemented with matrices, the implementation of
+  views is trivial. $P$ estimates that $Q$ has not seen any
+  messages from $P$ with timestamp newer than $\ackMatrix{P}[Q][P]$:
+  \begin{equation*}
+    \View{P}{Q} \equiv \{ m \in \WLat{P}{P} | \timestamp{m} \leq
+    \ackMatrix{P}[Q][P] \}
+  \end{equation*}
+  After push-based anti-entropy at time $t$, $P$'s view is advanced
+  because $\ackMatrix{P}[Q][P]$ will have value $\clock{P, t}$.
+\item If TSAE is implemented with $\ackVec{P}{}$, then $P$ must
+  maintain an additional vector $\lastVec{P}$ where
+  $\last{P}{Q}$ stores the value of $\clock{P,t}$ at the time
+  of the last push to $Q$. $P$ estimates $Q$ has not received any
+  messages from $P$ (via a third party) since this time:
+  \begin{equation*}
+    \View{P}{Q} \equiv \{ m \in \WLat{P}{P} | \timestamp{m} \leq
+    \last{P}{Q} \}
+  \end{equation*}
+  After anti-entropy, $\last{P}{Q}$ is advanced to
+  $\clock{P, t}$.  It may seem that $\ackVec{P}$ can be used instead
+  of $\lastVec{P}$, but the acknowledgment vector is too coarse to
+  track information for present purposes, because after pushing
+  updates to $Q$, there is no guarantee that $\ack{P}{Q}$ will
+  advance.
 \end{itemize}
-Regardless, for each other process $Q$, $P$ maintains two values
-$\mathsf{PosWeight}^{P}(Q)$ and $\mathsf{NegWeight}^{P}(Q)$. When $P$
-submits a new write (in response to a client's request), $P$ first
-checks for each $Q$ whether $\mathsf{tnw}_{P}(Q)$\ldots
+The advantage of version matrices for this use case is that, for
+example, $P$ could learn through some process $R$ that $Q$ has
+received (via a third party $S$) messages that originated at
+$P$. Entries in $\lastVec{P}$ can only be updated by $P$ itself,
+so this mechanism provides a coarser view, which does not affect
+correctness but may affect performance.
 
-\begin{definition}[Unseen weight]
-  The unseen positive weight by $Q$ is the value of
-  \[ \mathsf{SeenPosWeight}_F^P\left(Q\right) = \sum \{ \NumWeight(m) | m \in \WLat{P}{Q}, \NumWeight_F(m) > 0 \} \]
-  \[ \mathsf{SeenNegWeight}_F^P\left(Q\right) = \sum \{ \NumWeight(m) | m \in \WLat{P}{Q}, \NumWeight_F(m) < 0 \} \]
-\end{definition}
-
-We need to make an assumption that processes are able and willing to
-cooperate to maintain each other's numerical consistency requirements.
-We need every process to know every processes' bounds.
+We also need to make an assumption that processes are able and willing
+to cooperate to maintain each other's numerical consistency
+requirements.  We need every process to know every processes' bounds.
 \begin{quote}
-  \textbf{Global knowledge of error bounds}: Every process knows the
-  numerical consistency bounds of each other process for each conit.
+  \textbf{Global knowledge of error bounds}: Every process knows, for
+  each conit $F$, the numerical consistency bounds of each other
+  process for each conit. The numerical error bound for $P$ on $F$ is
+  denoted $\epsilon^P_F$.
 \end{quote}
 If $P$ wishes to dynamically update its consistency bounds for a conit
 $F$, it must invoke some mechanism to inform all other processes of
@@ -3581,28 +3542,26 @@ maintains a requirement per conit (not per accesses).
 \paragraph{Split weight absolute error}
 We describe \emph{split-weight AE} (absolute error) algorithm, which
 Yu and Vahdat explicate most at length in a 2000 paper
-\cite{2000tactalgorithms}.
+\cite{2000tactalgorithms}. For each other process $Q$, $P$ maintains
+two values $\mathsf{PosWeight}^{P}(Q)$ and
+$\mathsf{NegWeight}^{P}(Q)$. When $P$ submits a new write (in response
+to a client's request), $P$ first checks for each $Q$ whether
+$\mathsf{tnw}_{P}(Q)$\ldots
 
-\[
-  V_P = F \left(D_\textrm{init}\right) + \sum_{X \in \AllProc}  \left(\mathsf{SeenPosWeight}_F^P\left(X\right) + \mathsf{SeenNegWeight}_F^P\left(X\right)\right)
-\]
-\[
-  V_\textrm{ideal} = F \left(D_\textrm{init}\right) + \sum_{X \in \AllProc}  \left(\mathsf{SeenPosWeight}^X\left(X\right) + \mathsf{SeenNegWeight}^X\left(X\right)\right)
-\]
-
-\textbf{Correctness condition}:
-\[ | V_\textrm{ideal} - V_P | \leq \epsilon
-\]
-
-\[
-  \mathsf{EstUnseenPosWeight}^P_F = \WL{P}{P} \setminus \View{P}{Q}
-\]
-
-When $P$ accepts a write $w \in \WLat{P}{P}$, $P$ checks whether
+When $P$ accepts a write $w \in \WLat{P}{P}$, $P$ checks whether the following two conditions hold:
 \begin{gather*}
-  \mathsf{pos} + \mathsf{NumWeight} \leq \frac{\epsilon}{|\AllProc| - 1}
-  \mathsf{neg} + \mathsf{NumWeight} \geq \frac{\epsilon}{|\AllProc| - 1}
+  \mathsf{pos} + \mathsf{NumWeight} \leq \frac{\epsilon_Q}{|\AllProc| - 1} \\
+  \mathsf{neg} + \mathsf{NumWeight} \geq \frac{\epsilon_Q}{|\AllProc| - 1}
 \end{gather*}
+
+If either of these conditions are violated, then $P$ updates its view
+of $Q$, which might involve pushing new updates that $Q$ has not seen.
+
+\begin{lemma}[Numerical weight correctness]
+  When following the above protocol, then each value of each conit at process will satisfy
+  \[ | \Videal - V_{P} | \leq \epsilon_{P}. \]
+\end{lemma}
+
 
 \paragraph{Variations} Yu and Vahdat also describe two other schemes
 for bounding numerical error. \emph{Compound-weight absolute error} is
@@ -3649,27 +3608,66 @@ non-obvious.
   received this message.
 \end{comment}
 
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\textwidth]{images/conit/Numerical1.png}
+  \caption{Figure for Example \ref{ex:conit-numerical} where shaded
+    messages represent this process' view of $\WL{C}$.}
+  \label{fig:conit-numerical}
+\end{figure}
+
+\begin{example}
+  \label{ex:conit-numerical}
+  Figure \ref{fig:conit-numerical} depicts the role of numerical
+  weight. We assume all writes apply unit weight to a single conit. If
+  the lightly shaded messages represent this process' view of
+  $\WL{C}$, the combined weight of the four writes estimated to be
+  unseen must not exceed
+  \mbox{$\epsilon^C_\textrm{num} / \left(3 - 1\right)$}.
+\end{example}
+
 \subsubsection{Order consistency}
 \label{sssec:conit-order-consistency}
 Recall that that the write log $\WL{P}$ is a linearly ordered
-structure. Messages are initially received and applied tentatively.
+structure. Messages are initially received and applied tentatively to
+$D_P$ in an uncommitted state. Eventually they will become committed
+in a common global order, but the relative position of each tentative
+write in the final order is not fixed. Writes applied in the wrong
+order will have to be rolled back. The rolling back process may
+involve application-specified logic and be associated with a cost, so
+tentative writes represent a liability. The goal of ordered
+consistency to is to bound this liability.
+
+For instance, suppose an airline reservation application is used to
+book individual seats for a flight. Suppose $P$ and $Q$ are two web
+servers used to provide this service, and suppose both servers
+independently process requests from clients to reserve a ticket for
+seat \#1 at the same time. For efficiency, $P$ and $Q$ do not maintain
+strict consistency, so they may both issue tickets and double-book the
+seat. On the level of TSAE, the processes issue writes $w_P$ and $w_Q$
+with timestamps $(P, t)$ and $(Q, t)$, respectively, and update their
+local replicas to $\Dinit + w_P$ and $\Dinit + w_Q$. Eventually, $P$
+and $Q$ synchronize, where the issue is discovered---the final
+database state \mbox{$\Dinit + w_P + w_Q$} attempts to reserve seat
+\#1 twice.\footnote{Semantically, the reader should think of the
+  expression $\Dinit + w_P + w_Q$ as meaning something like, ``Reserve
+  seat \#1 to $P$'s client, then issue a refund to $Q$'s client.''}
+The business may decide that $P$'s ticket is valid, but the customer
+who reserved a ticket from $Q$ may lose their ticket and be issued a
+refund, plus a compensation fee. Thus, at the time of accepting $w_Q$
+in a tentative state, the fact that $w_Q$ could be rolled back
+represented a liability, and clearly one that applications may want to
+bound. This is the purpose of controlling order error.
+
 Let $\Uncommitted{P}$ represent the uncommitted messages in $\WL{P}$,
 with $\Uncommitted{P}|_{\mathcal{F}}$ denoting the writes that affect
-any of the conits in a set $\mathcal{F}$.
-
-
-
-Uncommitted writes come with the liability that, when they are
-committed, they may be rolled back and reapplied in different order
-than when they were entered into $P$'s write log. Each write is $w$ is
+any of the conits in a set $\mathcal{F}$. Each write is $w$ is
 associated with an \emph{order weight}, intended to capture the cost
 of having to apply $w$ in a different order than the one it was first
-applied.
-
-Let $r$ be a read access submitted to $P$ with a dependency on conit
-set $\mathcal{F}$. Let $\PH_{\textrm{obs}}$ be the observed prefix
-history. Now $\PH_{\textrm{obs}} \cap \PH_{\textrm{ideal}}$, the
-common prefix of the observed and ideal history, represents the
+applied. Let $r$ be a read access submitted to $P$ with a dependency
+on conit set $\mathcal{F}$. Let $\PH_{\textrm{obs}}$ be the observed
+prefix history. Now $\PH_{\textrm{obs}} \cap \PH_{\textrm{ideal}}$,
+the common prefix of the observed and ideal history, represents the
 longest part of $\PH_{\textrm{obs}}$ that is correct (i.e. agrees with
 the ideal history). Therefore,
 $\PH_{\textrm{obs}} \setminus \left(\PH_{\textrm{obs}} \cap
@@ -3677,85 +3675,100 @@ $\PH_{\textrm{obs}} \setminus \left(\PH_{\textrm{obs}} \cap
 have been applied to $P$'s local replica that will have to be rolled
 back during the eventual write committment process. For purposes of
 order error, we are only interested in measuring writes that affect
-the conits
-
-The order error is
-the combined order weight of these writes:
-
+the conits. The order error is the combined order weight of these
+writes:
 \begin{definition}[Order error]
   The \emph{order error} of an access depending on a conit set
   $\mathcal{F}$ is the following sum (where $-$ denotes set difference):
   \[
-    \mathsf{OrderError}\left(r\right) \equiv \sum \left\{\mathsf{OrdWeight}\left(w\right) | w \in \PH_{\textrm{obs}}|_\Conits - \left(\PH_{\textrm{obs}}|_\Conits \cap
+    \mathsf{OrderError}\left(r, \mathcal{F}\right) \equiv \sum_{F \in \mathcal{F}} \left\{\OrderWeight\left(w, F\right) | w \in \PH_{\textrm{obs}}|_\Conits - \left(\PH_{\textrm{obs}}|_\Conits \cap
   \PH_{\textrm{ideal}}|_\Conits \right) \right\}
 \]
 \end{definition}
 
-
-The uncommitted order weight on a conit $F$ is defined as the sum
-\[ \sum \{\mathsf{OrdWeight}\left(w\right) | w \in \Uncommitted{P}|_{\mathcal{F}}\}
+Since committed writes are globally totally ordered, the set of writes
+in
+$\PH_{\textrm{obs}} \setminus \left(\PH_{\textrm{obs}} \cap
+  \PH_{\textrm{ideal}}\right)$ is a subset of the uncommitted
+writes. Thus, we can bound the uncommitted order weight on a conit
+$F$ is defined as the sum
+\[ \sum_{F \in \mathcal{F}} \{\mathsf{OrdWeight}\left(w, F\right) | w \in \Uncommitted{P}|_{\mathcal{F}}\}
 \]
-To bound order error, it is enough to ensure that the value above does
-not exceed $\epsilon_{\textrm{oe}}$. When the number of tentative
-(uncommitted) writes is high, TACT executes a write commitment
-algorithm. This is a \emph{pull-based} approach which pulls
-information from other processes in order to advance $P$'s commit
-line.
 
-\begin{comment}
-Some of $P$'s write log is correct:
-$\WL{P}|_{\mathcal{F}} \cap \WL{\mathsf{ideal}}|_{\mathcal{F}}$. The rest of $P$'s log is wrong:
-\[\WL{P}|_\mathcal{F} - \left(\WL{P}|_{\mathcal{F}} \cap
-    \WL{\mathsf{ideal}}|_{\mathcal{F}}\right).\]
+Let $\epoe$ be the allowable upper bound of
+$\OrderError\left(r,\mathcal{F}\right)$. To bound order error, it is
+enough to bound the estimated value shown above. Whenever $P$ accepts
+an access that, if added to $\WL{P}$, would cause the estimated order
+weight to exceed $\epoe$, then $P$ must execute a write commitment
+protocol to reduce the size of $\Uncommitted{P}$. This is implemented
+with a \emph{pull-based} approach, as $P$ must advance its commit line
+($\min_{X \in \AllProc} \left(\summary{P}{X}\right)$) far enough for
+the write commitment protocol to decide the final order of enough
+writes until the order error is within bounds.
 
-$P$ does not actually know the value
-$\WL{P}|_{\mathcal{F}} \cap \WL{\mathsf{ideal}}|_{\mathcal{F}}$ since
-the right-hand value is the eventual final image. $P$ must estimate
-this intersection as
-$\mathsf{Committed}{\left(\WL{P}|_{\mathcal{F}}\right)}$, which is a of
-  this value. Now $P$'s upper bound estimate of its local order error
-  is
+\begin{figure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/conit/Order1.png}
+    \caption{$\WL{A}$ shown with $5$ uncommitted writes}
+    \label{fig:conit-order-a}
+  \end{subfigure}%
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/conit/Order2.png}
+    \caption{$\WL{A}$ shown at a later time}
+    \label{fig:conit-order-b}
+  \end{subfigure}
+  \caption{Logs for Example \ref{ex:conit-order} where dotted messages represent committed writes}
+  \label{fig:conit-order}
+\end{figure}
 
-  \[\mathsf{OrdWeight}\left(\mathsf{Uncommitted}{\left(\WL{P}|_{\mathcal{F}}\right)}\right).\]
+\begin{example}
+  \label{ex:conit-order}
+  Figure \ref{fig:conit-order} depicts the role of order weight. We
+  assume all writes apply unit weight to a single conit. Lightly
+  dotted messages represent this process' committed writes. In Figure
+  \ref{fig:conit-order-a}, five writes are uncommitted. In particular,
+  no write with timestamp greater than or equal to $3$ can be
+  committed, since the minimum entry in the log, $\WL{A}{C}$, is only
+  $2$.
 
-    To reduce this value, $P$ can commit some of the updates in its
-    write log. Using TSAE, this process would consist of contact nodes
-    where $\summary{P}{Q}$ is small. By raising the minimum entry in
-    $\summaryVec{P}$, $P$ can raise its commit line $\ack{P}{P}$.$P$
-    can then use the total order delivery of
-    \ref{sssec:tsae-message-ordering} to commit some of its updates.
-\end{comment}
+  The next access added to $\WL{A}$ will observe an incorrect prefix
+  history,
+  \[\PH_{\textrm{obs}} - \left(\PH_{\textrm{obs}} \cap
+      \PH_{\textrm{ideal}}\right),\] consisting of all writes after
+  and including $(A, 6)$, the point at which the write log deviates
+  from the ideal history (seen in Figure
+  \ref{fig:conit-order-b}). This corresponds to an order error of
+  $4$. Note that the message $(A, 3)$ happens to be in its ideal
+  position and does not count towards the actual error, but it does
+  contribute to the estimated order error of $5$, the combined weight
+  of all uncommitted writes. If $5$ exceeds the allowable order error
+  of the next access, the process will invoke the write commitment
+  protocol, pulling updates from $B$ and $C$ to advance $A$'s summary
+  vector before handling any new operation.
+\end{example}
 
 \subsubsection{Real time staleness}
 \label{sssec:conit-real-time-consistency}
-\begin{comment}
-Take, say, an application for disseminating the most up-to-date
-visualization of the location of a fire front. A client may find this
-it acceptable for this information to appears 30 seconds out of date
-to a client, but unacceptable if it is 30 minutes out of date. For
-example, firefighters who are very close to a fire have a lower
-tolerance for stale information than a central client keeping only a
-birds-eye view of several fire fronts simultaneously.
-\end{comment}
-
 The \emph{real time staleness} metric allows each process $P$ to bound
 the maximum amount of time between an access affecting a conit being
 issued and $P$ seeing that access. Here we rely on the assumption that
-$\summary{P}{}$ stores physical timestamps from loosely synchronized
-physical clocks, though this assumption can be weakened.
+$\summaryVec{P}$ stores physical timestamps from loosely synchronized
+physical clocks, though this assumption can be weakened. Let $P$ have
+an upper bound of $\eprt \geq 0$ on the real-time staleness of a conit
+$F$. Here, $\eprt$ should be greater than the time it takes for $P$ to
+engage in a typical anti-entropy session. The rule for enforcing
+real-time bounds is very simple.
 
-\newcommand{\eprt}{\epsilon_{\textrm{rt}}} Suppose $P$ has an upper
-bound $\eprt$ on the real-time staleness of a conit $F$. Here, $\eprt$
-should be greater than the time it takes for $P$ to engage in a
-typical anti-entropy session. The rule for enforcing real-time bounds
-is very simple. While handling an access with a read dependency on
-$F$, submitted at time $t$, $P$ checks for each $X \in \AllProc$
-whether $|\clock{P, t} - \summary{P}{X}| < \eprt$ is true. If it is
-not true, then $P$ engages in a pull-based anti-entropy session with
-$X$, at which point $\summary{P}{X}$ has value $\clock{X, t'}$ for
-some $t' > t$. Note that the assumption of loose synchronization
-implies $\clock{X, t'} \approx \clock{P, t}$ if $t \approx t'$. This
-protocol ensures that the original access, timestamped with
+While handling an access with a read dependency on $F$, submitted at
+time $t$, $P$ checks for each $X \in \AllProc$ whether
+$|\clock{P, t} - \summary{P}{X}| < \eprt$ is true. If it is not true,
+then $P$ engages in a pull-based anti-entropy session with $X$, at
+which point $\summary{P}{X}$ has value $\clock{X, t'}$ for some
+$t' > t$. Note that the assumption of loose synchronization implies
+$\clock{X, t'} \approx \clock{P, t}$ if $t \approx t'$. This protocol
+ensures that the original access, timestamped with value
 $\clock{P,t}$, will observe the effect of all writes affecting $F$
 with timestamps less than $\clock{P,t} - \eprt$.
 
@@ -3770,13 +3783,13 @@ strategy is for $P$ to maintain a vector $\vtphys{P}{}$ where
 $\vtphys{P}[X]$ stores the value $\clock{P,t}$ of $P$'s clock at the
 last time $P$ was on the receiving end of an anti-entropy session
 directly with $X$. Then $P$ enforces consistency by ensuring that
-$|\clock{P, t} - \vtphys{P}{[X]}| < \eprt$ is true before handling
-an access submitted at time $t$. Since this approach only compares
-values from $P$'s clock, synchronization is not required assuming
-$\clock{P}$ runs at a constant rate. However, this approach has the
-downside that, unlike $\summary{P}{Q}$, $\vtphys{P}[Q]$ cannot be
-updated based on information indirectly learned during anti-entropy
-with a third party.
+$|\clock{P, t} - \vtphys{P}{[X]}| < \eprt$ is true before handling an
+access submitted at time $t$. Since this approach only compares values
+from $P$'s clock, synchronization is not required assuming $\clock{P}$
+runs at a constant rate. However, this approach has the downside that,
+unlike $\summary{P}{Q}$, $\vtphys{P}[Q]$ cannot be updated based on
+information indirectly learned during anti-entropy with a third
+party.
 
 \subsubsection{Conit Variations and Extensions}
 \label{sssec:conit-extensions}
