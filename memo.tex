@@ -2871,25 +2871,25 @@ require messages to be delivered in a particular order, like a total
 order, an ordering component is used, as in
 \ref{sssec:tsae-message-ordering}.
 
-Figure \ref{fig:message-log} shows a message log for process $P$
-containing four messages. Note that $P$'s message log is linearly
-ordered, but for readability we sometimes depict logs whose contents
-are disaggregated by sender into $\WLat{P}{P}$, $\WLat{P}{Q}$, and so
-on. Disaggregating by senders has the downside of obscuring the fact
-that even logs with the same contents are generally arranged in
+Figure \ref{fig:message-log} shows a message log for containing six
+messages from three processes $A$, $B$, and $C$. Note that the log is
+linearly ordered. For readability it is convenient to depict logs
+whose contents are disaggregated by sender (Figure
+\ref{fig:message-log-b}). Disaggregation has the downside of obscuring
+the fact that message logs with the same contents may be arranged in
 different orders, as the reader should keep in mind.
 
 \begin{figure}
-  \setlength\belowcaptionskip{0ex}
+  \setlength\belowcaptionskip{5ex}
   \begin{subfigure}{1\textwidth}
     \centering
-    \includegraphics[width=0.6\textwidth]{images/figure\_placeholder.png}
+    \includegraphics[width=0.6\textwidth]{images/MessageLog1.png}
     \caption{A message log with entries accumulating linearly}
     \label{fig:message-log-a}
   \end{subfigure}
   \begin{subfigure}{1\textwidth}
     \centering
-    \includegraphics[width=0.6\textwidth]{images/figure\_placeholder.png}
+    \includegraphics[width=0.6\textwidth]{images/MessageLog2.png}
     \caption{The same message log shown with messages from different senders disaggregated}
     \label{fig:message-log-b}
   \end{subfigure}
@@ -2974,19 +2974,26 @@ hold at all times for all $P$ and $Q$ (including when $P = Q$):
   \label{example:tsae}
   Figures \ref{fig:tsae1}---\ref{fig:tsae6} depict the evolution of
   TSAE executing across three distributed processes $P$, $Q$, and
-  $R$.
-  \begin{enumerate}
-  \item[t = 1] $A$ originates a write.
-  \item[t = 2] $B$ and $C$ both originate writes.
-  \item[t = 3] $B$ originates a write.
-  \item[t = 4] $A$ and $B$ initiate anti-entropy, exchanging summary vectors.
-  \item[t = 5] $B$ originates a write.
-  \item[t = 6] $A$ and $B$ finish their anti-entropy session. $C$ originates a write.
-  \item[t = 7] $B$ and $C$ initiate anti-entropy, exchanging summary vectors.
-  \item[t = 8] $B$ and $C$ finish their anti-entropy session.
-  \end{enumerate}
-  The figures also show the role of acknowledgment vectors and
-  what we later call the purge line, which will be explained below.
+  $R$. The figures depict the following chain of events beginning at
+  $t = 3$. Note that by $t = 9$, $A$ learns of writes submitted with
+  $C$ without performing direct communication with $C$. The figures
+  also depict acknowledgment vectors, shown in red, and what we later
+  term the commit line, shown underlined. These are explained below.
+
+  \begin{centering}\\
+    \begin{tabular}{rl}\\
+      \textbf{Time}    & \textbf{Action} \\
+      $t = 1$   & $A$ submits a write                                            \\
+      $t = 2$   & $B$ and $C$ submit writes                                      \\
+      $t = 3$   & $B$ submits a write                                            \\
+      $t = 4$ & $A$ and $B$ begin anti-entropy and swap summary vectors \\
+      $t = 5$ & $B$ submits a new write  \\
+      $t = 6$ & $A$ and $B$ finish anti-entropy, $C$ submits a write \\
+      $t = 7$ & $B$ and $C$ begin anti-entropy, $A$ submits a write \\
+      $t = 8$ & $B$ and $C$ finish anti-entropy, $A$ and $B$ begin anti-entropy \\
+      $t = 9$ & $A$ and $C$ finish anti-entropy
+    \end{tabular}
+  \end{centering}
 \end{example}
 
 \begin{landscape}
@@ -2994,38 +3001,52 @@ hold at all times for all $P$ and $Q$ (including when $P = Q$):
   \end{figure}
   \begin{figure}[h]
     \centering
-    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE1.png}
-    \caption{TSAE at time $t=1$. $A$ has originated a single message with timestamp $t=1$, but $B$ and $C$ have not received it.}
+    \includegraphics[width=1.4\textwidth]{images/tsaenew/TSAE3.png}
+    \caption{TSAE at time $t=3$.}
     \label{fig:tsae1}
   \end{figure}
   \begin{figure}[h]
     \centering
-    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE2.png}
-    \caption{TSAE at time $t=2$. $B$ and $C$ both originated messages with timestamp $t=2$.}
+    \includegraphics[width=1.4\textwidth]{images/tsaenew/TSAE4.png}
+    \caption{TSAE at time $t=4$. $A$ advances $\summary{A}{A}$ to $\clock{A, t} = 4$ and likewise for $B$. After exchanging summary vectors, the participants decide to exchange the shaded messages.}
     \label{fig:tsae2}
   \end{figure}
   \begin{figure}[h]
     \centering
-    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE3.png}
-    \caption{TSAE at time $t=3$. $B$ has accepted another message with timestamp $t = 3$. At this moment we assume $A$ and $B$ initiate an anti-entropy session and exchange summary vectors $\langle 3,0,0\rangle$ and $\langle 0,3,0 \rangle$, which they use to determine which messages have not been seen by the other, shown in shaded boxes.}
+    \includegraphics[width=1.4\textwidth]{images/tsaenew/TSAE5.png}
+    \caption{TSAE at time $t=5$. $B$ has submitted a message with timestamp
+      $t = 5$ while $A$ and $B$ are still engaged in an anti-entropy
+      session in the background.}
     \label{fig:tsae3}
   \end{figure}
   \begin{figure}[h]
     \centering
-    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE4.png}
-    \caption{TSAE at time $t=4$. $A$ and $B$ have finished their TSAE session. Concurrently, $B$ accepted a new message with timestamp $t=4$. Neither $A$ nor $B$ can update their commit line past $0$, because they both contain $\summary{}{C} = 0$, indicating they have not seen any messages from $C$. At this moment we assume $A$ and $C$ initiate a TSAE session and decide to exchange the shaded messages.}
+    \includegraphics[width=1.4\textwidth]{images/tsaenew/TSAE6.png}
+    \caption{TSAE at time $t=6$. $A$ and $B$ have finished their session and updated their summary vectors. Neither $A$ nor $B$ can update their commit line past $0$ because they both contain $\summary{}{C} = 0$, indicating they have not seen any messages from $C$. $C$ submits a message with timestamp $t = 6$.}
     \label{fig:tsae4}
   \end{figure}
   \begin{figure}[h]
     \centering
-    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE5.png}
-    \caption{TSAE at time $t=5$. $A$ and $C$ have finished their TSAE session. While $A$ was sending messages to $C$ it also accepted a new message with timestamp $t=5$. $A$ and $C$ can both update their commit lines to $3$, because they have seen all messages with timestamps less than or equal to $3$. However, their purge lines remain at $0$, because their acknowlegment vectors satisfy $\ack{\!}{B} = 0$, indicating their (accurate) estimate of $B$'s commit line. In particular, it would be unsafe for them to purge the message with stamp $(C, 2)$ because then $B$ would never receive it. At this moment we assume $B$ and $C$ initiate a TSAE session and decide to exchange the shaded messages.}
-    \label{fig:tsae5}
+    \includegraphics[width=1.4\textwidth]{images/tsaenew/TSAE7.png}
+    \caption{TSAE at time $t=7$. $B$ and $C$ update and exchange summary vectors before decided to exchange the shaded messages. $A$ submits a message with timestamp $t = 7$.}
+    \label{fig:tsae4}
   \end{figure}
   \begin{figure}[h]
     \centering
-    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE6.png}
-    \caption{TSAE at time $t=6$. $A$ accepted a new message. $B$ and $C$ have finished their TSAE session. $B$ and $C$ can both update their commit lines to $4$, because they know they have seen all messages with timestamp less than $4$. However, their purge lines remain at $3$, because their acknowlegment vectors satisfy $\ack{}{A} = 3$, and in particular they cannot purge the message $(B, 4)$ because $A$ has not seen it. $A$ does not purge any messages, because it underestimates $B$'s commit line as $\ack{A}{B} = 0$, so $A$ believes it's possible that $B$ has not received $(C, 2)$.}
+    \includegraphics[width=1.4\textwidth]{images/tsaenew/TSAE8.png}
+    \caption{TSAE at time $t=8$. $B$ and $C$ finish their anti-entropy session. Both sides can update their commit line to $4$, since they have seen all messages $m$ such that $\timestamp{m} \leq 4$. $A$ and $B$ begin anti-entropy, exchanging updated summary vectors and exchanging the shaded boxes.}
+    \label{fig:tsae6}
+  \end{figure}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=1.4\textwidth]{images/tsaenew/TSAE9.png}
+    \caption{TSAE at time $t=9$. $A$ and $B$ finish their anti-entropy
+      session and have both seen all messages with timestampsless than
+      or equal to $t = 7$. $B$ and $C$ can remove all messages with
+      timestamps less than or equal to $4$ from their logs, since they
+      both have minimum entries $\ack{}{C} = 4$. $C$ has received the
+      same messages as $A$ and $B$, but has not witnessed $A$
+      acknowledging them.}
     \label{fig:tsae6}
   \end{figure}
 \end{landscape}
@@ -3033,36 +3054,63 @@ hold at all times for all $P$ and $Q$ (including when $P = Q$):
 \subsubsection{The Acknowledgement Vector}
 \label{sssec:tsae-acknowledgement}
 $P$'s summary vector enables another process to quickly learn which
-messages $P$ has seen. There are multiple use cases, such as ones
-described below, where $P$ would like to maintain information about
-which messages all other process have seen. For this purpose it keeps
-the \emph{acknowledgement} vector $\ackVec{P}$.
+messages $P$ has seen. Additionally, $P$ must keep tabs on which
+messages \emph{other} processes have seen. This information is
+critical for the message ordering and log recycling components of
+TSAE. Golding presents two ways to maintain this information, which
+make different efficiency tradeoffs.
 
-Periodically, such as whenever $\summaryVec{P}$ is updated, $P$
-updates the value $\ack{P}{P}$ to the minimum clock value in its
-summary vector:
-\[\ack{P}{P} := \min_{X \in \AllProc} \left(\summary{P}{X}\right)\]
-For correctness, as an invariant we must ensure $P$'s commit line is a
-lower bound of each summary vector entry.
+Arguably the simplest approach is for $P$ to maintain a local copy,
+called $P$'s \emph{view}, of the summary vector of every other
+process. During anti-entropy sessions, $P$ exchanges and updates its
+view of each process, effectively tracking a lower bound estimate of
+their current state. This leads to the idea of a version matrix, but
+it has the downside of a per-process space requirement quadratic in
+the size of the process group. This approach is considered further in
+\ref{sssec:tsae-unsynchronized}.
+
+The other mechanism presented requires each process $P$ maintain an
+\emph{acknowledgement vector} $\ackVec{P}$. The basic idea is to
+coarsely estimate $P$'s knowledge of other processes not with its
+summary vector, but the minimal element in this vector, a scalar,
+which is stored in $\ack{P}{P}$. For reasons explained in
+\ref{ssec:consistency-units}, this value is called $P$'s \emph{commit
+  line}. Periodically, $P$'s commit line is updated to the minimal
+timestamp in its summary vector,
+$\min_{X \in \AllProc} \left(\summary{P}{X}\right)$.  For correctness,
+the invariant required of $\ack{P}{P}$ is that it is always a lower
+bound.
 \begin{quote}
   \textbf{Acknowledgement Property}: $P$'s commit line is less than or
-  equal to the minimum value in $P$'s summary vector.
+  equal to the minimum value in $P$'s summary vector.\footnote{The
+    inequality here can be thought of as morally an equality. It may
+    be a strict inequality while $P$ is updating $\summaryVec{P}$
+    before recomputing its minimum. Recall $P$ may be multi-threaded
+    with multiple anti-entropy sessions affecting $\summaryVec{P}$ at
+    the same time.}
 \[ \ack{P}{P} \leq \min_{X \in \AllProc} \left(\summary{P}{X}\right)\]
 \end{quote}
-The above inequality is usually an equality and can be thought of as
-such morally. It may be a strict inequality while $P$ is updating the
-summary vector and has not yet had a chance to recompute the minimum,
-particularly if $P$ is a multi-threaded process handling multiple
-anti-entropy sessions at the same time.
 
-For reasons that will become clear later, we call the value
-$\ack{P}{P}$ $P$'s \emph{commit line}. A useful property is given by
-the following lemma.
-4.1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Acknowledgment vectors are updated during anti-entropy sessions much
+like vector clocks and version vectors.
+\begin{enumerate}
+\item At the beginning of the session, $\ack{P}{P}$ is advanced to
+  $\min_{X \in \AllProc} \left(\summary{P}{X}\right)$. Symmetrically
+  for $Q$. $P$ and $Q$ exchange acknowledgement vectors alongside
+  their summary vectors.
+\item At the end of the session, $P$ sets $\ackVec{P}$ and to the
+  pointwise maximum of its current value and the value of $\ackVec{Q}$
+  received from $Q$. $Q$ updates $\ackVec{Q}$ symmetrically.
+\end{enumerate}
+Note that $\ack{P}{Q} \leq \ack{Q}{Q}$ at all times for all $P$ and
+$Q$. The following two lemmas explain the utility of $\ackVec{P}$ as a
+way of estimating global state.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{lemma}
   \label{lem:commitline}
-  $P$ has received all messages (from any sender) with timestamps less than or equal to
-  its commit line $\ack{P}{P}$.
+  $P$ has received all messages (from any sender) with timestamps less
+  than or equal to its commit line $\ack{P}{P}$.
 \end{lemma}
 \begin{proof}
   Let message $m$ originate at $Q$ with timestamp
@@ -3072,73 +3120,60 @@ the following lemma.
   coverage property implies $m \in \WL{P}$.
 \end{proof}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The acknowledgment vectors are used in TSAE as follows:
-\begin{enumerate}
-\item At the beginning of the session, $\ack{P}{P}$ is advanced to
-  $\min_{X \in \AllProc} \left(\summary{P}{X}\right)$. Symmetrically
-  for $Q$. $P$ and $Q$ exchange acknowledgement vectors alongside
-  their summary vectors.
-\item At the end of the session, $\ackVec{P}$ is set to the pointwise
-  maximum of its current value and the value of $\ackVec{Q}$ received
-  from $Q$. Likewise $Q$ updates $\ackVec{Q}$.
-\end{enumerate}
-Note that $\ack{P}{Q} \leq \ack{Q}{Q}$ at all times for all $P$ and $Q$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{lemma}
+  \label{lem:ack-vector}
+  For all messages $m$, if $\timestamp{m} \leq \ack{P}{Q}$, then $Q$
+  has received $m$.
+\end{lemma}
+\begin{proof}
+  Now $\timestamp{m} \leq \ack{P}{Q} \leq \ack{Q}{Q}$. By Lemma
+  \ref{lem:commitline}, $Q$ has received $m$.
+\end{proof}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 When a message $m$ in the write log satisfies
 $\timestamp{m} \leq \ack{P}{P}$, $P$ is said to have
-\emph{acknowledged} $m$. In light of Lemma \ref{lem:commitline},
-$\ack{P}{P}$ can be used as a coarse estimate of which messages $P$
-has seen.
-
-While the summary provides full information about $\WL{P}$, it
-requires linear storage space ($O(n)$ storage where $n$ is the number
-of processes in $\AllProc$). Note that some time may pass before a
-message is received and when it is acknowledged, since acknowledgement
-requires each entry in $\summaryVec{P}$, and not just the entry of its
-sender, to be greater than $m$'s timestamp. $\ack{P}{Q}$ represent's
-$P$'s conservative view of which messages $Q$ has acknowledged.  The
-only purpose of the acknowledgment vector is that it requires linear
-storage space, while the more precise approach shown in
-\ref{sssec:tsae-unsynchronized} requires quadratic storage.
-
-\begin{lemma}
-  \label{lem:ack-vector}
-  If $m$ is a message and $\timestamp{m} \leq \ack{P}{Q}$, then $Q$ has received
-  $m$.
-\end{lemma}
-\begin{proof}
-  Let $R$ be the sender of $m$. The conclusion follows from the coverage
-  property and the following inequalities:
-\[\timestamp{m} \leq \ack{P}{Q} \leq \ack{Q}{Q} \leq \min_{X \in
-    \AllProc} \left(\summary{Q}{X}\right) \leq \summary{Q}{R}\]
-\end{proof}
-
+\emph{acknowledged} $m$. In light of Lemma \ref{lem:commitline}, all
+acknowledged messages have been received. The converse does not hold,
+since a received message will not be acknowledged until each entry in
+$\summaryVec{P}$, not just the entry of its sender, is greater than
+$\timestamp{m}$. We now explain how acknowledged messages can be
+delivered and ultimately purged from $\WL{P}$, before considering the
+matrix-based alternative to acknowledgement vectors.
 
 \subsubsection{Message Ordering}
 \label{sssec:tsae-message-ordering}
 TSAE guarantees that messages will eventually be received by all other
 processes, but ordering of these messages in different processes' logs
 may vary. In some applications this is acceptable, but other
-applications require more control over the order of message
-delivery. Recall from Section \ref{ssec:message-ordering} that to
-enforce such message-ordering properties, a distinction is made
-between message receipt and delivery. A message ordering layer buffers
-incoming messages upon receipt, allowing slower messages to catch up
-to faster ones, before delivering them to the application in a
-predictable order.
+applications require more control over delivery order. Recall from
+Section \ref{ssec:message-ordering} that to enforce ordering
+guarantees, a distinction is made between message receipt and
+delivery. A message ordering layer buffers incoming messages upon
+receipt, giving time for slower messages to catch up to faster ones,
+before delivering them to the application in a predictable order.
 
-When TSAE implementations require message ordering, a separate
-component running in $P$ periodically inspects $\WL{P}$ and delivers
-messages when ready. To enforce total order, this component delivers
-all messages whose timestamp is less than or equal to $P$'s commit
-line $\ack{P}{P}$ in order of their timestamps, using the identifiers
-of their senders to resolve ties. This is correct by Lemma
-\ref{lem:commitline}, since the fact that $P$ seen all messages whose
-timestamp is less than $\ack{P}{P}$ ensures there are no messages
-missing in this sequence. Note that this ensures messages will
-eventually be delivered as long as $\ack{P}{P}$ increases
-periodically.
-
+The message ordering component of TSAE periodically inspects $\WL{P}$
+and delivers messages to $P$ when ready. To enforce total order, this
+component delivers all messages whose timestamp is less than or equal
+to $P$'s commit line. That is, the set of messages satisfying
+\begin{equation}
+  \label{eq:tsae-message-ordering-condition}
+  \timestamp{m} \leq \ack{P}{P}
+\end{equation}
+These messages are delivered to $P$ order of their timestamps, using
+the identifiers of their senders to resolve ties. The correctness of
+this approach follows from Lemma \ref{lem:commitline}, since $P$ has
+seen all messages whose timestamp is less than $\ack{P}{P}$, and
+therefore the stream of delivered messages will not have any ``gaps.''
+This mechanism for enforcing a total order dates back to the
+introduction of scalar clocks \cite{1978:lamportclocks}. Golding also
+describes straightfoward mechanisms to enforce causal and total-causal
+order in Section 5.5 in his dissertation. The ordering component
+guarantees messages will eventually be delivered:
 \begin{lemma}
   Every message will eventually be delivered to $P$ by TSAE.
 \end{lemma}
@@ -3147,45 +3182,43 @@ periodically.
   \ref{sssec:tsae-message-log} ensures each message is eventually
   received by $P$ and each value of the form $\summary{P}{Q}$
   eventually increases. Thus, the minimum entry in $\summaryVec{P}$
-  will eventually increase, so each $m$ will be delivered as long as
-  the ordering component runs periodically.
+  will eventually increase beyond $\timestamp{m}$, so each $m$ will be
+  delivered as long as the ordering component runs periodically.
 \end{proof}
 
-This mechanism for enforcing a total order dates back to the
-introduction of scalar clocks \cite{1978:lamportclocks}. Golding also
-describes straightfoward mechanisms to enforce causal and total-causal
-order in Section 5.5 in his dissertation.
+Golding's assumption of loose clock synchronization is driven by a
+practical need to ensure messages are delivered in a timely fashion
+instead of just eventually. For example, if $Q$ has an exceptionally
+slow clock compared to other processes, then $\summary{P}{Q}$ will
+remain the minimum element in $\summaryVec{P}$ for a long time. During
+this time, only messages from $Q$ will be delivered to $P$, as all
+other messages would have timestamps greater than $Q$'s clock.
 
-Golding's assumption of clock synchronization is driven by a practical
-need to ensure messages are delivered in a timely fashion instead of
-just eventually. For example, if $Q$ has an exceptionally slow clock
-compared to other processes, then $\summary{P}{Q}$ will remain the
-minimum element in $\summaryVec{P}$ for a long time. During this time,
-only messages from $Q$ will be delivered to $P$, as all other messages
-would have timestamps greater than $Q$'s clock.
-
-It may seem that once it has been delivered to $P$, a message need not
-be kept in the message log. However, for reasons explained immediately
-below, messages are not generally able to be deleted right
-away. Consequently, the ordering component must perform some
-bookkeeping to remember which messages in the log it has already
-delivered.
+A message simply cannot be removed from the write log after being
+delivered to $P$, because some of the messages in $\WL{P}$ may still
+need to be propagated to new recipients during anti-entropy in the
+future. Consequently, the ordering component must perform bookkeeping
+to remember which messages in the log have already been delivered.
 
 \subsubsection{Message Purging}
 \label{sssec:tsae-message-purging}
 As presented, the message log at each host grows without limit, so it
-requires an unbounded amount of storage. This is obviously untenable,
-so a separate purging process can be used to remove old entries when
-they are no longer required. There are two requirements for a message
-to be safe to delete. First, the message must have been delivered to
-$P$ already, obviously, or it would never be delivered. Additionally,
-it must have been received by all other processes---otherwise it might
-be one of the messages $P$ should send in a future anti-entropy
+requires an unbounded amount of storage. Thus, a separate log
+recycling process can be used to remove old entries when they are no
+longer required.
+
+There are two requirements for a message to be safe to delete. First,
+it clearly must have been delivered to $P$ already. Additionally, it
+must have been received by all other processes---otherwise it might be
+one of the messages $P$ should send in a future anti-entropy
 session. $P$ will know a message $m$ has been acknowledged by all
 other processes when its timestamp is less than or equal to $P$'s
 \emph{purge line}, defined as the minimum entry in the acknowledgment
 vector:
-\[ \timestamp{m} \leq \min_{X \in \AllProc} \left( \ack{P}{X} \right) \]
+\begin{equation}
+  \label{eq:tsae-message-purging-condition}
+  \timestamp{m} \leq \min_{X \in \AllProc} \left( \ack{P}{X} \right)
+\end{equation}
 
 The safety of this deletion procedure is proven by the following
 lemma.
@@ -3205,26 +3238,22 @@ lemma.
   and can be purged from $\WL{P}$ to reclaim storage space.
 \end{proof}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-On the other hand, consider some $m$ with a greater timestamp
-$\timestamp{m} > \ack{P}{Q}$. This indicates $P$ has not seen
-acknowledgement by $Q$ of receipt of $m$. Without knowing the current
-value of $\summaryVec{Q}$, it is conceivable that
-$\timestamp{m} > \summary{Q}{X}$ (where $X$ is the originator of $m$).
-In this case, deleting $m$ from $\WL{P}$ might lead to $Q$ never
-receiving $m$.
+On the other hand, if $m$ has a timestamp greater than $\ack{P}{Q}$,
+then without knowing the current value of $\summaryVec{Q}$, there is
+no guarantee $\timestamp{m} < \summary{Q}{X}$, where $X$ is the
+originator of $m$. In this case, deleting $m$ from $\WL{P}$ might
+prevent $Q$ from ever receiving $m$.
 
 Because every message is eventually delivered and acknowledged by each
 process, $P$ will eventually be able to remove each message from its
 log. It is still possible for $\WL{P}$ to grow without bound if the
 rate of message arrival exceeds the speed at which they are
-purged. This is likely to coincide with periods of high network usage
-or network partitions, as during a partition $P$ will eventually
-become unable to advance $\ack{P}{Q}$ if $Q$ is on the other side
-(though it might advance $\ack{P}{Q}$ for a bounded time if other
-nodes in its connected component have information about $Q$ that $P$
-has not seen yet). The storage requirements of the message log in a
-particular use case and environment should be determined empirically
-as part of an application optimization strategy.
+purged. This might occur during periods of heavy usage or during a
+network partition, as $P$ will eventually become unable to advance
+$\ack{P}{Q}$ further if $Q$ is on the other side of a partition. The
+storage requirements of the message log in a particular use case and
+environment should be measured empirically as part of an application
+optimization strategy.
 
 \subsubsection{TSAE using Version Matrices}
 \label{sssec:tsae-unsynchronized}
@@ -3234,10 +3263,6 @@ in $\summaryVec{P}$ is used to concisely summarize which messages $P$
 has seen, if $Q$ has a very fast clock, messages $P$ receives from $Q$
 may not ever be acknowledged, since the minimal entry will remain less
 than $\summary{P}{Q}$ for a long time.
-
-% For the same reason, timestamps using a conventional logical scalar
-% clock also cannot be used, since there is no bound on how far apart
-% two scalar clocks may diverge at any moment.
 
 Rather than concisely summarizing which messages $P$ has seen using
 the minimum entry in $\summaryVec{P}$, the entire vector offers a more
@@ -3249,21 +3274,26 @@ call $\ackMatrix{}$. Since $\summaryVec{}$ is a version vector, then
 $\ackMatrix{}$ can be called a version matrix.
 
 With this implementation strategy, $\ackMatrix{P}[P]$ stores $P$'s
-summary vector, while $\ackMatrix{P}\left[Q\right]$ represents $P$'s
-lower bound estimate of $Q$'s summary vector. $\ackMatrix{P}[Q][R]$ is
-then $P$'s lower bound estimate of the greatest timestamp of any
-message $Q$ has received from $R$. Altogether, $P$ applies the
-following (conservative) policies:
+summary vector. $\ackMatrix{P}\left[Q\right]$ represents $P$'s lower
+bound estimate of $Q$'s summary vector, with $\ackMatrix{P}[Q][R]$
+providing a lower bound estimate of the greatest timestamp of any
+message $Q$ has received from $R$. Matrices are exchange during
+anti-entropy sessions just as before, with both sides taking the
+pointwise maximum after.
+
+Altogether, $P$ applies the following (conservative) policies:
 \begin{itemize}
 
 \item A message with timestamp $m$ is ready to be delivered to $P$ by a total
-  ordering component when
+  ordering component when the following analogue of \eqref{eq:tsae-message-ordering-condition} holds:
   \[\timestamp{m} \leq \min_{X \in \AllProc} \left(\ackMatrix{P}[P][X]\right)\]
 \item A message $m$ originating at $R$ has been
-  received by $Q$ when
+  received by $Q$ when the following condition holds:
   \[ \timestamp{m} \leq \ackMatrix{P}[Q][R] \]
-\item A message $m$ originating at $R$, after being delivered to $P$, can be purged from the log when
-  \[ \timestamp{m} \leq \min_{X \in \AllProc}\ackMatrix{P}[X][R].\]
+\item A message $m$ originating at $R$, after being delivered to $P$,
+  can be purged from the log when the following analogue of
+  \eqref{eq:tsae-message-purging-condition} holds:
+  \[ \timestamp{m} \leq \min_{X \in \AllProc}\ackMatrix{P}[X][R]\]
 \end{itemize}
 
 Of course, matrices require $\Theta(n^2)$ storage at each site for a
@@ -3310,38 +3340,108 @@ and possible extensions (\ref{sssec:conit-extensions}).
 
 \subsubsection{System Model}
 \label{sssec:conit-system-model}
-We use TSAE as a core part of the continuous consistency framework,
-though this particular application of TSAE is more concrete than the
-general concept described above. We adopt the terminology of Yu and
-Vahdat for this purpose (particularly Section 3 of
-\cite{2002tact}). We assume processes in $\AllProc$ replicate data
-using TSAE to exchange updates of two types, read or write requests,
+The system consists of processes in $\AllProc$ that replicate a shared
+database (more generally, any kind of replicated state
+machine). Processes perform two types actions, read or write requests,
 as in Section \ref{ssec:shared-memory}. We call actions of both types
-\emph{accesses}. We think of writes as encoding a semantic action to
-be performed against a database image, rather than directly carrying
-the final value of some data item after performing that action (for
-this reason they might be better described as ``updates,'' but we
-stick we current terminology).
+\emph{accesses}. Accesses potentially contain multiple instructions,
+such as in a relational database transaction. Recall that a history is
+an ordered sequence of read and write accesses. The \emph{local
+  history} of a process $P$ is the sequence of accesses $P$ has
+applied to $\Dinit$ since the start of the application. A read access
+submitted to $P$ by a user is always handled locally by $P$ without
+involving other processes, but all writes submitted to $P$ are
+eventually propagated to all replicas using TSAE as the messaging
+framework.
 
-When $P$ receives a read access from a client, the value is read from
-$P$'s local image immediately and returned to the client. $\WL{P}$
-comes into play when $P$ receives a write access from a client, which
-is handled differently. Previously we called a $\WL{P}$ a message log
-and used it to buffer undelivered messages waiting to be delivered to
-$P$ by a message-ordering component. Now, we describe $\WL{P}$ as a
-\emph{write log}. When $P$ receives a write accesses, it is added to
-the write log $\WL{P}$ in linear order and applied to $P$'s local
-replica. However, we say it is in an \emph{uncommitted}
-state. Uncommitted writes are applied tentatively---The backing data
-model should provide a mechanism for undoing (rolling back) write
-requests, which is used by the commitment component in
-\ref{sssec:conit-order-consistency}. Taking the place of the message
-ordering component, a write committment component is responsible for
-ultimately committing writes accesses.  $P$ is said to be the
-\emph{originating replica} of that write, and all other processes are
-said to be \emph{remote}. The write is added to the write log
-$\WL{P}$, where TSAE ensures it will eventually be delivered to remote
-processes' logs too.
+To define quantify deviation from strong consistency, we must give a
+few definitions. Recall the notion of external order (Definition
+\ref{def:external-order}): an access $A$ externally precedes $A'$ if
+$A$ has returned to the caller before $A'$ is invoked. Yu and Vahdat
+also define a particular notion of causality: $A$ \emph{causally
+  precedes} $A'$ if $A$ was already in the local history of the
+originating replica when $A'$ was submitted, and so could have
+influenced how $A'$ executed.\footnote{At face value it may seem that
+  external order implies this notion of causal order. However, if $A$
+  and $A'$ represent long-running database transactions, it is
+  possible for $A$ to logically precede $A'$ in the local history even
+  if $A$ has not returned to the user at the time $A'$ begins
+  executing.}  With these definitions, we can define a strongly
+consistent execution as a reference point for measuring deviation:
+\begin{definition}[Ideal image]
+  An ECG (externally consistent, causally consistent, global) history
+  is the set of accesses across the system arranged in some total
+  order that respects both external and causal order as defined above.
+\end{definition}
+Definitions below are given with respect to some ECG
+history. Intuitively, the condition expected from the conit framework
+is that at any moment in time, there is some ECG history such that all
+replicas diverge from the ECG history by at most some error bound.
+
+The initial database state at each replica is $\Dinit$.  Write
+accesses encode an action to be performed against a database image
+(rather than the final value the data after performing that
+action). The result of applying write action $w$ to a database state
+$D$ is denoted $D + w$. Let $D + H$ denote the result of applying each of
+the writes in $H$ to $D$ in order. The
+
+
+
+Each process $P$ maintains a write log, $\WL{P}$, containing the
+history of all writes applied to its local database image in the order
+they were applied (making $\WL{P}$ equivalent to the local history of
+$P$ restricted to write requests). Note that the current state of $P$
+is uniquely determined by a combination of the starting state
+($\Dinit$) and $\WL{P}$. In the above notation, the current value
+$D_P$ of $P$'s replia is $\Dinit + \WL{P}$. When a read request is
+submitted to $P$, the requested value is read immediately from $D_P$
+and returned to the caller. When a write request $w$ is submitted, the
+action is performed against the local replica and $w$ is added to
+$\WL{P}$. With either type of access, $P$ is said to be the
+\emph{originating replica}, and all other processes are
+\emph{remote}. The value of $D_P$ is said to be the \emph{observed
+  state} of the access.
+We assume some ECG history as a reference point. The \emph{ideal
+  result} of an access $a$ is the value $\Dinit + \PH_\textrm{a}$.
+
+Timestamped anti-entropy is used to propagate writes to remote
+replicas, with $\WL{P}$ acting as the message log. When a remote
+replica $Q$ receives new writes, they are added to $\WL{Q}$ and
+applied to $Q$'s local image as well. Now, replicated state machines
+will reach the same final state on two conditions. First, all replicas
+learn about each write, and second, all replicas execute writes in the
+same order. TSAE by itself ensures the first condition, since every
+process will eventually learn about every write. However, we know that
+TSAE alone does not provide ordering guarantees. Thus, the data model
+should provide a mechanism for rolling back (undoing) writes that have
+been applied to $D$. When a write is first accepted, it is said to be \emph{uncommitted}
+and applied \emph{tentatively} to the local replica. Uncommitted
+writes are subject to being rolled back and reapplied in a different
+order later, possibly with different results. Eventually, the write
+becomes \emph{committed}, after which it is never rolled
+back. Committed writes are applied in the same order at all
+replicas. Taking the place of the message ordering component, a write
+committment component is responsible for ultimately committing writes
+accesses. Commitment is an adaptation of the total ordering mechanism
+in \ref{sssec:tsae-message-ordering}.
+
+
+
+\begin{comment}
+When $P$ receives a read access
+from a client, the value is read from $P$'s local image immediately
+and returned to the client. $\WL{P}$ comes into play when $P$ receives
+a write access from a client, which is handled differently. Previously
+we called a $\WL{P}$ a message log and used it to buffer undelivered
+messages waiting to be delivered to $P$ by a message-ordering
+component. Now, we describe $\WL{P}$ as a \emph{write log}. When $P$
+receives a write accesses, it is added to the write log $\WL{P}$ in
+linear order and applied to $P$'s local replica. However, we say it is
+in an \emph{uncommitted} state. Uncommitted writes are applied
+tentatively---The backing data model should provide a mechanism for
+undoing (rolling back) write requests, which is used by the commitment
+component in \ref{sssec:conit-order-consistency}.
+
 
 The goal of TSAE is to ensure that $P$'s database image is never ``too
 far'' from the ``true'' database image, thought of as the ideal image
@@ -3359,40 +3459,9 @@ union of all write logs (in analogy to $\W$ earlier):
 
 \[ \Writes \equiv \bigcup_{X \in \AllProc} \WL{X}\]
 
-External order is defined as in Definition \ref{def:external-order}:
-one (read or write) request externally precedes all requests that are
-not submitted until after the first request has completed. Yu and
-Vahdat also consider a particular notion of causality: an access $A$
-\emph{causally precedes} $A'$ if $A$ was already in the local history
-of the originating replica when $A'$ was submitted. That is, if $A'$
-is first applied to a database image that been affected by $A$, which
-might change something about how $A'$ is executed. It may seem that
-external order already implies this notion of causal order, but the
-distinction seems to be motivated by the fact that if $A$ and $A'$
-represent long-running transactions, it is possible for $A$ to
-logically precede $A'$ even if the result of $A$ has not returned to
-the user at the time $A'$ begins executing.
-
-\begin{comment}
-we assume that messages are delivered by TSAE in a total order,
-forming a linear chain of delivered messages. We say that the
-delivered messages are \emph{committed}. When a message is sitting in
-the message buffer, received but not delivered by the ordering
-component, we say it is \emph{uncommitted}. Recalling that the message
-log accumulates linearly, this means each replica has a linear chain
-of messages, some of which are committed and some of which are
-not. Thus, the committed messages of any two replicas are the same or
-one is a prefix of the other, but messages in their uncommitted parts
-may be different, and uncommitted messages in both lots are generally
-in different orders.
 \end{comment}
 
-\begin{definition}[Ideal image]
-  An ECG (externally consistent, causally consistent, global) history
-  is the set of accesses across the system in some total order that
-  respects both external and causal order as defined above.
-\end{definition}
-
+\subsubsection{Conits}
 The intention of the conit framework is this: at any moment in time,
 there exists some ECG history of system accesses such that no
 individual replica deviates from too far this history. To define what
@@ -3405,12 +3474,16 @@ database images $D$ and $D'$ such that $F(D) - F(D') = 0$ for each
 conit $F$ in $\mathcal{F}$. This access will be associated with a
 consistency requirement for each conit in $\mathcal{F}$.
 
+We write $\WL{P}|_\mathcal{F}$ to indicate the history of $P$
+restricted to just the messages with non-zero weight on any of the
+conits in the set $\mathcal{F}$.
+
 The application can specify the consistency requirements for each
 conit along a three-dimensional axis:
 \[\textrm{Consistency} = \langle \textrm{Numerical error,
     \textrm{Order error}, \textrm{Staleness}} \rangle.\]
 
-Nsummariumerical error bounded by a \emph{push}-approach: $P$ may have to
+Numerical error bounded by a \emph{push}-approach: $P$ may have to
 block during a request in order to proactively inform $Q$ about the
 update before it can be applied. This consists of $P$ obtaining $Q$'s
 current summary vector and then forwarding messages in $P$'s write log
@@ -3420,10 +3493,6 @@ Real-time staleness and order error are both bounded by a
 \emph{pull}-based approach: $P$ may have to block during an operation
 while contacting other sites in order to request information from
 them.
-
-We write $\WL{P}|_\mathcal{F}$ to indicate the history of $P$
-restricted to just the messages with non-zero weight on any of the
-conits in the set $\mathcal{F}$.
 
 \subsubsection{Numerical consistency}
 \label{sssec:conit-numerical-consistency}
@@ -3478,7 +3547,7 @@ that each other process $Q$ has not seen.
 \item If version matrices used, $P$ conservatively estimates that $Q$
   has not seen any messages from $P$ with timestamp newer than
   $\ackMatrix{P}[Q][P]$.
-  \[ \View{P}{Q} := \{ m \in \WLat{P}{P} | \timestamp{m} >
+  \[ \View{P}{Q} := \{ m \in \WLat{P}{P} | \timestamp{m} \leq
     \ackMatrix{P}[Q][P] \} \] The advantage of matrices over the
   previous approach is that scenarios like the following are possible:
   $P$ learns through a process $R$ that $Q$ has received some messages
@@ -3491,8 +3560,8 @@ checks for each $Q$ whether $\mathsf{tnw}_{P}(Q)$\ldots
 
 \begin{definition}[Unseen weight]
   The unseen positive weight by $Q$ is the value of
-  \[ \mathsf{PosWeightUnseen}\left(Q\right) = \sum_{m \in \W \setminus \WL{Q}} \NumWeight(w) \]
-  \[ \mathsf{NegWeightUnseen}\left(Q\right) = \sum_{m \in \W \setminus \WL{Q}} \NumWeight(w) \]
+  \[ \mathsf{SeenPosWeight}_F^P\left(Q\right) = \sum \{ \NumWeight(m) | m \in \WLat{P}{Q}, \NumWeight_F(m) > 0 \} \]
+  \[ \mathsf{SeenNegWeight}_F^P\left(Q\right) = \sum \{ \NumWeight(m) | m \in \WLat{P}{Q}, \NumWeight_F(m) < 0 \} \]
 \end{definition}
 
 We need to make an assumption that processes are able and willing to
@@ -3513,6 +3582,27 @@ maintains a requirement per conit (not per accesses).
 We describe \emph{split-weight AE} (absolute error) algorithm, which
 Yu and Vahdat explicate most at length in a 2000 paper
 \cite{2000tactalgorithms}.
+
+\[
+  V_P = F \left(D_\textrm{init}\right) + \sum_{X \in \AllProc}  \left(\mathsf{SeenPosWeight}_F^P\left(X\right) + \mathsf{SeenNegWeight}_F^P\left(X\right)\right)
+\]
+\[
+  V_\textrm{ideal} = F \left(D_\textrm{init}\right) + \sum_{X \in \AllProc}  \left(\mathsf{SeenPosWeight}^X\left(X\right) + \mathsf{SeenNegWeight}^X\left(X\right)\right)
+\]
+
+\textbf{Correctness condition}:
+\[ | V_\textrm{ideal} - V_P | \leq \epsilon
+\]
+
+\[
+  \mathsf{EstUnseenPosWeight}^P_F = \WL{P}{P} \setminus \View{P}{Q}
+\]
+
+When $P$ accepts a write $w \in \WLat{P}{P}$, $P$ checks whether
+\begin{gather*}
+  \mathsf{pos} + \mathsf{NumWeight} \leq \frac{\epsilon}{|\AllProc| - 1}
+  \mathsf{neg} + \mathsf{NumWeight} \geq \frac{\epsilon}{|\AllProc| - 1}
+\end{gather*}
 
 \paragraph{Variations} Yu and Vahdat also describe two other schemes
 for bounding numerical error. \emph{Compound-weight absolute error} is
@@ -3561,23 +3651,58 @@ non-obvious.
 
 \subsubsection{Order consistency}
 \label{sssec:conit-order-consistency}
-
-Recall that we think of message logs as a linear structure. As updates
-submitted by $P$ are written to $P$'s log, the message ordering
-component delivers some of them to $P$. Messages that haven't been
-delivered come with the liability that, when they are delivered, they
-will take effect in different order than when they were entered into
-$P$'s write log. We say that these updates are \emph{uncommitted}.
+Recall that that the write log $\WL{P}$ is a linearly ordered
+structure. Messages are initially received and applied tentatively.
+Let $\Uncommitted{P}$ represent the uncommitted messages in $\WL{P}$,
+with $\Uncommitted{P}|_{\mathcal{F}}$ denoting the writes that affect
+any of the conits in a set $\mathcal{F}$.
 
 
-When the number of tentative (uncommitted) writes is high, TACT
-executes a write commitment algorithm. This is a \emph{pull-based}
-approach which pulls information from other processes in order to
-advance \(P_i\)'s vector clock, raising the watermark and hence
-allowing \(P_i\) to commit some of its writes.
 
-Let $\mathcal{F}$ be a set of conits:
+Uncommitted writes come with the liability that, when they are
+committed, they may be rolled back and reapplied in different order
+than when they were entered into $P$'s write log. Each write is $w$ is
+associated with an \emph{order weight}, intended to capture the cost
+of having to apply $w$ in a different order than the one it was first
+applied.
 
+Let $r$ be a read access submitted to $P$ with a dependency on conit
+set $\mathcal{F}$. Let $\PH_{\textrm{obs}}$ be the observed prefix
+history. Now $\PH_{\textrm{obs}} \cap \PH_{\textrm{ideal}}$, the
+common prefix of the observed and ideal history, represents the
+longest part of $\PH_{\textrm{obs}}$ that is correct (i.e. agrees with
+the ideal history). Therefore,
+$\PH_{\textrm{obs}} \setminus \left(\PH_{\textrm{obs}} \cap
+  \PH_{\textrm{ideal}}\right)$ represents all of the accesses that
+have been applied to $P$'s local replica that will have to be rolled
+back during the eventual write committment process. For purposes of
+order error, we are only interested in measuring writes that affect
+the conits
+
+The order error is
+the combined order weight of these writes:
+
+\begin{definition}[Order error]
+  The \emph{order error} of an access depending on a conit set
+  $\mathcal{F}$ is the following sum (where $-$ denotes set difference):
+  \[
+    \mathsf{OrderError}\left(r\right) \equiv \sum \left\{\mathsf{OrdWeight}\left(w\right) | w \in \PH_{\textrm{obs}}|_\Conits - \left(\PH_{\textrm{obs}}|_\Conits \cap
+  \PH_{\textrm{ideal}}|_\Conits \right) \right\}
+\]
+\end{definition}
+
+
+The uncommitted order weight on a conit $F$ is defined as the sum
+\[ \sum \{\mathsf{OrdWeight}\left(w\right) | w \in \Uncommitted{P}|_{\mathcal{F}}\}
+\]
+To bound order error, it is enough to ensure that the value above does
+not exceed $\epsilon_{\textrm{oe}}$. When the number of tentative
+(uncommitted) writes is high, TACT executes a write commitment
+algorithm. This is a \emph{pull-based} approach which pulls
+information from other processes in order to advance $P$'s commit
+line.
+
+\begin{comment}
 Some of $P$'s write log is correct:
 $\WL{P}|_{\mathcal{F}} \cap \WL{\mathsf{ideal}}|_{\mathcal{F}}$. The rest of $P$'s log is wrong:
 \[\WL{P}|_\mathcal{F} - \left(\WL{P}|_{\mathcal{F}} \cap
@@ -3599,9 +3724,11 @@ $\mathsf{Committed}{\left(\WL{P}|_{\mathcal{F}}\right)}$, which is a of
     $\summaryVec{P}$, $P$ can raise its commit line $\ack{P}{P}$.$P$
     can then use the total order delivery of
     \ref{sssec:tsae-message-ordering} to commit some of its updates.
+\end{comment}
 
 \subsubsection{Real time staleness}
 \label{sssec:conit-real-time-consistency}
+\begin{comment}
 Take, say, an application for disseminating the most up-to-date
 visualization of the location of a fire front. A client may find this
 it acceptable for this information to appears 30 seconds out of date
@@ -3609,28 +3736,47 @@ to a client, but unacceptable if it is 30 minutes out of date. For
 example, firefighters who are very close to a fire have a lower
 tolerance for stale information than a central client keeping only a
 birds-eye view of several fire fronts simultaneously.
+\end{comment}
 
-The \emph{real time staleness} metric allows these clients to maintain
-their by requiring them to maintain an additional vector
-$\vtphys{P}{}$ of physical timestamp values. $\vtphys{P}{Q}$ stores
-the value $\clock{P,t}$ of $P$'s clock at the last time $P$ received a
-batch of messages from $Q$. The \emph{staleness} of a conit is the
-physical time elapsed since the last update not seen by this replica
-was submitted.
+The \emph{real time staleness} metric allows each process $P$ to bound
+the maximum amount of time between an access affecting a conit being
+issued and $P$ seeing that access. Here we rely on the assumption that
+$\summary{P}{}$ stores physical timestamps from loosely synchronized
+physical clocks, though this assumption can be weakened.
 
-Let $\epsilon$ be $P$'s real-time staleness bound for a conit $F$. Any
-time $P$ handles a client request with a read dependency on $F$, $P$
-checks whether $\clock{P,t} - \vtphys{P}{Q} < \epsilon$ holds for each
-$Q$. If the difference is greater than $\epsilon$, $P$ pulls from $Q$
-to advance $\vtphys{P}{Q}$, as well as its own database image, before
-processing the request. This ensures the client will not read a stale
-value, assuming $P$'s clock progresses at a uniform rate.
+\newcommand{\eprt}{\epsilon_{\textrm{rt}}} Suppose $P$ has an upper
+bound $\eprt$ on the real-time staleness of a conit $F$. Here, $\eprt$
+should be greater than the time it takes for $P$ to engage in a
+typical anti-entropy session. The rule for enforcing real-time bounds
+is very simple. While handling an access with a read dependency on
+$F$, submitted at time $t$, $P$ checks for each $X \in \AllProc$
+whether $|\clock{P, t} - \summary{P}{X}| < \eprt$ is true. If it is
+not true, then $P$ engages in a pull-based anti-entropy session with
+$X$, at which point $\summary{P}{X}$ has value $\clock{X, t'}$ for
+some $t' > t$. Note that the assumption of loose synchronization
+implies $\clock{X, t'} \approx \clock{P, t}$ if $t \approx t'$. This
+protocol ensures that the original access, timestamped with
+$\clock{P,t}$, will observe the effect of all writes affecting $F$
+with timestamps less than $\clock{P,t} - \eprt$.
 
-In some cases, $\summaryVec{P}$ might be used instead of a new vector
-$\vtphys{P}{}$, but this is somewhat fraught too: $\summary{P}{Q}$
-stores a timestamp from $Q$'s clock, not $P$'s. Whether these values
-are comparable depending on the degree of clock synchronization and
-the relative scale of $\epsilon$.
+A pull-based protocol may seem wasteful because $P$ may poll $X$ for
+updates even if $X$ does not have any new writes. However, an approach
+where $X$ pushes updates to $P$ cannot bound real-time staleness
+without an upper bound on the time it takes to push messages across
+the network to $P$.
+
+If clocks are not loosely synchronized, an alternative implementation
+strategy is for $P$ to maintain a vector $\vtphys{P}{}$ where
+$\vtphys{P}[X]$ stores the value $\clock{P,t}$ of $P$'s clock at the
+last time $P$ was on the receiving end of an anti-entropy session
+directly with $X$. Then $P$ enforces consistency by ensuring that
+$|\clock{P, t} - \vtphys{P}{[X]}| < \eprt$ is true before handling
+an access submitted at time $t$. Since this approach only compares
+values from $P$'s clock, synchronization is not required assuming
+$\clock{P}$ runs at a constant rate. However, this approach has the
+downside that, unlike $\summary{P}{Q}$, $\vtphys{P}[Q]$ cannot be
+updated based on information indirectly learned during anti-entropy
+with a third party.
 
 \subsubsection{Conit Variations and Extensions}
 \label{sssec:conit-extensions}
@@ -3662,7 +3808,7 @@ situations where new conits need to be created on-the-fly. For
 instance, data related to a new wildfire that has emerged may require
 forming new conits to set consistency bounds.
 
-Donkervliet's master's thesis \citationneeded explored the subject of
+Donkervliet's master's thesis \cite{dyconits} explored the subject of
 dynamic conit creation in the context of massive multiplayer online
 games, particularly Minecraft. In that work, new conits may be
 associated with newly encountered objects in an area, and their

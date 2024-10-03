@@ -33,8 +33,8 @@
 \newcommand{\commitline}[1]{\textsf{commit}^{#1}}
 \newcommand{\globalcommit}{\textsf{globalcommit}}
 \newcommand{\knowncommit}[1]{\textsf{purgeline}^{#1}}
-\newcommand{\WL}[1]{\textsf{Log}_{#1}}
-\newcommand{\WLat}[2]{\textsf{Log}_{#1}\left(#2\right)}
+\newcommand{\WL}[1]{\textsf{Log}^{#1}}
+\newcommand{\WLat}[2]{\textsf{Log}^{#1}\left(#2\right)}
 \newcommand{\W}{\textbf{\textsf{Messages}}}
 \newcommand{\Unseen}[1]{\textsf{Unseen}_{#1}}
 \newcommand{\EstUnseen}[2]{\textsf{EstUnseen}_{#1}{\left(#2\right)}}
@@ -45,9 +45,9 @@
 \newcommand{\clock}[1]{\textsf{clock}\left(#1\right)}
 \newcommand{\UnseenWeight}[1]{\textsf{Unseen}_{#1}}
 \newcommand{\UnseenWeightEst}[2]{\textsf{EstUnseen}_{#1}{\left(#2\right)}}
-\newcommand{\vtphys}[2]{\mathrm{vt}_{#1}}
+\newcommand{\vtphys}[1]{\mathrm{vt}^{#1}}
 \newcommand{\timestamp}[1]{\mathsf{time}\left(#1\right)}
-\newcommand{\Uncommitted}[1]{\textsf{Uncommitted}_{#1}}
+\newcommand{\Uncommitted}[1]{\textsf{Log}_{\textrm{uncom}}^{#1}}
 \newcommand{\ackVec}[1]{\textsf{ack}^{#1}}
 \newcommand{\ackMatrix}[1]{\textsf{matrix}^{#1}}
 \newcommand{\Writes}{\textbf{\textsf{Writes}}}
@@ -55,3 +55,6 @@
 \newcommand{\View}[2]{\textsf{View}^{#1}\left(#2\right)}
 \newcommand{\twp}[2]{\mathsf{twp}^{#1}\left(#2\right)}
 \newcommand{\twn}[2]{\mathsf{twn}^{#1}\left(#2\right)}
+\newcommand{\Dinit}{D_\textrm{init}}
+\newcommand{\PH}{\mathsf{PH}}
+\newcommand{\Conits}{\mathcal{F}}
