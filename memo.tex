@@ -2685,20 +2685,20 @@ Though physical clock synchronization is not a reliable assumption in
 all contexts, we expect that for many useful purposes, sufficient
 synchronization can be achieved with a protocol like NTP.  Section
 \ref{sssec:tsae-unsynchronized} explains how synchronized physical
-clocks can be replaced with version matrices at the cost of quadratic
-storage requirement. Our sense is that for our purpose of implementing
-continuous consistency in Section \ref{ssec:consistency-units},
-conventional scalar logical clocks can be used in place of physical
-clocks below.\footnote{Golding's requirement for synchronized clocks
-  stems from a need to ensure that messages are delivered in a
-  reasonable time, since messages originating at a process with a fast
-  clock may never be delivered (from a database point of view,
-  tentatively applied writes may never become committed). However, the
-  conit framework below bounds the number of uncommitted writes by
-  pull-based compulsory anti-entropy, so it is enough that these
-  sessions ensure progress.} Indeed, this seems to be how Yu and
-Vahdat \cite{2000tact} implement TSAE as part of their TACT
-framework. The real-time consistency metric discussed in
+clocks can be replaced with version matrices at the cost of a
+quadratic storage requirement. Our sense is that for our purpose of
+implementing continuous consistency in Section
+\ref{ssec:consistency-units}, conventional scalar logical clocks can
+be used everywhere in place of physical clocks.\footnote{Golding's
+  requirement for synchronized clocks stems from a need to ensure that
+  messages are delivered in a reasonable time, since messages
+  originating at a process with a fast clock may never be delivered
+  (from a database point of view, tentatively applied writes may never
+  become committed). However, the conit framework below bounds the
+  number of uncommitted writes by pull-based compulsory anti-entropy,
+  so it is enough that these sessions ensure progress.} Indeed, this
+seems to be how Yu and Vahdat implement TSAE as part
+of their TACT framework \cite{2002tact}. The real-time consistency metric discussed in
 \ref{sssec:conit-real-time-consistency} requires each process to keep
 a physical clock to measure elapsed time, though synchronization does
 not appear to be strictly required here either, assuming each clock
@@ -2728,13 +2728,13 @@ and current clock value. The timestamp of $m$ is denoted by
 $\timestamp{m}$.
 
 Submitted messages are not sent to other processes right away, but
-propagate by a fairly straightforward protocol. Periodically, $P$
-contacts some other process $Q$ and the pair conduct an
-\emph{anti-entropy session}. First, $P$ and $Q$ exchange summary
-vectors, defined below. $P$ uses $Q$'s summary vector to quickly
-calculate which messages in $\WL{P}$ are not already known to $Q$ and
-then transmits these messages to $Q$. Symmetrically, $Q$ forwards
-messages in $\WL{Q}$ that $P$ has not seen, leaving the two sides in
+propagate by a straightforward protocol. Periodically, $P$ contacts
+some other process $Q$ and the pair conduct an \emph{anti-entropy
+  session}. First, $P$ and $Q$ exchange summary vectors (defined
+below). $P$ uses $Q$'s summary vector to quickly calculate which
+messages in $\WL{P}$ are not already known to $Q$ and then transmits
+these messages to $Q$. Symmetrically, $Q$ forwards messages in
+$\WL{Q}$ that $P$ has not seen, leaving the two sides in
 synchronization afterwards.\footnote{In a multithreaded environment
   where $P$ and $Q$ can engage in multiple anti-entropy sessions with
   different partners at once, the two sides may end in different
@@ -2746,7 +2746,7 @@ synchronization afterwards.\footnote{In a multithreaded environment
 TSAE provides reliable eventual delivery, meaning every message is
 eventually received by every process, as long as no process fails and
 no partition indefinitely separates any two nodes. In particular, if
-processes stop originating new messages so $\W$ remains fixed, if
+processes stop originating new messages (so $\W$ remains fixed), if
 processes remain able to communicate, then $\WL{P}$ is guaranteed to
 eventually converge to $\W$. To achieve this, it is enough that each
 pair of processes engage in anti-entropy periodically. This can
@@ -2756,7 +2756,7 @@ other processes that engage in anti-entropy with each other, and so
 on. TSAE itself does not prescribe a particular policy regarding when
 and with whom to engage in anti-entropy, however. Consequently, it
 does not guarantee or estimate how far apart $\WL{P}$ is from
-$\WL{Q}$, or from $\W$. The framework in Section
+$\WL{Q}$, or from $\W$, at any moment. The framework in Section
 \ref{ssec:consistency-units} prescribes a policy for TSAE based on
 conservative estimates of divergence in order to enforce these sorts
 of limits.
@@ -2784,13 +2784,13 @@ different orders, as the reader should keep in mind.
   \begin{subfigure}{1\textwidth}
     \centering
     \includegraphics[width=0.6\textwidth]{images/MessageLog1.png}
-    \caption{A message log with entries accumulating linearly}
+    \caption{A message log with entries accumulating bottom-to-top in linear order}
     \label{fig:message-log-a}
   \end{subfigure}
   \begin{subfigure}{1\textwidth}
     \centering
     \includegraphics[width=0.6\textwidth]{images/MessageLog2.png}
-    \caption{The same message log shown with messages from different senders disaggregated}
+    \caption{The same log shown with messages disaggregated by sender}
     \label{fig:message-log-b}
   \end{subfigure}
   \caption{A message log displayed linearly and disaggregated}
@@ -2800,23 +2800,20 @@ different orders, as the reader should keep in mind.
 
 \subsubsection{The Summary Vector and Its Invariant}
 \label{sssec:tsae-summary-vectors}
-Besides the message log, the message propagation component maintains a
+Besides $\WL{P}$, the message propagation component maintains a
 \emph{version vector} $\summaryVec{P}$ whose role is to quickly
 communicate to other processes which messages $P$ has already
-received. This structure is very similar to a vector clock, except for
-one minor and one more fundamental difference. First, the version of
-TSAE presented here stores physical rather than logical clock values,
-although this is a non-essential difference and we relax this
-assumption later. A more fundamental distinction is that while a
+received. This structure is very similar to a vector clock (see
+Section \ref{sssec:vector-clocks}) with a few differences. First, the
+version of TSAE presented here happens to store physical, rather than
+logical, clock values. A more essential distinction is that while a
 vector clock tracks causality between events and increments the local
-clock with each event, here the value $\summary{P}{P}$ tracks the set
-of messages sent by $P$ and follows a slightly different update
-procedure than the ones described in \ref{sssec:vector-clocks}. Unlike
-a vector clock, $\summary{P}{P}$ not incremented when $P$ receives a
-message from another process. At all times, $\summary{P}{P}$ is an
-upper bound on the timestamp $\clock{P,t}$ of $P$'s most recent
-message. As with vector clocks, $\summary{P}{Q}$ can be thought of as
-$P$'s lower bound view of $\summary{Q}{Q}$.
+clock with each event, a version vector tracks the history of updates
+to replicated data. The value $\summary{P}{P}$ tracks the set of
+messages sent by $P$ and is incremented when $P$ sends a new message,
+but not when $P$ receives a message from another process. As with
+vector clocks, $\summary{P}{Q}$ can be thought of as $P$'s lower bound
+view of $\summary{Q}{Q}$.
 
 When $P$ submits a message to its own log, $\summary{P}{P}$ is
 advanced to $\clock{P, t}$ and the message is timestamped with this
@@ -2828,41 +2825,35 @@ as happening in three phases (setup, message exchange, and conclusion):
   $\summary{Q}{Q}$ is advanced to $\clock{Q, t}$. The parters exchange summary vectors.
 \item For each process $X \in \AllProc$, $P$ sends to $Q$ the set of
   messages in $\WLat{P}{X}$ with timestamps greater than
-  $\summary{Q}{X}$. Likewise for each $X$ it receives all messages
+  $\summary{Q}{X}$, if any. Likewise for each $X$ it receives all messages
   from $\WLat{Q}{X}$ with timestamps greater than $\summary{P}{X}$ and
-  adds these to $\WL{P}$. The partners exchange signals when
-  they are finished sending new messages.
-\item Much like a vector clock, $\summaryVec{P}$ is set to the pointwise maximum of its
-  current value and the value of $\summaryVec{Q}$ received from $Q$. Likewise
-  $Q$ updates $\summaryVec{Q}$.
+  adds these to $\WLat{P}{X}$. The partners exchange signals to indicate
+  when they are finished sending and receiving updates.
+\item Much like a vector clock, $\summaryVec{P}$ is updated to the
+  pointwise maximum of its current value and the value of
+  $\summaryVec{Q}$ received from $Q$. Likewise $Q$ updates
+  $\summaryVec{Q}$.
 \end{enumerate}
-There is additionally bookkeeping related to another structure, the
-acknowledgement vector, but we summarize its role later.
-
 The message log satisfies an invariant, termed the coverage property,
 formalizing the role of $\summaryVec{P}$ as a summary of the contents
 of $P$'s message log.
 \begin{quote}
-  \textbf{Coverage Property}: $P$ has received all messages
-  originating at $Q$ whose timestamps are less than the
+  \textbf{Coverage Property}: For all $Q$, $P$ has received
+  all messages originating at $Q$ whose timestamps are less than the
   $Q^\textrm{th}$ entry in $P$'s summary timestamp vector.
   \[ \{m \in \WLat{Q}{Q} | \timestamp{m} \leq \summary{P}{Q} \} \subseteq \WLat{P}{Q} \]
 \end{quote}
-The previous subset relation is usually an equality and can be thought
-as an equality ``morally.'' When equality holds, then besides forming
-a lower bound of $\summary{Q}{Q}$, $\summary{P}{Q}$ can be thought of
-as an \emph{upper} bound of the originating time, measured by $Q$'s
-clock, of the last message $P$ received from $Q$. In this case,
-$\summary{P}{Q}$ provides complete information about the contents of
-$\WL{P}$. However, technically, only the subset property is required
-for correctness. This observation is relevant to avoid subtle race
-conditions: implementations can safely add messages to $\WL{P}$ before
-$\summaryVec{P}$ is updated but not vice versa. Section 5.4.3 of
-Golding's thesis also describes a situation where an optimized version
-of TSAE that is combined with an unreliable network-level multicast
-can lead to situations where some messages are added to $\WL{P}$
-``early,'' in which case the above property is a strict subset
-relation.
+The previous subset relation is ``morally'' an equality---messages in
+$\WLat{P}{Q}$ but not the subset are said to be ``early''---but only the
+the subset property is required for correctness.\footnote{Section
+  5.4.3 of Golding's thesis describes how a version of TSAE
+  combined with an unreliable network-level multicast for optimization purposes can add
+  messages to $\WLat{P}{Q}$ early.} Thus, besides forming a lower
+bound of $\summary{Q}{Q}$, $\summary{P}{Q}$ can be thought of as an
+\emph{upper} bound of the originating time, measured by $Q$'s clock,
+of the last message $P$ received from $Q$. The coverage property
+implies that $\summaryVec{P}$ provides complete information about the
+(non-early) contents of $\WL{P}$.
 
 The reader should convince themselves that the following inequalities
 hold at all times for all $P$ and $Q$ (including when $P = Q$):
@@ -2873,8 +2864,8 @@ hold at all times for all $P$ and $Q$ (including when $P = Q$):
 \begin{example}
   \label{example:tsae}
   Figures \ref{fig:tsae1}---\ref{fig:tsae6} depict the evolution of
-  TSAE executing across three distributed processes $P$, $Q$, and
-  $R$. The figures depict the following chain of events beginning at
+  TSAE executing across three distributed processes $A$, $B$, and
+  $C$. The figures depict the following chain of events beginning at
   $t = 3$. Note that by $t = 9$, $A$ learns of writes submitted with
   $C$ without performing direct communication with $C$. The figures
   also depict acknowledgment vectors, shown in red, and what we later
@@ -2891,7 +2882,7 @@ hold at all times for all $P$ and $Q$ (including when $P = Q$):
       $t = 6$ & $A$ and $B$ finish anti-entropy, $C$ submits a write \\
       $t = 7$ & $B$ and $C$ begin anti-entropy, $A$ submits a write \\
       $t = 8$ & $B$ and $C$ finish anti-entropy, $A$ and $B$ begin anti-entropy \\
-      $t = 9$ & $A$ and $C$ finish anti-entropy
+      $t = 9$ & $A$ and $B$ finish anti-entropy
     \end{tabular}
   \end{centering}
 \end{example}
