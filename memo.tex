@@ -2557,8 +2557,8 @@ region or state during a wide-area event, like the kind discussed in
 Section \ref{sec:disaster-response}. Such a system might track
 firefighters' locations, monitor a wildfire's boundaries, disseminate
 weather data, and orchestrate resource deployment. In this context,
-TSAE would have responsibility for ensuring that every multicast
-update eventually reaches each of its intended recipients.
+TSAE would have responsibility for ensuring that every update
+eventually reaches each of its intended recipients.
 
 TSAE provides reliable eventual delivery, which makes it useful as a
 fault-tolerant messaging component in an implementation of distributed
@@ -2594,27 +2594,27 @@ ordering and may duplicate network messages, though it does not
 spontaneously create new ones. The network may not be reliable, but we
 assume that persistent attempts to communicate with a distant node
 will eventually succeed. The network might support native multicasting
-of network-level msharedessages, which could be used as part of an
+of network-level messages, which could be used as part of an
 implementation of TSAE, but the TSAE layer itself provides a form of
 application-level multicasting regardless of the network
 infrastructure.
 
 A typical use case of TSAE is to maintain replicas of a shared
-database at multiple sites throughout the system. This database is
-updated according to some logical data model, such as a relational
-schema, a key-value store, or a document store. For simplicity, we
-will assume that every process maintains a complete replica of the
-data. Each process may submit an update by sending a message (at the
-application level, using TSAE) announcing it. TSAE ensures that this
-message is eventually delivered to every process; when this happens,
-the recipient applies the update to its own replica. Of course, the
-semantic meaning of updates is entirely decided by the
-application. If, for instance, the underlying data model required
-updates to be applied in the same order at all sites to ensure they
-reach the same final state, then the application would combine TSAE
-with a total ordering component to ensure that messages are received
-in the same order everywhere, as we do in
-\ref{sssec:tsae-message-ordering}.
+database at multiple sites throughout the system. ``Database'' should
+be understood broadly as a data store that is updated according to
+some logical data model, such as a relational schema, a key-value
+store, or a document store. For simplicity, we will assume that every
+process maintains a complete replica. Each process may submit an
+update by sending a message (at the application level, using TSAE)
+announcing it. TSAE ensures that this message is eventually delivered
+to every process; when this happens, the recipient applies the update
+to its own replica. Of course, the semantic meaning of updates is
+entirely decided by the application. If, for instance, the underlying
+data model requires updates to be applied in the same order at all
+replicas to ensure they reach the same final state, then the
+application would combine TSAE with a total ordering component to
+ensure that messages are delivered in the same order everywhere, as we
+do in \ref{sssec:tsae-message-ordering}.
 
 Replication is an alternative to managing state in a central location,
 such as a datacenter. This provides resiliency by removing single
@@ -2627,7 +2627,7 @@ generally faster and more reliable.
 
 One highly relevant use case of globally replicating state is to
 support offline usage of applications. This represents taking locality
-to its limit. Agents in the field may not be able to connect to a
+to its limit. Responders in the field may not be able to connect to a
 datacenter, but in the meantime they can interact with the application
 on their device backed by a local replica of the data. This is useful
 for as long as the agents can be confident that their replica has not
@@ -2635,15 +2635,15 @@ diverged too far from the rest of the system. A key point is that this
 is an application-level matter. How quickly shared state evolves, how
 to quantify divergence, and how far apart is ``too'' divergent are
 determined by user intent, usage patterns, and operational
-environment, among other things. The advantage of the framework
-presented in this section is that the middleware provides the
+environment, among other things. The advantage of the memory model
+presented in Section \ref{ssec:consistency-units} is that the middleware provides the
 application with flexible methods for tuning consistency guarantees,
 allowing these decisions to be encoded into the application logic on a
 per-process basis.
 
 We now present TSAE in terms of its assumptions
 (\ref{sssec:tsae-assumptions}), data structures and invariants
-(\ref{sssec:tsae-message-log}--\ref{sssec:tsae-acknowledgement})
+(\ref{sssec:tsae-message-log}--\ref{sssec:tsae-acknowledgement}),
 ordering component (\ref{sssec:tsae-message-ordering}), and storage
 recycling procedure (\ref{sssec:tsae-message-purging}). Finally, we
 discuss how version matrices can be used instead of the loosely
