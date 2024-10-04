@@ -160,9 +160,11 @@ even adversarial environment.
 \label{ssec:summaries-of-the-sections}
 Section \ref{sec:disaster-response} opens with a practical overview of
 disaster response and some of the computing challenges encountered in
-this setting. Real-world examples from disaster response scenarios are
-presented that demonstrate the role of distributed systems principles
-in achieving system-wide safety.
+this setting. The heavily disruptive nature of the communications
+network in these environments invariably raises issues fundamental to
+the science of distributed systems. Real-world examples from disaster
+response scenarios are presented that demonstrate how these challenges
+affect system-wide safety.
 
 Section \ref{sec:background} summarizes fundamental concepts and
 mechanisms used in distributed systems, culminating in the classic
@@ -176,24 +178,35 @@ environments will always operate with incomplete information about the
 global system.  While the CAP theorem is often presented as a kind of
 unfortunate prohibition, it merely highlights a general kind of
 tradeoff. Furthermore, real-world systems often exhibit a kind of
-``locality'' that mitigates some of the constraints implied by the CAP
+``locality'' that mitigates some of the constraints implied by the
 theorem.
 
-Motivated by the CAP theorem, Section \ref{sec:continuous-consistency}
-describes a hypothetical application suitable for networks with
-frequent disruptions: a data replication service built on the theory
-of \emph{conits} (short for ``consistency unit'') developed by Yu and
-Vahdat \cite{2002tact}. This framework provides a \emph{continuous}
-consistency model that balances the competing objects of consistency
-and availability in a quantifiable and controllable way. The idea is
-that applications can tolerate some level of inconsistency between
-replicas of a data item, as long as it the divergence remains less
-than some defined upper bound. A conit-based system allows
-applications to define units of replicated state of interest, enforce
-policies limiting inconsistency between their replicas, and adapt
-these policies dynamically. This sort of approach can meet the strict
-requirements of safety-related systems while tolerating the adverse
-environments and real-world limitations of the environment.
+Section \ref{sec:tsae} presents Golding's Timestamped Anti-Entropy
+(TSAE) protocol. TSAE provides a fault-tolerant message propagation
+mechanism that ensures messages are eventually delivered to all
+parties. This implements a weak (eventual) consistency model,
+representing an optimistic approach to consistency where replicas of
+shared state are allowed to diverge temporarily and have their
+differences reconciled periodically. However, it has the downside that
+it cannot enforce bounds on how far apart any two replicas may diverge
+before this occurs. Therefore, users are not provided any guarantees
+limiting how far apart a data item observed by the user may be from
+its ``true'' value.
+
+Section \ref{sec:continuous-consistency} describes a TSAE-based
+replication mechanism suitable for networks with frequent disruptions,
+but where it is also important to measure and control how far apart
+replicas may diverge at any moment. This uses the theory of
+\emph{conits} (short for ``consistency unit'') developed by Yu and
+Vahdat \cite{2002tact}, which provides a \emph{continuous} consistency
+model that balances the competing objectives of consistency and
+availability in a quantifiable way. The idea is that applications can
+tolerate some level of inconsistency between replicas of a data item,
+as long as it the divergence remains less than some defined upper
+bound. Using the conit framework allows applications to define units
+of replicated state of interest, enforce policies limiting
+inconsistency between their replicas, and adapt these policies
+dynamically in response to the environment.
 
 We conclude in Section \ref{sec:conclusion} by recapping some of the
 main themes in this document and highlighting areas for further
@@ -851,8 +864,8 @@ this section will delve into these issues with more technical depth,
 while later sections will examine how some of these challenges can be
 reflected in the middleware design.
 
-\subsection{Physical Synchrony}
-\label{ssec:physical-synchrony}
+\subsection{Physical Synchronization}
+\label{ssec:physical-synchronization}
 A lot of challenges in distributed computing could be
 straightforwardly overcome if we assume that all participants have
 instantaneous access to a common time base, i.e.  synchronized
@@ -879,9 +892,9 @@ mountainous terrain, heavy smoke, and subterranean operations can lead
 to errors or block signals entirely. Protocols like the Network Time
 Protocol (NTP) \cite{rfc1119} work to bring clocks into
 synchronization with respect to an authoritative source. On the public
-internet, NTP typically achieves synchrony to within values on the
+internet, NTP typically achieves synchronization to within values on the
 order of tens of milliseconds \cite{rfc1128}, but it is not clear the
-level of synchrony that can be expected from NTP in the sorts of use
+level of synchronization that can be expected from NTP in the sorts of use
 cases we have in mind. A field device initialized without internet
 access may have no idea what the time is, but it must still operate.
 
@@ -1269,10 +1282,6 @@ components but less than it in others.
   are \emph{incomparable}.
 \end{definition}
 
- is justified by the fact that vector
-clocks satisfy \ref{eq:sc}, so these otherwise distinct notions will
-coincide.
-
 \begin{lemma}
   Vector clocks satisfy the strong clock consistency condition. That
   is, where $C(e)$ is the vector timestamp of an event, then
@@ -1632,7 +1641,7 @@ message orders.
   FIFO is violated.
 \end{itemize}
 \end{example}
-Section \ref{sssec:tsae-message-ordering} describes a particular
+Section \ref{ssec:tsae-message-ordering} describes a particular
 mechanism to implement total order broadcast.
 \paragraph{Self-delivered messages}
 In some contexts one considers broadcast primitives that include the
@@ -1852,10 +1861,7 @@ start time or stop time. However, using these kinds of orders in
 practice would require sufficiently fine-grained timestamps from
 synchronized clocks, but synchronization is usually an infeasible
 assumption (see Section
-\ref{ssec:physical-synchrony}). %In that section, we were lead
-% to define a global partial order, causal precedence, partly in
-% reaction to the fact that we cannot use physical timestamps to
-% arrange all systemwide events into a total order.
+\ref{ssec:physical-synchronization}).
 
 \subsection{Strong Consistency Models}
 \label{ssec:strong-consistency}
@@ -2526,17 +2532,9 @@ resilient distributed systems for emergency response scenarios
 requires a careful balancing act between competing properties that is
 carefully calibrated to the use case and the operational environment.
 
-\section{Continuous Consistency}
-\label{sec:continuous-consistency}
-In this section, we present a \emph{continuous} consistency model
-developed by Yu and Vahdat \cite{2002tact} that we argue is
-well-suited for distributed shared memory across a wide area connected
-by disruption-prone networks. Rather than viewing consistency as an
-all-or-nothing proposition, continuous consistency makes the
-consistency/availability tradeoff first class by providing conceptual
-knobs and dials to ``tune'' the strength of the model based on the
-application and the capacity of the network.
 
+\section{Timestamped Anti-Entropy}
+\label{sec:tsae}
 Before we present the memory model, we present a key mechanism that
 can be used to implement it: Golding's Timestamped Anti-Entropy (TSAE)
 protocol \cite{1992:golding-thesis}. TSAE is a \emph{weak consistency
@@ -2562,8 +2560,6 @@ can be used to enforce, through so-called compulsory anti-entropy
 sessions, quantitative consistency requirements on each site of
 replicated data on a per-site basis.
 
-\subsection{Timestamped Anti-Entropy}
-\label{ssec:tsae}
 Golding's thesis \cite{1992:golding-thesis} presents TSAE as one
 component of a broader toolkit for developing distributed
 applications. Before laying out the algorithm itself, it is useful to
@@ -2574,7 +2570,7 @@ communicating through message exchange. These messages are an
 application-specific construct and might contain things like
 instructions to update a database. These may not map one-to-one with
 low-level network messages like those discussed in Section
-\ref{ssec:message-passing}, which we think of as analogous to Internet
+\ref{sec:message-passing}, which we think of as analogous to Internet
 Protocol (IP) packets. Note that an IP packet might contain multiple
 application messages, and a large application message may be split up
 into multiple packets during network transit.
@@ -2606,7 +2602,7 @@ order at all replicas to ensure they reach the same final state. In
 this case, the application would combine TSAE with a total ordering
 component to ensure that messages are delivered in the same order
 everywhere. This is described in
-\ref{sssec:tsae-message-ordering}. The resulting system provides
+\ref{ssec:tsae-message-ordering}. The resulting system provides
 eventual, totally-ordered delivery, which offers a general mechanism
 for implementing replicated state machines.
 
@@ -2630,22 +2626,22 @@ is an application-level matter. How quickly shared state evolves, how
 to quantify divergence, and how far apart is ``too'' divergent are
 determined by user intent, usage patterns, and operational
 environment, among other things. The advantage of the memory model
-presented in Section \ref{ssec:consistency-units} is that the middleware provides the
+presented in Section \ref{sec:consistency-units} is that the middleware provides the
 application with flexible methods for tuning consistency guarantees,
 allowing these decisions to be encoded into the application logic on a
 per-process basis.
 
 We now present TSAE in terms of its assumptions
-(\ref{sssec:tsae-assumptions}), data structures and invariants
-(\ref{sssec:tsae-message-log}--\ref{sssec:tsae-acknowledgement}),
-ordering component (\ref{sssec:tsae-message-ordering}), and storage
-recycling procedure (\ref{sssec:tsae-message-purging}). Finally, we
+(\ref{ssec:tsae-assumptions}), data structures and invariants
+(\ref{ssec:tsae-message-log}--\ref{ssec:tsae-acknowledgement}),
+ordering component (\ref{ssec:tsae-message-ordering}), and storage
+recycling procedure (\ref{ssec:tsae-message-purging}). Finally, we
 discuss how version matrices can be used instead of the loosely
 synchronized physical clocks assumed below
-(\ref{sssec:tsae-unsynchronized}).
+(\ref{ssec:tsae-unsynchronized}).
 
-\subsubsection{Assumptions}
-\label{sssec:tsae-assumptions}
+\subsection{Assumptions}
+\label{ssec:tsae-assumptions}
 We assume each process is associated with an identifier. In practice,
 these might be Uniform Resource Identifiers (URIs) \cite{rfc3986}
 following a structured format like
@@ -2678,11 +2674,11 @@ at real time $t$.
 Though physical clock synchronization is not a reliable assumption in
 all contexts, we expect that for many useful purposes, sufficient
 synchronization can be achieved with a protocol like NTP.  Section
-\ref{sssec:tsae-unsynchronized} explains how synchronized physical
+\ref{ssec:tsae-unsynchronized} explains how synchronized physical
 clocks can be replaced with version matrices at the cost of a
 quadratic storage requirement. Our sense is that for our purpose of
 implementing continuous consistency in Section
-\ref{ssec:consistency-units}, conventional scalar logical clocks can
+\ref{sec:consistency-units}, conventional scalar logical clocks can
 be used everywhere in place of physical clocks.\footnote{Golding's
   requirement for synchronized clocks stems from a need to ensure that
   messages are delivered in a reasonable time, since messages
@@ -2693,15 +2689,15 @@ be used everywhere in place of physical clocks.\footnote{Golding's
   so it is enough that these sessions ensure progress.} Indeed, this
 seems to be how Yu and Vahdat implement TSAE as part
 of their TACT framework \cite{2002tact}. The real-time consistency metric discussed in
-\ref{sssec:conit-real-time-consistency} requires each process to keep
+\ref{ssec:conit-real-time-consistency} requires each process to keep
 a physical clock to measure elapsed time, though synchronization does
 not appear to be strictly required here either, assuming each clock
 runs at a consistent rate. We assume synchronization here to follow
 Golding's presentation, highlighting where the assumption is used.
 
 
-\subsubsection{Message Log}
-\label{sssec:tsae-message-log}
+\subsection{Message Log}
+\label{ssec:tsae-message-log}
 Each process $P$ manages a \emph{message log} containing all messages
 sent or received by $P$.\footnote{Some implementations of TSAE may not
   require a message log and can operate directly on the shared state
@@ -2754,7 +2750,7 @@ on. TSAE itself does not prescribe a particular policy regarding when
 and with whom to engage in anti-entropy, however. Consequently, it
 does not guarantee or estimate how far apart $\WL{P}$ is from
 $\WL{Q}$, or from $\W$, at any moment. The framework in Section
-\ref{ssec:consistency-units} prescribes a policy for TSAE based on
+\ref{sec:consistency-units} prescribes a policy for TSAE based on
 conservative estimates of divergence in order to enforce these sorts
 of limits.
 
@@ -2766,7 +2762,7 @@ and $\WL{Q}$ eventually converge, it is more correct to say they will
 be permutations of each other rather than equal. For applications that
 require messages to be delivered in a particular order, like a total
 order, an additional ordering component is used, as in
-\ref{sssec:tsae-message-ordering}.
+\ref{ssec:tsae-message-ordering}.
 
 \begin{example}
   Figure \ref{fig:message-log} shows a message log for containing six
@@ -2797,13 +2793,13 @@ order, an additional ordering component is used, as in
 \end{figure}
 
 
-\subsubsection{The Summary Vector and Its Invariant}
-\label{sssec:tsae-summary-vectors}
+\subsection{Summary Vector}
+\label{ssec:tsae-summary-vectors}
 Besides $\WL{P}$, the message propagation component maintains a
 \emph{version vector} $\summaryVec{P}$ whose role is to quickly
 communicate to other processes which messages $P$ has already
 received. This structure is very similar to a vector clock (see
-Section \ref{sssec:vector-clocks}) with a few differences. First, the
+Section \ref{ssec:vector-clocks}) with a few differences. First, the
 version of TSAE presented here happens to store physical, rather than
 logical, clock values. A more essential distinction is that while a
 vector clock tracks causality between events and increments the local
@@ -2941,8 +2937,8 @@ hold at all times for all $P$ and $Q$ (including when $P = Q$):
   \end{figure}
 \end{landscape}
 
-\subsubsection{The Acknowledgement Vector}
-\label{sssec:tsae-acknowledgement}
+\subsection{Acknowledgement Vector}
+\label{ssec:tsae-acknowledgement}
 $P$'s summary vector enables another process to quickly learn which
 messages $P$ has seen. Additionally, $P$ must keep tabs on which
 messages \emph{other} processes have seen. This information is
@@ -2957,14 +2953,14 @@ its partner alongside its $\summaryVec{P}$, taking their pointwise
 maximums afterwards. This leads to the idea of a version matrix, but
 it has the downside of a per-process space requirement this is
 quadratic in the size of the process group. This approach is
-considered further in \ref{sssec:tsae-unsynchronized}.
+considered further in \ref{ssec:tsae-unsynchronized}.
 
 The other mechanism presented by Golding requires each process $P$
 to maintain an \emph{acknowledgement vector} $\ackVec{P}$. The basic idea
 is to coarsely summarize $P$'s knowledge of other processes not with
 its summary vector, but the minimal element in this vector, a scalar,
 which is stored in $\ack{P}{P}$. For reasons explained in
-Section \ref{ssec:consistency-units}, this value is called $P$'s \emph{commit
+Section \ref{sec:consistency-units}, this value is called $P$'s \emph{commit
   line}. Periodically, $P$'s commit line is updated to the minimal
 timestamp in its summary vector,
 $\min_{X \in \AllProc} \left(\summary{P}{X}\right)$.  For correctness,
@@ -3056,8 +3052,8 @@ delivered to the application and ultimately purged from $\WL{P}$,
 before considering the matrix-based alternative to acknowledgement
 vectors.
 
-\subsubsection{Message Ordering}
-\label{sssec:tsae-message-ordering}
+\subsection{Message Ordering}
+\label{ssec:tsae-message-ordering}
 TSAE guarantees that messages will eventually be received by all other
 processes, but ordering of these messages in different processes' logs
 may vary. In some applications this is acceptable, but other
@@ -3093,7 +3089,7 @@ delivered.
 \end{lemma}
 \begin{proof}
   Assuming periodic anti-entropy sessions, the process in
-  \ref{sssec:tsae-message-log} ensures each message is eventually
+  \ref{ssec:tsae-message-log} ensures each message is eventually
   received by $P$ and each value of the form $\summary{P}{Q}$
   eventually increases. Thus, the minimum entry in $\summaryVec{P}$
   will eventually increase beyond $\timestamp{m}$, so each $m$ will be
@@ -3114,8 +3110,8 @@ need to be propagated to new recipients during anti-entropy in the
 future. Consequently, the ordering component must perform bookkeeping
 to remember which messages in the log have already been delivered.
 
-\subsubsection{Message Purging}
-\label{sssec:tsae-message-purging}
+\subsection{Message Purging}
+\label{ssec:tsae-message-purging}
 As presented, the message log at each host grows without limit, so it
 requires an unbounded amount of storage. Thus, a separate log
 recycling process can be used to remove old entries when they are no
@@ -3170,8 +3166,8 @@ storage requirements of the message log in a particular use case and
 environment should be measured empirically as part of an application
 optimization strategy.
 
-\subsubsection{TSAE using Version Matrices}
-\label{sssec:tsae-unsynchronized}
+\subsection{TSAE using Version Matrices}
+\label{ssec:tsae-unsynchronized}
 If clocks are not approximately synchronized, the clock value at one
 process may greatly exceed that of another. Because the minimal entry
 in $\summaryVec{P}$ is used to concisely summarize which messages $P$
@@ -3201,22 +3197,36 @@ Altogether, $P$ applies the following (conservative) policies:
 
 \item A message with timestamp $m$ is ready to be delivered to $P$ by a total
   ordering component when the following analogue of \eqref{eq:tsae-message-ordering-condition} holds:
-  \[\timestamp{m} \leq \min_{X \in \AllProc} \left(\ackMatrix{P}[P][X]\right)\]
+  \begin{equation}
+    \timestamp{m} \leq \min_{X \in \AllProc} \left(\ackMatrix{P}[P][X]\right)
+  \end{equation}
 \item A message $m$ originating at $R$ has been
   received by $Q$ when the following condition holds:
-  \[ \timestamp{m} \leq \ackMatrix{P}[Q][R] \]
+    \begin{equation}
+      \timestamp{m} \leq \ackMatrix{P}[Q][R]
+    \end{equation}
 \item A message $m$ originating at $R$, after being delivered to $P$,
   can be purged from the log when the following analogue of
   \eqref{eq:tsae-message-purging-condition} holds:
-  \[ \timestamp{m} \leq \min_{X \in \AllProc}\ackMatrix{P}[X][R]\]
+    \begin{equation}
+      \timestamp{m} \leq \min_{X \in \AllProc}\ackMatrix{P}[X][R]
+    \end{equation}
 \end{itemize}
 
 Of course, matrices require $\Theta(n^2)$ storage at each site for a
 process group with $n$ members, which quickly becomes untenable for
 systems where $n$ is on the order of 1,000 or greater.
 
-\subsection{Consistency Unit Framework}
-\label{ssec:consistency-units}
+\section{Continuous Consistency}
+\label{sec:continuous-consistency}
+In this section, we present a \emph{continuous} consistency model
+developed by Yu and Vahdat \cite{2002tact} that we argue is
+well-suited for distributed shared memory across a wide area connected
+by disruption-prone networks. Rather than viewing consistency as an
+all-or-nothing proposition, continuous consistency makes the
+consistency/availability tradeoff first class by providing conceptual
+knobs and dials to ``tune'' the strength of the model based on the
+application and the capacity of the network.
 
 Using periodic timestamped anti-entropy sessions to synchronize
 replicas only provides a progress guarantee: all messages will
@@ -3247,14 +3257,14 @@ The conit framework strikes a desirable balance between being general
 enough to work in applications with very different data models, and
 practical enough to efficiently enforce error bounds with
 straightforward protocols. We describe it now in terms of its system
-model (\ref{sssec:conit-system-model}), its three dimensions of
+model (\ref{ssec:conit-system-model}), its three dimensions of
 consistency
-(\ref{sssec:conit-numerical-consistency}---\ref{sssec:conit-real-time-consistency}),
-and possible extensions (\ref{sssec:conit-extensions}).
+(\ref{ssec:conit-numerical-consistency}---\ref{ssec:conit-real-time-consistency}),
+and possible extensions (\ref{ssec:conit-extensions}).
 
 
-\subsubsection{System Model}
-\label{sssec:conit-system-model}
+\subsection{System Model}
+\label{ssec:conit-system-model}
 The system consists of processes in $\AllProc$ that replicate a shared
 database (more generally, any kind of replicated state
 machine). Processes perform two types actions, read or write requests,
@@ -3333,9 +3343,9 @@ back. Committed writes are applied in the same order at all
 replicas. Taking the place of the message ordering component, a write
 committment component is responsible for ultimately committing writes
 accesses. Commitment is an adaptation of the total ordering mechanism
-in \ref{sssec:tsae-message-ordering}.
+in \ref{ssec:tsae-message-ordering}.
 
-\subsubsection{Ideal Histories}
+\subsection{Ideal Histories}
 To define quantify deviation from strong consistency, we must give a
 few definitions. Recall the notion of external order (Definition
 \ref{def:external-order}): an access $A$ externally precedes $A'$ if
@@ -3375,7 +3385,7 @@ $\Dinit + \PH_\textrm{a}$.  The following equations hold.
 
 There are essentially three reasons
 
-\subsubsection{Conits}
+\subsection{Conits}
 The intention of the conit framework is this: at any moment in time,
 there exists some ECG history of system accesses such that no
 individual replica deviates from too far this history. To define what
@@ -3425,8 +3435,8 @@ Real-time staleness and order error are both bounded by a
 while contacting other sites in order to request information from
 them.
 
-\subsubsection{Numerical consistency}
-\label{sssec:conit-numerical-consistency}
+\subsection{Numerical consistency}
+\label{ssec:conit-numerical-consistency}
 We imagine that a conit $F$ is associated with a valuation function,
 \[
   \Val^F\colon \mathsf{Database\ Image} \to \mathbb{R}
@@ -3571,8 +3581,8 @@ non-obvious.
   \mbox{$\epsilon^C_\textrm{num} / \left(3 - 1\right)$}.
 \end{example}
 
-\subsubsection{Order consistency}
-\label{sssec:conit-order-consistency}
+\subsection{Order consistency}
+\label{ssec:conit-order-consistency}
 Recall that that the write log $\WL{P}$ is a linearly ordered
 structure. Messages are initially received and applied tentatively to
 $D_P$ in an uncommitted state. Eventually they will become committed
@@ -3694,8 +3704,8 @@ writes until the order error is within bounds.
   vector before handling any new operation.
 \end{example}
 
-\subsubsection{Real time staleness}
-\label{sssec:conit-real-time-consistency}
+\subsection{Real time staleness}
+\label{ssec:conit-real-time-consistency}
 The \emph{real time staleness} metric allows each process $P$ to bound
 the maximum amount of time between an access affecting a conit being
 issued and $P$ seeing that access. Here we rely on the assumption that
@@ -3736,8 +3746,8 @@ unlike $\summary{P}{Q}$, $\vtphys{P}[Q]$ cannot be updated based on
 information indirectly learned during anti-entropy with a third
 party.
 
-\subsubsection{Conit Variations and Extensions}
-\label{sssec:conit-extensions}
+\subsection{Extensions}
+\label{ssec:conit-extensions}
 One can imagine various ways that the conit model can be augmented
 with additional capabilities. These topics are outside the scope of
 this memo but offered for future consideration.
@@ -3777,7 +3787,7 @@ player. Adapting their \emph{dyconits} (dynamic conits) framework to
 the wide-area tactical environment may be worthwhile.
 
 \paragraph{Interaction with the Network}
-We mentioned in Section \ref{sssec:allocation-of-network-resource} our
+We mentioned in Section \ref{ssec:allocation-of-network-resource} our
 expectation of a tighter, more complex interaction between the network
 and application layers in this environment because of the need to
 optimize scarce network resources for the most important
