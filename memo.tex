@@ -1362,7 +1362,7 @@ to one process are also known to another processes. When this is of
 interest, it is often because a process wants to compute which facts
 are known to \emph{all} other processes. In Section
 \ref{sec:continuous-consistency}, particularly Section
-\ref{sssec:tsae-unsynchronized}, we will see an example of how a
+\ref{ssec:tsae-unsynchronized}, we will see an example of how a
 vector and matrix clocks (or rather, very similar mechanisms called
 version vectors and matrices) can be used in the context of
 replicating a database over a disruption-heavy network.
@@ -2535,45 +2535,32 @@ carefully calibrated to the use case and the operational environment.
 
 \section{Timestamped Anti-Entropy}
 \label{sec:tsae}
-Before we present the memory model, we present a key mechanism that
-can be used to implement it: Golding's Timestamped Anti-Entropy (TSAE)
-protocol \cite{1992:golding-thesis}. TSAE is a \emph{weak consistency
-  group communication} mechanism that provides a form of multicasting
-to applications. We picture TSAE as a key driver of communication
-across a distributed system supporting first responders across a
-region or state during a wide-area event, like the kind discussed in
-Section \ref{sec:disaster-response}. Such a system might track
-firefighters' locations, monitor a wildfire's boundaries, disseminate
-weather data, and orchestrate resource deployment. In this context,
-TSAE would have responsibility for ensuring that every update
-eventually reaches each of its intended recipients.
-
-TSAE provides reliable eventual delivery, which makes it useful as a
-fault-tolerant messaging component in an implementation of distributed
-shared memory. Because updates are merely propagated
-\emph{eventually}, TSAE used this way does not bound the divergence of
-each replica from the ``ideal'' value of the shared state---the value
-it would have if strong consistency were maintained---at any
-moment. However, following Yu and Vahdat \cite{2002tact}, we show how
-an implementation of the conit (consistency unit) model on top of TSAE
-can be used to enforce, through so-called compulsory anti-entropy
-sessions, quantitative consistency requirements on each site of
-replicated data on a per-site basis.
+This section presents Golding's Timestamped Anti-Entropy (TSAE)
+protocol \cite{1992:golding-thesis}, a \emph{weak consistency group
+  communication} mechanism that provides a form of multicasting to
+applications. We picture TSAE as a key driver of communication across
+a distributed system supporting first responders across a region or
+state during a wide-area event, like the kind discussed in Section
+\ref{sec:disaster-response}. Such a system might track firefighters'
+locations, monitor a wildfire's boundaries, disseminate weather data,
+and orchestrate resource deployment. In this context, TSAE would have
+responsibility for ensuring that every update eventually reaches each
+of its intended recipients.
 
 Golding's thesis \cite{1992:golding-thesis} presents TSAE as one
 component of a broader toolkit for developing distributed
-applications. Before laying out the algorithm itself, it is useful to
-consider what services it provides from the perspective of an
-application developer. We imagine a group of cooperating processes,
-referred to by Golding as ``principals,'' managing shared state and
-communicating through message exchange. These messages are an
-application-specific construct and might contain things like
-instructions to update a database. These may not map one-to-one with
-low-level network messages like those discussed in Section
-\ref{sec:message-passing}, which we think of as analogous to Internet
-Protocol (IP) packets. Note that an IP packet might contain multiple
-application messages, and a large application message may be split up
-into multiple packets during network transit.
+applications. Before laying out the protocol, it is useful to explain
+what role it is meant to have in the context of a larger distributed
+system. We imagine a group of cooperating processes, referred to by
+Golding as ``principals,'' managing shared state and communicating
+through message exchange. These messages are an application-specific
+construct and might contain things like instructions to update a
+database. These may not map one-to-one with low-level network messages
+like those discussed in Section \ref{ssec:message-passing}, which we
+think of as analogous to Internet Protocol (IP) packets. Note that an
+IP packet might contain multiple application messages, and a large
+application message may be split up into multiple packets during
+network transit.
 
 At a lower level, we assume the network supports point-to-point
 (unicast) communication, but it does not have to guarantee FIFO
@@ -2587,24 +2574,24 @@ application-level multicasting regardless of the network
 infrastructure.
 
 A typical use case of TSAE is to maintain replicas of a shared
-database at multiple sites throughout the system. ``Database'' should
-be understood broadly as a data store that is updated according to
-some logical data model, such as a relational schema, a key-value
-store, or a document store. For simplicity, we will assume that every
-process maintains a complete replica. Each process may submit an
-update by sending a message (at the application level, using TSAE)
-announcing it. TSAE ensures that this message is eventually delivered
-to every process; when this happens, the recipient applies the update
-to its own replica. Of course, the semantic meaning of updates is
-entirely decided by the application. A common requirement of
-underlying data model is for all updates to be applied in the same
-order at all replicas to ensure they reach the same final state. In
-this case, the application would combine TSAE with a total ordering
-component to ensure that messages are delivered in the same order
-everywhere. This is described in
-\ref{ssec:tsae-message-ordering}. The resulting system provides
-eventual, totally-ordered delivery, which offers a general mechanism
-for implementing replicated state machines.
+database at multiple sites, for which purpose its reliable eventual
+delivery makes it well-suited as a fault-tolerant messaging
+component. Here, ``database'' is used broadly to refer to any data
+store updated according to some logical model, such as a relational
+schema, a key-value store, or a document store. Processes update the
+data by broadcasting update messages using TSAE. Updates are
+eventually delivered to every process, at which point recipients apply
+it their own replica. Of course, the semantics of updates are decided
+by the application. If the underlying data model requires updates to
+be applied in the same order across replicas to maintain consistency,
+TSAE can be paired with a totally ordered delivery mechanism, which is
+described in Section
+\ref{ssec:tsae-message-ordering}. %and forms the basis of
+                                  %Section\ref{sec:continuous-consistency}.
+
+% The resulting system provides eventual, totally-ordered delivery,
+% which offers a general mechanism for implementing replicated state
+% machines.
 
 Replication is an alternative to managing state in a central location,
 such as a datacenter. This provides resiliency by removing single
@@ -2625,11 +2612,14 @@ diverged too far from the rest of the system. A key point is that this
 is an application-level matter. How quickly shared state evolves, how
 to quantify divergence, and how far apart is ``too'' divergent are
 determined by user intent, usage patterns, and operational
-environment, among other things. The advantage of the memory model
-presented in Section \ref{sec:consistency-units} is that the middleware provides the
-application with flexible methods for tuning consistency guarantees,
-allowing these decisions to be encoded into the application logic on a
-per-process basis.
+environment, among other things. Because updates are merely delivered
+\emph{eventually}, TSAE does not bound the divergence of each replica
+from the ``ideal'' value of the shared state at any moment. Folling Yu
+and Vahdat \cite{2002tact}, we show in Section
+\ref{sec:continuous-consistency} how an implementation of the conit
+(consistency unit) model on top of TSAE can be used to enforce,
+through so-called compulsory anti-entropy sessions, quantitative
+consistency requirements separately for each replica.
 
 We now present TSAE in terms of its assumptions
 (\ref{ssec:tsae-assumptions}), data structures and invariants
@@ -2678,19 +2668,12 @@ synchronization can be achieved with a protocol like NTP.  Section
 clocks can be replaced with version matrices at the cost of a
 quadratic storage requirement. Our sense is that for our purpose of
 implementing continuous consistency in Section
-\ref{sec:consistency-units}, conventional scalar logical clocks can
-be used everywhere in place of physical clocks.\footnote{Golding's
-  requirement for synchronized clocks stems from a need to ensure that
-  messages are delivered in a reasonable time, since messages
-  originating at a process with a fast clock may never be delivered
-  (from a database point of view, tentatively applied writes may never
-  become committed). However, the conit framework below bounds the
-  number of uncommitted writes by pull-based compulsory anti-entropy,
-  so it is enough that these sessions ensure progress.} Indeed, this
-seems to be how Yu and Vahdat implement TSAE as part
-of their TACT framework \cite{2002tact}. The real-time consistency metric discussed in
-\ref{ssec:conit-real-time-consistency} requires each process to keep
-a physical clock to measure elapsed time, though synchronization does
+\ref{sec:continuous-consistency}, conventional scalar logical clocks
+can be used everywhere in place of physical clocks. Indeed, this seems
+to be how Yu and Vahdat implement TSAE as part of their TACT framework
+\cite{2002tact}. The real-time consistency metric discussed in
+\ref{ssec:conit-real-time-consistency} requires each process to keep a
+physical clock to measure elapsed time, though synchronization does
 not appear to be strictly required here either, assuming each clock
 runs at a consistent rate. We assume synchronization here to follow
 Golding's presentation, highlighting where the assumption is used.
@@ -2699,18 +2682,15 @@ Golding's presentation, highlighting where the assumption is used.
 \subsection{Message Log}
 \label{ssec:tsae-message-log}
 Each process $P$ manages a \emph{message log} containing all messages
-sent or received by $P$.\footnote{Some implementations of TSAE may not
-  require a message log and can operate directly on the shared state
-  to achieve the same effect, but we describe TSAE in the most general
-  case here.} We denote $P$'s message log by $\WL{P}$. It grows in
-linear order, as a stack, as new messages are sent and received. Each
-message in $\WL{P}$ is tagged with the identifier of the process that
-originally created it, with the subset of messages in $\WL{P}$ that
-originated at $Q$ denoted by $\WLat{P}{Q}$. Thus, $\WLat{P}{P}$
-represents the set of messages created by $P$. The set of global
-messages, $\W$, is defined as the (disjoint) union of messages
-originating from every process, which by mild abuse of notation we are
-treating as sets:
+sent or received by $P$.We denote $P$'s message log by $\WL{P}$. It
+grows in linear order, as a stack, as new messages are sent and
+received. Each message in $\WL{P}$ is tagged with the identifier of
+the process that originally created it, with the subset of messages in
+$\WL{P}$ that originated at $Q$ denoted by $\WLat{P}{Q}$. Thus,
+$\WLat{P}{P}$ represents the set of messages created by $P$. The set
+of global messages, $\W$, is defined as the (disjoint) union of
+messages originating from every process, which by mild abuse of
+notation we are treating as sets:
 \[\W \equiv \bigcup_{X \in \AllProc} \WLat{X}{X}.\]
 
 The application at $P$ broadcasts a message $m$ using TSAE by writing
@@ -2750,7 +2730,7 @@ on. TSAE itself does not prescribe a particular policy regarding when
 and with whom to engage in anti-entropy, however. Consequently, it
 does not guarantee or estimate how far apart $\WL{P}$ is from
 $\WL{Q}$, or from $\W$, at any moment. The framework in Section
-\ref{sec:consistency-units} prescribes a policy for TSAE based on
+\ref{sec:continuous-consistency} prescribes a policy for TSAE based on
 conservative estimates of divergence in order to enforce these sorts
 of limits.
 
@@ -2799,7 +2779,7 @@ Besides $\WL{P}$, the message propagation component maintains a
 \emph{version vector} $\summaryVec{P}$ whose role is to quickly
 communicate to other processes which messages $P$ has already
 received. This structure is very similar to a vector clock (see
-Section \ref{ssec:vector-clocks}) with a few differences. First, the
+Section \ref{sssec:vector-clocks}) with a few differences. First, the
 version of TSAE presented here happens to store physical, rather than
 logical, clock values. A more essential distinction is that while a
 vector clock tracks causality between events and increments the local
@@ -2960,7 +2940,7 @@ to maintain an \emph{acknowledgement vector} $\ackVec{P}$. The basic idea
 is to coarsely summarize $P$'s knowledge of other processes not with
 its summary vector, but the minimal element in this vector, a scalar,
 which is stored in $\ack{P}{P}$. For reasons explained in
-Section \ref{sec:consistency-units}, this value is called $P$'s \emph{commit
+Section \ref{sec:continuous-consistency}, this value is called $P$'s \emph{commit
   line}. Periodically, $P$'s commit line is updated to the minimal
 timestamp in its summary vector,
 $\min_{X \in \AllProc} \left(\summary{P}{X}\right)$.  For correctness,
@@ -3117,26 +3097,27 @@ instead of just eventually. For example, if $Q$ has an exceptionally
 slow clock compared to other processes, then $\summary{P}{Q}$ will
 remain the minimum element in $\summaryVec{P}$ for a long time. During
 this time, only messages from $Q$ will be delivered to $P$, as all
-other messages would have timestamps greater than $Q$'s clock.
+other messages would have timestamps greater than $Q$'s clock. Section
+\ref{ssec:tsae-unsynchronized} explains how the assumption of
+synchronization can be removed.
 
-A message simply cannot be removed from the write log after being
-delivered to $P$, because some of the messages in $\WL{P}$ may still
-need to be propagated to new recipients during anti-entropy in the
-future. Consequently, the ordering component must perform bookkeeping
-to remember which messages in the log have already been delivered.
 
 \subsection{Message Purging}
 \label{ssec:tsae-message-purging}
-As presented, the message log at each host grows without limit, so it
-requires an unbounded amount of storage. Thus, a separate log
-recycling process can be used to remove old entries when they are no
-longer required.
+A message simply cannot be removed from the write log after being
+delivered to $P$, because some of the messages in $\WL{P}$ may be
+propagated to new recipients during anti-entropy in the
+future.\footnote{This implies the ordering component must perform
+  bookkeeping to remember which messages in the log have already been
+  delivered.} However, it is untenable to let the message log grow
+without limit. Thus, a separate log recycling process can be used to
+remove old entries when they are no longer required.
 
 There are two requirements for a message to be safe to delete. First,
 it clearly must have been delivered to $P$ already. Additionally, it
 must have been received by all other processes---otherwise it might be
 one of the messages $P$ should send in a future anti-entropy
-session. $P$ will know a message $m$ has been acknowledged by all
+session. $P$ will know a message $m$ has been received by all
 other processes when its timestamp is less than or equal to $P$'s
 \emph{purge line}, defined as the minimum entry in the acknowledgment
 vector:
@@ -3205,11 +3186,9 @@ bound estimate of $Q$'s summary vector, with $\ackMatrix{P}[Q][R]$
 providing a lower bound estimate of the greatest timestamp of any
 message $Q$ has received from $R$. Matrices are exchange during
 anti-entropy sessions just as before, with both sides taking the
-pointwise maximum after.
-
-Altogether, $P$ applies the following (conservative) policies:
+pointwise maximum after. For message ordering and log recycling, $P$
+applies the following (conservative) policies:
 \begin{itemize}
-
 \item A message with timestamp $m$ is ready to be delivered to $P$ by a total
   ordering component when the following analogue of \eqref{eq:tsae-message-ordering-condition} holds:
   \begin{equation}
@@ -3234,49 +3213,55 @@ systems where $n$ is on the order of 1,000 or greater.
 
 \section{Continuous Consistency}
 \label{sec:continuous-consistency}
-In this section, we present a \emph{continuous} consistency model
-developed by Yu and Vahdat \cite{2002tact} that we argue is
-well-suited for distributed shared memory across a wide area connected
-by disruption-prone networks. Rather than viewing consistency as an
-all-or-nothing proposition, continuous consistency makes the
-consistency/availability tradeoff first class by providing conceptual
-knobs and dials to ``tune'' the strength of the model based on the
-application and the capacity of the network.
-
-Using periodic timestamped anti-entropy sessions to synchronize
-replicas only provides a progress guarantee: all messages will
-eventually be received, acknowledged, delivered, and purged from the
-log of all processes, assuming the devices do not fail and network
-partitions do not last forever. This implements a \emph{weak
-  consistency} model: using TSAE to replicate state allows replicas to
-diverge, but ensures they will eventually converge to an agreement if
-allowed to communicate, at least if new updates do not outpace the
-rate of convergence. Unfortunately, this property does not say
-anything about how far apart replicas might diverge in the meantime.
-
 This section summarizes the key ideas behind \emph{continuous}
 consistency, with a particular focus on the conit (``consistency
 unit'') model proposed by Yu and Vahdat
-\cite{2000tact,2000tactalgorithms,10.5555/1251229.1251250,DBLP:conf/icdcs/YuV01,2002tact}. Continuous
-consistency is motivated by the observation that real-world
-applications can generally tolerate some level of divergence of
-replicated data, especially in exchange for greater performance and
-availability. Intuitively, applications can operate with replicas that
-deviate from their ``ideal'' value by at most some margin of error
-$\epsilon \geq 0$. However, applications have unique data models and
-measure this error in different ways, so building a general framework
-to enforce quantitative error bounds on replicas without making
-specific assumptions about the nature of the data is challenging.
+\cite{2000tact,2000tactalgorithms,10.5555/1251229.1251250,DBLP:conf/icdcs/YuV01,2002tact}.
+Rather than viewing consistency as an all-or-nothing proposition,
+continuous consistency makes the consistency/availability tradeoff
+first class by providing conceptual knobs and dials to ``tune'' the
+strength of the model based on the application and the capacity of the
+network. We suggest that the conit framework is well-suited for
+distributed shared memory across a wide area connected by
+disruption-prone networks.
+
+The implementation we describe here, based on Yu and Vahdat, combines
+TSAE with a totally ordered delivery component to announce updates to
+shared data, which we assume is replicated in full at each
+site. However, using TSAE only provides a progress guarantee: all
+messages will eventually be received, acknowledged, delivered, and
+purged from the log of all processes, assuming the devices do not fail
+and network partitions do not last forever. This implements a
+\emph{weak consistency} model, where replicas are allowed to diverge
+temporarily, but will eventually converge to an agreement if allowed
+to communicate, at least if updates do not outpace the rate of
+convergence. Unfortunately, weak consistency does not say anything
+about how far apart replicas might diverge in the meantime.
+
+Continuous consistency is motivated by the observation that real-world
+applications can generally tolerate some level of divergence among
+replicas, especially in exchange for greater performance and
+availability, but only up to a point. Intuitively, applications can
+operate with replicas that deviate from their ``ideal'' value by at
+most some margin of error $\epsilon \geq 0$---any greater, and the
+data is unreliable and the application may become unavailable until
+consistency is re-established. However, applications have unique data
+models and measure this error in different ways, so building a general
+framework to enforce quantitative error bounds on replicas without
+making specific assumptions about the nature of the data is
+challenging.
 
 The conit framework strikes a desirable balance between being general
 enough to work in applications with very different data models, and
 practical enough to efficiently enforce error bounds with
-straightforward protocols. We describe it now in terms of its system
-model (\ref{ssec:conit-system-model}), its three dimensions of
-consistency
+straightforward protocols. The model affords flexible methods for
+applications to tune their consistency guarantees, allowing these
+decisions to be encoded into the application logic on a per-process
+basis, perhaps based on feedback and observations from the network. We
+describe the model now in terms of its system model
+(\ref{ssec:conit-system-model}), its three dimensions of consistency
 (\ref{ssec:conit-numerical-consistency}---\ref{ssec:conit-real-time-consistency}),
 and possible extensions (\ref{ssec:conit-extensions}).
-
 
 \subsection{System Model}
 \label{ssec:conit-system-model}
