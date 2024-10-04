@@ -2862,7 +2862,7 @@ hold at all times for all $P$ and $Q$ (including when $P = Q$):
 \]
 
 \begin{example}
-  \label{example:tsae}
+  \label{ex:tsae}
   Figures \ref{fig:tsae1}---\ref{fig:tsae6} depict the evolution of
   TSAE executing across three distributed processes $A$, $B$, and
   $C$. The figures depict the following chain of events beginning at
@@ -2951,26 +2951,26 @@ critical for the message ordering and log recycling components of
 TSAE. Golding presents two ways to maintain this information, which
 make different efficiency tradeoffs.
 
-Arguably the simplest approach is for $P$ to maintain a local copy,
-called $P$'s \emph{view}, of the summary vector of every other
-process. During anti-entropy sessions, $P$ exchanges and updates its
-view of each process, effectively tracking a lower bound estimate of
-their current state. This leads to the idea of a version matrix, but
-it has the downside of a per-process space requirement quadratic in
-the size of the process group. This approach is considered further in
-\ref{sssec:tsae-unsynchronized}.
+Arguably the simplest approach is for $P$ to maintain a local (lower
+bound) copy, called $P$'s \emph{view}, of the summary vector of every
+other process. During anti-entropy sessions, $P$ exchanges views with
+its partner alongside its $\summaryVec{P}$, taking their pointwise
+maximums afterwards. This leads to the idea of a version matrix, but
+it has the downside of a per-process space requirement this is
+quadratic in the size of the process group. This approach is
+considered further in \ref{sssec:tsae-unsynchronized}.
 
-The other mechanism presented requires each process $P$ maintain an
-\emph{acknowledgement vector} $\ackVec{P}$. The basic idea is to
-coarsely estimate $P$'s knowledge of other processes not with its
-summary vector, but the minimal element in this vector, a scalar,
+The other mechanism presented by Golding requires each process $P$
+to maintain an \emph{acknowledgement vector} $\ackVec{P}$. The basic idea
+is to coarsely summarize $P$'s knowledge of other processes not with
+its summary vector, but the minimal element in this vector, a scalar,
 which is stored in $\ack{P}{P}$. For reasons explained in
-\ref{ssec:consistency-units}, this value is called $P$'s \emph{commit
+Section \ref{ssec:consistency-units}, this value is called $P$'s \emph{commit
   line}. Periodically, $P$'s commit line is updated to the minimal
 timestamp in its summary vector,
 $\min_{X \in \AllProc} \left(\summary{P}{X}\right)$.  For correctness,
 the invariant required of $\ack{P}{P}$ is that it is always a lower
-bound.
+bound of this minimum.
 \begin{quote}
   \textbf{Acknowledgement Property}: $P$'s commit line is less than or
   equal to the minimum value in $P$'s summary vector.\footnote{The
@@ -2979,7 +2979,9 @@ bound.
     before recomputing its minimum. Recall $P$ may be multi-threaded
     with multiple anti-entropy sessions affecting $\summaryVec{P}$ at
     the same time.}
-\[ \ack{P}{P} \leq \min_{X \in \AllProc} \left(\summary{P}{X}\right)\]
+  \begin{equation*}
+    \ack{P}{P} \leq \min_{X \in \AllProc} \left(\summary{P}{X}\right)
+\end{equation*}
 \end{quote}
 
 Acknowledgment vectors are updated during anti-entropy sessions much
@@ -2994,8 +2996,25 @@ like vector clocks and version vectors.
   received from $Q$. $Q$ updates $\ackVec{Q}$ symmetrically.
 \end{enumerate}
 Note that $\ack{P}{Q} \leq \ack{Q}{Q}$ at all times for all $P$ and
-$Q$. The following two lemmas explain the utility of $\ackVec{P}$ as a
+$Q$. Slightly different from Golding's presentation, the figures
+discussed in Example \ref{ex:tsae} also demonstrate a slight
+optimization that takes advantage of the fact that summary vectors are
+updated at the end of anti-entropy sessions. After updating these
+vectors to their pointwise maximum, we immediately recompute
+$\ack{P}{P}$, setting it to
+$\min_{X \in \AllProc} \left(\summary{P}{X}\right)$. $Q$ does the
+same. Furthermore, $\ack{P}{Q}$ and $\ack{Q}{P}$ are set to this
+value. This is correct because it preserves the invariant that they
+are respectively lower bounds of $\ack{Q}{Q}$ and $\ack{P}{P}$.\footnote{There is a
+  subtle potential race condition here: $\ack{P}{Q}$ and $\ack{Q}{P}$
+  have to be computed from the minimum of the pointwise maximum of the
+  summary vectors exchanged at \emph{beginning} of the anti-entropy
+  session, and not their current values after. Otherwise, the values
+  could incorrectly reflect information $P$ and $Q$ learned from third
+  parties during their anti-entropy session.}
+The following two lemmas explain the utility of $\ackVec{P}$ as a
 way of estimating global state.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{lemma}
@@ -3032,8 +3051,9 @@ acknowledged messages have been received. The converse does not hold,
 since a received message will not be acknowledged until each entry in
 $\summaryVec{P}$, not just the entry of its sender, is greater than
 $\timestamp{m}$. We now explain how acknowledged messages can be
-delivered and ultimately purged from $\WL{P}$, before considering the
-matrix-based alternative to acknowledgement vectors.
+delivered to the application and ultimately purged from $\WL{P}$,
+before considering the matrix-based alternative to acknowledgement
+vectors.
 
 \subsubsection{Message Ordering}
 \label{sssec:tsae-message-ordering}
@@ -3055,7 +3075,7 @@ to $P$'s commit line. That is, the set of messages satisfying
   \label{eq:tsae-message-ordering-condition}
   \timestamp{m} \leq \ack{P}{P}
 \end{equation}
-These messages are delivered to $P$ order of their timestamps, using
+These messages are delivered to $P$ in order of their timestamps, using
 the identifiers of their senders to resolve ties. The correctness of
 this approach follows from Lemma \ref{lem:commitline}, since $P$ has
 seen all messages whose timestamp is less than $\ack{P}{P}$, and
@@ -3063,8 +3083,10 @@ therefore the stream of delivered messages will not have any ``gaps.''
 This mechanism for enforcing a total order dates back to the
 introduction of scalar clocks \cite{1978:lamportclocks}. Golding also
 describes straightfoward mechanisms to enforce causal and total-causal
-order in Section 5.5 in his dissertation. The ordering component
-guarantees messages will eventually be delivered:
+order in Section 5.5 in his dissertation.
+
+The ordering component guarantees messages will eventually be
+delivered.
 \begin{lemma}
   Every message will eventually be delivered to $P$ by TSAE.
 \end{lemma}
@@ -3129,11 +3151,12 @@ lemma.
   and can be purged from $\WL{P}$ to reclaim storage space.
 \end{proof}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-On the other hand, if $m$ has a timestamp greater than $\ack{P}{Q}$,
-then without knowing the current value of $\summaryVec{Q}$, there is
-no guarantee $\timestamp{m} < \summary{Q}{X}$, where $X$ is the
-originator of $m$. In this case, deleting $m$ from $\WL{P}$ might
-prevent $Q$ from ever receiving $m$.
+\begin{comment}
+For contrast, suppose $m$ has a timestamp greater than $\ack{P}{Q}$.
+Then without knowing the current value of $\summary{Q}{R}$ there is no
+guarantee $\timestamp{m}$ is less than this value. In this case,
+deleting $m$ from $\WL{P}$ might prevent $Q$ from ever receiving $m$.
+\end{comment}
 
 Because every message is eventually delivered and acknowledged by each
 process, $P$ will eventually be able to remove each message from its
