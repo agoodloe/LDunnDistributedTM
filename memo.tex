@@ -2800,23 +2800,23 @@ different orders, as the reader should keep in mind.
 
 \subsubsection{The Summary Vector and Its Invariant}
 \label{sssec:tsae-summary-vectors}
-Besides the message log, the delivery component a \emph{version
-  vector} $\summaryVec{P}$ whose role is to quickly communicate to
-other processes which messages $P$ has already received. This
-structure is very similar to a vector clock, except for one minor and
-one more fundamental difference. First, the version of TSAE presented
-here stores physical rather than logical clock values, although this
-is a non-essential difference and we relax this assumption later. A
-more fundamental distinction is that while a vector clock tracks
-causality between events and increments the local clock with each
-event, here the value $\summary{P}{P}$ tracks the set of messages sent
-by $P$ and follows a slightly different update procedure than the ones
-described in \ref{sssec:vector-clocks}. Unlike a vector clock,
-$\summary{P}{P}$ not incremented when $P$ receives a message from
-another process. At all times, $\summary{P}{P}$ is an upper bound on
-the timestamp $\clock{P,t}$ of $P$'s most recent message. As with
-vector clocks, $\summary{P}{Q}$ can be thought of as $P$'s lower bound
-view of $\summary{Q}{Q}$.
+Besides the message log, the message propagation component maintains a
+\emph{version vector} $\summaryVec{P}$ whose role is to quickly
+communicate to other processes which messages $P$ has already
+received. This structure is very similar to a vector clock, except for
+one minor and one more fundamental difference. First, the version of
+TSAE presented here stores physical rather than logical clock values,
+although this is a non-essential difference and we relax this
+assumption later. A more fundamental distinction is that while a
+vector clock tracks causality between events and increments the local
+clock with each event, here the value $\summary{P}{P}$ tracks the set
+of messages sent by $P$ and follows a slightly different update
+procedure than the ones described in \ref{sssec:vector-clocks}. Unlike
+a vector clock, $\summary{P}{P}$ not incremented when $P$ receives a
+message from another process. At all times, $\summary{P}{P}$ is an
+upper bound on the timestamp $\clock{P,t}$ of $P$'s most recent
+message. As with vector clocks, $\summary{P}{Q}$ can be thought of as
+$P$'s lower bound view of $\summary{Q}{Q}$.
 
 When $P$ submits a message to its own log, $\summary{P}{P}$ is
 advanced to $\clock{P, t}$ and the message is timestamped with this
