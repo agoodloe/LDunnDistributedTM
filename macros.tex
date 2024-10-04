@@ -1,7 +1,3 @@
-%\newcommand{\msend}[1]{m_{#1}^{\textrm{send}}}
-%\newcommand{\mrecv}[1]{m_{#1}^{\textrm{recv}}}
-%\newcommand{\msend}[1]{\mathsf{send}\left({m_{#1}}\right)}
-%\newcommand{\mrecv}[1]{\mathsf{recv}\left({m_{#1}}\right)}
 \newcommand{\msend}[1]{m_{#1}^{\mathsf{send}}}
 \newcommand{\mrecv}[1]{m_{#1}^{\mathsf{recv}}}
 \newcommand{\memstart}[1]{\mathsf{start}\left(#1\right)}
@@ -30,21 +26,13 @@
 \newcommand{\ack}[2]{\mathsf{ack}^{#1}\left[#2\right]}
 \newcommand{\summary}[2]{\mathsf{summary}^{#1}\left[#2\right]}
 \newcommand{\summaryVec}[1]{\mathsf{summary}^{#1}}
-%\newcommand{\commitline}[1]{\mathsf{commit}^{#1}}
-%\newcommand{\globalcommit}{\mathsf{globalcommit}}
-%\newcommand{\knowncommit}[1]{\mathsf{purgeline}^{#1}}
 \newcommand{\WL}[1]{\mathsf{Log}^{#1}}
 \newcommand{\WLat}[2]{\mathsf{Log}^{#1}\left(#2\right)}
 \newcommand{\W}{\mathbf{\mathsf{Messages}}}
-%\newcommand{\Unseen}[1]{\mathsf{Unseen}_{#1}}
-%\newcommand{\EstUnseen}[2]{\mathsf{EstUnseen}_{#1}{\left(#2\right)}}
 \newcommand{\AllProc}{\mathcal{P}}
-%\newcommand{\currenttime}[1]{\mathsf{currenttime}_{#1}}
 \newcommand{\Op}{\mathrm{Op}}
 % New ones
 \newcommand{\clock}[1]{\mathsf{clock}\left(#1\right)}
-%\newcommand{\UnseenWeight}[1]{\mathsf{Unseen}_{#1}}
-%\newcommand{\UnseenWeightEst}[2]{\mathsf{EstUnseen}_{#1}{\left(#2\right)}}
 \newcommand{\timestamp}[1]{\mathsf{time}\left(#1\right)}
 \newcommand{\Uncommitted}[1]{\mathsf{Log}_{\textrm{uncom}}^{#1}}
 \newcommand{\last}[2]{\mathsf{last}^{#1}[#2]}

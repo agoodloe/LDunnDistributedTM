@@ -128,9 +128,9 @@ for testing new technologies. Finally, this setting is an excellent
 microcosm for the sorts of general challenges faced by other,
 non-emergency applications.
 
-One theme visited throughout this document is \emph{continuity} in the sense
-considered by topology.\footnote{For an introductory textbook see
-  \cite{mendelson2012introduction}.}  The systems we examine must
+One theme visited throughout this document is \emph{continuity} in the
+sense considered by topology.\footnote{For an introductory textbook
+  see \cite{mendelson2012introduction}.}  The systems we examine must
 function under harsh operating conditions that limit their
 performance. For example, wireless communication is less reliable
 during severe weather. To design a system whose behavior and
@@ -158,92 +158,49 @@ even adversarial environment.
 
 \subsection{Summaries of the sections}
 \label{ssec:summaries-of-the-sections}
-
 Section \ref{sec:disaster-response} opens with a practical overview of
 disaster response and some of the computing challenges encountered in
 this setting. Real-world examples from disaster response scenarios are
 presented that demonstrate the role of distributed systems principles
 in achieving system-wide safety.
 
-Section \ref{sec:background} summarizes fundamental concepts in
-distributed systems, culminating in a illustrative result: the ``CAP''
-theorem, which we present for both the linearizable and sequential
-consistency models (Theorems \ref{thm:cap} and
-\ref{thm:cap-sequential}, respectively). CAP is considered a
-``negative'' result because it proves that something cannot be
-done. Namely, a distributed system cannot guarantee that it will
-maintain strong consistency and remain available to users at all
-times, including times when the communication network is disconnected. The practical takeaway of the CAP
-theorem is that agents in emergency response environments will always
-act with incomplete information about the global system, a key
-motivation for Section \ref{sec:continuous-consistency}. While the CAP
-theorem is often presented as a kind of unfortunate prohibition, it
-merely highlights a general kind of tradeoff. Furthermore, real-world
-systems often exhibit a kind of ``locality'' that works around some of
-the limitations implied by the CAP theorem.
+Section \ref{sec:background} summarizes fundamental concepts and
+mechanisms used in distributed systems, culminating in the classic
+``CAP'' theorem for both the linearizable and sequential consistency
+models (Theorems \ref{thm:cap} and \ref{thm:cap-sequential}). CAP is
+considered a ``negative'' result, as it proves that a distributed
+system cannot guarantee strong consistency and remain available to
+users when the communication network is disconnected. The practical
+implication of the theorem is that agents in emergency response
+environments will always operate with incomplete information about the
+global system.  While the CAP theorem is often presented as a kind of
+unfortunate prohibition, it merely highlights a general kind of
+tradeoff. Furthermore, real-world systems often exhibit a kind of
+``locality'' that mitigates some of the constraints implied by the CAP
+theorem.
 
-% Section \ref{sec:networking} examines networking considerations. Our
-% vision of future emergency communication networks integrates
-% concepts from delay/disruption-tolerant networks (DTN) and mobile
-% ad-hoc networks (MANET) to provide digital communications that are
-% robust to a turbulent operational environment. We also examine the
-% state of software-defined networking (SDN). SDN is an emerging field
-% that puts networking protocols on the same footing as ordinary
-% computer programs. In theory, this should furnish computer
-% networking with all the benefits of modern software engineering,
-% such as reprogrammable hardware, rapid iteration, version control,
-% and especially formal verification.
-
-Section \ref{sec:continuous-consistency} describes a hypothetical
-application suitable for networks with frequent disruptions: a data
-replication service built on the theory of ``conits'' (short for
-``consistency unit'') investigated by Yu and Vahdat
-\cite{2002tact}. This framework provides a \emph{continuous}
+Motivated by the CAP theorem, Section \ref{sec:continuous-consistency}
+describes a hypothetical application suitable for networks with
+frequent disruptions: a data replication service built on the theory
+of \emph{conits} (short for ``consistency unit'') developed by Yu and
+Vahdat \cite{2002tact}. This framework provides a \emph{continuous}
 consistency model that balances the competing objects of consistency
 and availability in a quantifiable and controllable way. The idea is
 that applications can tolerate some level of inconsistency between
-replicas of a data item as long as it can enforce an upper bound on
-the allowable divergence between them. A conit-based framework would
-allow applications to define units of replicated state whose
-consistency is of interest, enforce policies bounding inconsistency
-between replicas of these items, and change these policies
-dynamically. This sort of service can provide the sort of strict
-guarantees required of safety-related use cases while tolerating the
-adverse environments and real-world limitations of the environment.
+replicas of a data item, as long as it the divergence remains less
+than some defined upper bound. A conit-based system allows
+applications to define units of replicated state of interest, enforce
+policies limiting inconsistency between their replicas, and adapt
+these policies dynamically. This sort of approach can meet the strict
+requirements of safety-related systems while tolerating the adverse
+environments and real-world limitations of the environment.
 
 We conclude in Section \ref{sec:conclusion} by recapping some of the
 main themes in this document and highlighting areas for further
-investigation. Ultimately, building distributed systems for any
-environment involves design decisions tuned to the particulars of that
-environment. We expect that many of these decisions cannot be made a
-priori---they will ultimately be informed by a combination of
-simulation and testing in the field.
-
-\begin{comment}
-Section \ref{sec:data-fusion} concerns data fusion. Now and in the
-future, agents in disaster scenarios will make decisions informed by
-many different kinds of information. Efficient integration,
-processing, filtering, and dissemination of this information will be
-necessary to avoid ``swimming in sensors and drowning in data''
-\cite{2010:magnuson}.  This task is especially challenging because
-agents will often work with incomplete or out of date information, and
-different sources of the same data may be contradictory, e.g. first
-responders may receive contradictory reports about whether a structure
-is occupied. One promising trend in this space, which we briefly
-introduce in this section, is the development of sheaf theory as a
-natural mathematical model for data fusion
-\cite{2017robinsonCanonical}. Sheaf theory provides a rigorous
-framework for discussing how heterogeneous sources of noisy data can
-be integrated into a coherent picture, and can formally measure how
-well this task has been achieved.
-
-We conclude in Section \ref{sec:conclusion} by recapping some of the
-main themes in this document and highlighting areas where design
-decisions at various levels must be made to build a system that is
-tuned to the exact conditions we can expect from real-world
-scenarios. Such decisions might be informed by a combination of
-simulation and experimentation in the field.
-\end{comment}
+investigation. Ultimately, building distributed systems requires
+design decisions tailored to the environment and application. We
+expect that many of these decisions will involve a combination of
+simulation and real-world testing.
 
 \section{Coordination Challenges in Disaster Response}
 \label{sec:disaster-response}
@@ -3451,25 +3408,6 @@ gives
   %\sum \{\NumWeight(w) | w \in \WL{P}\} = \left(\mathsf{SeenPosWeight}_F^P\left(X\right) + \mathsf{SeenNegWeight}_F^P\left(X\right)\right) \\
 \end{gather*}
 
-\begin{comment}
-Formally, Yu and Vahdat define a conit as function
-$F\colon \mathsf{Database} \to \mathbb{R}$ that maps a database image
-to a real number. Given a conit $F$ and database images $D$ and $D'$,
-we are interested in measuring the difference between the images (as a
-real number) with respect to $F$; we define this value formally as
-$|F(D) - F(D')|$.
-
-\begin{definition}
-  For each write $w$ submitted to the the middleware, for each conit
-  $F$, the propagation layer is provided with a real value
-  $\NumWeight(w, F) \in \mathbb{R}$ called the \emph{numerical weight}
-  of the write on $F$.  Intuitively, the value is meant to represent
-\end{definition}
-The Yu and Vahdat assume that each write is independent of $D$ itself. For
-example, if database is a key value store and the meaning of $W$ is
-``increment the value at key $x$ by $2$'', the application would
-specify that $W$ has a positive weight of $2$ on the $x$ conit.
-\end{comment}
 We assume each process $P$ maintains a conservative estimate, called
 its \emph{view}, of which writes originating at $P$ have been received
 by each other process. $P$'s view of $Q$ is denoted by
@@ -3572,41 +3510,6 @@ $|1 - \frac{V_i}{V_{\textrm{final}}}|$. Notably, this algorithm only
 relies on $P$'s local knowledge; how to do bound relative error
 efficiently without knowing the ideal value $V_{\textrm{final}}$ is
 non-obvious.
-
-\begin{comment}
-  \begin{description}
-  \item[Total Weight] $\textsf{NumWeight}(W) = \sum_{w \in W} \textsf{numweight}{\left(w\right)}$
-  \item[Unseen Numerical Weight] $\textsf{UnseenNumWeight}_{A} = \textsf{NumWeight}\left(\Unseen{A}\right)$
-  \item[Estimated Unseen Positive Weight] $\textsf{NumWeight}\left(\{w \in \Unseen{A} | w.\textsf{numweight} \geq 0 \}\right)$
-  \item[Estimated Unseen Negative Weight]
-    $\textsf{NumWeight}\left(\{w \in \Unseen{A} | w.\textsf{numweight}
-      \leq 0 \}\right)$
-  \end{description}
-
-
-
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \begin{corollary}
-    \label{lem:unseenest}
-    $P$'s estimate of messages seen by $P$ but not by $Q$ is an overapproximation of the true value.
-  \end{corollary}
-  \begin{proof}
-    Consider a message $m$ sent by $Z$ (where possibly $Z$ is one of $P$
-    or $Q$). $P$'s estimate of writes seen by $P$ but unseen by $Q$ is
-    the set $\{m \in \WL{P} | \timestamp{m} > \ack{P}{Q} \}$. Let $m$ be
-    a message in the true set, which is $\WL{P} \setminus \WL{Q}$.  We
-    must have $\summary{Q}{Z} < \timestamp{m}$---otherwise
-    $m \in \WLat{Q}{Z} \subset \WL{Q}$ by the coverage property. The
-    property follows by the following chain of inequalities:
-    \[\ack{P}{Q} \leq \ack{Q}{Q} \overset{ack}{\leq} \min_{X \in \AllProc} \left(\summary{Q}{X}\right) \leq \summary{Q}{Z} < \timestamp{m}\]
-  \end{proof}
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-  The contrapositive of Corollary \ref{lem:unseenest} is that if $P$'s
-  message log contains a message $m$ with timestamp
-  $\timestamp{m} \leq \ack{P}{Q}$, then $P$ knows $Q$ has already
-  received this message.
-\end{comment}
 
 \begin{figure}
   \centering
