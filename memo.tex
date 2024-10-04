@@ -1638,23 +1638,13 @@ mechanism to implement total order broadcast.
 In some contexts one considers broadcast primitives that include the
 original sender among the recipients of a message. For simplicity, the
 examples in this section have not shown this sort of self-delivery,
-but it is useful in many cases. A typical use case is that
-participants are using a total order broadcast to maintain local
-replicas of a state machine that can be advanced by any participating
-process by announcing updates. An example of this usage is presented
-in Section \ref{sec:continuous-consistency}, where the goal is to
-maintain distributed replicas of a database over a disruption-heavy
-network, which can improve the performance of system applications.
-
-%When a site wishes to update the shared data, it
-%announces its intention using a totally ordered (say) broadcast that
-%includes the sender in the list of recipients. To ensure consistency,
-%we only actually modify our replica of the database when we hear about
-%updates, including our own, over the totally ordered broadcast
-%channel. In this manner, we can ensure all sites participating in the
-%database replication reflect all updates in the same order, thus
-%maintaining consistency.
-
+but it is useful in many cases. Self-delivery is typically combined
+with ordering guarantees. A typical use case is that participants are
+using a total order broadcast to maintain local replicas of a state
+machine that can be advanced by any participating process by
+broadcasting updates.  This usage is presented in Section
+\ref{sec:continuous-consistency}, with the goal of replicating shared
+state over a disruption-heavy network.
 
 \subsection{Shared Memory}
 \label{ssec:shared-memory}
@@ -2564,12 +2554,13 @@ TSAE provides reliable eventual delivery, which makes it useful as a
 fault-tolerant messaging component in an implementation of distributed
 shared memory. Because updates are merely propagated
 \emph{eventually}, TSAE used this way does not bound the divergence of
-each replica from the ``ideal'' value of the shared state (the value
-it would have if strong consistency were maintained). However,
-following Yu and Vahdat \cite{2002tact}, we show how an implementation
-of the conit (consistency unit) model on top of TSAE can be used to
-enforce, through so-called compulsory anti-entropy sessions,
-consistency requirements on this message propagation component.
+each replica from the ``ideal'' value of the shared state---the value
+it would have if strong consistency were maintained---at any
+moment. However, following Yu and Vahdat \cite{2002tact}, we show how
+an implementation of the conit (consistency unit) model on top of TSAE
+can be used to enforce, through so-called compulsory anti-entropy
+sessions, quantitative consistency requirements on each site of
+replicated data on a per-site basis.
 
 \subsection{Timestamped Anti-Entropy}
 \label{ssec:tsae}
@@ -2586,7 +2577,7 @@ low-level network messages like those discussed in Section
 \ref{ssec:message-passing}, which we think of as analogous to Internet
 Protocol (IP) packets. Note that an IP packet might contain multiple
 application messages, and a large application message may be split up
-into multiple packets.
+into multiple packets during network transit.
 
 At a lower level, we assume the network supports point-to-point
 (unicast) communication, but it does not have to guarantee FIFO
@@ -2609,12 +2600,15 @@ update by sending a message (at the application level, using TSAE)
 announcing it. TSAE ensures that this message is eventually delivered
 to every process; when this happens, the recipient applies the update
 to its own replica. Of course, the semantic meaning of updates is
-entirely decided by the application. If, for instance, the underlying
-data model requires updates to be applied in the same order at all
-replicas to ensure they reach the same final state, then the
-application would combine TSAE with a total ordering component to
-ensure that messages are delivered in the same order everywhere, as we
-do in \ref{sssec:tsae-message-ordering}.
+entirely decided by the application. A common requirement of
+underlying data model is for all updates to be applied in the same
+order at all replicas to ensure they reach the same final state. In
+this case, the application would combine TSAE with a total ordering
+component to ensure that messages are delivered in the same order
+everywhere. This is described in
+\ref{sssec:tsae-message-ordering}. The resulting system provides
+eventual, totally-ordered delivery, which offers a general mechanism
+for implementing replicated state machines.
 
 Replication is an alternative to managing state in a central location,
 such as a datacenter. This provides resiliency by removing single
@@ -2712,12 +2706,15 @@ Each process $P$ manages a \emph{message log} containing all messages
 sent or received by $P$.\footnote{Some implementations of TSAE may not
   require a message log and can operate directly on the shared state
   to achieve the same effect, but we describe TSAE in the most general
-  case here.} We denote $P$'s message log by $\WL{P}$. Each message in
-$\WL{P}$ is tagged with the identifier of the process that originally
-created it. The subset of messages in $\WL{P}$ that originated at $Q$
-is denoted by $\WLat{P}{Q}$. Thus, $\WLat{P}{P}$ represents the set of
-messages created by $P$. The set of global messages, $\W$, is defined
-as the (disjoint) union of messages originating from every process:
+  case here.} We denote $P$'s message log by $\WL{P}$. It grows in
+linear order, as a stack, as new messages are sent and received. Each
+message in $\WL{P}$ is tagged with the identifier of the process that
+originally created it, with the subset of messages in $\WL{P}$ that
+originated at $Q$ denoted by $\WLat{P}{Q}$. Thus, $\WLat{P}{P}$
+represents the set of messages created by $P$. The set of global
+messages, $\W$, is defined as the (disjoint) union of messages
+originating from every process, which by mild abuse of notation we are
+treating as sets:
 \[\W \equiv \bigcup_{X \in \AllProc} \WLat{X}{X}.\]
 
 The application at $P$ broadcasts a message $m$ using TSAE by writing
@@ -2734,14 +2731,14 @@ some other process $Q$ and the pair conduct an \emph{anti-entropy
 below). $P$ uses $Q$'s summary vector to quickly calculate which
 messages in $\WL{P}$ are not already known to $Q$ and then transmits
 these messages to $Q$. Symmetrically, $Q$ forwards messages in
-$\WL{Q}$ that $P$ has not seen, leaving the two sides in
-synchronization afterwards.\footnote{In a multithreaded environment
-  where $P$ and $Q$ can engage in multiple anti-entropy sessions with
-  different partners at once, the two sides may end in different
-  states. For instance, $P$ may learn about new messages in an
-  anti-entropy session with $R$ during its session with $Q$. Later, we
-  also consider one-sided anti-entropy sessions that only push or pull
-  messages. }
+$\WL{Q}$ that $P$ has not seen, resulting in $\WL{P}$ and $\WL{Q}$
+containing the same messages afterwards, though typically not in the
+same order.\footnote{In a multithreaded environment where $P$ and $Q$
+  can engage in multiple anti-entropy sessions with different partners
+  at once, the two sides may end in different states. For instance,
+  $P$ may learn about new messages in an anti-entropy session with $R$
+  during its session with $Q$. Later, we also consider one-sided
+  anti-entropy sessions that only push or pull messages. }
 
 TSAE provides reliable eventual delivery, meaning every message is
 eventually received by every process, as long as no process fails and
@@ -2768,16 +2765,18 @@ $\WL{P}$ in the order they were received by $P$. Thus, when $\WL{P}$
 and $\WL{Q}$ eventually converge, it is more correct to say they will
 be permutations of each other rather than equal. For applications that
 require messages to be delivered in a particular order, like a total
-order, an ordering component is used, as in
+order, an additional ordering component is used, as in
 \ref{sssec:tsae-message-ordering}.
 
-Figure \ref{fig:message-log} shows a message log for containing six
-messages from three processes $A$, $B$, and $C$. Note that the log is
-linearly ordered. For readability it is convenient to depict logs
-whose contents are disaggregated by sender (Figure
-\ref{fig:message-log-b}). Disaggregation has the downside of obscuring
-the fact that message logs with the same contents may be arranged in
-different orders, as the reader should keep in mind.
+\begin{example}
+  Figure \ref{fig:message-log} shows a message log for containing six
+  messages from three processes $A$, $B$, and $C$. For readability it
+  is convenient to depict logs whose contents are disaggregated by
+  sender (Figure \ref{fig:message-log-b}). Disaggregation has the
+  downside of obscuring the fact that message logs with the same
+  contents may be arranged in different orders, as the reader should
+  keep in mind.
+\end{example}
 
 \begin{figure}
   \setlength\belowcaptionskip{5ex}
@@ -2919,7 +2918,7 @@ hold at all times for all $P$ and $Q$ (including when $P = Q$):
   \begin{figure}[h]
     \centering
     \includegraphics[width=1.4\textwidth]{images/tsaenew/TSAE7.png}
-    \caption{TSAE at time $t=7$. $B$ and $C$ update and exchange summary vectors before decided to exchange the shaded messages. $A$ submits a message with timestamp $t = 7$.}
+    \caption{TSAE at time $t=7$. $B$ and $C$ update and exchange summary vectors before deciding to exchange the shaded messages. $A$ submits a message with timestamp $t = 7$.}
     \label{fig:tsae4}
   \end{figure}
   \begin{figure}[h]
@@ -2987,7 +2986,7 @@ bound of this minimum.
 Acknowledgment vectors are updated during anti-entropy sessions much
 like vector clocks and version vectors.
 \begin{enumerate}
-\item At the beginning of the session, $\ack{P}{P}$ is advanced to
+\item At the beginning of the session, $\ack{P}{P}$ is updated to
   $\min_{X \in \AllProc} \left(\summary{P}{X}\right)$. Symmetrically
   for $Q$. $P$ and $Q$ exchange acknowledgement vectors alongside
   their summary vectors.
@@ -2996,25 +2995,27 @@ like vector clocks and version vectors.
   received from $Q$. $Q$ updates $\ackVec{Q}$ symmetrically.
 \end{enumerate}
 Note that $\ack{P}{Q} \leq \ack{Q}{Q}$ at all times for all $P$ and
-$Q$. Slightly different from Golding's presentation, the figures
-discussed in Example \ref{ex:tsae} also demonstrate a slight
+$Q$.
+
+Slightly different from Golding's presentation of the protocol, the
+figures discussed in Example \ref{ex:tsae} also demonstrate an
 optimization that takes advantage of the fact that summary vectors are
 updated at the end of anti-entropy sessions. After updating these
 vectors to their pointwise maximum, we immediately recompute
 $\ack{P}{P}$, setting it to
-$\min_{X \in \AllProc} \left(\summary{P}{X}\right)$. $Q$ does the
-same. Furthermore, $\ack{P}{Q}$ and $\ack{Q}{P}$ are set to this
-value. This is correct because it preserves the invariant that they
-are respectively lower bounds of $\ack{Q}{Q}$ and $\ack{P}{P}$.\footnote{There is a
-  subtle potential race condition here: $\ack{P}{Q}$ and $\ack{Q}{P}$
-  have to be computed from the minimum of the pointwise maximum of the
-  summary vectors exchanged at \emph{beginning} of the anti-entropy
-  session, and not their current values after. Otherwise, the values
-  could incorrectly reflect information $P$ and $Q$ learned from third
-  parties during their anti-entropy session.}
-The following two lemmas explain the utility of $\ackVec{P}$ as a
-way of estimating global state.
+$\min_{X \in \AllProc} \left(\summary{P}{X}\right)$. Furthermore,
+$\ack{P}{Q}$ is set to this value. Symmetrically, $Q$ updates
+$\ack{Q}{Q}$ and $\ack{Q}{P}$. Note that this preserves the preserves
+the invariant that $\ack{P}{Q}$ and $\ack{Q}{P}$ are lower bounds of
+$\ack{Q}{Q}$ and $\ack{P}{P}$, respectively, provided the
+implementation ensures $P$ increments $\ack{P}{Q}$ only if $Q$
+increments $\ack{Q}{Q}$ and vice versa. This optimization advances
+acknowledgment vectors (and later, version matrices) more often than
+Golding's presentation, which allows the ordering and purging
+mechanisms (explained below) to progress more quickly.
 
+The following two lemmas explain the utility of $\ackVec{P}$ as a way
+of estimating global state.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{lemma}
@@ -3236,7 +3237,7 @@ consistency is motivated by the observation that real-world
 applications can generally tolerate some level of divergence of
 replicated data, especially in exchange for greater performance and
 availability. Intuitively, applications can operate with replicas that
-deviate from their ``ideal'' value by some margin of error
+deviate from their ``ideal'' value by at most some margin of error
 $\epsilon \geq 0$. However, applications have unique data models and
 measure this error in different ways, so building a general framework
 to enforce quantitative error bounds on replicas without making
@@ -3258,16 +3259,83 @@ The system consists of processes in $\AllProc$ that replicate a shared
 database (more generally, any kind of replicated state
 machine). Processes perform two types actions, read or write requests,
 as in Section \ref{ssec:shared-memory}. We call actions of both types
-\emph{accesses}. Accesses potentially contain multiple instructions,
-such as in a relational database transaction. Recall that a history is
-an ordered sequence of read and write accesses. The \emph{local
-  history} of a process $P$ is the sequence of accesses $P$ has
+\emph{accesses}. The initial database state at each replica is
+$\Dinit$. Accesses potentially contain multiple instructions, such as
+in a relational database transaction. Recall that a history is an
+ordered sequence of read and write accesses. The \emph{local history}
+of a process $P$, denoted $H_P$, is the sequence of accesses $P$ has
 applied to $\Dinit$ since the start of the application. A read access
 submitted to $P$ by a user is always handled locally by $P$ without
-involving other processes, but all writes submitted to $P$ are
-eventually propagated to all replicas using TSAE as the messaging
-framework.
+involving other processes. A write access submitted to $P$ is applied
+locally and additionally propagated to all other replicas using TSAE
+as the messaging framework.
 
+Write accesses encode an action to be performed against a database
+image (rather than the final value the data after performing that
+action). The result of applying write action $w$ to a database state
+$D$ is denoted $D + w$. Let $D + H$ denote the result of applying each
+of the writes in $H$ to $D$ in history order. Each process $P$
+maintains a write log, $\WL{P}$, containing the history of all writes
+applied to its local database image in the order they were applied
+(making $\WL{P}$ equivalent to the local history of $P$, $H_P$,
+restricted to write requests). Note that the current state of $P$ is
+uniquely determined by a combination of the starting state ($\Dinit$)
+and $\WL{P}$:
+\[  D_P = \Dinit + \WL{P} \label{eq:conit-DP} \]
+
+
+The initial database state at each replica is $\Dinit$.  Write
+accesses encode an action to be performed against a database image
+(rather than the final value the data after performing that
+action). The result of applying write action $w$ to a database state
+$D$ is denoted $D + w$. Let $D + H$ denote the result of applying each
+of the writes in $H$ to $D$ in order.  Each process $P$ maintains a
+write log, $\WL{P}$, containing the history of all writes applied to
+its local database image in the order they were applied (making
+$\WL{P}$ equivalent to the local history of $P$ restricted to write
+requests). Note that the current state of $P$ is uniquely determined
+by a combination of the starting state ($\Dinit$) and $\WL{P}$. In the
+above notation, the current value $D_P$ of $P$'s replia is
+$\Dinit + \WL{P}$. When a read request is submitted to $P$, the
+requested value is read immediately from $D_P$ and returned to the
+caller. When a write request $w$ is submitted, the action is performed
+against the local replica and $w$ is added to $\WL{P}$. With either
+type of access, $P$ is said to be the \emph{originating replica}, and
+all other processes are \emph{remote}. The value of $D_P$ is said to
+be the \emph{observed state} of the access.  We assume some ECG
+history as a reference point. The \emph{ideal result} of an access $a$
+is the value $\Dinit + \PH_\textrm{a}$.  The following equations hold.
+
+When a read request is submitted to $P$, the requested value is read
+immediately from $D_P$ and returned to the caller. When a write
+request $w$ is submitted, the action is performed against the local
+replica and $w$ is added to $\WL{P}$. With either type of access, $P$
+is said to be the \emph{originating replica}, and all other processes
+are \emph{remote}. The value of $D_P$ is said to be the \emph{observed
+  state} of the access.
+
+Timestamped anti-entropy is used to propagate writes to remote
+replicas, with $\WL{P}$ acting as the message log. When a remote
+replica $Q$ receives new writes, they are added to $\WL{Q}$ and
+applied to $Q$'s local image as well. Now, replicated state machines
+will reach the same final state on two conditions. First, all replicas
+learn about each write, and second, all replicas execute writes in the
+same order. TSAE by itself ensures the first condition, since every
+process will eventually learn about every write. However, we know that
+TSAE alone does not provide ordering guarantees. Thus, the data model
+should provide a mechanism for rolling back (undoing) writes that have
+been applied to $D$. When a write is first accepted, it is said to be \emph{uncommitted}
+and applied \emph{tentatively} to the local replica. Uncommitted
+writes are subject to being rolled back and reapplied in a different
+order later, possibly with different results. Eventually, the write
+becomes \emph{committed}, after which it is never rolled
+back. Committed writes are applied in the same order at all
+replicas. Taking the place of the message ordering component, a write
+committment component is responsible for ultimately committing writes
+accesses. Commitment is an adaptation of the total ordering mechanism
+in \ref{sssec:tsae-message-ordering}.
+
+\subsubsection{Ideal Histories}
 To define quantify deviation from strong consistency, we must give a
 few definitions. Recall the notion of external order (Definition
 \ref{def:external-order}): an access $A$ externally precedes $A'$ if
@@ -3298,54 +3366,14 @@ Definitions below are given with respect to some ECG
 history. Intuitively, the condition expected from the conit framework
 is that at any moment in time, there is some ECG history such that all
 replicas diverge from the ECG history by at most some error bound.
-
-The initial database state at each replica is $\Dinit$.  Write
-accesses encode an action to be performed against a database image
-(rather than the final value the data after performing that
-action). The result of applying write action $w$ to a database state
-$D$ is denoted $D + w$. Let $D + H$ denote the result of applying each
-of the writes in $H$ to $D$ in order.  Each process $P$ maintains a
-write log, $\WL{P}$, containing the history of all writes applied to
-its local database image in the order they were applied (making
-$\WL{P}$ equivalent to the local history of $P$ restricted to write
-requests). Note that the current state of $P$ is uniquely determined
-by a combination of the starting state ($\Dinit$) and $\WL{P}$. In the
-above notation, the current value $D_P$ of $P$'s replia is
-$\Dinit + \WL{P}$. When a read request is submitted to $P$, the
-requested value is read immediately from $D_P$ and returned to the
-caller. When a write request $w$ is submitted, the action is performed
-against the local replica and $w$ is added to $\WL{P}$. With either
-type of access, $P$ is said to be the \emph{originating replica}, and
-all other processes are \emph{remote}. The value of $D_P$ is said to
-be the \emph{observed state} of the access.  We assume some ECG
-history as a reference point. The \emph{ideal result} of an access $a$
-is the value $\Dinit + \PH_\textrm{a}$.  The following equations hold.
+ We assume some ECG history as a reference
+point. The \emph{ideal result} of an access $a$ is the value
+$\Dinit + \PH_\textrm{a}$.  The following equations hold.
 \begin{gather}
-  D_P = \Dinit + \WL{P} \label{eq:conit-DP} \\
   \Dideal = \Dinit + \WL{\textrm{ideal}} \label{eq:conit-Dideal}
 \end{gather}
 
-
-Timestamped anti-entropy is used to propagate writes to remote
-replicas, with $\WL{P}$ acting as the message log. When a remote
-replica $Q$ receives new writes, they are added to $\WL{Q}$ and
-applied to $Q$'s local image as well. Now, replicated state machines
-will reach the same final state on two conditions. First, all replicas
-learn about each write, and second, all replicas execute writes in the
-same order. TSAE by itself ensures the first condition, since every
-process will eventually learn about every write. However, we know that
-TSAE alone does not provide ordering guarantees. Thus, the data model
-should provide a mechanism for rolling back (undoing) writes that have
-been applied to $D$. When a write is first accepted, it is said to be \emph{uncommitted}
-and applied \emph{tentatively} to the local replica. Uncommitted
-writes are subject to being rolled back and reapplied in a different
-order later, possibly with different results. Eventually, the write
-becomes \emph{committed}, after which it is never rolled
-back. Committed writes are applied in the same order at all
-replicas. Taking the place of the message ordering component, a write
-committment component is responsible for ultimately committing writes
-accesses. Commitment is an adaptation of the total ordering mechanism
-in \ref{sssec:tsae-message-ordering}.
+There are essentially three reasons
 
 \subsubsection{Conits}
 The intention of the conit framework is this: at any moment in time,
@@ -3420,7 +3448,7 @@ gives
   V_P = V_{\textrm{init}} + \sum \{\NumWeight(w, F) | w \in \WL{P}\} \\
   \Videal = V_{\textrm{init}} + \sum \{\NumWeight(w, F) | w \in \WL{\textrm{ideal}}\}
   %\sum \{\NumWeight(w) | w \in \WL{P}\} = \left(\mathsf{SeenPosWeight}_F^P\left(X\right) + \mathsf{SeenNegWeight}_F^P\left(X\right)\right) \\
-\end{gather*}
+\end{gather}
 
 We assume each process $P$ maintains a conservative estimate, called
 its \emph{view}, of which writes originating at $P$ have been received
@@ -3528,8 +3556,8 @@ non-obvious.
 \begin{figure}
   \centering
   \includegraphics[width=0.6\textwidth]{images/conit/Numerical1.png}
-  \caption{Figure for Example \ref{ex:conit-numerical} where shaded
-    messages represent this process' view of $\WL{C}$.}
+  \caption{Figure for Example \ref{ex:conit-numerical} where
+    messages with a shaded grid background represent this process' view of $\WL{C}$.}
   \label{fig:conit-numerical}
 \end{figure}
 
@@ -3636,19 +3664,19 @@ writes until the order error is within bounds.
     \caption{$\WL{A}$ shown at a later time}
     \label{fig:conit-order-b}
   \end{subfigure}
-  \caption{Logs for Example \ref{ex:conit-order} where dotted messages represent committed writes}
+  \caption{Logs for Example \ref{ex:conit-order} where committed writes are drawn with a shaded and dotted background}
   \label{fig:conit-order}
 \end{figure}
 
 \begin{example}
   \label{ex:conit-order}
   Figure \ref{fig:conit-order} depicts the role of order weight. We
-  assume all writes apply unit weight to a single conit. Lightly
-  dotted messages represent this process' committed writes. In Figure
-  \ref{fig:conit-order-a}, five writes are uncommitted. In particular,
-  no write with timestamp greater than or equal to $3$ can be
-  committed, since the minimum entry in the log, $\WL{A}{C}$, is only
-  $2$.
+  assume all writes apply unit weight to a single conit. Committed
+  writes are shown slightly shaded with a dotted grid pattern. In
+  Figure \ref{fig:conit-order-a}, five writes are uncommitted. In
+  particular, no write with timestamp greater than or equal to $3$ can
+  be committed, since the minimum entry in the log, $\WL{A}{C}$, is
+  only $2$.
 
   The next access added to $\WL{A}$ will observe an incorrect prefix
   history,
