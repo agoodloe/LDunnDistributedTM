@@ -206,14 +206,21 @@ as long as it the divergence remains less than some defined upper
 bound. Using the conit framework allows applications to define units
 of replicated state of interest, enforce policies limiting
 inconsistency between their replicas, and adapt these policies
-dynamically in response to the environment.
+dynamically in response to the environment. By combining the enforced
+guarantees of strong consistency models with the flexbility and
+resilience of weak consistency, this model is suitable where the
+tradeoffs implied by the CAP theorem may need to be carefully
+calibrated to support both performance and safety.
 
+
+\begin{comment}
 We conclude in Section \ref{sec:conclusion} by recapping some of the
 main themes in this document and highlighting areas for further
 investigation. Ultimately, building distributed systems requires
 design decisions tailored to the environment and application. We
 expect that many of these decisions will involve a combination of
 simulation and real-world testing.
+\end{comment}
 
 \section{Coordination Challenges in Disaster Response}
 \label{sec:disaster-response}
@@ -3245,11 +3252,11 @@ availability, but only up to a point. Intuitively, applications can
 operate with replicas that deviate from their ``ideal'' value by at
 most some margin of error $\epsilon \geq 0$---any greater, and the
 data is unreliable and the application may become unavailable until
-consistency is re-established. However, applications have unique data
-models and measure this error in different ways, so building a general
-framework to enforce quantitative error bounds on replicas without
-making specific assumptions about the nature of the data is
-challenging.
+consistency is re-established by running \emph{compulsory}
+anti-entropy. However, applications have unique data models and
+measure this error in different ways, so building a general framework
+to enforce quantitative error bounds on replicas without making
+specific assumptions about the nature of the data is challenging.
 
 The conit framework strikes a desirable balance between being general
 enough to work in applications with very different data models, and
@@ -3258,7 +3265,7 @@ straightforward protocols. The model affords flexible methods for
 applications to tune their consistency guarantees, allowing these
 decisions to be encoded into the application logic on a per-process
 basis, perhaps based on feedback and observations from the network. We
-describe the model now in terms of its system model
+describe the framework now in terms of its system model
 (\ref{ssec:conit-system-model}), its three dimensions of consistency
 (\ref{ssec:conit-numerical-consistency}---\ref{ssec:conit-real-time-consistency}),
 and possible extensions (\ref{ssec:conit-extensions}).
@@ -3279,12 +3286,12 @@ $H_P$, is the sequence of accesses $P$ has applied to $\Dinit$ since
 the start of the application.
 
 Write accesses encode an action to be performed against a database
-image (rather than the final value the data after performing that
-action). The result of applying write action $w$ to a database state
+image, rather than the final value the data after performing that
+action. The result of applying write action $w$ to a database state
 $D$ is denoted $D + w$. Let $D + H$ denote the result of applying each
 of the writes in $H$ to $D$ in history order ($D + r$ can be thought
-of as equal to $D$ if $r$ is a read) . Thus, the database state
-at a process $P$, written $D_P$, is always $\Dinit + H_P$.
+of as equal to $D$ if $r$ is a read) . Thus, the database state at a
+process $P$ at any moment, written $D_P$, is always $\Dinit + H_P$.
 
 A read access submitted to $P$ by a user is always handled locally by
 $P$ without involving other processes. The read action is immediately
@@ -3605,7 +3612,7 @@ non-obvious.
   \centering
   \includegraphics[width=0.6\textwidth]{images/conit/Numerical1.png}
   \caption{Figure for Example \ref{ex:conit-numerical} where
-    messages with a shaded grid background represent this process' view of $\WL{C}$.}
+    messages with a grid background represent this process' view of $\WL{C}$.}
   \label{fig:conit-numerical}
 \end{figure}
 
@@ -3613,7 +3620,7 @@ non-obvious.
   \label{ex:conit-numerical}
   Figure \ref{fig:conit-numerical} depicts the role of numerical
   weight. We assume all writes apply unit weight to a single conit. If
-  the lightly shaded messages represent this process' view of
+  the messages shown with a grid pattern represent this process' view of
   $\WL{C}$, the combined weight of the four writes estimated to be
   unseen must not exceed
   \mbox{$\epsilon^C_\textrm{num} / \left(3 - 1\right)$}.
@@ -3689,7 +3696,7 @@ $F$ is defined as the sum
 \]
 
 Let $\epoe$ be the allowable upper bound of
-$\OrderError\left(r,\mathcal{F}\right)$. To bound order error, it is
+$\mathsf{OrderError}\left(r,\mathcal{F}\right)$. To bound order error, it is
 enough to bound the estimated value shown above. Whenever $P$ accepts
 an access that, if added to $\WL{P}$, would cause the estimated order
 weight to exceed $\epoe$, then $P$ must execute a write commitment
@@ -3868,8 +3875,8 @@ might itself use conits.
 
 
 
-\section{Conclusion and Summary}
-\label{sec:conclusion}
+%\section{Conclusion and Summary}
+%\label{sec:conclusion}
 
 \section*{Bibliography}\label{bibliography}
 \addcontentsline{toc}{section}{Bibliography}
