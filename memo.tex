@@ -789,8 +789,8 @@ building applications relevant to the scenarios described in Section
 \ref{sec:disaster-response}, aiming to highlight obstacles and
 strategies for developing distributed systems that can endure the
 delays and disruptions inherent to these communication-challenged
-environments. Readers wishing for a condensed summary of the main
-highlights may skip to Section \label{ssec:background-summary}.
+environments. Readers interested in a summary of the highlights may
+skip to Section \ref{ssec:background-summary}.
 
 At its core, a distributed system is a network of independent entities
 working together to solve problems too complex for any one part to
@@ -800,21 +800,19 @@ field agents like firefighters, their handheld devices, airborne and
 ground vehicles loaded with communication and computing tools, swarms
 of sensors and IoT devices, and so on. These decentralized components
 operate alongside more centralized hubs: data fusion centers, incident
-commanders, public safety answering points (PSAPs), and emergency
-operations centers (EOCs). We imagine these components being woven
-together by a patchwork of communication technologies ranging from
-analog and digital radios to Bluetooth, Wi-Fi, LTE, 5G, satellite
-communications, and ad-hoc mesh networks like
-Meshtastic\footnote{The website of the
-  Meshtastic project describes it as an ``open source, off-grid,
-  decentralized, mesh network built to run on affordable, low-power
-  devices''. See \url{https://meshtastic.org} or
-  \url{https://github.com/meshtastic}.}, DECT-2020
-NR\footnote{DECT-2020 NR, also called NR$^{+}$, is a non-cellular 5G
-  standard intended for Internetof Things (IoT) operations. For a
-  technical discussion see \cite{2022:dect-2020-nr}.}, and
-others. Together, the systems form a dynamic mosaic of elements
-cooperating to save lives and protect proprty.
+command (IC) posts, public safety answering points (PSAPs), and
+emergency operations centers (EOCs). We imagine these components being
+woven together by a patchwork of communication technologies ranging
+from analog and digital radios to Bluetooth, Wi-Fi, LTE, 5G, satellite
+communications, and ad-hoc mesh networks like Meshtastic\footnote{The
+  website of the Meshtastic project describes it as an ``open source,
+  off-grid, decentralized, mesh network built to run on affordable,
+  low-power devices''. See \url{https://meshtastic.org}.}, DECT-2020
+NR\footnote{DECT-2020 NR is a non-cellular 5G
+  standard intended for Internet of Things (IoT) operations. For a
+  technical discussion see \cite{2022:dect-2020-nr}.}, and others. The
+system is thus a dynamic mosaic of elements cooperating to protect
+lives and property.
 
 Given the unpredictable nature of the environment and the locality
 principle outlined in Section \ref{sec:disaster-response},
@@ -841,14 +839,13 @@ but unpredictable and difficult to control. As a result, we can safely
 assume that some parts of the wider system will not have
 instantaneous, complete knowledge of every new piece of
 information. Only a few components, if any, will be able to maintain a
-global systemwide awareness. While deploying additional network
-resources in the field—such as COWs (Cells on Wheels) and COLTs (Cells
-on Light Trucks)—can help, the inherently distributed nature of the
-environment cannot be fully overcome or abstracted away. This reality
-must be embedded in the design of the software and networking
-architecture itself. Typically, this manifests in a shared
-``middleware'' layer to coordinate the numerous moving parts, ensuring
-they function as a unified system.
+global systemwide awareness. While deploying additional infrastructure
+in the field, such as COWs (Cells on Wheels), can help, the inherently
+distributed nature of the environment cannot be fully overcome or
+abstracted away. This reality must be embedded in the design of the
+software and networking architecture itself. Typically, this manifests
+in a shared ``middleware'' layer to coordinate the moving parts,
+ensuring they function as a unified system.
 
 The fragmented flow of information presents several challenges for
 system designers. Foundationally, one of the primary computer science
@@ -857,9 +854,7 @@ components to maintain a common understanding about the global
 sequence of events. For similar reasons, it becomes challenging for
 processes to synchronize and agree on shared values, such as the
 current number of firetrucks available for dispatch. The remainder of
-this section will delve into these issues with more technical depth,
-while later sections will examine how some of these challenges can be
-reflected in the middleware design.
+this section will delve into these issues with more technical depth.
 
 \subsection{Physical Synchronization}
 \label{ssec:physical-synchronization}
@@ -867,7 +862,7 @@ A lot of challenges in distributed computing could be
 straightforwardly overcome if we assume that all participants have
 instantaneous access to a common time base, i.e.  synchronized
 clocks. Let us explore why fine-grained synchronization is not a
-tenable assumption, at least not for all purposes.
+tenable assumption for all purposes.
 
 Physical clocks, especially consumer-grade ones, suffer from
 \emph{drift}, which is to say they do not all run at the same
@@ -1010,13 +1005,12 @@ $e' \to e$.
 
 Incidentally, ``causal precedence'' and ``happens before'' can be
 misnomers, as $e \to e'$ only conveys the possibility that information
-from $e$ could have influenced $e'$. If information from event $e$
-might have influenced $e'$, then it is crucial that applications avoid
-situations where, from the user's point of view, it appears that $e'$
-happened before $e$. For example, this proscription means an
-application cannot let an ``answer'' appear before the underlying
-``question''. This is what is meant by not letting the future affect
-the past.
+from $e$ could have influenced $e'$. The requirement to ``not let the
+future affect the past'' means that if $e$ might have influenced $e'$,
+then applications must avoid situations where, from the user's point
+of view, it appears that $e'$ happened before $e$. For example, this
+proscription means an application cannot let an ``answer'' appear
+before the underlying ``question''.
 
 \begin{example}
   Figure \ref{fig:causal-precedence} illustrates the causal precedence
@@ -1040,22 +1034,19 @@ satisfy neither $e \to e'$ nor $e' \to e$.
   \emph{logically synchronous}, denoted $\sync{e}{e'}$.
 \end{definition}
 
-Note that
-logical synchronicity is not usually transitive, meaning it is
-possible to have $\sync{e}{e'}$ and $\sync{e'}{e''}$ but not
-$\sync{e}{e''}$. For example,
-\begin{itemize}
-\item In Figure \ref{fig:message-co-a}, $\sync{\mrecv{1}}{\mrecv{2}}$
-  and $\sync{\mrecv{2}}{\msend{4}}$, but $\mrecv{1} \to \msend{4}$.
-\item In Figure \ref{fig:message-co-b}, $\msend{1}$ is logically synchronous
-with every event except $\mrecv{1}$, but those other events are
-totally ordered by causality and not synchronous with each
-other.
-\end{itemize}
-
-Relations like $\sync{}{}$ that are reflexive and symmetric but not
-necessarily transitive are sometimes called \emph{compatibility
-  relations}.
+Note that logical synchronicity is not usually transitive, meaning it
+is possible to have $\sync{e}{e'}$ and $\sync{e'}{e''}$ but not
+$\sync{e}{e''}$.  Relations like $\left(\sync{}{}\right)$ that are
+reflexive and symmetric but not necessarily transitive are sometimes
+called \emph{compatibility relations}.
+\begin{example}
+  \label{ex:synchronous-intransitive}
+  In Figure \ref{fig:message-co-a}, $\sync{\mrecv{1}}{\mrecv{2}}$ and
+  $\sync{\mrecv{2}}{\msend{4}}$, but $\mrecv{1} \to \msend{4}$. In
+  Figure \ref{fig:message-co-b}, $\msend{1}$ is logically synchronous
+  with every event except $\mrecv{1}$, but those other events are
+  totally ordered by causality and not synchronous with each other.
+\end{example}
 
 \begin{figure}
   \begingroup
@@ -1092,42 +1083,46 @@ All processes timestamp their events using their local clocks. For
 each event $e$, let $C(e)$ denote the timestamp attached to that
 event. The fundamental property we want to satisfy is that if $e$
 causally precedes $e'$, it should receive a lesser timestamp. This is
-called the clock consistency condition, commonly just called the clock condition.
+called the clock consistency condition, or simply the clock condition.
 
 \begin{definition}
   A system of timestamps satisfies the \emph{clock consistency
   condition} if the following monotonicity property holds:
-  \[ \textrm{For all events $e$ and $e'$, } e \to e' \implies C(e) < C(e') \label{eq:mp}\tag{CC} \]
+\begin{equation}
+  \textrm{For all $e$ and $e'$, if $e \to e'$ then $C(e) < C(e')$} \label{eq:mp}\tag{CC}
+\end{equation}
 \end{definition}
 
 This notation states that if one event causally precedes another, then
 the earlier one receives a lesser timestamp. Somewhat subtly, the
 clock condition does \emph{not} imply that we can decide if events are
-causally related by comparing timestamps. It may be helpful to express
+causally related by comparing timestamps. Rather, it provides a way of
+\emph{ruling out} causal precedence. This is seen by expressing
 \eqref{eq:mp} in terms of the following logically equivalent
 condition.
-\[ \textrm{For all events $e$ and $e'$, }C(e) \leq C(e') \implies e'
-  \not\to e \label{eq:mp-conv}\tag{CC$'$} \]
+\begin{equation}
+  \textrm{For all $e$ and $e'$, if $C(e') \leq C(e)$ then $e \not\to e'$} \label{eq:mp-conv}\tag{CC$'$}
+\end{equation}
 
-If this condition is true, we can be sure that a particular sequence
-of events $e_1, e_2, e_3\ldots$ does \emph{not} violate causal
-precedence (i.e., does not list any event $e$ before another event
-that could have influenced $e$) by checking that
+If \eqref{eq:mp-conv} holds, we can be sure that a particular sequence
+of events $e_1, e_2, e_3\ldots$ does \emph{not} list any $e$ before an
+event that might have influenced $e'$ by checking that
 $C(e_{i}) \leq C(e_{i+1})$ for all $i$. We emphasize that this does
 not give us a definite way to tell whether two events are in fact
-causally related.
-
-For some applications it is important to determine conclusively
-whether events are causally related. In this case, one is led to
-consider the following stronger requirement from a system of logical
-timestamps.
+causally related. If it is important to determine conclusively whether
+events are causally related, one is led to consider the following
+stronger requirement from a system of logical timestamps.
 \begin{definition}
   An event-timestamping mechanism satisfies the \emph{strong} clock   condition if the following property holds.
-  \[ \textrm{For all events $e$ and $e'$, } e \to e' \iff C(e) < C(e') \label{eq:sc}\tag{SC} \]
-  Note that $\iff$ is notation for ``if and only if,'' i.e. logical equivalence.
+  \begin{equation}
+    \textrm{For all events $e$ and $e'$, } e \to e' \iff C(e) <
+    C(e') \label{eq:sc}\tag{SC}
+  \end{equation}
+  Note that $\iff$ is notation for ``if and only if,''or logical
+  equivalence.
 \end{definition}
-Below we see one logical clock protocol that satisfies the weaker
-clock condition, and two that satisfy the stronger condition.
+Scalar clocks, below, satisfy \eqref{eq:mp}, while vector and matrix
+clocks satisfy \eqref{eq:sc}.
 
 \subsubsection{Scalar clocks}
 \label{sssec:scalar-clocks}
@@ -1185,22 +1180,19 @@ event except $\mrecv{1}$.
 \subsubsection{Vector clocks}
 \label{sssec:vector-clocks}
 The strong clock condition \eqref{eq:sc} cannot hold either using
-scalar clocks or even synchronized physical clocks. This is because
-both mechanisms assign timestamps whose values form a total order---meaning any
-two distinct timestamps $C_1, C_2$ satisfy either $C_1 < C_2$ or $C_2 < C_1$.
+scalar clocks or even synchronized physical clocks because they both
+assign timestamps whose values form a total order, meaning any
+non-equal timestamps $C_1, C_2$ satisfy either $C_1 < C_2$ or
+$C_2 < C_1$. This leaves no way to assign timestamps to synchronous
+events that satisfy neither $e \to e'$ nor $e' \to e$, except to make
+their timestamps are equal. However, assigning equal timestamps to
+logically synchronous events is contradictory, since an event $e$ can
+be synchronous with multiple events $e', e''\ldots$ that are not
+synchronous with each other (recall Example
+\ref{ex:synchronous-intransitive}). The solution is to let timestamps
+from a partial order, allowing clock values that are not directly
+comparable.
 
-A clock protocol that uses a total order cannot enforce the strong
-clock condition. For logically synchronous events $\sync{e}{e'}$,
-neither $e \to e'$ nor $e' \to e$ holds, so strong consistency and the
-total order property would require $C(e) = C(e')$. This is an
-impossible requirement because logical concurrency is not
-transitive. For instance, recall that in Figure
-\ref{fig:message-latencies-b}, $\msend{1}$ is logically synchronous
-with every event except $\mrecv{1}$. This would require assigning them
-all the same timestamp, which contradicts the fact they are not
-synchronous with each other. The solution is to let timestamps from a
-partial order, where distinct timestamps $C_1$ and $C_2$ do not have
-to satisfy either $C_1 < C_2$ or $C_1 > C_2$.
 
 \begin{figure}
   \setlength\belowcaptionskip{5ex}
@@ -1265,7 +1257,7 @@ order because one vector may be greater than another in some
 components but less than it in others.
 
 \begin{definition}[Vector comparison]
-  Let $v, w$ be two vector clocks. We define the following relations:
+  Let $v, w$ be two vector timestamps. We define the following relations:
   \begin{align*}
              v = w &\iff \forall i, v[i] = w[i] \\
   v \preccurlyeq w &\iff \forall i, v[i] \leq w[i] \\
@@ -1289,6 +1281,12 @@ components but less than it in others.
 
 For reasons of space we omit a proof of the preceding lemma, though
 the reader may find it enlighting to formalize the details.
+
+Note that vector clocks and matrix clocks both require the processes
+to agree on the set of members in the group. If groups can change,
+with members leaving or being added, the timekeeping data structures
+would similarly have to be updated. We ignore issues of dynamic group
+membership in this document.
 
 \subsubsection{Matrix clocks}
 \label{sssec:matrix-clocks}
@@ -1353,16 +1351,15 @@ reasoning about distributed systems: a process can only make decisions
 based on what it \emph{knows}, which is usually a strict subset of all
 (system-wide) truths. In many cases, it is important to take into
 account a kind of second-order knowledge: what does a process know
-about what other processes know? One major utility of vector and
-matrix clocks is that they can be be used to track which facts known
-to one process are also known to another processes. When this is of
-interest, it is often because a process wants to compute which facts
-are known to \emph{all} other processes. In Section
-\ref{sec:continuous-consistency}, particularly Section
-\ref{ssec:tsae-unsynchronized}, we will see an example of how a
-vector and matrix clocks (or rather, very similar mechanisms called
-version vectors and matrices) can be used in the context of
-replicating a database over a disruption-heavy network.
+about what other processes know? A typical utility of vector and
+matrix clocks is to track which facts known to one process are also
+known to another processes, it is often because a process wants to
+compute which facts are known to \emph{all} other processes. Sections
+\ref{sec:tsae} and \ref{sec:continuous-consistency} discuss an example
+where mechanisms similar to vector and matrix clocks, called version
+vectors and matrices, can be used in the context of database
+replication, where they drive decision-making about which updates need
+to be propagated and when they can be purged from a write log.
 
 \subsection{Message Ordering}
 \label{ssec:message-ordering}
@@ -1479,18 +1476,18 @@ of events. A network provides causally ordered (CO) delivery if it
 satisfies the following property.
 \begin{definition}[CO delivery]
   \label{def:causalorder}
-  For any process $P_\mathrm{dest}$ in the system, if we consider all
-  messages $m$ and $n$ sent to $P_\mathrm{dest}$ (possibly by
-  different senders), if $\msend{} \to n^\textrm{send}$ then
+  Let $P_\mathrm{dest}$ be any process and consider all messages $m$
+  and $n$ sent to $P_\mathrm{dest}$ (possibly by different senders).
+  CO is satisfied if $\msend{} \to n^\textrm{send}$ implies
   $\mrecv{} \to n^\textrm{recv}$. That is, each destination receives
   messages in an order consistent with causality between their send
   events.
 \end{definition}
-Unlike FIFO, the CO condition enforces a partial order among messages
-with (in general) different senders. In mathematical terms, if we for
-each process $P_{\mathrm{dest}}$, the function mapping send events to
-corresponding receive events at $P_{\mathrm{dest}}$ must be monotonic
-with respect to causal precedence.
+In mathematical terms, for each process $P_{\mathrm{dest}}$, the
+function mapping send events to corresponding receive events at
+$P_{\mathrm{dest}}$ must be monotonic with respect to causal
+precedence.  Unlike FIFO, the CO condition enforces a partial order
+among messages with (in general) different senders.
 
 \begin{example}
   Figure \ref{fig:message-ordering} demonstrates different message
@@ -1504,8 +1501,8 @@ with respect to causal precedence.
     $m_1$ and $m_2$ arrive in the opposite order but they are sent to
     different destinations.
   \item \ref{fig:ordex-non-co-1} violates CO because the send event of
-    $m_1$ happens before that of $m_3$ via the chain
-    $\msend{1} \to \msend{2} \to \mrecv{2} \to \msend{3}$ but
+    $m_1$ happens before the send of $m_3$ via the chain
+    $\msend{1} \to \msend{2} \to \mrecv{2} \to \msend{3},$ but
     $\mrecv{3} \to \mrecv{1}$.
   \item \ref{fig:ordex-non-co-2} violates CO because it is equivalent to
     \ref{fig:ordex-non-co-1} with the roles of $P_2$ and $P_3$ swapped.
@@ -1530,8 +1527,8 @@ of ensuring consistent message ordering across an entire group is a
 paramount concern.
 
 The FIFO and CO broadcast conditions are adapted from Definitions
-\ref{def:fifo} and \ref{def:causalorder}. Additionally, we introduce
-the notion of total ordering (TO) below.
+\ref{def:fifo} and \ref{def:causalorder}. Additionally, we present the
+notion of total ordering (TO).
 
 \begin{definition}[FIFO broadcast]
   \label{def:fifo-bcast}
@@ -1585,9 +1582,9 @@ critical.
 
 \begin{definition}[TO broadcast]
   \label{def:totalorderbroadcast} For any processes $P$ and $Q$ and
-  messages $m$ and $m'$ that arrive at \emph{both} destinations, $m$
-  arrives before $m'$ at both processes or $m'$ arrives before $m$ at
-  both processes.
+  messages $m$ and $m'$ that arrive at both destinations, $m$ arrives
+  before $m'$ at both processes or $m'$ arrives before $m$ at both
+  processes.
 \end{definition}
 
 Total order is independent of causal order, as causality is not total
@@ -1626,10 +1623,10 @@ message orders.
 \begin{itemize}
   \tightlist
 \item Figure \ref{fig:bcast-order-examples-1} trivially satisfies FIFO
-  because no process sends more than one multicast, but causality is
-  violated because $\msend{1} \to \mrecv{1,4} \to \msend{2}$, but
-  $P_2$ receives $m_2$ before $m_1$. Total order is also violated
-  because $P_2$ and $P_3$ receive the messages in opposite orders.
+  because no process sends more than one broadcast. CO is violated
+  because $\msend{1} \to \mrecv{1,4} \to \msend{2}$, while $P_2$
+  receives $m_2$ before $m_1$. TO is violated because $P_2$ and $P_3$
+  receive the messages in opposite orders.
 \item Figure \ref{fig:bcast-order-examples-2} violates TO for the same
   reason above, but satisfies causality because the two send events
   have no causal relation.
@@ -1638,19 +1635,19 @@ message orders.
   FIFO is violated.
 \end{itemize}
 \end{example}
-Section \ref{ssec:tsae-message-ordering} describes a particular
-mechanism to implement total order broadcast.
+Section \ref{ssec:tsae-message-ordering} describes a conventional
+mechanism used to implement total order broadcast.
 \paragraph{Self-delivered messages}
 In some contexts one considers broadcast primitives that include the
 original sender among the recipients of a message. For simplicity, the
 examples in this section have not shown this sort of self-delivery,
-but it is useful in many cases. Self-delivery is typically combined
+but it is useful in many cases. Self-delivery is useful when combined
 with ordering guarantees. A typical use case is that participants are
 using a total order broadcast to maintain local replicas of a state
 machine that can be advanced by any participating process by
-broadcasting updates.  This usage is presented in Section
-\ref{sec:continuous-consistency}, with the goal of replicating shared
-state over a disruption-heavy network.
+announcing updates.  This usage is presented in Sections
+\ref{sec:tsae} and \ref{sec:continuous-consistency}, with the goal of
+replicating shared state over a disruption-heavy network.
 
 \subsection{Shared Memory}
 \label{ssec:shared-memory}
@@ -1766,7 +1763,7 @@ Note that we have reused notation between Definitions
 Though they are similar concepts (both are reflexive and symmetric but
 generally non-transitive binary relations), physically concurrent
 memory operations in the DSM model should not be confused with
-logically synchronous events in the events and message-passing model.
+logically synchronous events in the message-passing model.
 
 \subsection{Semantics and Consistency}
 In a sequential application running on a single computer, it is clear
@@ -1776,8 +1773,7 @@ $x$ by a write operation $\memwrite{x}{v}$ (or return a default value
 if no such write exists, but we will not consider such examples). This
 is unambiguous because we assume that in a single process, memory
 operations do not overlap in time, so there is always a sense of which
-one happened first. %In a transactional database, this property can be
-% achieved using standard \emph{serialization} mechanisms.
+one happened first.
 
 \begin{example}
   Consider the following history of operations running inside a single process.
