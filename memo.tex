@@ -3203,16 +3203,29 @@ applies the following (conservative) policies:
   \end{equation}
 \item A message $m$ originating at $R$ has been
   received by $Q$ when the following condition holds:
-    \begin{equation}
-      \timestamp{m} \leq \ackMatrix{P}[Q][R]
-    \end{equation}
+  \begin{equation}
+    \timestamp{m} \leq \ackMatrix{P}[Q][R]
+  \end{equation}
 \item A message $m$ originating at $R$, after being delivered to $P$,
   can be purged from the log when the following analogue of
   \eqref{eq:tsae-message-purging-condition} holds:
-    \begin{equation}
-      \timestamp{m} \leq \min_{X \in \AllProc}\ackMatrix{P}[X][R]
-    \end{equation}
+  \begin{equation}
+    \timestamp{m} \leq \min_{X \in \AllProc}\ackMatrix{P}[X][R]
+  \end{equation}
 \end{itemize}
+
+We additionally apply an optimization, similar to the one for
+$\ackVec{P}$, of recomputing $\ackMatrix{P}$ after confirming $Q$ has
+successfully received all messages during anti-entropy. Namely,
+$\ackMatrix{P}[Q]$ is advanced to the pointwise maximum of the summary
+vectors $\ackMatrix{P}[P]$ and $\ackMatrix{Q}[Q]$ exchanged at the
+beginning of the anti-entropy session. This increases $P$'s estimated
+knowledge of $Q$ to additionally reflect any new messages $P$ has just
+pushed during anti-entropy. $Q$ updates $\ackMatrix{Q}[P]$
+symmetrically. For purposes of continuous consistency, below
+., this
+optimization implements the ``view advance'' mechanism used to bound
+numerical error.
 
 Of course, matrices require $\Theta(n^2)$ storage at each site for a
 process group with $n$ members, which quickly becomes untenable for
