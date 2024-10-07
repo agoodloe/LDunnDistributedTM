@@ -1812,7 +1812,7 @@ overlapping moments in time, making it unclear which should be
 considered ``first.'' The ambiguity is made concrete by considering
 the subsequent read operations---which values should they return? Or
 rather, we should ask which values are they \emph{allowed} to return,
-since there is not always a deterministic answer.
+since the possibilities are not usually deterministic.
 
 A \emph{memory model} exists precisely to answers questions of the
 form, ``Which values might be returned by read requests in which
@@ -1846,14 +1846,11 @@ on the other hand, implementing a stricter memory model may impose a
 prohibitive overhead on application performance.
 
 To resolve the ambiguity caused by overlapping memory operations, one
-might attempt to assign timestamps to them and use this to define an
-agreed-upon global total order of operations (recall that external
-order is only a partial order, since it does not relate overlapping
-events). For instance, one might globally order operations by their
-start time or stop time. However, using these kinds of orders in
-practice would require sufficiently fine-grained timestamps from
-synchronized clocks, but synchronization is usually an infeasible
-assumption (see Section
+might attempt to assign physical timestamps to them and use this to
+define an agreed-upon global total order of operations. However, using
+these kinds of orders in practice requires sufficiently fine-grained
+timestamps from synchronized clocks. For our environments this is
+often infeasible (see Section
 \ref{ssec:physical-synchronization}).
 
 \subsection{Strong Consistency Models}
@@ -1865,10 +1862,9 @@ or a set of operations arranged into a particular total order.
 
 \begin{definition}[A sequential history]
   \label{def:sequential-history}
-  A \emph{sequential history} if a set of memory operations in a
+  A \emph{sequential history} is a set of memory operations in a
   particular total order. If $H$ is a history, a \emph{serialization}
-  $H$, called $\sigma$, is any total order among the operations in
-  $H$.
+  is any total order among the operations in $H$.
 \end{definition}
 
 Linearizability and sequential consistency both require that all read
@@ -1886,17 +1882,17 @@ allowable.
 consistency, can be concisely defined as a system that acts like
 ``each operation applied by concurrent processes takes effect
 instantaneously at some point between its invocation and response.''
-\cite{10.1145/78969.78972} The same condition is known by other names
-like atomic consistency, strict consistency, and external
-consistency. It means almost the same thing as strict serializability,
-except the latter terminology is used to discuss transactional
-databases and implies other database-related guarantees. Formally, a
-linearizable history is defined by three features.
+\cite{10.1145/78969.78972} The same condition is known (though
+sometimes with subtle variations in meaning) by names like atomic
+consistency and external consistency. It means almost the same thing
+as strict serializability, except the latter terminology is used to
+discuss transactional databases and implies other database-related
+guarantees. Formally, a linearizable history is defined by three
+features.
 \begin{definition}[Linearizable history]
   \label{def:linearizable-history}
-  Let $H$ be a history of memory operations, where all read operations
-  include their return values. $H$ is \emph{linearizable} if it
-  satisfies the following three rules.
+  Let $H$ be a history of memory operations. $H$ is
+  \emph{linearizable} if it satisfies the following three rules.
 \begin{enumerate}
   \tightlist
 \item \textbf{Global Agreement on Order}: All processes behave
@@ -1912,14 +1908,10 @@ linearizable history is defined by three features.
 \end{enumerate}
 \end{definition}
 
-Note that some authors define a serialization of $H$ as a total order
-that is consistent with external order, but we consider these ideas
-separately.
-
-Definition \ref{def:linearizable-history} is concerned with an individual
-history of some distributed application. When the application only
-ever has linearizable histories, as permitted by the memory manager,
-the entire system is said to be linearizable.
+Definition \ref{def:linearizable-history} is concerned with an
+individual history of some distributed application. When the
+application only ever admits linearizable histories, as permitted by
+the memory manager, the entire system is said to be linearizable.
 
 \begin{definition}[Linearizable system]
   \label{def:linearizable-system}
@@ -1944,15 +1936,15 @@ linearizability. A linearizable history where returned values are
 consistent with a choice of linearization point for each operation.
 \begin{definition}
   A \emph{linearization point} $t$ for an operation $\Op$ is a time in
-  the range $[\memstart{\Op}, \memstop{\Op}]$, between the operations
+  the range $[\memstart{\Op}, \memstop{\Op}]$, between the operation's
   invocation and response. We forbid distinct operations from having
   an overlapping linearization point.
 \end{definition}
 
-A history is linearizable if there is some consistent choice of
-linearization points for each operation, and all returned values are
-consistent assuming each operation takes effect in whole and
-instantaneously at its linearization point. The subfigures in
+A history is linearizable if there is some choice of linearization
+point for each operation, and returned values are consistent with
+operations taking effect in whole and instantaneously at their
+linearization points. The subfigures in
 \ref{fig:dsm-example-2-linearizations} depict possible choices of
 linearization points in yellow.
 
@@ -1992,8 +1984,7 @@ respects \emph{program order}.
 \end{definition}
 If two operations occur in different processes, they are not related
 by program order. That is the distinction between program and external
-order, as the latter would relate the operations as long as they do
-not overlap in time.
+order.
 
 The definition of sequential consistency follows the same structure as
 that for linearizability, with program order in place of external
@@ -2034,17 +2025,6 @@ three read operations to return the same value. Examples
 \ref{ex:dsm-example-2-sequential-2}, below, demonstrate sequentially
 consistent histories where $P_1$ and $P_2$ read non-equal values.
 
-Visually, we can think of sequential consistency as organizing
-operations like beads on a string. The worldline of each process is
-like its own ``string,'' while the operations occurring in that
-process are like ``beads''. Beads on the same string can move forward
-or backward in time, but they cannot overtake each other; this
-corresponds to respecting the program order of operations. However,
-beads on different strings---representing operations from different
-processes---are free to slide past each other.  A serialization that
-respects program order is any non-overlapping arrangement of
-operations that can be obtained in this manner.
-
 \begin{figure}
   \begin{subfigure}{1\textwidth}
     \setlength\belowcaptionskip{4ex}
@@ -2064,7 +2044,7 @@ operations that can be obtained in this manner.
 
 \begin{example}
   \label{ex:dsm-example-2-sequential-1}
-  Figure \ref{fig:dsm-example-2-sequential-1} depicts a sequentially
+  Figure \ref{fig:dsm-example-2-sequential-1-sub} depicts a sequentially
   consistent history of the operations depicted in Figure
   \ref{fig:dsm-example-2}. This history is non-linearizable because
   $P_1$ and $P_2$ read different values for $x$. It is sequentially
@@ -2094,12 +2074,12 @@ operations that can be obtained in this manner.
 
 \begin{example}
   \label{ex:dsm-example-2-sequential-2}
-  Figure \ref{fig:dsm-example-2-sequential-2} depicts another
+  Figure \ref{fig:dsm-example-2-sequential-2-sub} depicts another
   sequentially consistent history of the operations in Figure
   \ref{fig:dsm-example-2}. In this example, $P_2$ appears to travel
   backwards in time, reading the stale value $4$ immediately after
-  reading $5$. This history is consistent with the sequential history
-  shown in Figure \ref{fig:dsm-example-2-sequential-2-sub}.
+  reading $5$. This history is consistent with the serialization
+  shown in Figure \ref{fig:dsm-example-2-sequential-2-serial}.
 \end{example}
 
 The time-traveling nature of Example
@@ -2131,12 +2111,12 @@ expected a priori, before the program is executed and a real-time
 external order of events is fixed.
 
 \subsection{The CAP Theorem}
-Real-world systems rarely function as a perfectly coherent,
-integrated, cohesive system. The gap between idealized system behavior
-and real-world behavior stems from a well-understood and fundamental
-tradeoff between coherence and performance. The more ``coherence'' we
-demand from the system, the more processes have to communicate over
-the network, whose unpredictable delays impose overheads that degrade
+Real-world systems rarely function as a perfectly coherent, unified
+system. One fundamental gap between idealized and real-world behavior
+stems from a well-understood and fundamental tradeoff between
+coherence and performance. The more ``coherence'' we demand from the
+system, the more processes have to communicate over the network, whose
+unpredictable delays impose overheads that degrade
 performance. Conversely, the more we demand immediate answers from our
 system, the less time a process has to communicate with other
 processes, so the system as a whole does not seem as coherent and
@@ -2155,7 +2135,7 @@ In 1999, Fox and Brewer \cite{1999foxbrewer} articulated a formal
 tradeoff between three desirable properties of distributed systems:
 consistency, availability, and an ability to function during network
 partitions. This observation was formalized and rigorously proven by
-Gilbert and Lynch \cite{2002gilbertlynchCAP} in 2002. Despite its
+Gilbert and Lynch in 2002 \cite{2002gilbertlynchCAP}. Despite its
 prominence at the heart of distributed systems, and the fact that its
 proof is fairly straightforward, the CAP theorem is sometimes
 misunderstood, so it is worth clarifying its key terms.
@@ -2163,10 +2143,10 @@ misunderstood, so it is worth clarifying its key terms.
 \begin{description}
 \item[Consistency] Gilbert and Lynch define consistency as
   linearizability.
-\item[Availability] A CAP-available system responds to every client
-  request (a read or write operation) in a finite time.
+\item[Availability] A CAP-available system eventually responds to every client
+  request (a read or write operation) after a finite time.
 \item[Partition tolerance] A partition-tolerant system continues to
-  function in the face of arbitrary partitions inthe network.
+  function in the face of arbitrary partitions in the network.
 \end{description}
 
 In the last case, the possibility is allowed that a partition never
@@ -2186,7 +2166,7 @@ we term this property \emph{behavioral invariance}.
 
 \begin{figure}
   \input{images/pgf/dsm_cap_ex1.pgf}
-  \caption{An history where linearizability cannot maintained during a network partition}
+  \caption{A history where linearizability cannot maintained during a network partition}
   \label{fig:dsm-cap-example-1}
 \end{figure}
 
@@ -2201,18 +2181,18 @@ we term this property \emph{behavioral invariance}.
   there is only possible linearization of this history:
   $\memwrite{x}{1}$ executes, $\memwrite{x}{2}$ executes, and
   $\memread{x}$ reads the value $2$. Now suppose $P_1$ and $P_2$ are
-  separated by a network partition, meaning in particular that $P_1$
-  does not receive any messages from $P_2$. This leaves two
-  possibilities for how $P_1$ might handle the $\memread{x}$
-  operation:
+  separated by a network partition, meaning $P_1$ does not receive any
+  messages from $P_2$. This leaves two possibilities for how $P_1$
+  might handle the $\memread{x}$ operation:
   \begin{enumerate}
   \item $P_1$ can proceed despite the network partition and return a
     value. By behavioral invariance, $P_1$ would have to return
-    $\memreadVal{x}{1}$. This is value it would return (by
-    linearizability) if there was a network partition and $P_2$ did
-    \emph{not} write to $x$, but $P_1$'s is the same regardless of the
-    of this operation. Returning $1$ violates linearizability in the
-    case above where $P_2$ \emph{does} write to $x$.
+    $\memreadVal{x}{1}$. This is value it would read (by
+    linearizability) if $P_2$ did not write to $x$. Behavioral
+    invariance means $P_1$'s reads the same value regardless of what
+    $P_2$ does (since in either case, it receives no communication
+    from $P_2$). Returning $1$ violates linearizability in the case
+    above where $P_2$ \emph{does} write to $x$.
   \item $P_1$ might detect (or assume) the network suffers a partition
     and refuse to handle the $\memread{x}$ until it is able to
     communicate with $P_2$ again, whereupon it would learn the correct
@@ -2282,7 +2262,7 @@ CAP-unavailabile.
   order of operations would have to arrange $\memreadVal{y}{0}$ before
   $\memwrite{y}{1}$---otherwise reading $0$ is incorrect. This results
   in the order shown in Figure \ref{fig:dsm-cap-example-2-serial1},
-  which is incorrect because $\memread{x}{0}$ occurs after
+  which is incorrect because $\memreadVal{x}{0}$ occurs after
   $\memwrite{x}{1}$. The situation is symmetric: to order
   $\memreadVal{x}{0}$ before $\memwrite{x}{1}$ results in an order where
   $\memwrite{y}{1}$ precedes $\memreadVal{y}{0}$ (Figure \ref{fig:dsm-cap-example-2-serial2}).
@@ -2300,17 +2280,16 @@ theorem only rules out the combination of all three properties when
 each of them is defined in an idealized, rigid way.
 
 In practice, applications often settle for weaker levels of
-consistency than linearizability or sequential consistency. We shall
-see an example in the next section. Resilience to network partitions
-typically requires coping with intermittent, rather than indefinite,
-communications failures. Finally, availability is best measured in
-terms of actual response time as experienced by the user, and not the
-mere assurance that a request will ``eventually'' be handled. Thus,
-each of these dimensions is actually quantitative in nature, rather
-than an all-or-nothing proposition.
+consistency than linearizability or sequential consistency. Resilience
+to network partitions typically requires coping with intermittent,
+rather than indefinite, communications failures. Finally, availability
+is best measured in terms of actual response time as experienced by
+the user, and not the mere assurance that a request will
+``eventually'' be handled. Thus, each of these dimensions is actually
+quantitative in nature, rather than an all-or-nothing proposition.
 
 The locality principle is also highly relevant when considering
-implications of the CAP theorem for a real system: the closer agents
+implications of the CAP theorem for a real system. The closer agents
 are located, the more reliable their communications will be in
 general, and the more applications can provide consistency and
 availability for operations that only require coordinating with nearby
@@ -2343,24 +2322,21 @@ operation that reads this value, it is not clear which write
 ``caused'' it. For this purpose we define a \emph{writes-into} order.
 
 \begin{definition}[Writes-into order]
-  Let $H$ be a history of memory operations.\footnote{We are treating $H$ as a
-  \emph{multiset}, meaning for example that two operations both of the
-  form $\memwrite{x}{v}$ are considered distinct.} A ``writes into''
-  order $\writesinto$ is any binary relation among the operations in
-  $H$ that satisfies the following conditions:
-  \begin{itemize}
-  \item All pairs of operations related by $\writesinto$ are of
-    the form $\memwrite{x}{v} \writesinto \memreadVal{x}{v}$ for
-    memory some location $x$ and value $v$.
-  \item For each operation of the form $\memreadVal{x}{v}$, there is
-    exactly one write operation in $H$ that
-    $\memwrite{x}{v} \writesinto \memreadVal{x}{v}$
-  \end{itemize}
+  Let $H$ be a history of memory operations.\footnote{We are treating
+    $H$ as a \emph{multiset}, meaning for example that separation
+    operations both of the form $\memwrite{x}{v}$ are considered
+    distinct.} A ``writes into'' order $\writesinto$ is a binary
+  relation where each read $\memreadVal{x}{v}$ is paired with the
+  write operation that determined the value that operation read. That
+  is, all relatedl pairs are of the form
+  $\memwrite{x}{v} \writesinto \memreadVal{x}{v}$ and every read is
+  paired with some write.
 \end{definition}
-Ahamad et al. \cite{1995:causal-memory} give a slightly more complex
-definition accomodate operations that read uninitialized memory
-locations. For simplicity we assume each memory location is written to
-before it is read.
+
+  Ahamad et al. \cite{1995:causal-memory} give a slightly more complex
+  definition to allow for operations that read uninitialized memory
+  locations. For simplicity we assume each memory location is written
+  to before it is read.
 
 \begin{definition}[Causality order on memory operations]
   \label{def:memorycausalprecedence}
@@ -2416,14 +2392,19 @@ serialization.
 \begin{example}
   \label{ex:dsm-causal-ex1}
   Figure \ref{fig:dsm-causal-ex1} depicts a causally consistent
-  history of the operations in Figure \ref{fig:dsm-example-2}. The
-  writes-into order is depicted with dotted edges. This example is not
-  sequentially consistent: if it were, then $\memwrite{x}{5}$ must be
-  ordered after $\memwrite{x}{3}$ and before $\memreadVal{x}{5}$
-  (otherwise the latter return value is incorrect). However, both
-  $\memread{x}{3}$ operations must be ordered after $\memwrite{x}{5}$
-  (by program order), and therefore $3$ is not the most recent value
-  of $x$ and these operations return incorrect values.
+  execution of the operations in Figure \ref{fig:dsm-example-2} that
+  is not sequentially consistent. The writes-into order is depicted
+  with dotted edges. The operations $\memwrite{x}{5}$ and
+  $\memwrite{x}{3}$ are not related by $\causalityorder$ and therefore
+  do not have to appear to take effect in the same order at all processes.
+
+  Suppose this history were consistent with some serial order. By
+  correctness, $\memwrite{x}{5}$ must be the last write before
+  $\memreadVal{x}{5}$. By program order, $\memwrite{x}{5}$ comes
+  before $\memreadVal{x}{3}$. By correctness, $\memwrite{x}{3}$ must
+  come before $\memreadVal{x}{3}$, but not before
+  $\memwrite{x}{5}$. But then it must be the last write before
+  $\memreadVal{x}{5}$, a contradiction.
 \end{example}
 
 \begin{figure}
@@ -2431,7 +2412,8 @@ serialization.
   \begin{subfigure}{1\textwidth}
     \centering
     \input{images/pgf/dsm_causal_ex1.pgf}
-    \caption{A causally consistent history\ref{fig:dsm-example-2} with a writes-into order shown with dotted edges}
+    \caption{A causally consistent history with a writes-into order
+      shown with dotted edges}
     \label{fig:dsm-causal-ex1}
   \end{subfigure}
   \begin{subfigure}{1\textwidth}
@@ -2454,7 +2436,7 @@ Causal consistency not subject to the limits of the CAP theorem.
 \begin{lemma}[Causal consistency is CAP-available]
   \label{thm:cap-causal}
   Causal consistency can be enforced during network partitions. That
-  is, causal consistency is not subject to the CAP thereom.
+  is, causal consistency is not subject to the CAP theorem.
 \end{lemma}
 \begin{proof}
   Consider two processes that execute read and write operations purely
@@ -2472,17 +2454,16 @@ Causal consistency not subject to the limits of the CAP theorem.
   operations.
 \end{proof}
 
-The proof of the Lemma \ref{thm:cap-causal} speaks mostly to the
-weakness of causal consistency. In the proof, different processes are
-allowed to deviate arbitrary far from consistency with each other, in
-the sense that no processes need to agree on anything about the order
-of write operations---at any moment in time, they may read wildly
-different values for the same logical memory location, instead of
-maintaining a common operating picture. As a result, causal
-consistency is too weak to place any kind of bound on the divergence
-of two processes, which suggests it is not strong enough for the kinds
-of safetly-related applications we have in mind. This issue will be
-addressed in Section \ref{sec:continuous-consistency}.
+The proof of the Lemma \ref{thm:cap-causal} speaks to the weakness of
+causal consistency. In the proof, different processes are allowed to
+deviate arbitrarily far from consistency with each other. At any
+moment in time, they may diverge wildly, which violates our goal of
+maintaining a common operating picture. Causal consistency is too weak
+to place an upper bound on the divergence observed by users, which
+suggests it is not the most appropriate model for the kinds of
+safety-related applications we have in mind. Section
+\ref{sec:continuous-consistency} will consider how a continuous
+consistency model can provide these sorts of bounds.
 
 \subsection{Section Summary}
 \label{ssec:background-summary}
@@ -2507,23 +2488,23 @@ system at any moment.
 
 Programmers may find it easier to frame distributed applications in
 terms of reading and writing from a shared pool of virtual memory,
-rather than sending messages, by employing the distributed shared
-memory or DSM abstraction. However, the fact that many processes can
-access the same virtual memory locations at the same time makes it
-challenging to maintain systemwide coherence. Strong consistency
-models like linearizability and sequential consistency provide the
-illusion of a single, unified source of truth, but the CAP theorem
-makes it virtually impossible to guarantee these properties over
-chaotic, disruption-prone networks. Weaker models like causal
-consistency are not subject to the same limitations, but they do not
-enforce any limits bounding how far apart data replicas can
-diverge. This renders weaker models potentially unsuitable for
-safety-critical applications like we aim to build.
+rather than sending messages, using distributed shared memory
+framework. The fact that processes can access the same virtual memory
+locations at the same time makes it challenging to maintain systemwide
+coherence. Strong consistency models like linearizability and
+sequential consistency provide the illusion of a single source of
+truth, but the CAP theorem makes it virtually impossible to guarantee
+these properties over connection-challenged networks. Weaker models
+like causal consistency are not subject to the same limitations, but
+they do not enforce limits bounding how far apart data replicas can
+diverge, rendering them potentially unsuitable for safety-related
+applications.
 
-In summary, there is no free lunch in distributed systems. Designing
-resilient distributed systems for emergency response scenarios
-requires a careful balancing act between competing properties that is
-carefully calibrated to the use case and the operational environment.
+% In summary, there is no free lunch in distributed systems. Designing
+% resilient distributed systems for emergency response scenarios
+% requires a careful balancing act between competing properties that
+% is carefully calibrated to the use case and the operational
+% environment.
 
 
 \section{Timestamped Anti-Entropy}
@@ -2661,15 +2642,16 @@ synchronization can be achieved with a protocol like NTP.  Section
 clocks can be replaced with version matrices at the cost of a
 quadratic storage requirement. Our sense is that for our purpose of
 implementing continuous consistency in Section
-\ref{sec:continuous-consistency}, conventional scalar logical clocks
-can be used everywhere in place of physical clocks. Indeed, this seems
-to be how Yu and Vahdat implement TSAE as part of their TACT framework
-\cite{2002tact}. The real-time consistency metric discussed in
-\ref{ssec:conit-real-time-consistency} requires each process to keep a
-physical clock to measure elapsed time, though synchronization does
-not appear to be strictly required here either, assuming each clock
-runs at a consistent rate. We assume synchronization here to follow
-Golding's presentation, highlighting where the assumption is used.
+\ref{sec:continuous-consistency}, timestamps from conventional scalar
+logical clocks can be used everywhere in place of physical
+clocks. Indeed, this seems to be how Yu and Vahdat implement TSAE as
+part of their TACT framework \cite{2002tact}. The real-time
+consistency metric discussed in \ref{ssec:conit-real-time-consistency}
+requires each process to keep a physical clock to measure elapsed
+time, though synchronization does not appear to be strictly required
+here either, assuming each clock runs at a consistent rate. We assume
+synchronization here to follow Golding's presentation, highlighting
+where the assumption is used.
 
 
 \subsection{Message Log}
@@ -2977,11 +2959,12 @@ $\ack{P}{Q}$ is set to this value. Symmetrically, $Q$ updates
 $\ack{Q}{Q}$ and $\ack{Q}{P}$. Note that this preserves the preserves
 the invariant that $\ack{P}{Q}$ and $\ack{Q}{P}$ are lower bounds of
 $\ack{Q}{Q}$ and $\ack{P}{P}$, respectively, provided the
-implementation ensures $P$ increments $\ack{P}{Q}$ only if $Q$
-increments $\ack{Q}{Q}$ and vice versa. This optimization advances
-acknowledgment vectors (and later, version matrices) more often than
-Golding's presentation, which allows the ordering and purging
-mechanisms (explained below) to progress more quickly.
+implementation ensures $P$ increments $\ack{P}{Q}$ after confirming
+$Q$ has received all messages from $P$ and vice versa. This
+optimization advances acknowledgment vectors (and later, version
+matrices) more often than Golding's presentation, which allows the
+ordering and purging mechanisms (explained below) to progress more
+quickly.
 
 The following two lemmas explain the utility of $\ackVec{P}$ as a way
 of estimating global state.
@@ -3047,7 +3030,7 @@ component delivers all messages whose timestamp is less than or equal
 to $P$'s commit line. That is, the set of messages satisfying
 \begin{equation}
   \label{eq:tsae-message-ordering-condition}
-  \timestamp{m} \leq \ack{P}{P}
+  \timestamp{m} \leq \ack{P}{P}.
 \end{equation}
 These messages are delivered to $P$ in order of their timestamps, using
 the identifiers of their senders to resolve ties. The correctness of
@@ -3091,8 +3074,8 @@ slow clock compared to other processes, then $\summary{P}{Q}$ will
 remain the minimum element in $\summaryVec{P}$ for a long time. During
 this time, only messages from $Q$ will be delivered to $P$, as all
 other messages would have timestamps greater than $Q$'s clock. Section
-\ref{ssec:tsae-unsynchronized} explains how the assumption of
-synchronization can be removed.
+\ref{ssec:tsae-unsynchronized} explains one way (introduced by
+Golding) that the assumption of synchronization can be removed.
 
 
 \subsection{Message Purging}
@@ -3208,10 +3191,9 @@ vectors $\ackMatrix{P}[P]$ and $\ackMatrix{Q}[Q]$ exchanged at the
 beginning of the anti-entropy session. This increases $P$'s estimated
 knowledge of $Q$ to additionally reflect any new messages $P$ has just
 pushed during anti-entropy. $Q$ updates $\ackMatrix{Q}[P]$
-symmetrically. For purposes of continuous consistency, below
-., this
-optimization implements the ``view advance'' mechanism used to bound
-numerical error.
+symmetrically. For purposes of continuous consistency, below, this
+subroutine implements the ``view advance'' mechanism used
+to bound numerical error.
 
 Of course, matrices require $\Theta(n^2)$ storage at each site for a
 process group with $n$ members, which quickly becomes untenable for
@@ -3227,35 +3209,24 @@ Rather than viewing consistency as an all-or-nothing proposition,
 continuous consistency makes the consistency/availability tradeoff
 first class by providing conceptual knobs and dials to ``tune'' the
 strength of the model based on the application and the capacity of the
-network. We suggest that the conit framework is well-suited for
+network. We suggest that the conit framework has advantages for
 distributed shared memory across a wide area connected by
 disruption-prone networks.
-
-The implementation we describe here, based on Yu and Vahdat, combines
-TSAE with a totally ordered delivery component to announce updates to
-shared data, which we assume is replicated in full at each
-site. However, using TSAE only provides a progress guarantee: all
-messages will eventually be received, acknowledged, delivered, and
-purged from the log of all processes, assuming the devices do not fail
-and network partitions do not last forever. This implements a
-\emph{weak consistency} model, where replicas are allowed to diverge
-temporarily, but will eventually converge to an agreement if allowed
-to communicate, at least if updates do not outpace the rate of
-convergence. Unfortunately, weak consistency does not say anything
-about how far apart replicas might diverge in the meantime.
 
 Continuous consistency is motivated by the observation that real-world
 applications can generally tolerate some level of divergence among
 replicas, especially in exchange for greater performance and
 availability, but only up to a point. Intuitively, applications can
 operate with replicas that deviate from their ``ideal'' value by at
-most some margin of error $\epsilon \geq 0$---any greater, and the
-data is unreliable and the application may become unavailable until
-consistency is re-established by running \emph{compulsory}
-anti-entropy. However, applications have unique data models and
-measure this error in different ways, so building a general framework
-to enforce quantitative error bounds on replicas without making
-specific assumptions about the nature of the data is challenging.
+most some margin of error $\epsilon \geq 0$. If the divergence is any
+greater, then the data is unreliable and the application may become
+unavailable (or otherwise alert the user to the potential
+unreliability of the data) until consistency is re-established by
+running \emph{compulsory} anti-entropy. However, applications have
+unique data models and measure this error in different ways, so
+building a general framework to enforce quantitative error bounds on
+replicas without making specific assumptions about the nature of the
+data is challenging.
 
 The conit framework strikes a desirable balance between being general
 enough to work in applications with very different data models, and
@@ -3263,55 +3234,111 @@ practical enough to efficiently enforce error bounds with
 straightforward protocols. The model affords flexible methods for
 applications to tune their consistency guarantees, allowing these
 decisions to be encoded into the application logic on a per-process
-basis, perhaps based on feedback and observations from the network. We
-describe the framework now in terms of its system model
+basis, perhaps based on feedback and observations from the network.
+
+We describe the framework now in terms of its system model
 (\ref{ssec:conit-system-model}), its three dimensions of consistency
 (\ref{ssec:conit-numerical-consistency}---\ref{ssec:conit-real-time-consistency}),
 and possible extensions (\ref{ssec:conit-extensions}).
 
+
+The implementation we describe here, based on Yu and Vahdat, combines
+TSAE with a totally ordered delivery component to announce updates to
+shared data, which we assume is replicated in full at each site. By
+itself, using TSAE+TO to propagate updates provides only a progress
+guarantee: all updates will eventually be received, acknowledged,
+delivered, and purged from the write log of all processes, assuming
+the devices do not fail and network partitions do not last
+forever. This implements a \emph{weak consistency} model, where
+replicas are allowed to diverge temporarily, but will eventually
+converge to an agreement if allowed to communicate, at least if
+updates do not outpace the rate of convergence. Unfortunately, weak
+consistency does not say anything about how far apart replicas might
+diverge in the meantime.
+
+A precise statement of the correctness of the model is somewhat subtle
+and we defer the issue until below (\ref{}). Recall from Section
+\ref{ssec:tsae-message-ordering} equivalent state machines beginning
+in the same initial state will agree assuming all machines have
+applied the same transitions in the same order. Thus, there are two
+explanations for $D_P \neq \Dideal$, and hence while ideal prefix
+histories may different from observed histories: Either there are
+writes $w \in \Writes$ that are not contained in $\WL{P}$, or the
+writes in $\WL{P}$ have been applied in a different order that
+$\Writes$. The results in two notions, numerical weight and error
+weight.
+\begin{description}
+\item[Unseen messages error] The error attributable to writes that $P$
+  has not seen
+\item[Out of order updates error] The error attributable to writes
+  that $P$ has applied tentatively, that will have to be rolled back.
+\end{description}
+
+\begin{itemize}
+\item There must an upper bound on the set of updates that $P$ has not
+  seen
+\item There must be an upper bound on how many updates $P$ has
+  received by applied in the wrong order
+\end{itemize}
+
+The application can specify the consistency requirements for each
+conit along a three-dimensional axis:
+\[\textrm{Consistency} = \langle \textrm{Numerical error,
+    \textrm{Order error}, \textrm{Staleness}} \rangle.\]
+
 \subsection{System Model}
 \label{ssec:conit-system-model}
 The system consists of processes in a group $\AllProc$ that replicate
-a shared database (more generally, any kind of replicated state
-machine). The initial database state at each replica is $\Dinit$.
+a shared database or, more generally, any kind of replicated state
+machine. The initial database state at each replica is $\Dinit$.
 
 Processes perform two types actions, read or write requests, as in
 Section \ref{ssec:shared-memory}. We call actions of both types
-\emph{accesses}. Accesses potentially contain multiple instructions
-and can be thought of potentially complex database
-transactions. Recall that a history is an ordered sequence of read and
-write accesses. The \emph{local history} of a process $P$, denoted
-$H_P$, is the sequence of accesses $P$ has applied to $\Dinit$ since
-the start of the application.
+\emph{accesses}. Reads and writes are handled by the protocol
+differently. Performing a write access advances the state machine,
+while a read examines the current state. Recall that a history is an
+ordered sequence of read and write accesses. The \emph{local history}
+of a process $P$, denoted $H_P$, is the sequence of accesses $P$ has
+applied to $\Dinit$ since the start of the application.
 
-Write accesses encode an action to be performed against a database
-image, rather than the final value the data after performing that
-action. The result of applying write action $w$ to a database state
-$D$ is denoted $D + w$. Let $D + H$ denote the result of applying each
-of the writes in $H$ to $D$ in history order ($D + r$ can be thought
-of as equal to $D$ if $r$ is a read) . Thus, the database state at a
-process $P$ at any moment, written $D_P$, is always $\Dinit + H_P$.
 
-A read access submitted to $P$ by a user is always handled locally by
-$P$ without involving other processes. The read action is immediately
-performed (while enforcing consistency requirements using the
-protocols below) and its value is returned to the user.
 
-When a read request is submitted to $P$, the requested value is read
-immediately from $D_P$ and returned to the caller. When a write
-request $w$ is submitted, the action is performed against the local
-replica and $w$ is added to $\WL{P}$. With either type of access, $P$
-is said to be the \emph{originating replica}, and all other processes
-are \emph{remote}. The value of $D_P$ is said to be the \emph{observed
+Processes handle read and write access differently. A read access
+submitted to $P$ by a user is always handled locally by $P$ without
+involving other processes. The read action is immediately performed
+(while enforcing consistency requirements using the protocols below)
+and its value is returned to the user. When a read request is
+submitted to $P$, the requested value is read immediately from $D_P$
+and returned to the caller.  With either type of access, $P$ is said
+to be the \emph{originating replica}, and all other processes are
+\emph{remote}. The value of $D_P$ is said to be the \emph{observed
   state} of the access.
+
+Writes in general should be thought of database transactions
+containing multiple instructions to be executed against the database,
+possibly containing embedded application logic. For example, a write
+may read a value in the database and make a business decision whether
+to increment it.The result of applying write action $w$ to a database
+state $D$ is denoted $D + w$. Let $D + H$ denote the result of
+applying each of the writes in $H$ to $D$ in history order. Thus, the
+database state at a process $P$ at any moment, written $D_P$, is
+always $\Dinit + H_P$. Read accesses can be thought of as a special
+case of write access that do not modify the underlying database state,
+meaning $D + r = D$ if $r$ is a read.
+
+
 
 \subsubsection{Write Log}
 Each process $P$ maintains a write log, $\WL{P}$, containing the
 history of all writes applied to its local database image in the order
 they were applied. Note that this makes $\WL{P}$ equivalent to $H_P$,
 restricted to write requests).
+\begin{equation}
+  D_P = \Dinit + \WL{P} \label{eq:conit-DP}
+\end{equation}
+When a write request $w$ is submitted, the action is performed against
+the local replica and $w$ is added to $\WL{P}$.
 
-\[  D_P = \Dinit + \WL{P} \label{eq:conit-DP} \]
 
 Timestamped anti-entropy is used to propagate writes to remote
 replicas, with $\WL{P}$ acting as the message log. When a remote
@@ -3341,26 +3368,6 @@ ordered. Thus, the data model should provide a mechanism for rolling
 back (undoing) writes that have been applied to $D$.
 
 
-Recall from Section \ref{ssec:tsae-message-ordering} equivalent state
-machines beginning in the same initial state will agree assuming all
-machines have applied the same transitions in the same order. Thus,
-there are two explanations for $D_P \neq \Dideal$, and hence while
-ideal prefix histories may different from observed histories: Either
-there are writes $w \in \Writes$ that are not contained in $\WL{P}$,
-or the writes in $\WL{P}$ have been applied in a different order that
-$\Writes$. The results in two notions, numerical weight and error
-weight.
-\begin{description}
-\item[Unseen messages error] The error attributable to writes that $P$
-  has not seen
-\item[Out of order updates error] The error attributable to writes
-  that $P$ has applied tentatively, that will have to be rolled back.
-\end{description}
-
-The application can specify the consistency requirements for each
-conit along a three-dimensional axis:
-\[\textrm{Consistency} = \langle \textrm{Numerical error,
-    \textrm{Order error}, \textrm{Staleness}} \rangle.\]
 
 Numerical error bounds the application-defined ``weight'' of messages
 $P$ hasn't seen. Real-time staleness bounds the maximum real time that
@@ -3415,69 +3422,6 @@ is the value $\Dinit + \PH_\textrm{a}$.  The following equations hold.
 \end{comment}
 
 
-\subsubsection{Ideal Histories}
-To define quantify deviation from strong consistency, we must give a
-few definitions. Recall the notion of external order (Definition
-\ref{def:external-order}): an access $A$ externally precedes $A'$ if
-$A$ has returned to the caller before $A'$ is invoked. Yu and Vahdat
-also define a notion of causality:
-\begin{definition}[Causal precedence of accesses]
-  \label{def:conit-causal-precedence}
-  $A$ \emph{causally precedes} $A'$ if $A$ was already in the local
-  history of the originating replica when $A'$ was submitted, and so
-  could have influenced how $A'$ executed.\footnote{At face value it
-    may seem that if $A$ is in a replica's write log before $A'$, then
-    it must have completed before $A'$ started and thus already
-    precedes $A'$ externally. However, if these represent long-running
-    database transactions, it is possible that $A$ logically takes
-    effect before $A'$ at some replia, though the two transactions may
-    be physically concurrently.}
-\end{definition}
-
-With these definitions, we can define a strongly consistent execution
-as a reference point for measuring deviation.
-
-\begin{definition}[Ideal image]
-  An ECG (externally consistent, causally consistent, global) history
-  is the set of accesses across the system arranged in some total
-  order that respects both external and causal order as defined above.
-\end{definition}
-Definitions below are given with respect to some ECG
-history. Intuitively, the condition expected from the conit framework
-is that at any moment in time, there is some ECG history such that all
-replicas diverge from the ECG history by at most some error bound.
- We assume some ECG history as a reference
-point. The \emph{ideal result} of an access $a$ is the value
-$\Dinit + \PH_\textrm{a}$.  The following equations hold.
-\begin{gather}
-  \Dideal = \Dinit + \WL{\textrm{ideal}} \label{eq:conit-Dideal}
-\end{gather}
-
-
-
-\subsubsection{Conits}
-The intention of the conit framework is this: at any moment in time,
-there exists some ECG history of system accesses such that no
-individual replica deviates from too far this history. To define what
-it means to deviate, we now define conceptual units of data whose
-relative (in)consistency can be quantified.
-
-A read request depends on a set of conits $\mathcal{F}$. That is to
-say, it assumed that the read will return the same value for any two
-database images $D$ and $D'$ such that $F(D) - F(D') = 0$ for each
-conit $F$ in $\mathcal{F}$. This access will be associated with a
-consistency requirement for each conit in $\mathcal{F}$.
-
-We write $\WL{P}|_\mathcal{F}$ to indicate the history of $P$
-restricted to just the messages with non-zero weight on any of the
-conits in the set $\mathcal{F}$.
-
-Anti-entropy can be push- or pull-based. To push updates from $P$ to
-$Q$, $P$ obtains $Q$'s summary vector $\summaryVec{Q}$ and pushes all
-unseen messages in $\WL{P}$ to $Q$. To pull updates, $P$ sends its
-version vector and requests any messages in $\WL{Q}$ that $P$ has not
-seen.
-
 
 \subsection{Numerical consistency}
 \label{ssec:conit-numerical-consistency}
@@ -3485,30 +3429,62 @@ We imagine that a conit $F$ is associated with a valuation function,
 \[
   \Val^F\colon \mathsf{Database\ Image} \to \mathbb{R}
 \]
-that maps a database state to some real value. Then,
-$\Val^F(D)$ is thought of as the value of conit $F$ for a
-database state $D$. Let $V_P$ denote the current value of $F$ at $P$'s
-replica $D_P$. Let $\Videal$ represents the value of $F$ at $\Dideal$.
+that maps a database state to some real number representing the value
+of that conit. Each write $w$ is associated with a value,
+$\NumWeight(w, F)$, for each conit $F$, codifying the effect of $F$ of
+applying $w$ to a database (we assume this value is independent of the
+current state $D$):
+\[ \NumWeight\left(w, F\right) \equiv \Val^F(D + w) - \Val^F(D). \] Yu
+and Vahdat actually \emph{define} a conit as what we have called a
+valuation function. We adopt a slightly more abstract terminology and
+say that a conit is just an identifier such that each write is
+associated with a well-defined weight for each conit. A weight of $0$
+indicates that a conit is not affected by $w$.
 
-Each write update $w$ is associated with a value, $\NumWeight^F(w)$,
-for each conit $F$, codifying the effect of $F$ of applying $w$ to a
-database. That is, $w$ represents the value
-\[ \NumWeight\left(w, F\right) = \Val^F(D + w) - \Val^F(D), \] which
-we assume is independent of $D$ itself. Note that $F$ distributes over
-$+$ in the sense that $F(D + w) = F(D) + \NumWeight(w, F)$. Combining
-this with Equations \eqref{eq:conit-DP} and \eqref{eq:conit-Dideal}
-gives
+Let $V_P$ denote the current value of $F$ at $P$'s replica $D_P$. Let
+$\Videal$ represents the value of $F$ at $\Dideal$.  Now $F$
+distributes over $+$ in the sense that the following holds:
+\[\Val^F(D + w) = \Val^F(D) + \NumWeight(w, F).\] Combining this with
+Equations \eqref{eq:conit-DP} and \eqref{eq:conit-Dideal} gives
 \begin{gather}
-  V_P = V_{\textrm{init}} + \sum \{\NumWeight(w, F) | w \in \WL{P}\} \\
-  \Videal = V_{\textrm{init}} + \sum \{\NumWeight(w, F) | w \in \WL{\textrm{ideal}}\}
-  %\sum \{\NumWeight(w) | w \in \WL{P}\} = \left(\mathsf{SeenPosWeight}_F^P\left(X\right) + \mathsf{SeenNegWeight}_F^P\left(X\right)\right) \\
+  V_P = \Vinit + \sum \{\NumWeight(w, F) | w \in \WL{P}\} \\
+  \Videal = \Vinit + \sum \{\NumWeight(w, F) | w \in \WLideal\}
 \end{gather}
+
+The correctness of numerical error is
+\begin{equation}
+  | \Videal - V_P | < \NE\left(P, F \right)
+\end{equation}
+
+Naturally, enforcing this condition requires bounding the set of
+writes that $P$ has not seen:
+\[
+  \WLideal \setminus \WL{P}
+\]
+
+The mechanism used requires each process to maintain approximate
+(conservative) knowledge of $\WL{P}$, and then bound its own
+``contribution'' towards the writes in $\WLideal$ that are not in
+$\WL{P}$.
+
+\subsubsection{Assumptions}
+Bounding numerical error requires a cooperation between all processes that process write updates to that conit.
+requirements.  We need every process to know every processes' bounds.
+\begin{quote}
+  \textbf{Global knowledge of error bounds}: Every process knows
+  $\NE\left(P, F \right)$ for each conit $F$ and each process $P$.
+\end{quote}
+If $P$ wishes to dynamically update its consistency bounds for a conit
+$F$, it must invoke some mechanism to inform all other processes of
+this change. For this reason, though theoretically possible,
+individual accesses at $P$ cannot easily specify their own tailored
+numerical consistency requirements for each access. Instead, $P$
+maintains a requirement per conit.
 
 We assume each process $P$ maintains a conservative estimate, called
 its \emph{view}, of which writes originating at $P$ have been received
 by each other process. $P$'s view of $Q$ is denoted by
-$\View{P}{Q}$. This estimate must be safe, meaning $P$ will not assume
-$Q$ has received a message that it has not.
+$\View{P}{Q}$.
 \begin{quote}
   \textbf{Approximate local knowledge of remote knowledge}: For each $Q$,
   $P$ can compute a set $\View{P}{Q}$ subject to the following
@@ -3519,75 +3495,78 @@ $Q$ has received a message that it has not.
   $P$ must also implement a mechanism to advance its view by
   synchronizing with $Q$.
 \end{quote}
-Its view also provides $P$ with an estimate of the messages it has
+$\View{P}{Q}$ provides $P$ with an estimate of the messages it has
 originated that $Q$ has not received yet, namely
-$\WLat{P}{P} \setminus \View{P}{Q}$. Yu and Vahdat do not prescribe a
-particular mechanism for a process to maintain its view. However, the
-following policies seem to be implicit.
+$\WLat{P}{P} \setminus \View{P}{Q}$. We describe two ways of
+implementing views for the $\ackVec{P}$ and $\ackMatrix{P}$
+implementations of TSAE.
 \begin{itemize}
-\item If TSAE is implemented with matrices, the implementation of
-  views is trivial. $P$ estimates that $Q$ has not seen any
-  messages from $P$ with timestamp newer than $\ackMatrix{P}[Q][P]$:
-  \begin{equation*}
-    \View{P}{Q} \equiv \{ m \in \WLat{P}{P} | \timestamp{m} \leq
-    \ackMatrix{P}[Q][P] \}
-  \end{equation*}
-  After push-based anti-entropy at time $t$, $P$'s view is advanced
-  because $\ackMatrix{P}[Q][P]$ will have value $\clock{P, t}$.
 \item If TSAE is implemented with $\ackVec{P}{}$, then $P$ must
   maintain an additional vector $\lastVec{P}$ where
   $\last{P}{Q}$ stores the value of $\clock{P,t}$ at the time
-  of the last push to $Q$. $P$ estimates $Q$ has not received any
+  of the last push to $Q$. $P$ conservative estimates $Q$ has not received any
   messages from $P$ (via a third party) since this time:
   \begin{equation*}
     \View{P}{Q} \equiv \{ m \in \WLat{P}{P} | \timestamp{m} \leq
     \last{P}{Q} \}
   \end{equation*}
-  After anti-entropy, $\last{P}{Q}$ is advanced to
-  $\clock{P, t}$.  It may seem that $\ackVec{P}$ can be used instead
-  of $\lastVec{P}$, but the acknowledgment vector is too coarse to
-  track information for present purposes, because after pushing
-  updates to $Q$, there is no guarantee that $\ack{P}{Q}$ will
-  advance.
+  While handling a write with timestamp $\clock{P, t}$, after pushing
+  messages to $Q$, $\last{P}{Q}$ is advanced to $\clock{P, t}$.
+\item If TSAE is implemented with matrices, $P$ estimates that $Q$ has
+  not seen any messages from $P$ with timestamp newer than
+  $\ackMatrix{P}[Q][P]$:
+  \begin{equation*}
+    \View{P}{Q} \equiv \{ m \in \WLat{P}{P} | \timestamp{m} \leq
+    \ackMatrix{P}[Q][P] \}
+  \end{equation*}
+  While handling a write update with timestamp $\clock{P, t}$, if $P$
+  engages in push-based anti-entropy, $P$'s view is advanced because
+  $\ackMatrix{P}[Q][P]$ will have value $\clock{P, t}$.
 \end{itemize}
-The advantage of version matrices for this use case is that, for
-example, $P$ could learn through some process $R$ that $Q$ has
-received (via a third party $S$) messages that originated at
-$P$. Entries in $\lastVec{P}$ can only be updated by $P$ itself,
-so this mechanism provides a coarser view, which does not affect
-correctness but may affect performance.
+Note that matrices allow $P$ to maintain a view of which updates $Q$
+has seen from any $X$, but for the protocol, only an estimate of
+$\WL{Q}{P}$ is required. For the $\ackVec{}$-based implementation of
+TSAE, $\ack{P}{Q}$ itself provides a conservative view of $\WL{Q}$,
+but it is too coarse: there is no guarantee it will advance after
+pushing updates to $Q$, since it is a lower bound of the minimum value
+of $\summary{Q}{X}$ for \emph{any} $X$. The advantage of using
+$\ackMatrix{}$ over $\lastVec{}$ is that, for example, it allows $P$
+to learn from some process $R$ that $Q$ has received messages that
+originated at $P$. Entries in $\lastVec{P}$ can only be updated by $P$
+itself, making it a coarser estimate of $Q$'s write log, potentially
+causing $P$ to push updates more often.
 
-We also need to make an assumption that processes are able and willing
-to cooperate to maintain each other's numerical consistency
-requirements.  We need every process to know every processes' bounds.
-\begin{quote}
-  \textbf{Global knowledge of error bounds}: Every process knows, for
-  each conit $F$, the numerical consistency bounds of each other
-  process for each conit. The numerical error bound for $P$ on $F$ is
-  denoted $\epsilon^P_F$.
-\end{quote}
-If $P$ wishes to dynamically update its consistency bounds for a conit
-$F$, it must invoke some mechanism to inform all other processes of
-this change. For this reason, though theoretically possible,
-individual accesses at $P$ cannot easily specify their own tailored
-numerical consistency requirements for each access. Instead, $P$
-maintains a requirement per conit (not per accesses).
-
-\paragraph{Split weight absolute error}
+\subsubsection{Split Weight Absolute Error}
 We describe \emph{split-weight AE} (absolute error) algorithm, which
 Yu and Vahdat explicate most at length in a 2000 paper
-\cite{2000tactalgorithms}. For each other process $Q$, $P$ maintains
-two values $\mathsf{PosWeight}^{P}(Q)$ and
-$\mathsf{NegWeight}^{P}(Q)$. When $P$ submits a new write (in response
-to a client's request), $P$ first checks for each $Q$ whether
-$\mathsf{tnw}_{P}(Q)$\ldots
-
-When $P$ accepts a write $w \in \WLat{P}{P}$, $P$ checks whether the following two conditions hold:
-\begin{gather*}
-  \mathsf{pos} + \mathsf{NumWeight} \leq \frac{\epsilon_Q}{|\AllProc| - 1} \\
-  \mathsf{neg} + \mathsf{NumWeight} \geq \frac{\epsilon_Q}{|\AllProc| - 1}
-\end{gather*}
-
+\cite{2000tactalgorithms}. We denote the set of writes originating at
+$P$ estimated to be unseen by $Q$ as follows:
+\begin{equation*}
+  \EstUnseen{\left(P,Q\right)} \equiv \WLat{P}{P} \setminus \View{P}{Q}
+\end{equation*}
+For each $F$, define the following values totalling the positive and
+negative weights to conit $F$ of writes from $P$ thought to be unseen by $Q$.
+\begin{gather}
+  \twp{P}{Q, F} \equiv \sum_{\substack{
+    w \in \EstUnseen{\left(P,Q\right)} \\
+    \NumWeight\left(w, F\right) > 0}} \NumWeight\left(w, F\right)\\
+  \twn{P}{Q, F} \equiv \sum_{\substack{
+    w \in \EstUnseen{\left(P,Q\right)} \\
+    \NumWeight\left(w, F\right) < 0}} \NumWeight\left(w, F\right)
+%\twn{P}{\left(Q, F\right)} \equiv \sum_{ w \in \WLat{P}{P} \setminus \View{P}{Q}} \{ \NumWeight\left(w, F\right) | \NumWeight\left(w, F\right) < 0\}
+\end{gather}
+The motivation for totally positive and negative values will be
+explained below. To bound numerical error, the intuition is that $P$'s
+estimate of unseen numerical weight must not exceed $Q$'s allowable
+error, divided by $|\AllProc| - 1$ (the number of processes minus
+one). This value represents $P$'s share of allowable weight of writes
+accepted by processes other than $Q$ that are unseen by $Q$. When $P$
+submits a new write, $P$ first checks for whether the following
+conditions hold:
+\begin{align*}
+  \twp{P}{Q, F} + \NumWeight(w, F) &\leq \frac{\NE\left(Q, F\right)}{|\AllProc| - 1} & \textrm{if $\NumWeight(w, F) > 0$} \\
+  \twn{P}{Q, F} + \NumWeight(w, F) &\geq - \frac{\NE\left(Q, F\right)}{|\AllProc| - 1} & \textrm{if $\NumWeight(w, F) < 0$}
+\end{align*}
 If either of these conditions are violated, then $P$ updates its view
 of $Q$, which might involve pushing new updates that $Q$ has not seen.
 
@@ -3596,75 +3575,162 @@ of $Q$, which might involve pushing new updates that $Q$ has not seen.
   \[ | \Videal - V_{P} | \leq \epsilon_{P}. \]
 \end{lemma}
 
+Positive and negative weights must be totalled separately rather than
+allowing updates with positive weight to ``cancel'' out ones with
+negative weight. This is because $P$'s view is conservative. For
+example, suppose $P$ has accepted writes with positive and negative
+weights that exactly cancel out, and suppose $Q$ has actually seen all
+of the weights with positive weight. If $P$ totalled all weights
+together, it would wrongly estimate that the weight of writes unseen
+by $Q$ is $0$, while the actual weight of unseen writes may exceed
+$Q$'s error bounds.
 
 \paragraph{Variations} Yu and Vahdat also describe two other schemes
 for bounding numerical error. \emph{Compound-weight absolute error} is
-similar to split-weight AE, but saves space at the cost of extra
-communication overhead. They also consider a scheme, \emph{inductive
-  relative error}, which bounds the relative error
-$|1 - \frac{V_i}{V_{\textrm{final}}}|$. Notably, this algorithm only
-relies on $P$'s local knowledge; how to do bound relative error
-efficiently without knowing the ideal value $V_{\textrm{final}}$ is
-non-obvious.
+similar to split-weight AE, but allows positive and negative weights
+to cancel out. This method represents a potential tradeoff between
+storage space and communication, but they did not find the savings
+particularly compelling in their performance analysis. They also
+consider a scheme, \emph{inductive relative error}, which bounds the
+relative error $|1 - \frac{V_i}{V_{\textrm{final}}}|$. Notably, this
+algorithm only relies on $P$'s local knowledge. How to do bound
+relative error efficiently without knowing the ideal value
+$V_{\textrm{final}}$ is non-obvious.
 
 \begin{figure}
   \centering
   \includegraphics[width=0.6\textwidth]{images/conit/Numerical1.png}
-  \caption{Figure for Example \ref{ex:conit-numerical} where
-    messages with a grid background represent this process' view of $\WL{C}$.}
+  \caption{Write log $\WL{A}$ for Example \ref{ex:conit-numerical}, where
+    messages with a grid background represent $A$'s view of $\WL{C}$.}
   \label{fig:conit-numerical}
 \end{figure}
 
 \begin{example}
   \label{ex:conit-numerical}
   Figure \ref{fig:conit-numerical} depicts the role of numerical
-  weight. We assume all writes apply unit weight to a single conit. If
-  the messages shown with a grid pattern represent this process' view of
-  $\WL{C}$, the combined weight of the four writes estimated to be
-  unseen must not exceed
-  \mbox{$\epsilon^C_\textrm{num} / \left(3 - 1\right)$}.
+  weight for a process $A$.  Messages with a grid background represent
+  $A$'s view of $\WL{C}$ (we assume $A$ maintains a matrix, so it has
+  an estimate of $\WLat{C}{X}$ for each $X$). Here, $A$ estimates
+  there are two messages in $\WLat{A}{A}$ that are not in
+  $\WLat{C}{A}$, with timestamps 6 and 9. While handling access
+  $(A, 9)$, before returning to the user, the combined weight of the
+  unseen updates to any conit $F$ must not exceed
+  \mbox{$\NE\left(C, F \right)/ 2$}, reflecting $A$'s ``share''
+  (between $A$ and $B$) of the total allowable error.  If this limit
+  is exceeded, $A$ would become unavailable and engage in compulsory
+  anti-entropy with $C$.\footnote{If $A$ is multithreaded and can
+    handle multiple accesses at once, then $A$ only has to be
+    unavailable for further access involving the same underlying
+    conits. Reads and writes only affecting other conits are not
+    blocked.} Note that $A$'s view of $\WLat{C}{B}$ does not play a
+  role, as $A$ only works to bound the weight of its own writes unseen
+  by $C$.
 \end{example}
 
 \subsection{Order consistency}
 \label{ssec:conit-order-consistency}
-Recall that that the write log $\WL{P}$ is a linearly ordered
-structure. Messages are initially received and applied tentatively to
-$D_P$ in an uncommitted state. Eventually they will become committed
-in a common global order, but the relative position of each tentative
-write in the final order is not fixed. Writes applied in the wrong
+The write log $\WL{P}$ is a linearly ordered structure, and the local
+replica state reflects this order. TSAE+TO guarantees that eventually
+writes will be committed, and the order of committed writes in the
+same everywhere. Until they are committed, the tentative writes might
+have been applied in the wrong order. Writes applied in the wrong
 order will have to be rolled back. The rolling back process may
 involve application-specified logic and be associated with a cost, so
 tentative writes represent a liability. The goal of ordered
 consistency to is to bound this liability.
 
-For instance, suppose an airline reservation application is used to
-book individual seats for a flight. Suppose $P$ and $Q$ are two web
-servers used to provide this service, and suppose both servers
-independently process requests from clients to reserve a ticket for
-seat \#1 at the same time. For efficiency, $P$ and $Q$ do not maintain
-strict consistency, so they may both issue tickets and double-book the
-seat. On the level of TSAE, the processes issue writes $w_P$ and $w_Q$
-with timestamps $(P, t)$ and $(Q, t)$, respectively, and update their
-local replicas to $\Dinit + w_P$ and $\Dinit + w_Q$. Eventually, $P$
-and $Q$ synchronize, where the issue is discovered---the final
-database state \mbox{$\Dinit + w_P + w_Q$} attempts to reserve seat
-\#1 twice.\footnote{Semantically, the reader should think of the
-  expression $\Dinit + w_P + w_Q$ as meaning something like, ``Reserve
-  seat \#1 to $P$'s client, then issue a refund to $Q$'s client.''}
-The business may decide that $P$'s ticket is valid, but the customer
-who reserved a ticket from $Q$ may lose their ticket and be issued a
-refund, plus a compensation fee. Thus, at the time of accepting $w_Q$
-in a tentative state, the fact that $w_Q$ could be rolled back
-represented a liability, and clearly one that applications may want to
-bound. This is the purpose of controlling order error.
+Messages are initially received and applied tentatively to
+$D_P$ in an uncommitted state. Eventually they will become committed
+in a common global order, but the relative position of each tentative
+write in the final order is not fixed.
 
-Let $\Uncommitted{P}$ represent the uncommitted messages in $\WL{P}$,
-with $\Uncommitted{P}|_{\mathcal{F}}$ denoting the writes that affect
-any of the conits in a set $\mathcal{F}$. Each write is $w$ is
-associated with an \emph{order weight}, intended to capture the cost
-of having to apply $w$ in a different order than the one it was first
-applied. Let $r$ be a read access submitted to $P$ with a dependency
-on conit set $\mathcal{F}$. Let $\PH_{\textrm{obs}}$ be the observed
+\begin{example}
+  Suppose an airline reservation application is used to book
+  individual seats for a flight. Suppose $P$ and $Q$ are two web
+  servers used to provide this service, and suppose both servers
+  independently process requests from clients to reserve a ticket for
+  seat \#1 at the same time. For efficiency, $P$ and $Q$ do not
+  maintain linearizability, so they both issue tickets and double book
+  the seat. Let these reservations correspond to two write updates
+  $w_P$ and $w_Q$. The local replicas are left in state $\Dinit + w_P$
+  and $\Dinit + w_Q$.
+
+  TSAE promises that eventually $P$ and $Q$ learn about each
+  other's updates and commit them in some agreed upon order. Let us
+  arbitrarily suppose $P$'s update is ordered first.  Thus, $P$
+  advances its state to \mbox{$\Dinit + w_P + w_Q$}, while $Q$ rolls
+  back its state and reapplies its write, which we represent a series
+  of transitions:
+  \[ (\Dinit + w_Q) \mapsto \Dinit \mapsto (\Dinit + w_P +
+    w_Q) \]
+
+Semantically, the reader should think of the database state
+$\Dinit + w_P + w_Q$ as meaning ``Seat \#1 is reserved to $P$'s
+client, while $Q$'s client attempts to double book the seat and is
+denied.'' The rollback process at $Q$ may be associated with business
+rules triggering a notification to $Q$'s client that their reservation
+has been cancelled, alongside a refund and compensation fee.
+
+Clearly, accepting $w_Q$ in a tentative state represented a liability
+for $Q$. The purpose of controlling order error is precisely to upper
+bound the potential cost associated with a rollback operation.
+\end{example}
+
+Unlike numerical error, order error can be bound without
+cooperation. We only need to assume that processes, when required, can
+invoke a write commitment mechanism to learn the final order of their
+tentatively accepted updates.
+\begin{quote}
+  \textbf{Ability to commit writes}: While handling an access, each
+  process has a mechanism to determine the final order of any writes
+  in its write log.
+\end{quote}
+For the implementation we have described, $Q$ can commit writes by
+engaging in pull-based anti-entropy. While handling a write with
+timestamp $t$, then $Q$ can pull writes from other processes until $t$
+is the minimum entry in $\summaryVec{P}$ and therefore
+$t \leq \ack{P}{P}$, at which point the final order of the write is
+known. Note that this works regardless of whether clocks are
+implemented as physically synchronized clocks or scalar logical
+clocks---in either case, the corresponding entry in $\summaryVec{P}$
+will be greater than $t$.
+
+Each write is $w$ is associated with an \emph{order weight}, intended
+to capture the cost of rolling back $w$ and reapplying it in a
+different order than the one it was first applied. Let $r$ be a read
+access submitted to $P$ with a dependency on conit set $\mathcal{F}$.
+Let $\Uncommitted{P}$ represent the uncommitted messages in $\WL{P}$.
+Since committed writes are globally totally ordered, the set of writes
+in
+\[\Uncommitted{P} \subseteq \PH_{\textrm{obs}} \setminus \left(\PH_{\textrm{obs}} \cap
+    \PH_{\textrm{ideal}}\right)\] is a subset of the uncommitted
+writes. For a read access that depends on conits in $\Conits$, we only
+care about the out-of-order writes that affect any of the conits in
+$\Conits$. Thus, the actual cost of rolling back writes is given by
+the above set, where all histories are restricted to the writes
+actually affect $\Conits$:
+\begin{equation}
+  \PH_{\textrm{obs}}|_\Conits - \left(\PH_{\textrm{obs}}|_\Conits \cap
+     \PH_{\textrm{ideal}}|_\Conits \right)
+ \end{equation}
+
+\begin{definition}[Order error]
+  The \emph{order error} of an access depending on a conit set
+  $\mathcal{F}$ is the following sum (where $-$ denotes set difference):
+  \[
+    \mathsf{OrderError}\left(r, \mathcal{F}\right) \equiv \sum_{F \in \mathcal{F}} \left\{\OrderWeight\left(w, F\right) | w) \right\}
+  \]
+\end{definition}
+
+
+Thus, we can bound the uncommitted order weight on a conit $F$ is
+defined as the sum
+\[
+  \EstOrdWeight = \sum_{F \in \mathcal{F}} \{\mathsf{OrdWeight}\left(w, F\right) | w \in \Uncommitted{P}|_{\mathcal{F}}\}
+\]
+
+\begin{comment}
+et $\PH_{\textrm{obs}}$ be the observed
 prefix history. Now $\PH_{\textrm{obs}} \cap \PH_{\textrm{ideal}}$,
 the common prefix of the observed and ideal history, represents the
 longest part of $\PH_{\textrm{obs}}$ that is correct (i.e. agrees with
@@ -3672,27 +3738,8 @@ the ideal history). Therefore,
 $\PH_{\textrm{obs}} \setminus \left(\PH_{\textrm{obs}} \cap
   \PH_{\textrm{ideal}}\right)$ represents all of the accesses that
 have been applied to $P$'s local replica that will have to be rolled
-back during the eventual write committment process. For purposes of
-order error, we are only interested in measuring writes that affect
-the conits. The order error is the combined order weight of these
-writes:
-\begin{definition}[Order error]
-  The \emph{order error} of an access depending on a conit set
-  $\mathcal{F}$ is the following sum (where $-$ denotes set difference):
-  \[
-    \mathsf{OrderError}\left(r, \mathcal{F}\right) \equiv \sum_{F \in \mathcal{F}} \left\{\OrderWeight\left(w, F\right) | w \in \PH_{\textrm{obs}}|_\Conits - \left(\PH_{\textrm{obs}}|_\Conits \cap
-  \PH_{\textrm{ideal}}|_\Conits \right) \right\}
-\]
-\end{definition}
-
-Since committed writes are globally totally ordered, the set of writes
-in
-$\PH_{\textrm{obs}} \setminus \left(\PH_{\textrm{obs}} \cap
-  \PH_{\textrm{ideal}}\right)$ is a subset of the uncommitted
-writes. Thus, we can bound the uncommitted order weight on a conit
-$F$ is defined as the sum
-\[ \sum_{F \in \mathcal{F}} \{\mathsf{OrdWeight}\left(w, F\right) | w \in \Uncommitted{P}|_{\mathcal{F}}\}
-\]
+back during the eventual write committment process.
+\end{comment}
 
 Let $\epoe$ be the allowable upper bound of
 $\mathsf{OrderError}\left(r,\mathcal{F}\right)$. To bound order error, it is
@@ -3789,6 +3836,131 @@ runs at a constant rate. However, this approach has the downside that,
 unlike $\summary{P}{Q}$, $\vtphys{P}[Q]$ cannot be updated based on
 information indirectly learned during anti-entropy with a third
 party.
+
+\subsubsection{Correctness Properties}
+To define quantify deviation from strong consistency, we must give a
+few definitions. Recall the notion of external order (Definition
+\ref{def:external-order}): an access $A$ externally precedes $A'$ if
+$A$ has returned to the caller before $A'$ is invoked. Yu and Vahdat
+also define a notion of causality:
+\begin{definition}[Causal precedence of accesses]
+  \label{def:conit-causal-precedence}
+  $A$ \emph{causally precedes} $A'$ if $A$ was already in the local
+  history of the originating replica when $A'$ was submitted, and so
+  could have influenced how $A'$ executed.\footnote{At face value it
+    may seem that if $A$ is in a replica's write log before $A'$, then
+    it must have completed before $A'$ started and thus already
+    precedes $A'$ externally. However, if these represent long-running
+    isolated database transactions, it is possible that $A$ logically
+    takes effect before $A'$, although the transactions may be
+    physically concurrent.}
+\end{definition}
+
+With these definitions, we can define a strongly consistent execution
+as a reference point for measuring deviation.
+
+\begin{definition}[Ideal image]
+  An ECG (externally consistent, causally consistent, global) history
+  is the set of accesses across the system arranged in some total
+  order that respects both external and causal order as defined above.
+\end{definition}
+Definitions below are given with respect to some ECG
+history. Intuitively, the condition expected from the conit framework
+is that at any moment in time, there is some ECG history such that all
+replicas diverge from the ECG history by at most some error bound.
+We assume some ECG history as a reference
+point. The \emph{ideal result} of an access $a$ is the value
+$\Dinit + \PH_\textrm{a}$.  The following equations hold.
+\begin{gather}
+  \Dideal = \Dinit + \WLideal \label{eq:conit-Dideal}
+\end{gather}
+
+Yu and Vahdat describe two implementations of write propagation that
+differ in their guarantees. The first is a two-phase locking procedure
+where, during write propagation, remote locks covering all of the
+affected data items are acquired from all hosts where one intends to
+send write updates. Once all locks have been acquired, all necessary
+writes are sent. While locks are held, reads from affected conits are
+blocked on those remotes. When the writes are propagated, locks are
+released. This two-phase locking policy ensures that the newly seen
+write operation appear to take effect at all replicas at the same
+time. The two-round procedure leads to the following characterization
+of the conit protocol.
+\begin{theorem}[Yu and Vahdat]
+  Assuming the two-phase locking policy is used during compulsory
+  write propgation, there is an ECG history such that the numerical
+  and order error of every access is correctly bounded with respect to
+  its ideal value in the ECG history.
+\end{theorem}
+
+The following theorems are Theorems 4.1 and 4.3 of their 2002 paper
+\cite{2002tact}. Note that ``strict serializability'' here is
+essentially synonymous with linearizability.\footnote{Strict
+  serializability is essentially linearizability for replicated
+  databases. The condition also implies serializable isolation of
+  transactions, which is a concept specific to the database context.}
+\begin{theorem}
+  If a conit is defined for each data item, if reads have 0 allowable
+  numerical error and order error on all read conits, and all writes
+  have unit weight on all affected conits, then the system provides
+  strict serializability.
+\end{theorem}
+
+Allowing unbounded numerical error captures one-copy serializability
+(1SR), which is loosely a form of sequential consistency for
+replicated databases. \citationneeded
+\begin{theorem}
+  If reads have 0 allowable order error and no bounds on their
+  numerical error, and all writes have unit weight on all affected
+  conits, then the systems provides one-copy serializability.
+\end{theorem}
+
+Yu and Vahdat also consider a lazy propagation method where remote
+locks are not acquired before pushing writes. This allows some
+replicas to seemingly learn about writes (meaning it is visible by
+read accesses) before others. That is, this policy does not enforce
+atomic visibility (updates appear to multiple items, in this case
+multiple replicas, appear to occur at different physical times instead
+of all at once). This is a weaker consistency model but may be
+valuable for certain kinds of information, particularly for
+applications such that accepting new updates is always valuable, even
+if the update has not propagated to others yet. In this case, the
+guarantee provided by bounding numerical error is that the weight of
+unseen \emph{finished} writes (meaning writes that returned to the
+client at their originating replica) never exceeds the allowable
+numerical error for each conit at each replica.
+
+\begin{comment}
+  Yu and Vahdat also consider a one-round Read-One-Write-All (ROWA)
+  policy where writes are pushed lazily to all compulsory remote
+  destinations, without acquiring locks on the data items first. The
+  originally submitted write access does not return to the client until
+  the replica has finished all compulsory push-based entropy
+  sessions. However, this policy allows some replicas to reflect the
+  newly seen writes before others.
+
+The intention of the conit framework is this: at any moment in time,
+there exists some ECG history of system accesses such that no
+individual replica deviates from too far this history. To define what
+it means to deviate, we now define conceptual units of data whose
+relative (in)consistency can be quantified.
+
+A read request depends on a set of conits $\mathcal{F}$. That is to
+say, it assumed that the read will return the same value for any two
+database images $D$ and $D'$ such that $F(D) - F(D') = 0$ for each
+conit $F$ in $\mathcal{F}$. This access will be associated with a
+consistency requirement for each conit in $\mathcal{F}$.
+
+We write $\WL{P}|_\mathcal{F}$ to indicate the history of $P$
+restricted to just the messages with non-zero weight on any of the
+conits in the set $\mathcal{F}$.
+
+Anti-entropy can be push- or pull-based. To push updates from $P$ to
+$Q$, $P$ obtains $Q$'s summary vector $\summaryVec{Q}$ and pushes all
+unseen messages in $\WL{P}$ to $Q$. To pull updates, $P$ sends its
+version vector and requests any messages in $\WL{Q}$ that $P$ has not
+seen.
+\end{comment}
 
 \subsection{Extensions}
 \label{ssec:conit-extensions}
