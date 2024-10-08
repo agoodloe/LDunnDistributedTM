@@ -3692,8 +3692,8 @@ is the minimum entry in $\summaryVec{P}$ and therefore
 $t \leq \ack{P}{P}$, at which point the final order of the write is
 known. Note that this works regardless of whether clocks are
 implemented as physically synchronized clocks or scalar logical
-clocks---in either case, the corresponding entry in $\summaryVec{P}$
-will be greater than $t$.
+clocks---in either case, $\summary{P}{X}$ will be greater than $t$
+after pull-based anti-entropy with $X$.
 
 Each write is $w$ is associated with an \emph{order weight}, intended
 to capture the cost of rolling back $w$ and reapplying it in a
@@ -3779,14 +3779,14 @@ writes until the order error is within bounds.
   be committed, since the minimum entry in the log, $\WL{A}{C}$, is
   only $2$.
 
-  The next access added to $\WL{A}$ will observe an incorrect prefix
-  history,
+  The next access processed by $A$ will observe an incorrect prefix
+  history of
   \[\PH_{\textrm{obs}} - \left(\PH_{\textrm{obs}} \cap
-      \PH_{\textrm{ideal}}\right),\] consisting of all writes after
+      \PH_{\textrm{ideal}}\right).\] This consists of all writes after
   and including $(A, 6)$, the point at which the write log deviates
   from the ideal history (seen in Figure
-  \ref{fig:conit-order-b}). This corresponds to an order error of
-  $4$. Note that the message $(A, 3)$ happens to be in its ideal
+  \ref{fig:conit-order-b}). This corresponds to an actual order error
+  of $4$. Note that the message $(A, 3)$ happens to be in its ideal
   position and does not count towards the actual error, but it does
   contribute to the estimated order error of $5$, the combined weight
   of all uncommitted writes. If $5$ exceeds the allowable order error
