@@ -1,13 +1,8 @@
 \newcommand{\msend}[1]{m_{#1}^{\mathsf{send}}}
 \newcommand{\mrecv}[1]{m_{#1}^{\mathsf{recv}}}
-\newcommand{\memstart}[1]{\mathsf{start}\left(#1\right)}
-\newcommand{\memstop}[1]{\mathsf{stop}\left(#1\right)}
-\newcommand{\memread}[1]{\mathsf{R}\!\left(#1\right)}
-\newcommand{\memreadVal}[2]{\mathsf{R}\!\left(#1, #2\right)}
-\newcommand{\memwrite}[2]{\mathsf{W}\!\left(#1, #2\right)}
 \newcommand{\sync}[2]{#1 || #2}
 \newcommand{\syncts}[2]{#1 {\textrm{\texttt{\#}}} #2}% Similar timestamps
-%\newcommand{\timestampnegativespace}{\!}
+% \newcommand{\timestampnegativespace}{\!}
 \newcommand{\timestampnegativespace}{}
 \newcommand{\vectoropen}{\begingroup\setlength\arraycolsep{1pt}}
 \newcommand{\vectorclose}{\endgroup}
@@ -15,64 +10,89 @@
 \newcommand{\matrixopen}{\begingroup\setlength\arraycolsep{1pt}\renewcommand*{\arraystretch}{0.8}}
 \newcommand{\matrixclose}{\endgroup}
 \newcommand{\matrixtimestamp}[9]{\matrixopen\begin{pmatrix} #1 & #2 & #3 \\ #4 & #5 & #6 \\ #7 & #8 & #9 \end{pmatrix}\matrixclose}
-\newcommand{\B}{\mathbf{B}}
-\newcommand{\w}{\mathbf{w}}
+%\newcommand{\B}{\mathbf{B}}
+%\newcommand{\w}{\mathbf{w}}
+
+% New ones
+
+
+% General
+%% Notes to self
+\newcommand{\citationneeded}{\textbf{[CITATION NEEDED]}}
+%% Background
+\newcommand{\Psafe}{\textbf{P}_\textrm{safe}}
+\newcommand{\Plive}{\textbf{P}_\textrm{live}}
+
+% Distributed systems
+%% General
+\newcommand{\AllProc}{\mathcal{P}}
+%% Clocks
+\newcommand{\vt}[1]{\mathsf{vc}^{#1}}
+\newcommand{\mt}[3]{\mathsf{mc}^{#1}{#2}{#3}}
+%% Memory ops
+\newcommand{\memstart}[1]{\mathsf{start}\left(#1\right)}
+\newcommand{\memstop}[1]{\mathsf{stop}\left(#1\right)}
+\newcommand{\memread}[1]{\mathsf{R}\!\left(#1\right)}
+\newcommand{\memreadVal}[2]{\mathsf{R}\!\left(#1, #2\right)}
+\newcommand{\memwrite}[2]{\mathsf{W}\!\left(#1, #2\right)}
+\newcommand{\Op}{\mathrm{Op}}
+%% Orders
 \newcommand{\writesinto}{\mapsto}
 \newcommand{\causalityorder}{\rightsquigarrow}
-\newcommand{\citationneeded}{\textbf{[CITATION NEEDED]}}
 \newcommand{\programorder}[1]{\underset{#1}{\to}}
-\newcommand{\vt}{\textrm{vt}}
 \newcommand{\concurrent}[2]{#1 || #2}
+
+% TSAE
+%% General
+\newcommand{\W}{\mathbf{\mathsf{Messages}}}
+%% Real time
+\newcommand{\clock}[1]{\mathsf{clock}\left(#1\right)}
+\newcommand{\timestamp}[1]{\mathsf{time}\left(#1\right)}
+%% Data structures
 \newcommand{\ack}[2]{\mathsf{ack}^{#1}\left[#2\right]}
+\newcommand{\ackVec}[1]{\mathsf{ack}^{#1}}
+\newcommand{\ackMatrix}[1]{\mathsf{matrix}^{#1}}
 \newcommand{\summary}[2]{\mathsf{summary}^{#1}\left[#2\right]}
 \newcommand{\summaryVec}[1]{\mathsf{summary}^{#1}}
 \newcommand{\WL}[1]{\mathsf{Log}^{#1}}
 \newcommand{\WLat}[2]{\mathsf{Log}^{#1}\left(#2\right)}
-\newcommand{\W}{\mathbf{\mathsf{Messages}}}
-\newcommand{\AllProc}{\mathcal{P}}
-\newcommand{\Op}{\mathrm{Op}}
-% New ones
-\newcommand{\clock}[1]{\mathsf{clock}\left(#1\right)}
-\newcommand{\timestamp}[1]{\mathsf{time}\left(#1\right)}
-\newcommand{\last}[2]{\mathsf{last}^{#1}[#2]}
-\newcommand{\lastVec}[1]{\mathsf{last}^{#1}}
-\newcommand{\ackVec}[1]{\mathsf{ack}^{#1}}
-\newcommand{\ackMatrix}[1]{\mathsf{matrix}^{#1}}
-\newcommand{\Writes}{\mathbf{\mathsf{Writes}}}
-\newcommand{\NumWeight}{\mathsf{NumWeight}}
-\newcommand{\View}[2]{\mathsf{View}^{#1}\left(#2\right)}
-\newcommand{\twp}[2]{\mathsf{twp}^{#1}\left(#2\right)}
-\newcommand{\twn}[2]{\mathsf{twn}^{#1}\left(#2\right)}
-\newcommand{\Dinit}{D_\textrm{init}}
-\newcommand{\PH}{\mathsf{PH}}
+
+% Conits
 \newcommand{\Conits}{\mathcal{F}}
-\newcommand{\Psafe}{\textbf{P}_\textrm{safe}}
-\newcommand{\Plive}{\textbf{P}_\textrm{live}}
+\newcommand{\Dinit}{D_\textrm{init}}
+\newcommand{\Writes}{\mathbf{\mathsf{Writes}}}
+%% Global histories
 \newcommand{\Dideal}{D_{\textrm{ideal}}}
 \newcommand{\Videal}{V_{\textrm{ideal}}}
 \newcommand{\Vinit}{V_{\textrm{init}}}
 \newcommand{\Val}{\mathcal{V}}
-
-\newcommand{\vtphys}[1]{\mathsf{last}_{rt}^{#1}}
 \newcommand{\WLideal}{\WL{\textrm{ideal}}}
-\newcommand{\EstUnseen}{\mathsf{EstUnseen}}
 \newcommand{\Hglobal}{H_\mathrm{global}}
-
-\newcommand{\OrderWeight}{\mathsf{OrderWeight}}
-\newcommand{\OrderError}{\mathsf{OrderError}}
-\newcommand{\EstOrderError}{\mathsf{EstOrderError}}
-
-% Types of errors
+\newcommand{\localhistory}[1]{H|_{#1}}
+%% Types of errors
 \newcommand{\NE}{\mathsf{NE}}
 \newcommand{\OErr}{\mathsf{OE}}
 \newcommand{\RTE}{\mathsf{RTE}}
 \newcommand{\eprt}{\epsilon_{\textrm{rt}}}
-
+%% Numerical error
+\newcommand{\EstUnseen}{\mathsf{EstUnseen}}
+\newcommand{\NumWeight}{\mathsf{NumWeight}}
+\newcommand{\View}[2]{\mathsf{View}^{#1}\left(#2\right)}
+\newcommand{\twp}[2]{\mathsf{twp}^{#1}\left(#2\right)}
+\newcommand{\twn}[2]{\mathsf{twn}^{#1}\left(#2\right)}
+\newcommand{\last}[2]{\mathsf{last}^{#1}[#2]}
+\newcommand{\lastVec}[1]{\mathsf{last}^{#1}}
+%% Histories
+\newcommand{\PH}{\mathsf{PH}}
 \newcommand{\PHobs}{\mathsf{PH}_{\mathrm{obs}}}
 \newcommand{\PHideal}{\mathsf{PH}_{\mathrm{ideal}}}
-
-% Stuff
 \newcommand{\Uncommitted}[1]{\mathsf{Uncomm}^{#1}}
+\newcommand{\OrderWeight}{\mathsf{OrderWeight}}
+\newcommand{\OrderError}{\mathsf{OrderError}}
+\newcommand{\EstOrderError}{\mathsf{EstOrderError}}
+%% Real time
+\newcommand{\vtphys}[1]{\mathsf{last}_{rt}^{#1}}
+
 
 %%% Local Variables:
 %%% mode: LaTeX

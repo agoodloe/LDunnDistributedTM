@@ -902,7 +902,7 @@ measure and enforce a key relation between events, this being their
 \subsection{Message Passing and Causality}
 \label{ssec:message-passing}
 We model a distributed system abstractly as a fixed set
-$\mathcal{P} = \{P_1, P_2, \ldots P_n\}$ of \emph{processes} which
+$\AllProc = \{P_1, P_2, \ldots P_N\}$ of $N$ \emph{processes} which
 undergo atomic (indivisible) state changes known as
 \emph{events}. Events are divided into three types: internal events,
 representing state changes inside a single process, and send and
@@ -972,8 +972,8 @@ before'' relation \cite{1978:lamportclocks}. To formalize this, we
 first consider the intuitive way to order events within a
 \emph{single} process:
 \begin{definition}
-  For two events $e$ and $e'$ occurring in process $P_i$, we
-  write $e <_{P_i} e'$ if $e$ occurs before $e'$ in $P_i$'s
+  For two events $e$ and $e'$ occurring in process $P$, we
+  write $e <_{P} e'$ if $e$ occurs before $e'$ in $P$'s
   worldline.
 \end{definition}
 The previous definition is local to one process and unambiguous, as we
@@ -987,7 +987,7 @@ the transitive closure of the relation.
   We define a binary relation $\to$ on the set of events as follows:
   \[e \to e' \iff
   \begin{cases}
-    e <_{P_i} e' \textrm{ for some process $P_i$}
+    e <_{P} e' \textrm{ for some process $P$}
     \textbf{ or} \\
     e = \msend{} \textrm{ and } e' =\mrecv{}
     \textbf{ or} \\
@@ -1146,17 +1146,17 @@ clocks satisfy \eqref{eq:sc}.
 \end{figure}
 
 Lamport's scalar clocks \cite{1978:lamportclocks} require each
-process $P_i$ to maintain a single non-negative scalar value $C_i$,
+process $P$ to maintain a single non-negative scalar value $C$,
 initialized to $0$. The clock follows two simple update rules:
 \begin{enumerate}
-\item[\textbf{R1}:] Before a message is sent or an internal event occurs, $P_i$
+\item[\textbf{R1}:] Before a message is sent or an internal event occurs, $P$
   increments its clock:
-  \[C_i := C_i + 1.\]
+  \[C := C + 1.\]
   The new value serves as the event's timestamp and, for messages, is ``piggybacked''
   as part of its metadata.
-\item[\textbf{R2}:] When $P_i$ receives a message with timestamp $C$, it
-  updates $C_i$ as such:
-  \[C_i := \max(C, C_i) + 1.\]
+\item[\textbf{R2}:] When $P$ receives a message with timestamp $C'$, it
+  updates $C$ as such:
+  \[C := \max(C, C') + 1.\]
   The value is the receive event's timestamp.
 \end{enumerate}
 
@@ -1219,45 +1219,49 @@ comparable.
 
 Vector clocks store one scalar value for each process in the system,
 which forms a partial order when vectors are compared
-component-wise. If the system is comprised of $N$ processes, $P_i$
-maintains a vector $\vt_i[1 \ldots N]$ of non-negative integers, with
-all values initialized to $0$. The $i^\textrm{th}$ component, or
-$\vt_i[i]$, is called $P_i$'s local time, while the remaining
-components are used to estimate other processes' local times. Vector
-clocks have two update rules:
+component-wise. $P$ maintains a vector $\vt{}$ of $N$ non-negative
+integers, one for each process in $\AllProc$, with all values
+initialized to $0$. To disambiguate $P$'s vector clock from $Q$'s, we
+sometimes add superscripts, e.g. $\vt{P}$ versus $\vt{Q}$.
+
+The $P^\textrm{th}$ component of $P$'s vector clock, denoted
+$\vt{}[P]$, is called $P$'s \emph{local time}. For all other processes
+$Q$, $\vt{}[Q]$ represents a lower bound of $Q$'s local time. Vector
+clocks are updated according to two rules:
 \begin{enumerate}
-\item[\textbf{R1}:] Before an internal event occurs or a new message is sent, $P_i$
+\item[\textbf{R1}:] Before an internal event occurs or a new message is sent, $P$
   increments its local time according to the rule:
-  \[\vt_i[i] := \vt_i[i] + 1.\]
-  The (entire) updated $\vt_i$ is the event's timestamp and is piggybacked with outgoing messages.
-\item[\textbf{R2}:] When $P_i$ receives a message with timestamp
-  $\vt$, $\vt_i$ is updated according to
-  \[\vt_i[x] := \max(\vt[x], \vt_i[x]) \quad \textrm{for all $x = 1\ldots N$}.\]
-  After this, $P_i$ increments its local time:
-  \[ \vt_i[i] := \vt_i[i] + 1.\]
+  \[\vt{}[P] := \vt{}[P] + 1.\]
+  The (entire) updated $\vt{}$ is the event's timestamp and is piggybacked with outgoing messages.
+\item[\textbf{R2}:] When $P$ receives a message from $Q$ with timestamp
+  $\vt{Q}$, $\vt{}$ is updated according to
+  \[\vt{}[X] := \max(\vt{}[X], \vt{Q}[X]) \quad \textrm{for all $X$ in $\AllProc$}.\]
+  That is, $\vt{}$ is set to the pointwise maximum of the two
+  vectors. After this, $P$ increments its local time:
+  \[ \vt{}[P] := \vt{}[P] + 1.\]
   The final vector is the timestamp of the receive event.
 \end{enumerate}
 These rules are more intuitively understood by demonstration.
 
 \begin{example}
   Figure \ref{fig:message-latencies-vector} depicts the same events as
-  Figure \ref{fig:message-latencies-scalar} with vector timestamps.
+  Figure \ref{fig:message-latencies} with vector timestamps.
 \end{example}
 
-For all $j \neq i$, $\vt_i[j]$ represents $P_i$'s \emph{estimate} of
-$P_j$'s local time, or $\vt_j[j]$. This estimate is always a lower
-bound, since $P_j$'s local time may advance without $P_i$'s knowledge,
-but $P_i$ never updates $\vt_i[j]$ ahead of $P_j$'s actual local
-time. $P_i$ learns about updates to $P_j$'s local time through
-piggybacked timestamp vectors, which allow $P_i$ to learn about
-$P_j$'s time without communicating directly with $P_j$.
+For all other $Q$ in $\AllProc$, $\vt{P}[Q]$ represents $P$'s
+conservative estimate of $Q$'s local time, or $\vt{Q}[Q]$. This
+estimate is always a lower bound, since $Q$'s local time may advance
+without $P$'s knowledge, but $P$ never updates $\vt{P}[Q]$ ahead of
+$Q$'s actual local time. $P$ learns about updates to $Q$'s local time
+through piggybacked timestamp vectors. This allows $P$ to learn about
+$Q$'s time without necessarily communicating directly with $Q$.
 
 Vector timestamps are compared component-wise. This forms a partial
 order because one vector may be greater than another in some
 components but less than it in others.
 
 \begin{definition}[Vector comparison]
-  Let $v, w$ be two vector timestamps. We define the following relations:
+  Let $v, w$ be two vectors. We define the following relations:
   \begin{align*}
              v = w &\iff \forall i, v[i] = w[i] \\
   v \preccurlyeq w &\iff \forall i, v[i] \leq w[i] \\
@@ -1293,29 +1297,29 @@ membership in this document.
 If a vector clock stores both a local time and a lower bound estimate
 of every other process's local time, then a matrix clock stores a
 local vector clock and a lower bound estimate of every other process's
-vector clock. Each process $P_i$ stores an $N\times{}N$ matrix
-$\vt_i$, initialized to all zeros, with the following
-interpretation. The $i^{\textrm{th}}$ row from the top, $\vt_i[i, -]$,
-stores $P_i$'s vector time. All other rows $\vt_i[j,-]$ store $P_i$'s
-estimate of $P_j$'s vector time. Matrix timestamps are piggybacked
+vector clock. Each process $P$ stores an $N\times{}N$ matrix
+$\mt{}{}{}$, initialized to all zeros, with the following
+interpretation. The row corresponding to $P$, $\mt{}{[P]}{}$,
+stores $P$'s vector time. For all other $Q$, $\mt{}{[Q]}{}$ store $P$'s
+estimate of $Q$'s vector time. Matrix timestamps are piggybacked
 with messages, and the receiver uses the sender's vector clock to
 update their own vector clock as usual, and takes the pointwise
 maximum of all other rows.
 
 \begin{enumerate}
-\item[\textbf{R1}:] Before a new message is sent, $\vt_i[i]$ is updated according to the rule
-  \[\vt_i[i,i] := \vt_i[i,i] + 1.\]
-  The entire updated matrix $\vt_i$ is piggybacked with the message.
-\item[\textbf{R2}:] When a message is received from $P_j$ with a piggybacked timestamp $\vt$,
-  $\vt_i$ is updated according to two cases
+\item[\textbf{R1}:] Before a new message is sent, $\mt{P}{[P]}{[P]}$ is updated according to the rule
+  \[\mt{P}{[P]}{[P]} := \mt{P}{[P]}{[P]} + 1.\]
+  The entire matrix $\mt{}{}{}$ is piggybacked with the message.
+\item[\textbf{R2}:] When a message is received from $Q$ with a piggybacked matrix $\mt{Q}{}{}$,
+  $\mt{P}{}{}$ is updated according to two cases
   \begin{enumerate}
-  \item Update the row $\vt_i[i, -]$ according to
-    \[\vt_i[i, k] := \max(\vt_i[i,k], \vt[j, k]) \quad \textrm{for all $k = 1\ldots N$}.\]
-  \item Update all other rows $\vt_i[j', -]$ according to
-    \[\vt_i[j', k] := \max(\vt_i[j',k], \vt[j', k]) \quad \textrm{for all $k = 1\ldots N$}.\]
+  \item Update the row $\mt{P}{[P]}{}$ according to
+    \[\mt{P}{[P]}{[X]}:= \max( \mt{P}{[P]}{[X]} ,  \mt{Q}{[Q]}{[X]}) \quad \textrm{for all $X$ in $\AllProc$}\]
+  \item Update all rows for each $R \neq P$ according to
+    \[\mt{P}{[R]}{[X]} := \max(\mt{P}{[R]}{[X]} ,  \mt{Q}{[R]}{[X]})) \quad \textrm{for all $X$ in $\AllProc$}\]
   \end{enumerate}
-  After this, $P_i$ advances its own local time according to the rule
-  \[ \vt_i[i,i] := \vt_i[i,i] + 1.\]
+  After this, $P$ advances its own local time according to the rule
+  \[ \mt{P}{[P]}{[P]} := \mt{P}{[P]}{[P]} + 1.\]
   This new matrix is the timestamp attached to the receive event.
 \end{enumerate}
 
@@ -1339,10 +1343,12 @@ maximum of all other rows.
 
 \begin{example}
   Figure \ref{fig:message-latencies-matrix} depicts the same events as
-  Figures \ref{fig:message-latencies-scalar} and
-  \ref{fig:message-latencies-vector} with matrix timestamps. By
+  Figures \ref{fig:message-latencies},
+  \ref{fig:message-latencies-scalar} and
+  \ref{fig:message-latencies-vector} using matrix timestamps. By
   comparison to Figure \ref{fig:message-latencies-vector}, observe
-  that that rows of the form $\vt_i[i,-]$ act like ordinary vector
+  that for each process $X$, rows of the form $\mt{X}{[X]}$---for
+  instance, the top row of matrices in $P_1$---act like ordinary vector
   clocks.
 \end{example}
 
@@ -1353,13 +1359,13 @@ based on what it \emph{knows}, which is usually a strict subset of all
 account a kind of second-order knowledge: what does a process know
 about what other processes know? A typical utility of vector and
 matrix clocks is to track which facts known to one process are also
-known to another processes, it is often because a process wants to
-compute which facts are known to \emph{all} other processes. Sections
-\ref{sec:tsae} and \ref{sec:continuous-consistency} discuss an example
-where mechanisms similar to vector and matrix clocks, called version
-vectors and matrices, can be used in the context of database
-replication, where they drive decision-making about which updates need
-to be propagated and when they can be purged from a write log.
+known to another processes. Often it is of interest to compute which
+facts are known to \emph{all} other processes. Sections \ref{sec:tsae}
+and \ref{sec:continuous-consistency} feature running examples of
+mechanisms similar to vector and matrix clocks, called version vectors
+and matrices. These are used in the context of database replication,
+where they drive decision-making about which updates need to be
+propagated and which updates have already been applied everywhere.
 
 \subsection{Message Ordering}
 \label{ssec:message-ordering}
@@ -1404,8 +1410,8 @@ unless they are from the same sender and to the same recipient.
 \begin{definition}[FIFO delivery]
   \label{def:fifo}
   The FIFO ordering guarantee is defined by the following condition. Let
-  $P_i$ and $P_j$ be any two processes and $m_1$ and $m_2$ be two
-  messages sent from $P_i$ to $P_j$. Then
+  $P$ and $Q$ be any two processes and $m_1$ and $m_2$ be two
+  messages sent from $P$ to $P$. Then
   $\msend{1} \to \msend{2} \implies \mrecv{1} \to \mrecv{2}$.
 \end{definition}
 
@@ -1533,7 +1539,7 @@ notion of total ordering (TO).
 \begin{definition}[FIFO broadcast]
   \label{def:fifo-bcast}
   A broadcast primitive satisfies the FIFO semantics if it satisfies
-  the following condition. For any process $P_i$, if $P_i$ broadcasts
+  the following condition. For any process $P$, if $P$ broadcasts
   $m_1$ before $m_2$, then all recipients receive $m_1$ before $m_2$.
 \end{definition}
 
@@ -1721,7 +1727,7 @@ other processes over the network, say by looking up the current value
 of a memory location, but this is not shown in the diagrams. The
 entire sequence of requests across all processes forms what we call a
 \emph{history}. If $H$ is a history and $P$ is a process, we write
-$H|_P$ to mean just the sequence of operations that happen on $P$, the
+$\localhistory{P}$ to mean just the sequence of operations that happen on $P$, the
 so-called \emph{local history} of $P$.
 
 Because they have a duration, memory operations on different
@@ -1979,8 +1985,9 @@ respects \emph{program order}.
 
 \begin{definition}[Program order]
   An operation $\Op^1$ precedes another operation $\Op^2$ in
-  \emph{program order} if the events occur in the same process and
-  $\memstop{\Op^1} < \memstart{\Op^2}$. In this case we write $\Op^1 \programorder{i} \Op^2$.
+  \emph{program order} if the events occur in the same process $P$ and
+  $\memstop{\Op^1} < \memstart{\Op^2}$. In this case we write
+  $\Op^1 \programorder{P} \Op^2$.
 \end{definition}
 If two operations occur in different processes, they are not related
 by program order. That is the distinction between program and external
@@ -2002,7 +2009,7 @@ order.
   the most recent write request to the same location according to $\sigma$.
 \item \textbf{Consistent with Program Order}: $\sigma$ is consistent
   with program order: if
-  $\memstop{\Op^1} \programorder{i} \memstart{\Op^2}$, the serial
+  $\memstop{\Op^1} \programorder{P} \memstart{\Op^2}$ for some $P$, the serial
   history must include $\Op^1$ before $\Op^2$.
 \end{enumerate}
 \end{definition}
@@ -2346,7 +2353,7 @@ operation that reads this value, it is not clear which write
   $\writesinto$ and program order. That is, if $\Op \causalityorder
   \Op'$, then one of the following holds:
   \begin{itemize}
-  \item $\Op \programorder{i} \Op'$ for $P_i$
+  \item $\Op \programorder{P} \Op'$ for $P$
   \item $\Op \writesinto \Op'$
   \item There is some $\Op''$ such that $\Op \causalityorder \Op''$ and $\Op'' \causalityorder \Op'$
   \end{itemize}
@@ -2358,31 +2365,13 @@ operation that reads this value, it is not clear which write
 \end{definition}
 
 We can now define causally consistent executions of memory
-operations. For a history $H$ and each process $P_i$, let $A_i$ be
-union of $H|_P$ and the set of all writes in $H$. In other words,
-$A_i$ is the local history of $P_i$ plus any write operation on any
-other process.
-
-%\begin{figure}[p]
-%  \begin{subfigure}{1\textwidth}
-%    \centering
-%    \input{images/pgf/smEx4S3.pgf}
-%    \caption{}
-%    \label{fig:smEx4L2}
-%  \end{subfigure}
-%  \begin{subfigure}{1\textwidth}
-%    \input{images/pgf/smEx4S4.pgf}
-%    \caption{}
-%    \label{fig:smEx4S2}
-%  \end{subfigure}
-%  \caption{Two non-sequentially-consistent executions of Figure \ref{fig:dsm-example-2}}
-%  \label{fig:smEx4-alt}
-%\end{figure}
+operations. For a history $H$ and each process $P$, let $A|_{P}$ be
+the union of $\localhistory{P}$ and the set of all writes in $H$.
 
 \begin{definition}[Causal consistency]
   \label{def:causalconsistency}
-  An execution is causally consistent if each $P_i$ behaves as if it
-  observes some serialization of $A_i$ consistent with $\causalityorder$.
+  An execution is causally consistent if each $P$ behaves as if it
+  observes some serialization of $A|_{P}$ consistent with $\causalityorder$.
 \end{definition}
 
 Notably, Definition \ref{def:causalconsistency} does not require that
@@ -2431,12 +2420,11 @@ serialization.
   \caption{A causally consistent but sequentially inconsistent history}
 \end{figure}
 
-Causal consistency not subject to the limits of the CAP theorem.
+Causal consistency is not subject to the limits of the CAP theorem.
 
 \begin{lemma}[Causal consistency is CAP-available]
   \label{thm:cap-causal}
-  Causal consistency can be enforced during network partitions. That
-  is, causal consistency is not subject to the CAP theorem.
+  A system can enforce causal consistency during network partitions.
 \end{lemma}
 \begin{proof}
   Consider two processes that execute read and write operations purely
@@ -2614,7 +2602,7 @@ will not make a distinction between a process $P$ and its
 identifier. The first assumption we make is as follows:
 \begin{quote}
   \textbf{Static process group}: The set of group members is a fixed
-  set of processes $\mathcal{P} = \{P_1, P_2, \ldots P_n\}$ where the
+  set of processes $\AllProc = \{P_1, P_2, \ldots P_n\}$ where the
   identifier of each process is known to all of them.
 \end{quote}
 Golding's thesis describes how to connect TSAE with a dynamic group
@@ -2628,7 +2616,7 @@ at real time $t$.
   \textbf{Loose clock sychronization}: Processes' physical clocks are approximately
   synchronized, meaning the clocks of any two processes differ by at
   most some small constant $\delta$:
-  \[ \forall t,\, \forall P, Q \in \mathcal{P}, |\clock{P, t} - \clock{Q, t}| < \delta
+  \[ \forall t,\, \forall P, Q \in \AllProc, |\clock{P, t} - \clock{Q, t}| < \delta
   \]
   The clock resolution must be fine-grained enough for each principal
   to assign unique timestamps to all important events occurring in
@@ -3337,8 +3325,8 @@ Processes perform two types actions, read or write requests, as in
 Section \ref{ssec:shared-memory}. We call actions of both types
 \emph{accesses}. Recall that a \emph{history} is an ordered sequence
 of read and write accesses. The \emph{local history} of a process $P$,
-denoted $H_P$, is the sequence of accesses $P$ has applied to $\Dinit$
-since the start of the application.
+denoted $\localhistory{P}$, is the sequence of accesses $P$ has
+applied to $\Dinit$ since the start of the application.
 
 Writes do not have to be simple instructions, but may be as complex as
 database transactions, meaning containing multiple instructions that
@@ -3352,13 +3340,13 @@ $D + H$ denote the result of applying each of the writes in $H$ to $D$
 in history order. Thus, the database state at a process $P$ at any
 moment, written $D_P$, is defined
 \begin{equation}
-  D_P \equiv \Dinit + H_P.
+  D_P \equiv \Dinit + \localhistory{P}.
 \end{equation}
 
 The global history, as a set, is the collection of all local histories
 in the system:
 \begin{equation}
-  \Hglobal \equiv \bigcup_{X \in \AllProc} H_X
+  \Hglobal \equiv \bigcup_{X \in \AllProc} \localhistory{X}
 \end{equation}
 
 \subsubsection{Write Log}
@@ -3379,7 +3367,7 @@ processes are \emph{remote}. The value of $D_P$ is said to be the
 
 Each process $P$ maintains a write log, $\WL{P}$, containing the
 history of all writes applied to its local database image in the order
-they were applied. Note that this makes $\WL{P}$ equivalent to $H_P$
+they were applied. Note that this makes $\WL{P}$ equivalent to $\localhistory{P}$
 restricted to writes.
 \begin{equation}
   D_P = \Dinit + \WL{P} \label{eq:conit-DP}
@@ -3629,7 +3617,7 @@ $P$ estimated to be unseen by $Q$ as follows:
 \end{equation*}
 For reasons explained below, we consider writes with positive and negative weights separately, defining the positive and negative unseen weights %TODO
 \begin{gather}
-  \EstUnseen{\left(P,Q\right)} \equiv \{ w \in  \EstUnseen{\left(P,Q\right) |
+  \EstUnseen{\left(P,Q\right)} \equiv \{ w \in  \EstUnseen{\left(P,Q\right)} \}
 \end{gather}
 For each $F$, define the following values totalling the positive and
 negative weights to conit $F$ of writes from $P$ thought to be unseen by $Q$.
@@ -3640,12 +3628,11 @@ negative weights to conit $F$ of writes from $P$ thought to be unseen by $Q$.
   \twn{P}{Q, F} \equiv \sum_{\substack{
     w \in \EstUnseen{\left(P,Q\right)} \\
     \NumWeight\left(w, F\right) < 0}} \NumWeight\left(w, F\right)
-%\twn{P}{\left(Q, F\right)} \equiv \sum_{ w \in \WLat{P}{P} \setminus \View{P}{Q}} \{ \NumWeight\left(w, F\right) | \NumWeight\left(w, F\right) < 0\}
 \end{gather}
 
 To bound numerical error, the intuition is that $P$'s estimate of
 unseen numerical weight must not exceed $Q$'s allowable error. Since
-there are $|\mathcal{P}| - 1$ processes that can accept writes without
+there are $|\AllProc| - 1$ processes that can accept writes without
 immediately adding them to $\WL{P}$, this means the total weight of
 messages accepted by each process locally and not seen by $P$ must not
 exceed $\frac{\NE\left(P, F \right)}{|\AllProc| - 1}$.  This value
