@@ -3488,7 +3488,7 @@ is the value $\Dinit + \PH_\textrm{a}$.  The following equations hold.
 
 
 
-\subsection{Numerical consistency}
+\subsection{Numerical Consistency}
 \label{ssec:conit-numerical-consistency}
 We assume each conit $F$ is associated with a valuation function,
 \[
@@ -3714,15 +3714,18 @@ relative error without knowing the ideal value $V_{\textrm{final}}$.
   affecting other conits are not blocked.
 \end{example}
 
-\subsection{Order consistency}
+\subsection{Order Consistency}
 \label{ssec:conit-order-consistency}
 The write log $\WL{P}$ is a linearly ordered structure, and the local
 replica state $D_P = \Dinit + \WL{P}$ reflects this order. Writes are
 added to $\WL{P}$ and applied to $D_P$ as they are received, instead
 of waiting for the totally-ordered delivery component to execute, so
 at any moment it is possible that $P$'s state machine has diverged
-from its ideal value, beginning at the first access $P$ applied that
-wasn't in the final order.
+from its ideal value, beginning at the first access $P$ that was not
+applied in the final order. The allowable order error bounds how far
+$P$'s replicated state machine may tread down an errant path of
+transitions, before winding back transitions and reapplying them in
+the correct order.
 
 \begin{comment}
 TSAE+TO guarantees that eventually writes will be committed, and the
@@ -3768,8 +3771,8 @@ write in the final order is not fixed.
   client, while $Q$'s client attempts to double book the seat and is
   issued a refund.'' The rollback process at $Q$ may be associated
   with business rules triggering a notification to $Q$'s client that
-  their reservation has been cancelled, alongside their refund and
-  compensation fee.
+  their reservation has been cancelled, alongside issuing a refund (and
+  hopefully a compensation fee).
 \end{example}
 
 In Example \ref{ex:conit-booking}, accepting $w_Q$ in a tentative
@@ -3780,8 +3783,9 @@ server $R$ might be notified about $w_Q$ and $w_P$ but apply them in
 the wrong order to end up in state $D_R = \Dinit + w_Q + w_P$ where
 $Q$'s client appears to get the reservation first. This state, which
 has $0$ numerical error, would persist at $R$ until the total ordering
-component discovers that $w_P$ is first in the final order. Numerical
-error only controls the updates a process sees, but not their order.
+component at $R$ discovers that $w_P$ should be first. Numerical
+error only controls the updates a process sees, but not whether they
+are in the right order.
 
 A more direct approach to controlling the potential cost of rollbacks
 is to bound the order error of the local database state. For each
@@ -3869,11 +3873,11 @@ how applications should define conits and order weight. The errant
 history overstates the difference between $\PHobs$ and $\PHideal$. For
 instance, suppose they only differ in the relative order of updates
 applied to conits that do not affect $\Conits$; in this case, a read
-depending on $\Conits$ should have $0$ order error. Let $H|_\Conits$
-denote the \emph{write-order projection} of $H$ to $\Conits$, which
-consists of just the writes $w$ such that $\OrderWeight(w, F) \neq 0$
-for at least one $F$ in $\Conits$. We the define the
-\emph{out-of-order} accesses to $\Conits$,
+depending on $\Conits$ should be considered to observe $0$ order
+error. Let $H|_\Conits$ denote the \emph{write-order projection} of
+$H$ to $\Conits$, which consists of just the writes $w$ such that
+$\OrderWeight(w, F) \neq 0$ for at least one $F$ in $\Conits$. We the
+define the \emph{out-of-order} accesses to $\Conits$,
 $\mathsf{OOO}\left(\Conits\right)$, as the set of all writes affecting
 any conit in $\Conits$ that have been applied in an order deviating
 from their final order relative to each other:
@@ -3928,16 +3932,17 @@ back during the eventual write committment process.
 
 
 
-This is implemented with a \emph{pull-based} approach, to decide the
-final order of enough writes until the order error is within
-bounds. For the TSAE-based implementation, $P$ can commit writes by
-engaging in pull-based anti-entropy to advance its commit line
+For the TSAE+TO implementation, committment is implemented with a
+\emph{pull-based} approach, where $P$ pulls enough messages from
+remotes to decide the final order of enough writes as to ensure the
+order error is within bounds. $P$ can commit writes by pulling
+messages through anti-entropy to advance its commit line
 ($\min_{X \in \AllProc} \left(\summary{P}{X}\right)$) far enough for
 the total ordering component to decide the final value of all writes
 in its log, at which point any errant updates can be rolled back and
 reapplied in their final order. Let $t$ be the greatest timestamp of
 any message in its write log. To guarantee that $P$ can advance its
-commit line enough to commit the weight, it is enough to ensure that
+commit line enough to commit the write, it is enough to ensure that
 $\summary{P}{Q}$ is greater than $t$ after engaging in anti-entropy
 with each $Q$. This is true of physically synchronized clocks, since
 $\summary{P}{Q}$ will reflect the time at which $Q$ was contacted by
@@ -3955,7 +3960,7 @@ increment its clock to be greater than $P$'s clock.
   the estimate of $5$.
 \end{example}
 
-\subsection{Real time staleness}
+\subsection{Real Time Staleness}
 \label{ssec:conit-real-time-consistency}
 The \emph{real time staleness} metric allows each process $P$ to bound
 the maximum amount of time between an access affecting a conit being
