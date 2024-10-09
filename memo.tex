@@ -1347,7 +1347,7 @@ maximum of all other rows.
   \ref{fig:message-latencies-scalar} and
   \ref{fig:message-latencies-vector} using matrix timestamps. By
   comparison to Figure \ref{fig:message-latencies-vector}, observe
-  that for each process $X$, rows of the form $\mt{X}{[X]}$---for
+  that for each process $X$, rows of the form $\mt{X}{[X]}{}$---for
   instance, the top row of matrices in $P_1$---act like ordinary vector
   clocks.
 \end{example}
@@ -3226,7 +3226,8 @@ inconsistency is inevitable but also desirable to bound.
 We describe the framework now in terms of its system model
 (\ref{ssec:conit-system-model}), its three dimensions of consistency
 (\ref{ssec:conit-numerical-consistency}---\ref{ssec:conit-real-time-consistency}),
-and possible extensions (\ref{ssec:conit-extensions}).
+correctness (\ref{ssec:conit-correctness}) and possible extensions
+(\ref{ssec:conit-extensions}).
 
 
 
@@ -3278,28 +3279,28 @@ same order. Thus, there are two reasons a state machine might diverge
 from its ``ideal value,'' or the final state after applying all
 updates. They are as follows:
 \begin{itemize}
-\item \textbf{Unseen messages} The error attributable to transitions
+\item \textbf{Unseen messages}: The error attributable to transitions
   the replica has not applied
-\item \textbf{Out of order messages} The error attributable to
+\item \textbf{Out of order messages}: The error attributable to
   transitions the machine has applied in the wrong order
 \end{itemize}
 Unseen messages are possible in this framework because an update is
 not necessarily propagated to other processes immediately when it is
 originated. Out of order messages are possible because replicas do not
-(necessarily) wait for the total ordering component to decide the
-final order of updates before applying them to their local
-replica. Instead, updates are applied when they are received. This may
-not match the final order, so the underlying data model must support a
-mechanism to rollback changes and reapply them in a different
-order. Updates that have been applied without knowing their final
-order as said to be \emph{tentative}, and when they are applied in
-their final order (possibly after rolling back tentative updates)
-they are said to be \emph{committed}.
+necessarily wait for the total ordering component to decide the final
+order of updates before applying them to their local replica. Instead,
+updates are applied when they are received. This may not match the
+final order, so the underlying data model must support a mechanism to
+rollback changes and reapply them in a different order as it learns
+more about the final order. Updates that have been applied without
+knowing their final order as said to be \emph{tentative}, and when
+they are applied in their final order (possibly after rolling back
+tentative updates) they are said to be \emph{committed}.
 
-Thus, to bound the divergence between state machines, what we desire
-is a way to place an upper bound on the set of updates that $P$ has
-not seen, and an upper bound on how many updates $P$ applies without
-knowing their final order. The conit framework actually measures
+To bound the divergence between state machines, what we desire is a
+way to place an upper bound on the set of updates that $P$ has not
+seen, and an upper bound on how many updates $P$ applies without
+confirming their final order. The conit framework actually measures
 unseen updates in two ways (numerical error and real-time staleness),
 so that consistency is treated as a three-dimensional concept:
 \[\textrm{Consistency} = \langle \textrm{Numerical error,
@@ -3312,9 +3313,9 @@ implicitly by the application. A conits can be defined for an
 individual data item, a group of data items, a logical value
 calculated from data items, or the whole database. The standard for
 correctness of the conit framework is subtle, since it depends on fine
-implementation details (such as locking policies) that are not in the
+implementation details (such as locking policies) not fully in the
 scope of this document. We defer a more detailed discussion until
-\ref{ssec:conit-correctness}. Now we make the discussion more formal.
+Section \ref{ssec:conit-correctness}. Now we make the discussion more formal.
 
 \subsubsection{Formal framework}
 The system consists of processes in a group $\AllProc$ that replicate
@@ -3537,7 +3538,7 @@ $\WLideal$ that are not in $\WL{P}$.
 
 \subsubsection{Assumptions}
 Bounding numerical error requires a cooperation between all
-processes. In particular, processes need to know every processes'
+processes. In particular, processes need to know every other process's
 numerical error bounds for each conit.
 \begin{quote}
   \textbf{Global knowledge of error bounds}: Every process knows
@@ -3613,38 +3614,41 @@ Yu and Vahdat explicate most at length in a 2000 paper
 \cite{2000tactalgorithms}. We denote the set of writes originating at
 $P$ estimated to be unseen by $Q$ as follows:
 \begin{equation*}
-  \EstUnseen{\left(P,Q\right)} \equiv \WLat{P}{P} \setminus \View{P}{Q}
+  \EstUnseen^{P}{\left(Q\right)} \equiv \WLat{P}{P} \setminus \View{P}{Q}
 \end{equation*}
 For reasons explained below, we consider writes with positive and negative weights separately, defining the positive and negative unseen weights %TODO
 \begin{gather}
-  \EstUnseen{\left(P,Q\right)} \equiv \{ w \in  \EstUnseen{\left(P,Q\right)} \}
+  \EstUnseen^P|^+_F{\left(Q\right)} \{ w \in \EstUnseen^{P}{\left(Q\right)} | \NumWeight\left(w, F\right) > 0 \} \\
+  \EstUnseen^P|^-_F{\left(Q\right)} \{ w \in \EstUnseen^{P}{\left(Q\right)} | \NumWeight\left(w, F\right) < 0 \}
 \end{gather}
 For each $F$, define the following values totalling the positive and
 negative weights to conit $F$ of writes from $P$ thought to be unseen by $Q$.
 \begin{gather}
-  \twp{P}{Q, F} \equiv \sum_{\substack{
-    w \in \EstUnseen{\left(P,Q\right)} \\
-    \NumWeight\left(w, F\right) > 0}} \NumWeight\left(w, F\right)\\
-  \twn{P}{Q, F} \equiv \sum_{\substack{
-    w \in \EstUnseen{\left(P,Q\right)} \\
-    \NumWeight\left(w, F\right) < 0}} \NumWeight\left(w, F\right)
+  \twp{P}{Q, F} \equiv \sum \{ \NumWeight\left(w, F\right) | w \in \EstUnseen|^+_F{\left(P,Q\right)} \} \\
+  \twn{P}{Q, F} \equiv \sum \{ \NumWeight\left(w, F\right) | w \in \EstUnseen|^-_F{\left(P,Q\right)} \}
 \end{gather}
-
-To bound numerical error, the intuition is that $P$'s estimate of
-unseen numerical weight must not exceed $Q$'s allowable error. Since
+To bound numerical error for $F$ and $Q$, the intuition is that $P$'s
+estimate of numerical weight on $F$ that has not been seen by $Q$ must
+not exceed an alloted ``share'' of $Q$'s total error bound. Since
 there are $|\AllProc| - 1$ processes that can accept writes without
-immediately adding them to $\WL{P}$, this means the total weight of
-messages accepted by each process locally and not seen by $P$ must not
-exceed $\frac{\NE\left(P, F \right)}{|\AllProc| - 1}$.  This value
-represents $P$'s share of allowable weight of writes accepted by
-processes other than $Q$ that are unseen by $Q$. When $P$ submits a
+immediately adding them to $\WL{Q}$, this means the total weight of
+unseen messages accepted by each process must not exceed
+$\frac{\NE\left(Q, F \right)}{|\AllProc| - 1}$.  When $P$ submits a
 new write, $P$ first checks for whether the following conditions hold:
 \begin{align*}
   \twp{P}{Q, F} + \NumWeight(w, F) &< \frac{\NE\left(Q, F\right)}{|\AllProc| - 1} & \textrm{if $\NumWeight(w, F) > 0$} \\
   \twn{P}{Q, F} + \NumWeight(w, F) &> - \frac{\NE\left(Q, F\right)}{|\AllProc| - 1} & \textrm{if $\NumWeight(w, F) < 0$}
 \end{align*}
 If either of these conditions are violated, then $P$ updates its view
-of $Q$, which might involve sending updates that $Q$ has not seen.
+of $Q$, which might involve sending updates that $Q$ has not
+seen. Before the write access completes, meaning returns to $P$'s
+client, $\WL{Q}$ will be reflect both the unseen writes and the write
+$P$ is currently handling, and $\twp{P}{Q, F}$ and $\twn{P}{Q, F}$
+will be zero.\footnote{The exact handling of write propagation,
+  particularly when $P$ sends updates to several remotes at once,
+  involves orthogonal implementation details, such as whether to
+  acquire remote locks on data items, that will be discussed
+  more in Section \ref{ssec:conit-correctness}.}
 
 \begin{lemma}[Numerical weight correctness]
   When following the above protocol, then each value of each conit at process will satisfy
@@ -3694,7 +3698,7 @@ relative error without knowing the ideal value $V_{\textrm{final}}$.
   Figure \ref{fig:conit-numerical} depicts the role of numerical
   weight for a process $A$.  Messages with a grid background represent
   $A$'s view of $\WL{C}$. We are assuming here that matrices are used,
-  so $A$ has a view of $\WLat{C}{B}$, this does not play a role as
+  so $A$ has a view of $\WLat{C}{B}$, but this does not play a role as
   $A$ only works to bound the weight of its own writes unseen by $C$.
 
   $A$ estimates there are two messages, with timestamps $(A, 6)$ and
@@ -3702,12 +3706,11 @@ relative error without knowing the ideal value $V_{\textrm{final}}$.
   both of these updates apply positive weight to a conit $F$. While
   handling access $(A, 9)$, before returning to the user, the combined
   weight of the updates must be less than
-  \mbox{$\NE\left(C, F \right)/ 2$}, reflecting $A$'s ``share'' of the
-  allowable error. If this limit is exceeded, $A$ would become
-  unavailable and engage in compulsory anti-entropy with $C$. Note
-  that if $A$ is multithreaded and can handle multiple accesses at
-  once, then $A$ only has to be unavailable for further access
-  involving the same underlying conits. Reads and writes only
+  \mbox{$\NE\left(C, F \right)/ 2$}. If this limit is exceeded, $A$
+  would become unavailable and engage in compulsory anti-entropy with
+  $C$. Note that if $A$ is multithreaded and can handle multiple
+  accesses at once, then $A$ only has to be unavailable for further
+  access involving the same underlying conits. Reads and writes only
   affecting other conits are not blocked.
 \end{example}
 
