@@ -62,10 +62,13 @@
 \newcommand{\Dinit}{D_\textrm{init}}
 \newcommand{\Writes}{\mathbf{\mathsf{Writes}}}
 %% Global histories
+\newcommand{\Dstate}[1]{D_{\textrm{#1}}}
 \newcommand{\Dideal}{D_{\textrm{ideal}}}
-\newcommand{\Videal}{V_{\textrm{ideal}}}
-\newcommand{\Vinit}{V_{\textrm{init}}}
+\newcommand{\Dobs}{D_{\textrm{obs}}}
+\newcommand{\Videal}[1]{V^{#1}_{\textrm{ideal}}}
+\newcommand{\Vinit}[1]{V^{#1}_{\textrm{init}}}
 \newcommand{\Val}{\mathcal{V}}
+\newcommand{\conitAt}[2]{V^{#1}_{#2}}
 \newcommand{\WLideal}{\WL{\textrm{ideal}}}
 \newcommand{\Hglobal}{H_\mathrm{global}}
 \newcommand{\localhistory}[1]{H|_{#1}}
@@ -76,6 +79,7 @@
 \newcommand{\eprt}{\epsilon_{\textrm{rt}}}
 %% Numerical error
 \newcommand{\EstUnseen}{\mathsf{EstUnseen}}
+\newcommand{\ActualUnseen}{\mathsf{ActualUnseen}}
 \newcommand{\NumWeight}{\mathsf{NumWeight}}
 \newcommand{\View}[2]{\mathsf{View}^{#1}\left(#2\right)}
 \newcommand{\twp}[2]{\mathsf{twp}^{#1}\left(#2\right)}
