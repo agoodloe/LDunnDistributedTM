@@ -4501,8 +4501,8 @@ At a low level, the challenges of these environments can be addressed
 through innovations in hardware such as mesh radios, combined with
 low-level protocols designed for mobile ad-hoc and disruption-heavy
 networks. However, these non-traditional network architectures and
-extreme operational environments raise higher-level questions about
-how to design distributed applications that communicate over these
+extreme operational conditions raise higher-level questions about how
+to design distributed applications that communicate over these
 networks. We explored how applications that rely on strong memory
 consistency models, such as linearizability or sequential consistency,
 are not a good fit for this sort of environment. This implication
@@ -4519,21 +4519,21 @@ resilience and efficiency, multiple replicas of a shared database can
 be maintained and deployed at strategic locations in the
 network. However, the high coordination overhead required to keep
 these replicas consistent with respect to strong memory models is
-prohibitive. We concluded that weaker consistency models are called
-for in these settings.
+prohibitive for the networks under consideration. We concluded that
+weaker consistency models are called for in these settings.
 
-Brewer's CAP theorem, a classic cornerstone result in distributed
-systems theory, seemingly presents a major challenge when strong
-consistency is unattainable. A simplistic interpretation of the
-theorem suggests that when strong consistency is sacrificed in favor
-of system performance, system designers are left with little control
-over the relative consistency between different replicas of common
-data. This is an uncomfortable conclusion, because the appreciable
-safety concerns in disaster response environments demand control over
-the consistency of shared information. That is, a common operating
-picture is a prerequisite to effective coordination between
-agents. The CAP theorem seems to suggest the application designer is
-left stuck between a rock and a hard place.
+Brewer's CAP theorem, a cornerstone result in distributed systems
+theory, seemingly poses a major challenge when strong consistency is
+unattainable. A simplistic interpretation of the theorem suggests that
+when strong consistency is sacrificed in favor of system performance,
+system designers are left with little control over the relative
+consistency between different replicas of common data. This presents
+an uncomfortable dilemma, because the appreciable safety concerns in
+disaster response environments demand control over the consistency of
+shared information. This is because a common operating picture is a
+prerequisite to effective coordination between agents. The CAP theorem
+seems to suggest the application designer is left stuck between a rock
+and a hard place.
 
 Fortunately, the CAP theorem is not as prohibitive as it may seem. The
 continuous consistency framework presented in Section
