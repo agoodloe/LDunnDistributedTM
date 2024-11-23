@@ -3209,32 +3209,33 @@ systems where $n$ is on the order of 1,000 or greater.
 \section{Continuous Consistency}
 \label{sec:continuous-consistency}
 This section outlines the idea of \emph{continuous} consistency, with
-a particular focus on the conit (``consistency unit'') model proposed
-by Yu and Vahdat
+a particular focus on the conit (short for ``consistency unit'') model
+proposed by Yu and Vahdat
 \cite{2000tact,2000tactalgorithms,10.5555/1251229.1251250,DBLP:conf/icdcs/YuV01,2002tact}.
 This work has been motivated by the observation that real-world
 applications can generally tolerate a certain amount of divergence
 among replicas in exchange for greater performance. However, if the
 divergence exceeds a certain threshold, the data becomes too
-unreliable for its intended application. For such applications, rather
-than viewing consistency as an all-or-nothing proposition, it is
-desirable to work with a model that formally quantifies levels of
-(in)consistency and provides controls to ``tune'' the application by
-tightening or relaxing the allowed amount of divergence between
-replicas. The conit framework makes the consistency/availability
-tradeoff into a first class concept, allowing applications to choose
-where they fall along the conceptual spectrum between total
-consistency (i.e. linearizability) and total availability (i.e. never
-blocking to enforce consistency requirements). Mechanisms to exchange
-either consistency or availability for more of the other, perhaps in
-response to factors like application workload and network capacity,
-provide advantages for distributed shared memory frameworks deployed
-across a disruption-prone network, where a level of global
-inconsistency is inevitable but also desirable to bound.
+unreliable for its intended use. For such applications, rather than
+viewing consistency as an all-or-nothing proposition, it is desirable
+to work with a model that formally quantifies levels of inconsistency
+and provides controls to ``tune'' the application by tightening or
+relaxing the allowed amount of divergence between replicas.
+
+The conit framework makes the consistency/availability tradeoff into a
+first class concept, allowing applications to choose where they fall
+along the conceptual spectrum between total consistency
+(i.e. linearizability) and total availability (i.e. never blocking to
+enforce consistency requirements). Mechanisms to exchange either
+consistency or availability for more of the other, perhaps in response
+to factors like application workload and network capacity, provide
+advantages for distributed shared memory frameworks deployed across a
+disruption-prone network, where a level of global inconsistency is
+inevitable but also desirable to bound.
 
 We describe the framework now in terms of its system model
 (\ref{ssec:conit-system-model}), its three dimensions of consistency
-(\ref{ssec:conit-numerical-consistency}---\ref{ssec:conit-real-time-consistency}),
+(\ref{ssec:conit-numerical-consistency}--\ref{ssec:conit-real-time-consistency}),
 correctness (\ref{ssec:conit-correctness}) and possible extensions
 (\ref{ssec:conit-extensions}).
 
@@ -3271,19 +3272,23 @@ that all processes access through a designated server.
 As in Section \ref{ssec:shared-memory}, we divide actions into two
 types: read requests and write requests. We call either type of
 request a data \emph{access}. Any process $P$ may handle a read or
-write access submitted to it by clients of the application; in this
-case, $P$ is said to be the \emph{originating replica} of the access,
-and all other processes are \emph{remote} for that access. A read is
-always handled locally by the originating process, without notifying
-any remotes. However, since a write affects the shared data, the
+write access submitted to it by clients of the application; $P$ is
+said to be the \emph{originating replica} of the access, and all other
+processes are \emph{remote replicas} for that access. A read is always
+handled locally by the originating process, without notifying any
+remotes. However, since a write affects the shared data, the
 originating process of a write must eventually notify all remote
-replicas about the access. Likewise, it must be notified of writes
-originating at other processes. Furthermore, because the order of
-writes matters for many underlying data models, in general the writes
-must be delivered everywhere in a total order to keep the state
-machine replicas in harmony. Thus, a mechanism for reliable eventual
-totally-ordered delivery is required to propagate write accesses
-between the processes in $\AllProc$---recall from Section
+replicas about the access so they may apply it to their copy of the
+data. Thus, each process receives writes from its clients, as well as
+notifications of writes submitted by clients of other processes.
+% Likewise, it must be notified of writes originating at other
+% processes.
+Furthermore, because the order of writes matters for many underlying
+data models, in general the writes must be delivered everywhere in a
+total order to keep the state machine replicas in harmony. Thus, the
+first requirement of our application is a mechanism for reliable
+eventual totally-ordered delivery to propagate write accesses between
+the processes in $\AllProc$---recall from Section
 \ref{ssec:tsae-message-ordering} that this provides a general method
 of replicating a state machine.
 
@@ -3292,11 +3297,11 @@ proposed by Yu and Vahdat, which is based on TSAE+TO, timestamped
 anti-entropy with a totally ordered delivery component, though other
 solutions can be used instead. The version of TSAE+TO used here has a
 few modifications from the ``pure'' version described in Section
-\ref{ssec:tsae-message-ordering}. First, there is a notion of
-``compulsory'' anti-entropy sessions, which are required because pure
-TSAE only requires that sessions run periodically, so it cannot make
-guarantees about when this happens. Second, compulsory anti-entropy
-sessions can be one-way, either pull- or push-based, with one side
+\ref{ssec:tsae-message-ordering}. First, a notion of ``compulsory''
+anti-entropy sessions is introduced; these are required because pure
+TSAE only requires that sessions run periodically, but it does not make
+guarantees about when this happens. Second, we allow anti-entropy
+sessions to be one-way, either pull- or push-based, with one side
 sending updates to another but not necessarily receiving
 updates. Finally, the protocol used here applies write updates to the
 local replica as they are received, without waiting for the delivery
@@ -3306,39 +3311,52 @@ are later found to violate the global total order. These modifications
 to the core protocol will be described in greater detail throughout
 this section.
 
-The write propagation mechanism, described in detail in
-\ref{sssec:write-propagation}, provides the same progress guarantee as
-TSAE+TO: assuming no permanent host or network failures, all processes
-will eventually apply each write to their local replica in the same
-order. By itself, this implements a \emph{weak} (or \emph{eventual})
-consistency model, where replicas are allowed to diverge temporarily,
-but will eventually converge to global agreement, at least if they can
-communicate and new updates do not outpace the rate of
-convergence. However, weak consistency does not say anything about how
-far apart replicas might diverge in the meantime. Thus, the majority
-of this section is concerned with supplemental mechanisms used to
-bound the divergence between replicas at any moment. These mechanisms
-function by triggering so-called \emph{compulsory} anti-entropy
-sessions. As in ordinary TSAE, an application may choose to implement
-so-called \emph{voluntary} anti-entropy sessions at any time, which
-may improve performance. However, only compulsory sessions are
-required for the correctness of the protocol. The correctness
+% The write propagation mechanism, described in detail in
+% \ref{sssec:conit-write-propagation}, provides essentially the same
+% progress guarantee as TSAE+TO:
+
+The pure version of TSAE+TO provides a progress guarantee: as long as
+anti-entropy sessions run periodically, assuming no permanent host or
+network failures, all processes will eventually apply each write to
+their local replica in the same order. By itself, this implements a
+\emph{weak} (or \emph{eventual}) consistency model, where replicas are
+allowed to diverge temporarily, but will eventually converge to global
+agreement, at least if they can communicate and new updates do not
+outpace the rate of convergence. However, weak consistency does not
+place bounds on how far apart replicas might diverge in the
+meantime. Thus, the majority of this section is concerned with
+supplemental mechanisms used to limit the divergence between replicas
+at any moment.
+%Since it is based on TSAE+TO, the protocol we describe
+%inherents similar eventual consistency properties but additionally
+%enforces properties about the replicas at any moment.
+
+The mechanisms used to limit instantaneous divergence trigger
+one-sided compulsory anti-entropy sessions. As in ordinary TSAE, an
+application may choose to implement so-called \emph{voluntary}
+anti-entropy sessions at any time, which may be one- or
+two-sided. Voluntary sessions may improve system performance but are
+not fundamentally required for the correctness of the protocol. The
 guarantees enforced by the protocol will be described more precisely
-throughout Sections
-\ref{ssec:conit-numerical-consistency}--\ref{ssec:conit-correctness}.
+with respect to three consistency metrics presented in Sections
+\ref{ssec:conit-numerical-consistency},
+\ref{ssec:conit-order-consistency}, and
+\ref{ssec:conit-real-time-consistency}. Section
+\ref{ssec:conit-correctness} discusses some of the more subtle aspects
+of the correctness properties.
 
 % provides a progress guarantee: assuming no permanent host or network
 % failures, all updates will eventually be received, acknowledged,
 % delivered in the same total order, and purged from the write log of
 % all processes.
-
-Intuitively, the goal of the conit framework is to bound how far apart
-each replica is from its ``ideal'' value at any moment. The ideal
-value of a replicated state machine is the state it would be in if it
-has received all updates---in this context, write accesses that
-correspond to database state transitions---and applied them locally in
-the correct order. In the conit framework, there are two sources of
-error that would cause a replica to diverge from its ideal value:
+Intuitively, the goal of the conit framework is to ensure users always
+observe data whose divergence from the correct or ``ideal'' value is
+limited by an upper bound. The ideal value of a replicated state
+machine is the state it would be in if it has received all
+updates---in this context, write accesses that correspond to database
+state transitions---and applied them locally in the correct order. In
+the conit framework, there are two sources of error that can cause a
+replica to diverge from its ideal value:
 \begin{itemize}
 \item \textbf{Unseen updates}: The error attributable to state
   transitions originating at other processes that have not been
@@ -3347,33 +3365,55 @@ error that would cause a replica to diverge from its ideal value:
 \item \textbf{Out of order updates}: The error attributable to
   transitions the machine has applied locally in the wrong order,
   leading it down an ``errant path'' beginning at the time of the
-  first update applied in an order different from the final order
+  first update applied in an order different than the final order
 \end{itemize}
+
 Unseen updates occur when a write access is submitted by a client at
 an originating process $P$, but a remote process $Q$ is not notified
-right away, making $Q$'s replica stale. Out of order updates are
-possible because when $P$ receives an update, whether submitted by a
-client locally or forwarded to $P$ by another process during
-anti-entropy, $P$ generally applies the update to its own replica
-immediately, \emph{bypassing} the total-order mechanism that
-determines the final global order of updates. This generally increases
-performance because processes do not have to wait for the TO component
-of TSAE+TO to determine the final order of writes.
+right away, making $Q$'s replica stale. The conit framework presents
+two metrics with respect to which we can limit unseen updates. The
+first, numerical error, limits the total ``weight'' of unseen updates,
+where weight is a conceptual measure of how significant an update is
+with respect to the data model. Numerical error is the subject of
+Section \ref{ssec:conit-numerical-consistency}. The second, real-time
+staleness, limits the maximum amount of time that may pass before a
+process is made aware of a new update. Real-time staleness is the
+subject of Section \ref{ssec:conit-real-time-consistency}.
 
-Naturally, the possibility of incorrectly ordered updates necessitates
-a mechanism to ``roll back'' these updates so they can be reapplied in
-the correct order, possibly leading to different results. A rollback
-happens if the TO mechanism, after deciding the final, globally
-consistent order of updates seen so far by $P$, determines that some
-of them have been applied locally in the wrong order. Updates that
-have been applied before confirming their final order are said to be
-\emph{tentative}, since they are subject to being rolled back and
-applied in a different order. At some point, tentative updates become
-\emph{committed}, possibly after performing a rollback-and-reapply
-process to correct the state of the underlying state
-machine. Committed updates are never rolled back. The commitment
-process and its correctness properties will be elaborated on in
-Section \ref{ssec:conit-order-consistency}.
+Out of order updates can occur because when $P$ receives an update,
+whether submitted by a client locally or forwarded to $P$ by another
+process during anti-entropy, $P$ generally applies the update to its
+own replica immediately, \emph{bypassing} the total-order mechanism
+that determines the final global order of updates. This generally
+increases performance because processes do not have to wait for the TO
+component of TSAE+TO to determine the final order of writes. The
+possibility of incorrectly ordered updates necessitates a mechanism to
+``roll back'' these updates so they can be reapplied in the correct
+order, possibly leading to different results. A rollback happens if
+the TO mechanism, after deciding the final, globally consistent order
+of updates seen so far by $P$, determines that some of them have been
+applied locally in the wrong order. Updates that have been applied
+before confirming their final order are said to be \emph{tentative},
+since they are subject to being rolled back and applied in a different
+order. At some point, tentative updates become \emph{committed},
+possibly after performing a rollback-and-reapply process to correct
+the state of the underlying state machine. Committed updates are never
+rolled back. Out-of-order error and the commitment process are the
+subject of Section \ref{ssec:conit-order-consistency}.
+
+Consistency is measured at the granularity of conits, or consistency
+units, which are defined by the programmer. By unit of consistency, we
+mean the divergence between two replicas is measured with respect to
+each of the metrics for each conit. For example, an update is defined
+with a separate numerical weight for each conit: an update may change
+one conit significantly, one conit only slightly, and not affect a
+third conit at all. Likewise, the real-time staleness and out-of-order
+error are also measured at the level of individual conits. Using the
+conit framework, any access that needs to read values from the
+database may specify a maximum error for each of the metrics for each
+conit, and the framework will ensure these bounds are enforced before
+the access executes. We define conits more precisely in
+\ref{sssec:conit-divergence}.
 
 % replicas do not necessarily wait for the total ordering component to
 % decide the final order of updates before applying them to their local
@@ -3382,7 +3422,7 @@ Section \ref{ssec:conit-order-consistency}.
 % mechanism to rollback changes and reapply them in a different order as
 % it learns more about the final order.
 
-\subsubsection{Local and Ideal Histories}
+\subsubsection{Local and Global Histories}
 \label{sssec:handling-accesses}
 We will now elaborate on how reads and writes are handled by the
 system, before we later define how inconsistency is measured and
@@ -3397,25 +3437,26 @@ and may additionally return a value like read accesses do. In fact,
 read accesses in this section should be thought of as merely special
 cases of write accesses that do not modify any data; therefore they do
 not participate in write propagation and are not entered into the
-write log, introduced below. The most general form of access is a
-``write'' access that reads values in the database, modifies some of
-them, and returns a value to the user.
+write log, introduced below.
 
-It is important to note that a write access can encode
-application-level logic. For example, it may read a value in the
-database and make a business decision whether to increment it. The
-resulting state after applying write action $w$ to a database in state
-$D$ is denoted $D + w$. Because reads are just special writes that
-happen not to modify the underlying database, we have that $D + r = D$
-if $r$ is a read.
+The most general form of ``write'' access is one that reads values in
+the database, modifies some of them according to logic defined by the
+programmer, and possibly returns a value to the user. It is important
+to note that a write access can encode application-level logic. For
+example, it may read a value in the database and make a business
+decision whether to increment it. The resulting state after applying
+write action $w$ to a database in state $D$ is denoted $D +
+w$. Because reads are just special writes that happen not to modify
+the underlying database, we have the equation $D + r = D$ if $r$ is a
+read.
 
 Recall that a \emph{history} is an ordered sequence of read and write
 accesses. The \emph{local history} of a process $P$, denoted
 $\localhistory{P}$, is the sequence of accesses $P$ has applied to the
 initial state $\Dinit$ since the start of the application. Let $D + H$
 denote the result of applying each of the accesses in $H$ to $D$ in
-history order. Thus, the database state at a process $P$ at any
-moment, written $\Dstate{P}$, is defined
+history order. Thus, the database state at process $P$ at any moment,
+written $\Dstate{P}$, is defined
 \begin{equation}
   \Dstate{P} = \Dinit + \localhistory{P}. \label{eq:conit-D-obs}
 \end{equation}
@@ -3423,23 +3464,62 @@ Note that $\localhistory{P}$ includes tentatively applied write
 updates. If these are rolled back and reapplied to $\Dstate{P}$ in a
 different order by the commitment mechanism, we consider $P$'s history
 to be rewritten to reflect the newly corrected order, so
-\eqref{eq:database-state-P} always holds.
+\eqref{eq:conit-D-obs} always holds.
 
-We will define an \emph{ideal history} as
+To define the correctness of the conit framework, we need a history to
+serve as a common reference point with respect to which each local
+history is measured. This history should be ``global'' in the sense
+that it contains every access, acting like a central database that
+processes every access in the system in some order. Roughly, each
+local history should remain within some distance of the global
+history, with the difference consisting of a limited number of unseen
+or out-of-order updates. We adopt a definition of a global history as
+one containing every access arranged in a total order.
+
+\begin{definition}
+  A \emph{global history} contains every access in the system, which
+  is equivalent to taking the union
+  $\bigcup_{X \in \AllProc} \localhistory{X}$ of all local histories
+  (more precisely, their underlying sets---this notation is implicitly
+  ignoring their ordered structure).  We assume a global history comes
+  paired with some total order, $<$, arranging the global set of
+  accesses into a linear sequence.
+  \begin{equation}
+    \Hglobal = \langle \bigcup_{X \in \AllProc} \localhistory{X}, < \rangle
+  \end{equation}
+\end{definition}
+
+In practice, we have to impose extra conditions on the total order
+requiring it to be consistent with the order of the local
+histories. We give a more nuanced definition in Section
+\ref{ssec:conit-correctness}, where Definition
+\ref{def:causalconsistency} defines the notion of an \emph{ECG}
+history (Externally and Causally consistent Global history).
+
+Relative to a global history, the ideal database image is defined as
+the state it would be in after applying all the updates in the global
+history, in order:
 \begin{gather}
   \Dideal = \Dinit + \Hglobal \label{eq:conit-D-ideal}
 \end{gather}
+At any moment, it is likely that no local history matches the global
+history, and no single replica matches the ideal database state.
 
-The global history, as a set, is the collection of all local
-histories in the system:
-\begin{equation}
-  \Hglobal = \langle \bigcup_{X \in \AllProc} \localhistory{X}, < \rangle
-\end{equation}
+The notion of an ECG history is mostly a conceptual device intended to
+define the correctness of the model. Roughly, the statement of
+correctness has the following form:
 
-The correctness properties of the conit framework take the form,
-``There exists a global history such that each access observes a
-level of consistency value within $\epsilon$ of the value it would
-have returned in the global history.''
+\begin{quote}
+  ``At any moment, there exists some ECG history $\Hglobal$ such that
+  each access submitted to any process $P$ observes a level of
+  consistency within some $\epsilon$ of what it would observe in the
+  idealized ECG history.''
+\end{quote}
+
+In Sections
+\ref{ssec:conit-numerical-consistency}--\ref{ssec:conit-real-time-consistency},
+we shall assume that some global history is given so that we can
+define the metrics used to quantify divergence.
 
 \subsubsection{Write Propagation}
 \label{sssec:conit-write-propagation}
@@ -3448,7 +3528,7 @@ Each process $P$ maintains a write log $\WL{P}$ containing the history
 of all writes applied to its local database image in the order they
 were applied. That is, $\WL{P}$ is logically equal to
 $\localhistory{P}$ restricted to write accesses. The distinction
-between the $\localhistory{P}$ and $\WL{P}$ is that the former is an
+between $\localhistory{P}$ and $\WL{P}$ is that the former is an
 abstract concept and includes read accesses, and it is mostly used to
 precisely define correctness of the protocol. $\WL{P}$ is a physical
 data structure maintained by the algorithms and only contains write
@@ -3456,41 +3536,72 @@ accesses, since (by definition) only writes affect the database state
 and therefore need to participate in write propagation.
 
 When a write request $w$ is submitted, the action is performed against
-the local replica and $w$ is added to $\WL{P}$. Since $D + r = D$ if
-$r$ represents a read access, Equation \eqref{eq:database-state-P}
-implies the following equation defining $\Dstate{P}$ in terms of the write
-log:
+the local replica, meaning $D_P$ is advanced to $D_P + w$, and $w$ is
+added to $\WL{P}$. Since $D + r = D$ if $r$ represents a read access,
+Equation \eqref{eq:conit-D-obs} is equivalent to the following
+equation defining $\Dstate{P}$ in terms of the write log:
 \begin{equation}
   \Dstate{P} = \Dinit + \WL{P} \label{eq:conit-DP}
 \end{equation}
 
-The mechanism used to propagate writes among replicas is TSAE. Thus,
-each processes maintains the datastructures required of TSAE, whether
-that be the summary and acknowledgement vectors of Sections
-\ref{ssec:tsae-summary-vectors} and \ref{ssec:tsae-acknowledgement},
-or the matrices of Section \ref{ssec:tsae-unsynchronized}. The write
-log plays the role of the message log in the TSAE protocol, with
-writes stamped with the identifier and the (physical or logical) clock
-value of the originating processes at the time it is
-submitted. Following TSAE, $P$ uses the summary vectors of remote
-replicas to determine which writes it may need to send them, and
-likewise sends it summary vector to others to receive updates from
-them. Messages are only ever sent it batches determined by comparing
-summary vectors, and properties like the coverage property
-(c.f. \ref{ssec:tsae-summary-vectors}) are maintained as invariants.
+The mechanism used to propagate writes among replicas is TSAE, where
+$\WL{P}$ serves as the message log. Thus, each processes maintains the
+datastructures required of TSAE, whether that be the summary and
+acknowledgement vectors of Sections \ref{ssec:tsae-summary-vectors}
+and \ref{ssec:tsae-acknowledgement}, or the matrices of Section
+\ref{ssec:tsae-unsynchronized}. Writes added to $\WL{P}$ are stamped
+with the identifier and the clock value (physical or logical) of the
+originating processes at the time it is submitted. Following TSAE, $P$
+uses the summary vectors of remote replicas to determine which writes
+it may need to send them, and likewise sends it summary vector to
+others to receive updates from them. Messages are only ever sent it
+batches determined by comparing summary vectors, and properties like
+the coverage property (c.f. Section \ref{ssec:tsae-summary-vectors})
+are maintained as invariants.
 
-In Section \ref{ssec:tsae-message-ordering}, we made a distinction
-between a message that is merely received into the log and one that
-has been delivered to the application in a predictable order. In the
-protocol we describe, write updates are applied to the replica upon
-receipt into the log (note that this is reflected in Equation
-\eqref{eq:conit-DP}), before their position in the final total order
-is necessarily known. The total-order component of TSAE+TO is
-periodically run to determine a global final order of write updates,
-but instead of deciding when messages can be \emph{delivered} to the
-application, we say the TO component decides when writes can be
-\emph{committed}, meaning there is no longer any ambiguity about their
-position in the global total order. When messages are ready to be
+One feature of the version of TSAE presented here is that we allow
+anti-entropy to be one-sided, where only one side learns about new
+updates. Consequently, the two sides are not necessarily in the same
+state after a session. We describe one-sided sessions as push-based or
+pull-based depending on whether the sending or receiving side
+initiates the session.
+\begin{description}
+\item[Push based] $P$ initiates a session by requesting the summary
+  vector of $Q$. $P$ uses this information to decide which writes $P$
+  is aware of that $Q$ has not been informed about, pushing these
+  updates to $Q$.
+\item[Pull based] $P$ initiates a session by sending its summary
+  vector to a remote replica $Q$. $Q$ uses this information to
+  determine which writes to send to $P$.
+\end{description}
+
+In Section \ref{ssec:message-ordering}, we made a distinction between
+a message that is merely received into the log and one that has been
+delivered to the application in a predictable order. In the protocol
+we describe, write updates are applied to the replica upon receipt
+into the log, a fact reflected in Equation \eqref{eq:conit-DP}. That
+is, writes may be applied before their position in the final total
+order is known. This represents a performance optimization---recall
+from Section \ref{ssec:tsae-message-ordering} that deciding the final
+position of a write in the global total order requires $P$ to be aware
+of all the writes originating anywhere with a lesser timestamp. Rather
+than waiting for $P$ to gather this information, the conit framework
+allows a controlled degree of optimistically applied writes. This
+optimization allows applications to act now and ask for forgiveness
+later if they make a mistake by applying updates in the wrong
+order. The purpose of the out-of-order error metric is to upper bound
+how much ``forgiveness'' the application may have to ask for if these
+writes are later found to have been applied in the wrong order.
+
+The total-order component of TSAE+TO is periodically run to determine
+a global order of write updates, but instead of deciding when messages
+can be \emph{delivered} to the application, we say the TO component
+decides when writes can be \emph{committed}, meaning there is no
+longer any ambiguity about their position in the global total
+order. Messages can be committed when their timestamp is less than
+minimum element in their summary vector, which was our motivation for
+tracking this information and calling it the ``commit line'' in
+Section \ref{ssec:tsae-acknowledgement}. When messages are ready to be
 committed, the TO component determines whether some messages have been
 applied in the wrong order; these updates are un-applied and then
 reapplied in the correct order before marking them as committed. This
@@ -3498,14 +3609,11 @@ process will be described in more depth in Section
 \ref{ssec:conit-order-consistency}.
 
 
-
-
-
-
-
 \subsubsection{Measuring Divergence}
 \label{sssec:conit-divergence}
-We assume there is an ideal global history $\Hglobal$.
+For now we assume some global history $\Hglobal$ has been given. This
+is needed to define the metrics used to measure a replica's divergence
+from its ideal value.
 
 Let $H$ be any history. For an access $a \in H$ in the history, the
 \emph{prefix} history of $a$, written $\PH{\left(a\right)}$, is the
@@ -3523,49 +3631,51 @@ set of accesses in $H$ that precede $a$.
 \end{definition}
 
 
-Note that $\localhistory{P}$ may later be rewritten during by write
+Note that $\localhistory{P}$ may later be rewritten by the write
 commitment component of the protocol, but the observed prefix history
-is static and reflects the state of $\Dstate{P}$ when $a$ was originally
-applied at $P$ and a return value may have been given to the user.
+is fixed forever and reflects the state of $\Dstate{P}$ when $a$ was
+originally applied at $P$, possibly returning a value to the user.
 
 \begin{definition}
   The \emph{ideal prefix history} $\PHideal{\left(a\right)}$ of an
-  access $a$ is defined as the prefix of $a$ as it occurs in some
-  (assumed given) ideal history $\Hglobal$. Similarly, the \emph{ideal
-    state} of an access is defined as the state of the database at the
-  time $a$ is applied in the ideal history:
+  access $a$ is defined as the prefix of $a$ as it occurs in the
+  global history $\Hglobal$. Similarly, the \emph{ideal state} of an
+  access is defined as the state of the database at the time $a$ is
+  applied in the ideal history:
 \begin{gather}
   \Dideal\left(a\right) = \Dinit + \PHideal{\left(a\right)} \label{eq:conit-D-ideal-at}
 \end{gather}
 \end{definition}
 
 Intuitively, clients of process $P$ can usefully operate with the
-application as long as $\Dstate{P}$ deviates from its ideal state by at most
-some margin of error $\epsilon \geq 0$. If the divergence is any
-greater, the data at $P$ is unreliable and the application may become
-unavailable until consistency is re-established. Alternatively, the
-application may remain available but alert the user to the
+application as long as $\Dstate{P}$ deviates from its ideal state by
+at most some application-defined margin of error. If the divergence is
+any greater, the data at $P$ is unreliable and the application may
+become unavailable until consistency is re-established. Alternatively,
+the application may remain available but alert the user to the
 unreliability of the data, which may affect how the user interprets
 and interacts with the application.
 
-The goal of the conit model is to provide a method of quantifying
-inconsistency. However, applications have unique data models---note
-that we have not made any assumptions about the format of the backing
-data store, such as whether it is a traditional relational database, a
-key-value store (such as a simple memory model that associates names
-like $x, y, z\ldots$ with numerical values), or even a bespoke data
-model uniquely designed for the application. This poses a challenge
-when designing a general framework to measure divergence without
-making detailed assumptions about the nature of the data.
+The goal of the conit model is to provide a method of quantifying the
+inconsistency between $\Dobs$ and $\Dideal$. However, a complicating
+factor is that applications have unique data models. Note that we have
+not made any assumptions about the format of the backing data store,
+such as whether it is a traditional relational database, a key-value
+store (such as a simple memory model that associates names like
+$x, y, z\ldots$ with numerical values), a database optimized for use
+in Geographic Information Systems (GIS), or even a bespoke data model
+uniquely designed for the application. It is not clear a priori how to
+design a general framework to measure divergence without making
+detailed assumptions about the nature of the data.
 
 Indeed, it is not even clear what the fundamental \emph{unit} of
 consistency is---it may be the case that two replicas totally agree on
-some parts of the data, but disagree on other parts, and so it is
-desirable to consider a more granular model of consistency than one
-that measures the consistency at the level of the whole replica. The
-conit framework strikes a balance between being general enough to work
-in applications with different data models and practical enough to
-efficiently enforce consistency with simple protocols.
+some parts of the data, but disagree on other parts, leading one to
+consider a more granular model of consistency than one that measures
+divergence at the level of whole replicas. The conit framework strikes
+a balance between being general enough to work in applications with
+different data models and practical enough to efficiently enforce
+consistency with simple protocols.
 
 The solution to the challenge is to delegate the meaning of conits to
 the programmer. If the backing database is, say, a simple key-value
@@ -3640,14 +3750,7 @@ separate method, say $\mathsf{SetMaxNumericalError}(F, x)$ where $F$ is
 a conit and $x$ is the maximum numerical error currently tolerated
 by $P$ with respect to conit $F$.
 
-\begin{description}
-\item[Push based] $P$ requests the summary vector of $Q$ and uses
-  this information to decide which writes $P$ is aware of that $Q$
-  has not been informed about, pushing these updates to $Q$
-\item[Pull based] $P$ sends it summary vector to a remote replica
-  $Q$, which $Q$ uses to compute a set of writes to send to $P$
-\end{description}
-
+\subsection{Anti-Entropy Sessions}
 \begin{itemize}
 \item Numerical error is bounded by a push-based approach. To control
   the numerical error of conit $F$ at process $P$ requires the
@@ -3692,16 +3795,26 @@ We assume each conit $F$ is associated with a valuation function,
   \Val^F\colon \mathsf{Database\ Image} \to \mathbb{R}
 \]
 that maps a database state to some real number representing the value
-of that conit. Each write $w$ is associated with a value,
-$\NumWeight(w, F)$, for each conit $F$, codifying the effect of $F$ of
-applying $w$ to a database (we assume this value is independent of the
-current state $D$):
-\[ \NumWeight\left(w, F\right) \equiv \Val^F(D + w) - \Val^F(D). \] Yu
-and Vahdat actually \emph{define} a conit as what we have called a
+of that conit. For each conit $F$, each write $w$ is associated with a
+value, $\NumWeight(w, F)$ codifying the effect on $F$ of
+applying $w$ to the database:
+\begin{equation*}
+  \NumWeight\left(w, F\right) \equiv \Val^F(D + w) - \Val^F(D).
+\end{equation*}
+To make sense of this equation, we must assume the weight applied to
+each conit is independent of the current state $D$ of the
+database. Recall that we think of ``write'' accesses as containing
+logic to modify the database, such as incrementing or decrementing a
+value. This stands in contrast to thinking about writes that directly
+set the final value of each data item after the update is
+performed---the significance of such an update would depend on the
+current value of the data items.
+
+Yu and Vahdat actually \emph{define} a conit as what we have called a
 valuation function. We adopt a slightly more abstract terminology and
 say that a conit is just an identifier such that each write is
-associated with a well-defined weight for each conit. A weight of $0$
-indicates that a conit is not affected by $w$.
+associated with a well-defined numerical weight for each conit. A
+weight of $0$ indicates that a conit is not affected by $w$.
 
 Let $V^F_P$ denote the current value of $F$ at $P$'s replica $\Dstate{P}$. Let
 $\Videal{F}$ represents the value of $F$ at $\Dideal$.  Now $F$
@@ -4498,29 +4611,31 @@ environments, cannot necessarily meet the demands of such dynamic and
 critical scenarios.
 
 At a low level, the challenges of these environments can be addressed
-through innovations in hardware such as mesh radios, combined with
-low-level protocols designed for mobile ad-hoc and disruption-heavy
+through innovations in hardware such as mesh radios operating with
+protocols optimized for mobile ad-hoc and disruption-heavy
 networks. However, these non-traditional network architectures and
 extreme operational conditions raise higher-level questions about how
 to design distributed applications that communicate over these
 networks. We explored how applications that rely on strong memory
 consistency models, such as linearizability or sequential consistency,
-are not a good fit for this sort of environment. This implication
+are not a good fit for this sort of use case. This implication
 stems largely from the locality principle in Section
 \ref{ssec:communication-patterns}, which suggests that the quality of
 communication between distributed agents---whether measured by message
 latency, packet loss, or some other metric---is strongly influenced by
-the geographical distance between the agents. Strong consistency
-models are well-suited to scenarios where a centralized database can
-be accessed through a small number of dedicated servers, but locality
-suggests that agents at the tactical edge will face difficulty
-maintaining communication with central servers. Alternatively, for
-resilience and efficiency, multiple replicas of a shared database can
-be maintained and deployed at strategic locations in the
-network. However, the high coordination overhead required to keep
-these replicas consistent with respect to strong memory models is
-prohibitive for the networks under consideration. We concluded that
-weaker consistency models are called for in these settings.
+the geographical distance between them.
+
+Strong consistency models are well-suited to scenarios where a
+centralized database can be accessed through a small number of
+dedicated servers, but locality suggests that agents at the tactical
+edge will face difficulty maintaining communication with central
+servers. Alternatively, for resilience and efficiency, multiple
+replicas of a shared database can be maintained and deployed at
+strategic locations in the network. However, the high coordination
+overhead required to keep these replicas consistent with respect to
+strong memory models is prohibitive for the networks under
+consideration. We concluded that weaker consistency models are called
+for in these settings.
 
 Brewer's CAP theorem, a cornerstone result in distributed systems
 theory, seemingly poses a major challenge when strong consistency is
@@ -4532,7 +4647,7 @@ an uncomfortable dilemma, because the appreciable safety concerns in
 disaster response environments demand control over the consistency of
 shared information. This is because a common operating picture is a
 prerequisite to effective coordination between agents. The CAP theorem
-seems to suggest the application designer is left stuck between a rock
+seems to suggest that the application designer is stuck between a rock
 and a hard place.
 
 Fortunately, the CAP theorem is not as prohibitive as it may seem. The
@@ -4557,7 +4672,7 @@ In conclusion, we have given a broad overview of the key challenges in
 distributed systems in the context of natural disaster environments,
 with a particular focus on memory consistency in contexts where the
 network is unreliable and message-passing is subject to significant
-delays. This content provides a foundation building resilient,
+delays. This content provides a foundation for building resilient,
 high-performance systems tailored to the needs of disaster response in
 the $21^\textrm{st}$ century.
 
