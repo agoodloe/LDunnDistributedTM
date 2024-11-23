@@ -211,15 +211,12 @@ resilience of weak consistency, this model is suitable where the
 tradeoffs implied by the CAP theorem may need to be carefully
 calibrated to support both performance and safety.
 
-
-\begin{comment}
 We conclude in Section \ref{sec:conclusion} by recapping some of the
 main themes in this document and highlighting areas for further
 investigation. Ultimately, building distributed systems requires
-design decisions tailored to the environment and application. We
-expect that many of these decisions will involve a combination of
-simulation and real-world testing.
-\end{comment}
+design decisions tailored to the environment and application, which
+leaves many opportunities to specialize the concepts discussed here to
+the real-world needs of users.
 
 \section{Coordination Challenges in Disaster Response}
 \label{sec:disaster-response}
@@ -4612,6 +4609,7 @@ Yu and Vahdat discuss quality of service as one of the features that
 might itself use conits.
 
 \section{Conclusion}
+\label{sec:conclusion}
 The increasing severity of wildfires and other natural disasters has
 underscored the need for more advanced and reliable communication
 systems for first responders. Modern tools like the Team Awareness Kit
@@ -4635,7 +4633,7 @@ consistency models, such as linearizability or sequential consistency,
 are not a good fit for this sort of use case. This implication
 stems largely from the locality principle in Section
 \ref{ssec:communication-patterns}, which suggests that the quality of
-communication between distributed agents---whether measured by message
+communication between distributed agents---whether measured?? by message
 latency, packet loss, or some other metric---is strongly influenced by
 the geographical distance between them.
 
@@ -4689,56 +4687,6 @@ network is unreliable and message-passing is subject to significant
 delays. This content provides a foundation for building resilient,
 high-performance systems tailored to the needs of disaster response in
 the $21^\textrm{st}$ century.
-
-
-\begin{comment}
-have demonstrated the potential of tactical applications to
-enhance coordination in chaotic environments, offering capabilities
-like GPS-based firefighter tracking, resource deployment, and
-situational awareness. However, these tools operate in highly
-challenging conditions: networks are subject to disruptions from
-damaged infrastructure, rough terrain, and high demand during
-emergencies. Traditional communication models, designed for more
-stable environments, cannot meet the demands of such dynamic and
-critical scenarios. This memo explores the application of distributed
-systems theory to address these challenges, providing a foundation for
-building resilient, high-performance systems tailored to disaster
-response.
-
-
-explored the key challenges involved in building distributed systems
-that connect geographically dispersed components over unpredictable
-networks.  The variability in message delays, particularly in the
-context of broadcasts sent to multiple recipients, can result in
-messages that arrive in different orders. This situation can lead to
-chaos if a message-ordering discipline is not imposed.  To mitigate
-the effects described above, distributed systems must track the causal
-precedence relation between events. Because physical clocks are not
-generally reliable enough for this purpose, especially at fine time
-scales, logical clocks—scalar, vector, and matrix clocks—are typically
-used, each with a different tradeoff in terms of precision of the
-information tracked and the administrative and messaging overhead. If
-groups can change dynamically, as in our use cases, then additional
-group membership protocols are needed to ensure that all processes
-know which other processes are participating in the system at any
-moment.  Programmers may find it easier to frame distributed
-applications in terms of reading and writing from a shared pool of
-virtual memory, rather than sending messages, using distributed shared
-memory framework. The fact that processes can access the same virtual
-memory locations at the same time makes it challenging to maintain
-systemwide coherence. Strong consistency models like linearizability
-and sequential consistency provide the illusion of a single source of
-truth, but the CAP theorem makes it virtually impossible to guarantee
-these properties over connection- challenged networks. Weaker models
-like causal consistency are not subject to the same limitations, but
-they do not enforce limits bounding how far apart data replicas can
-diverge, rendering them potentially unsuitable for safety-related
-applications.
-\end{comment}
-
-
-%\section{Conclusion and Summary}
-%\label{sec:conclusion}
 
 \section*{Bibliography}\label{bibliography}
 \addcontentsline{toc}{section}{Bibliography}
