@@ -3260,14 +3260,6 @@ correctness (\ref{ssec:conit-correctness}) and possible extensions
 
 \subsection{System Model}
 \label{ssec:conit-system-model}
-
-
-
-% The model affords flexible methods for applications to tune their
-% consistency guarantees, allowing these decisions to be encoded into
-% the application logic on a per-process basis, perhaps based on
-% feedback and observations from the network.
-
 The system consists of processes in a group $\AllProc$ that replicate
 a shared database or, more generally, any kind of replicated state
 machine. We shall assume that every process maintains a full replica
@@ -3328,10 +3320,6 @@ are later found to violate the global total order. These modifications
 to the core protocol will be described in greater detail throughout
 this section.
 
-% The write propagation mechanism, described in detail in
-% \ref{sssec:conit-write-propagation}, provides essentially the same
-% progress guarantee as TSAE+TO:
-
 The pure version of TSAE+TO provides a progress guarantee: as long as
 anti-entropy sessions run periodically, assuming no permanent host or
 network failures, all processes will eventually apply each write to
@@ -3344,9 +3332,6 @@ place bounds on how far apart replicas might diverge in the
 meantime. Thus, the majority of this section is concerned with
 supplemental mechanisms used to limit the divergence between replicas
 at any moment.
-%Since it is based on TSAE+TO, the protocol we describe
-%inherents similar eventual consistency properties but additionally
-%enforces properties about the replicas at any moment.
 
 The mechanisms used to limit instantaneous divergence trigger
 one-sided compulsory anti-entropy sessions. As in ordinary TSAE, an
@@ -3362,10 +3347,6 @@ with respect to three consistency metrics presented in Sections
 \ref{ssec:conit-correctness} discusses some of the more subtle aspects
 of the correctness properties.
 
-% provides a progress guarantee: assuming no permanent host or network
-% failures, all updates will eventually be received, acknowledged,
-% delivered in the same total order, and purged from the write log of
-% all processes.
 Intuitively, the goal of the conit framework is to ensure users always
 observe data whose divergence from the correct or ``ideal'' value is
 limited by an upper bound. The ideal value of a replicated state
@@ -3823,38 +3804,6 @@ $\NE(P, F)$ to $0$, though they are enforced with different
 mechanisms. Note that the metric is another way of bounding unseen
 errors, measured by time elapsed rather than weight applied.
 
-\begin{comment}
-Each access has a dependency on a set of conits, $\Conits$. For each
-process, each conit is associated with a triple
-specifying $P$'s allowable numerical error, order error, and real-time
-staleness error on $F$.
-
-The order error and real-time staleness bounds of an access can be
-determined on a per-access basis. That is, the API for submitting an
-access to the middleware may include parameters for the maximum order
-error and real-time staleness bound of that particular
-access. However, the maximum numerical error requires cooperation from
-other processes, so it is unnatural to specify the allowable numerical
-error on a per-access basis. It is assumed that $P$ provides a
-separate method, say $\mathsf{SetMaxNumericalError}(F, x)$ where $F$ is
-a conit and $x$ is the maximum numerical error currently tolerated
-by $P$ with respect to conit $F$.
-
-
-Numerical error is bounded by a push-based approach. To control the
-numerical error of conit $F$ at process $P$ requires the proactive
-cooperation of every other process to push writes to $P$, when
-necessary. Order error and real-time staleness are bounded by a
-pull-based approach. To control either type of error for conit $F$ at
-$P$ requires $P$ to pull updates from remotes when $P$ handles an
-access that depends on $F$.
-
-Note that even though numerical error and real-time staleness both
-control sources of error caused by unseen messages, but the former is
-push-based and requires cooperation between processes while the latter
-is pull-based and enforced by each process locally.
-\end{comment}
-
 The three measures of consistency are enforced with different
 mechanisms. Both order error and real-time error are bounded purely
 locally---that is, $P$ can enforce these error bounds without
@@ -4181,22 +4130,6 @@ $P$'s replicated state machine may tread down an errant path of
 transitions, before winding back transitions and reapplying them in
 the correct order.
 
-\begin{comment}
-TSAE+TO guarantees that eventually writes will be committed, and the
-order of committed writes in the same everywhere. Until they are
-committed, the tentative writes might have been applied in the wrong
-order. Writes applied in the wrong order will have to be rolled
-back. The rolling back process may involve application-specified logic
-and be associated with a cost, so tentative writes represent a
-liability. The goal of ordered consistency to is to bound this
-liability.
-
-Messages are initially received and applied tentatively to
-$\Dstate{P}$ in an uncommitted state. Eventually they will become committed
-in a common global order, but the relative position of each tentative
-write in the final order is not fixed.
-\end{comment}
-
 \begin{example}
   \label{ex:conit-booking}
   Suppose $P$ and $Q$ are two web servers that allow clients to
@@ -4374,20 +4307,6 @@ the $P$ engages the write committment procedure assumed earlier to
 commit enough writes in its log to reduce the size of estimated order
 error.
 
-\begin{comment}
-et $\PHobs$ be the observed
-prefix history. Now $\PHobs \cap \PHideal$,
-the common prefix of the observed and ideal history, represents the
-longest part of $\PHobs$ that is correct (i.e. agrees with
-the ideal history). Therefore,
-$\PHobs \setminus \left(\PHobs \cap
-  \PHideal\right)$ represents all of the accesses that
-have been applied to $P$'s local replica that will have to be rolled
-back during the eventual write committment process.
-\end{comment}
-
-
-
 For the TSAE+TO implementation, committment is implemented with a
 \emph{pull-based} approach, where $P$ pulls enough messages from
 remotes to decide the final order of enough writes as to ensure the
@@ -4457,15 +4376,6 @@ updates even if $X$ does not have any new writes. However, an approach
 where $X$ pushes updates to $P$ cannot bound real-time staleness
 without an upper bound on the time it takes to push messages across
 the network to $P$.
-\begin{comment}
-Controlling real-time staleness by
-pulling updates may seem wasteful if there are in fact no updates at
-remotes that need to be pulled. It would seem better to bound $P$'s
-real time staleness by pushing messages to $P$ at periodic
-intervals. However, a pull approach is required because we do not
-assume there is an upper bound how it takes for a message sent to $P$
-to arrive.
-\end{comment}
 
 If clocks are not loosely synchronized, an alternative implementation
 strategy is for $P$ to maintain a vector $\vtphys{P}{}$ where
