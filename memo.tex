@@ -3256,8 +3256,6 @@ We describe the framework now in terms of its system model
 correctness (\ref{ssec:conit-correctness}) and possible extensions
 (\ref{ssec:conit-extensions}).
 
-
-
 \subsection{System Model}
 \label{ssec:conit-system-model}
 The system consists of processes in a group $\AllProc$ that replicate
@@ -3628,7 +3626,7 @@ define the metrics used to quantify divergence. Section
 \ref{ssec:conit-correctness} will explore some of the finer issues of
 interpreting the statement of correctness.
 
-\subsubsection{Measuring Divergence}
+\subsection{Measuring Divergence}
 \label{sssec:conit-divergence}
 For now we assume some global history $\Hglobal$ has been given. This
 is needed to define the metrics used to measure a replica's divergence
@@ -3772,7 +3770,7 @@ write is originated and when some other process is notified of
 it. Because it is measured in terms of physical time, the programmer
 cannot specify the ``real time weight'' of a write on a conit.
 
-\subsubsection{Bounding Divergence}
+\subsubsection{Dimensions of Consistency}
 \label{ssec:conit-bounding-divergence}
 
 Each process $P$ specifies its consistency requirements for conit $F$
@@ -3804,6 +3802,8 @@ $\NE(P, F)$ to $0$, though they are enforced with different
 mechanisms. Note that the metric is another way of bounding unseen
 errors, measured by time elapsed rather than weight applied.
 
+\subsubsection{Enforcing Bounds on Divergence}
+\label{sssec:conit-tuning-bounds}
 The three measures of consistency are enforced with different
 mechanisms. Both order error and real-time error are bounded purely
 locally---that is, $P$ can enforce these error bounds without
@@ -3833,6 +3833,9 @@ $P$ executes the following steps:
 The next three sections will describe in greater detail how the three
 consistency metrics are defined, and how their divergence is bounded
 by the protocol.
+
+\subsubsection{Tuning Bounds on Divergence}
+\label{sssec:conit-tuning-bounds}
 
 \subsection{Numerical Consistency}
 \label{ssec:conit-numerical-consistency}
