@@ -3205,30 +3205,50 @@ systems where $n$ is on the order of 1,000 or greater.
 
 \section{Continuous Consistency}
 \label{sec:continuous-consistency}
-This section outlines the idea of \emph{continuous} consistency, with
-a particular focus on the conit (short for ``consistency unit'') model
-proposed by Yu and Vahdat
+We now turn our attention back to the topic of distributed memory
+consistency, first introduced in Section \ref{ssec:shared-memory}. We
+will unite the main themes in this document by explaining the ideas
+behind \emph{continuous} consistency. We particularly focus on the
+conit (short for ``consistency unit'') model proposed by Yu and Vahdat
+in a series of papers
 \cite{2000tact,2000tactalgorithms,10.5555/1251229.1251250,DBLP:conf/icdcs/YuV01,2002tact}.
-This work has been motivated by the observation that real-world
-applications can generally tolerate a certain amount of divergence
-among replicas in exchange for greater performance. However, if the
-divergence exceeds a certain threshold, the data becomes too
-unreliable for its intended use. For such applications, rather than
-viewing consistency as an all-or-nothing proposition, it is desirable
-to work with a model that formally quantifies levels of inconsistency
-and provides controls to ``tune'' the application by tightening or
-relaxing the allowed amount of divergence between replicas.
+Accompanying their work is a prototype implementation called TACT
+(Tunable Availability and Consistency Toolkit), a Java-powered
+middleware that used a form of timestamped anti-entropy to maintain
+consistency between replicas of a shared database.\footnote{The source
+  code to the TACT prototype, built in the early 2000's, was evidently
+  not made publicly available.}
 
-The conit framework makes the consistency/availability tradeoff into a
-first class concept, allowing applications to choose where they fall
-along the conceptual spectrum between total consistency
+The conit approach to consistency is motivated by the observation that
+many real-world applications can tolerate a certain amount of
+divergence among replicas in exchange for greater application
+performance. However, they cannot tolerate too much inconsistency: if
+the divergence exceeds a certain threshold, the data becomes too
+unreliable for its intended use. For these kinds of applications,
+rather than viewing consistency as an yes-or-no condition, as with
+linearizability and sequential consistency, it is desirable to have a
+consistency model that numerically quantifies levels of inconsistency
+and provides controls to ``tune'' the application by tightening or
+relaxing the allowed amount of divergence between replicas. This makes
+the consistency/availability tradeoff into not merely an abstract
+concept but a tangible one, allowing applications to choose where they
+are located on a spectrum between total consistency
 (i.e. linearizability) and total availability (i.e. never blocking to
-enforce consistency requirements). Mechanisms to exchange either
-consistency or availability for more of the other, perhaps in response
-to factors like application workload and network capacity, provide
-advantages for distributed shared memory frameworks deployed across a
-disruption-prone network, where a level of global inconsistency is
-inevitable but also desirable to bound.
+enforce consistency requirements).
+
+Mechanisms to exchange either consistency or availability for more of
+the other, perhaps in response to factors like application workload
+and network capacity, provide advantages for distributed shared memory
+frameworks deployed across a disruption-prone network. In these
+contexts, message-passing latencies virtually guarantee that some
+amount of global inconsistency is inevitable. However, the
+safety-related nature of the applications makes this inconsistency
+important to measure quantitatively, and then to bound. In the limit,
+imposing tighter bounds on inconsistency eventually comes at the cost
+of system performance. The advantage of the conit model is that the
+precise tradeoff can be determined by policies determined at runtime
+by the application and by users of the system, rather than hard-coded
+into the consistency model itself.
 
 We describe the framework now in terms of its system model
 (\ref{ssec:conit-system-model}), its three dimensions of consistency
