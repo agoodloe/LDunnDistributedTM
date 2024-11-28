@@ -3236,19 +3236,22 @@ are located on a spectrum between total consistency
 (i.e. linearizability) and total availability (i.e. never blocking to
 enforce consistency requirements).
 
-Mechanisms to exchange either consistency or availability for more of
-the other, perhaps in response to factors like application workload
-and network capacity, provide advantages for distributed shared memory
-frameworks deployed across a disruption-prone network. In these
-contexts, message-passing latencies virtually guarantee that some
-amount of global inconsistency is inevitable. However, the
-safety-related nature of the applications makes this inconsistency
-important to measure quantitatively, and then to bound. In the limit,
-imposing tighter bounds on inconsistency eventually comes at the cost
-of system performance. The advantage of the conit model is that the
-precise tradeoff can be determined by policies determined at runtime
-by the application and by users of the system, rather than hard-coded
-into the consistency model itself.
+Mechanisms to exchange consistency for availability, or vice versa,
+provide advantages for distributed shared memory frameworks deployed
+across a disruption-prone network. In these contexts, message-passing
+latencies virtually guarantee that some amount of global inconsistency
+is inevitable. However, the safety-related nature of the applications
+we have in mind makes this inconsistency important to measure
+quantitatively, and then to bound. In the limit, imposing tighter
+bounds on inconsistency eventually comes at the cost of system
+performance. The advantage of the conit model is that the precise
+tradeoff can configured according to policies set by the application,
+rather than being determined directly by the consistency
+model. Indeed, it is possible to adjust these policies at runtime,
+perhaps in response to factors like application workload and network
+capacity, which might provide the precise sort of behavioral
+continuity foreshadowed in Section
+\ref{ssec:communication-and-safety}.
 
 We describe the framework now in terms of its system model
 (\ref{ssec:conit-system-model}), its three dimensions of consistency
@@ -3260,10 +3263,224 @@ correctness (\ref{ssec:conit-correctness}) and possible extensions
 \label{ssec:conit-system-model}
 The system consists of processes in a group $\AllProc$ that replicate
 a shared database or, more generally, any kind of replicated state
-machine. We shall assume that every process maintains a full replica
-of the database, though the replicas are usually not perfectly
-synchronized. The initial database state at each replica is
-$\Dinit$. We imagine these processes communicate over a
+machine. We shall assume that every process maintains a complete
+replica of the database. For simplicity we assume that the set
+$\AllProc$ of participating processes is fixed and known to each
+member, though one can imagine extending the framework to support
+dynamic group membership following Golding
+\cite{1992:golding-thesis}.
+
+
+Each process begins with their replica in the same initial starting
+state, denoted $\Dinit$. For each participating process
+$P \in \AllProc$, we denote the current state of $P$'s replica with
+$D_P$. $D_P$ changes as $P$ learns about updates to the data, which
+can come from two sources: a request submitted to $P$ by a client of
+the application, or a notification about a request submitted to some
+other process by one of its clients. For a request submitted to $P$
+directly by a client, $P$ is said to be the \emph{originating
+  replica}. For all other requests, $P$ is said to be a \emph{remote
+  replica}.
+
+As in Section \ref{ssec:shared-memory}, we imagine requests divided
+into two types: read requests and write requests. We call either type
+of request a data \emph{access}. Unlike in Section
+\ref{ssec:shared-memory}, we allow for write accesses that are more
+complex than simple instructions to update the value of a logical
+memory location. Instead, here we are viewing a write as more like an
+entire \emph{database transaction}---a potentially complex set of
+steps that can modify several data items and might also return a value
+to the user. In fact, read accesses should be thought of as merely
+special cases of write accesses that do not modify any data. Using
+terminology we will introduce later, a read access is effectively one
+that applies zero numerical and order error to every conit, so it does
+not need to be entered into $\WL{P}$ or participate in write
+propagation.
+
+It is important to note that a write access can encode
+application-level logic. For example, it may read a value in the
+database and make a business decision whether to increment it. The
+resulting state after applying write action $w$ to a database in state
+$D$ is denoted $D + w$. Because reads are just accesses that happen
+not to modify the underlying database, we have the equation
+$D + r = D$ if $r$ is a read. In many real-world applications, writes
+accesses are not commutative, meaning in general we have the following
+inequality:
+\[
+D + w + w' \neq D + w' + w
+\]
+For such applications, consistency requires writes to be applied in
+the same order everywhere. Therefore the conit framework ensures that
+processes can enforce a global total order among writes. We shall
+explain later how it also provides a mechanism for individual replicas
+to optimistically deviate from the total order within some
+controllable bounds, which can improve application performance.
+
+Recall that a \emph{history} is an ordered sequence of read and write
+accesses. The \emph{local history} of a process $P$, denoted
+$\localhistory{P}$, is the sequence of accesses $P$ has applied to the
+initial state $\Dinit$ since the start of the application. Let $D + H$
+denote the result of applying each of the accesses in $H$ to $D$ in
+history order. Thus, the database state at process $P$ at any moment,
+written $\Dstate{P}$, is governed by the equation
+\begin{equation}
+  \Dstate{P} = \Dinit + \localhistory{P}. \label{eq:conit-D-obs}
+\end{equation}
+
+If $H$ is any history, for each access $a \in H$ in the history, the
+\emph{prefix} history of $a$, written $\PH{\left(a\right)}$, is the
+set of accesses in $H$ that precede $a$. The prefix history determines
+the value of $D_P$ ``seen'' by $a$. Note that if $a$ is a write
+access, which can contain business logic, the observed state of $D_P$
+can strongly influence how $a$ is executed and what value it returns
+to the user.
+
+\begin{definition}
+  The \emph{observed prefix history} $\PHobs{\left(a\right)}$ of an
+  access $a$ originating at $P$ is the prefix of the local history
+  $\localhistory{P}$ at the time $a$ is applied. The \emph{observed
+    state} of an access $a$ is the state of $\Dstate{P}$ at the time
+  $a$ is applied.
+  \begin{gather}
+    \Dobs\left(a\right) = \Dinit + \PHobs{\left(a\right)} \label{eq:conit-D-obs-at}
+  \end{gather}
+\end{definition}
+
+
+Intuitively, the goal of the conit framework is ensure that each
+access a value of $D_P$ whose divergence from its correct or ``ideal''
+value is limited by an upper bound. The ideal value of $D_P$ is the
+state it would be in if it has received all updates and applied them
+locally in the correct order. In the conit framework, there are two
+sources of error that can cause a replica to diverge from its ideal
+value:
+\begin{itemize}
+\item \textbf{Unseen updates}: The error attributable to state
+  transitions originating at other processes that have not been
+  applied to the local replica because the host process has not been
+  notified of them yet
+\item \textbf{Out of order updates}: The error attributable to
+  transitions the machine has applied locally in the wrong order,
+  leading it down an ``errant path'' beginning at the time of the
+  first update applied in an order different than the final order
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Unseen updates occur when a write access is submitted by a client at
+an originating process $P$, but a remote process $Q$ is not notified
+right away, making $Q$'s replica stale. The conit framework presents
+two metrics with respect to which we can limit unseen updates. The
+first, numerical error, limits the total ``weight'' of unseen updates,
+where weight is a conceptual measure of how significant an update is
+with respect to the data model. Numerical error is the subject of
+Section \ref{ssec:conit-numerical-consistency}. The second, real-time
+staleness, limits the maximum amount of time that may pass before a
+process is made aware of a new update. Real-time staleness is the
+subject of Section \ref{ssec:conit-real-time-consistency}.
+
+Out of order updates can occur because when $P$ receives an update (or
+a batch of updates), whether submitted by a client locally or
+forwarded to $P$ by another process, $P$ generally applies the update
+to its own replica immediately, \emph{bypassing} the total-order
+delivery mechanism. This may improve performance because the
+application might otherwise have to block while the ordering mechanism
+determines their total order. This is an I/O-bound operation,
+described in Section \ref{ssec:conit-order-consistency}, since it
+generally requires pulling updates from other processes over the
+network.
+
+Recent updates that have been applied without running the total-order
+delivery mechanism are said to be \emph{tentative}, while the set of
+updates known to have been applied in the correct order (always a
+prefix of $\localhistory{P}$) are \emph{committed}. Some time later,
+the total-order delivery mechanism may determine that a subset (always
+a suffix) of the tentative updates were applied in the wrong
+order. The framework provides a mechanism to rollback these incorrect
+updates and reapply them in the correct order. ``Out-of-order'' error
+sets a limit on the weight of tentative updates before the total-order
+mechanism must be invoked. The ``order weight'' of an update is
+separate from the numerical weight, and may be thought of as a cost
+associated rolling back an update if it is later found to have been
+applied in the wrong order. Out-of-order error and the commitment
+process are the subject of Section \ref{ssec:conit-order-consistency}.
+
+Consistency is measured at the granularity of conits, or consistency
+units, which are defined by the programmer. They are implemented
+simply by specifying the numerical and order weight of each update on
+a per-conit basis. A particular update may be deemed to change one
+conit significantly and another only slightly but not affect a third
+conit at all. Likewise, each process specifies its tolerable
+error---broken down by numerical error, order error, and real-time
+staleness---for each conit. The middleware is responsible for ensuring
+that each process' error bounds are enforced for each conit for each
+metric. If the error bounds are very tight, the system will spend more
+time blocking and less time responding to users. If the error bounds
+are very loose, users will observe a more responsive system, with
+relatively less assurance of the consistency of what they observe.
+
+\subsection{Write propagation}
+\newpage
+
+
+By unit of consistency, we
+mean the divergence between two replicas is measured with respect to
+each of the metrics for each conit. For example, an update is defined
+with a separate numerical weight for each conit: Likewise, the real-time staleness and out-of-order
+error are also measured at the level of individual conits. Using the
+conit framework, any access that needs to read values from the
+database may specify a maximum error for each of the metrics for each
+conit, and the framework will ensure these bounds are enforced before
+the access executes. We define conits more precisely in
+\ref{sssec:conit-divergence}.
+
+
+
+
+% A process that enforces zero order weight will never bypass the total order mechanism.)
+
+since they are subject to being rolled back and applied in a different
+order. At some point, tentative updates become \emph{committed},
+possibly after performing a rollback-and-reapply process to correct
+the state of the underlying state machine. Committed updates are never
+rolled back.
+
+
+This generally increases performance because processes do not have to
+wait for the TO component of TSAE+TO to determine the final order of
+writes. The possibility of incorrectly ordered updates necessitates a
+mechanism to ``roll back'' these updates so they can be reapplied in
+the correct order, possibly leading to different results. A rollback
+happens if the TO mechanism, after deciding the final, globally
+consistent order of updates seen so far by $P$, determines that some
+of them have been applied locally in the wrong order.
+
+
+
+
+Note that $\localhistory{P}$ may later be rewritten by the write
+commitment component of the protocol, but the observed prefix history
+is fixed forever and reflects the state of $\Dstate{P}$ when $a$ was
+originally applied at $P$, possibly returning a value to the user.
+
+
+
+We imagine these processes communicate over a
 disruption-prone network, perhaps a mesh network like that shown in
 Figure \ref{}. The details of this network are not salient to the
 discussion, except to emphasize that such a scenario does not lend
