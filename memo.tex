@@ -206,7 +206,7 @@ bound. Using the conit framework allows applications to define units
 of replicated state of interest, enforce policies limiting
 inconsistency between their replicas, and adapt these policies
 dynamically in response to the environment. By combining the enforced
-guarantees of strong consistency models with the flexbility and
+guarantees of strong consistency models with the flexibility and
 resilience of weak consistency, this model is suitable where the
 tradeoffs implied by the CAP theorem may need to be carefully
 calibrated to support both performance and safety.
@@ -383,7 +383,7 @@ with respect to the broader goal of system-wide safety.
 Besides the safety/liveness tradeoff, the previous example exhibits
 two other themes important in distributed systems, both of which will
 be explored further in this document. The first is the
-\emph{epistomological} nature---concerned with what information is
+\emph{epistemological} nature---concerned with what information is
 \emph{known} by \emph{whom}---of reasoning about distributed
 systems. This aspect is reflected in wording of $\Psafe$ in VLAT
 example: Ground agents are known (by the VLAT's computers) to be
@@ -408,7 +408,7 @@ $\Psafe$ and $\Plive$ exhibit a stark lack of continuity because they
 are inflexible, all-or-nothing propositions. Suppose that agents are
 known to be $500$ feet outside the drop zone, but the information is
 only current to within 31 seconds---this extra second technically
-violates $\Psafe$, though it should be inferrable that the ground
+violates $\Psafe$, though it should be inferable that the ground
 agents are well away from danger. In particular, this example
 highlights that system-wide safety is more of a quantitative concept
 than a Boolean (true-or-false) one. A distributed system in a
@@ -646,7 +646,7 @@ presented will be \emph{overcomplete}, filled with petty details that
 distract agents from their important tasks.
 
 In some ways, future systems for disaster response will bear
-resemblence to future systems for warfighting, such as the conceptual
+resemblance to future systems for war fighting, such as the conceptual
 \emph{Internet of Battle Things} (IoBT) \cite{2016:iobt}. To quote
 from that paper, agents ``under extreme cognitive and physical
 stress'' will be subject to a highly dynamic and dangerous
@@ -845,13 +845,13 @@ in a shared ``middleware'' layer to coordinate the moving parts,
 ensuring they function as a unified system.
 
 The fragmented flow of information presents several challenges for
-system designers. Foundationally, one of the primary computer science
-problems is that unpredictable latencies make it difficult for
-components to maintain a common understanding about the global
-sequence of events. For similar reasons, it becomes challenging for
-processes to synchronize and agree on shared values, such as the
-current number of firetrucks available for dispatch. The remainder of
-this section will delve into these issues with more technical depth.
+system designers. One of the foundational difficulties is that
+unpredictable latencies make it difficult for components to maintain a
+common understanding about the global sequence of events. For similar
+reasons, it becomes challenging for processes to synchronize and agree
+on shared values, such as the current number of firetrucks available
+for dispatch. The remainder of this section will delve into these
+issues with more technical depth.
 
 \subsection{Physical Synchronization}
 \label{ssec:physical-synchronization}
@@ -1128,13 +1128,13 @@ clocks satisfy \eqref{eq:sc}.
 
   \begin{subfigure}{1\textwidth}
     \centering \input{images/pgf/mpEx1Sc.pgf}
-    \caption{Figure~\ref{fig:message-latencies-a} redepicted with scalar clocks}
+    \caption{Figure~\ref{fig:message-latencies-a} re-depicted with scalar clocks}
     \label{fig:message-latencies-scalar-a}
   \end{subfigure}
 
   \begin{subfigure}{1\textwidth}
     \centering \input{images/pgf/mpEx2Sc.pgf}
-    \caption{Figure~\ref{fig:message-latencies-b} redepicted with scalar clocks}
+    \caption{Figure~\ref{fig:message-latencies-b} re-depicted with scalar clocks}
     \label{fig:message-latencies-scalar-b}
   \end{subfigure}
 
@@ -1197,7 +1197,7 @@ comparable.
   \begin{subfigure}{1\textwidth}
     \centering
     \input{images/pgf/mpEx1Vec.pgf}
-    \caption{Figure~\ref{fig:message-latencies-a} redepicted with vector clocks}
+    \caption{Figure~\ref{fig:message-latencies-a} re-depicted with vector clocks}
     \label{fig:message-latencies-vector-a}
   \end{subfigure}
 
@@ -1205,7 +1205,7 @@ comparable.
 
   \begin{subfigure}{1\textwidth}
     \centering \input{images/pgf/mpEx2Vec.pgf}
-    \caption{Figure~\ref{fig:message-latencies-b} redepicted with vector clocks}
+    \caption{Figure~\ref{fig:message-latencies-b} re-depicted with vector clocks}
     \label{fig:message-latencies-vector-b}
   \end{subfigure}
 
@@ -1281,7 +1281,7 @@ components but less than it in others.
 \end{lemma}
 
 For reasons of space we omit a proof of the preceding lemma, though
-the reader may find it enlighting to formalize the details.
+the reader may find it enlightening to formalize the details.
 
 Note that vector clocks and matrix clocks both require the processes
 to agree on the set of members in the group. If groups can change,
@@ -1498,8 +1498,9 @@ among messages with (in general) different senders.
 
   \begin{itemize}
     \tightlist
-  \item Figure~\ref{fig:ordex-non-fifo} violates FIFO because messages $m_1$
-    and $m_2$ are both sent from $P_1$ to $P_2$, but the arrive in the wrong order.
+  \item Figure~\ref{fig:ordex-non-fifo} violates FIFO because messages
+    $m_1$ and $m_2$ are both sent from $P_1$ to $P_2$, but the arrive
+    in the wrong order.
   \item Figure~\ref{fig:ordex-co-1} satisfies CO and therefore FIFO. Messages
     $m_1$ and $m_2$ arrive in the opposite order but they are sent to
     different destinations.
@@ -1572,7 +1573,7 @@ causality along worldlines and message arrows.
   that are no longer available. The sort of conflict can lead to
   confusion, with requests being duplicated or going
   unanswered. Tracking causal order is crucial to avoid such resource
-  misallocations.
+  misallocation.
 \end{example}
 
 A total order broadcast ensures that all recipients receive the
@@ -1653,7 +1654,7 @@ replicating shared state over a disruption-heavy network.
 
 \subsection{Shared Memory}
 \label{ssec:shared-memory}
-Desiging a distributed application using direct message passing can be
+Designing a distributed application using direct message passing can be
 challenging due to the complexity of managing the low-level details
 surrounding message ordering and reliability. A more abstract
 approach, the \emph{distributed shared memory} (DSM) framework,
@@ -1946,9 +1947,8 @@ consistent with a choice of linearization point for each operation.
 A history is linearizable if there is some choice of linearization
 point for each operation, and returned values are consistent with
 operations taking effect in whole and instantaneously at their
-linearization points. The subfigures in
-\ref{fig:dsm-example-2-linearizations} depict possible choices of
-linearization points in yellow.
+linearization points. Figure \ref{fig:dsm-example-2-linearizations}
+depicts possible choices of linearization points in yellow.
 
 \begin{figure}
   \begin{subfigure}{1\textwidth}
@@ -2214,7 +2214,7 @@ we term this property \emph{behavioral invariance}.
 The proof above raises the question of whether the weaker notion of
 sequential consistency can be used to avoid being subject to the CAP
 theorem. The answer is negative: sequential consistency is also
-CAP-unavailabile.
+CAP-unavailable.
 
 \begin{figure}[p]
   \setlength\belowcaptionskip{5ex}
@@ -2249,7 +2249,7 @@ CAP-unavailabile.
 \begin{lemma}[CAP for sequential consistency]
   \label{thm:cap-sequential}
   An eventually-available system cannot provide sequential consistency
-  in the presense of network partitions.
+  in the presence of network partitions.
 \end{lemma}
 \begin{proof}
   Consider the history in Figure~\ref{fig:dsm-cap-example-2} and
@@ -2331,7 +2331,7 @@ operation that reads this value, it is not clear which write
     distinct.} A ``writes into'' order $\writesinto$ is a binary
   relation where each read $\memreadVal{x}{v}$ is paired with the
   write operation that determined the value that operation read. That
-  is, all relatedl pairs are of the form
+  is, all related pairs are of the form
   $\memwrite{x}{v} \writesinto \memreadVal{x}{v}$ and every read is
   paired with some write.
 \end{definition}
@@ -2484,13 +2484,6 @@ they do not enforce limits bounding how far apart data replicas can
 diverge, rendering them potentially unsuitable for safety-related
 applications.
 
-% In summary, there is no free lunch in distributed systems. Designing
-% resilient distributed systems for emergency response scenarios
-% requires a careful balancing act between competing properties that
-% is carefully calibrated to the use case and the operational
-% environment.
-
-
 \section{Timestamped Anti-Entropy}
 \label{sec:tsae}
 This section presents Golding's Timestamped Anti-Entropy (TSAE)
@@ -2541,11 +2534,13 @@ data by broadcasting update messages using TSAE. Updates are
 eventually delivered to every process, at which point recipients apply
 it their own replica. Of course, the semantics of updates are decided
 by the application. If the underlying data model requires updates to
-be applied in the same order across replicas to maintain consistency,
-TSAE can be paired with a totally ordered delivery mechanism, which is
-described in Section
-\ref{ssec:tsae-message-ordering}. %and forms the basis of
-                                  %Section\ref{sec:continuous-consistency}.
+be applied in the same order at all replicas, TSAE can be paired with
+a totally ordered delivery component; this provides a general
+mechanism for replicating a state machine. Timestamped anti-entropy
+with totally ordered delivery is described in Section
+\ref{ssec:tsae-message-ordering} and forms the basis of the
+distributed memory consistency protocol in
+Section\ref{sec:continuous-consistency}.
 
 % The resulting system provides eventual, totally-ordered delivery,
 % which offers a general mechanism for implementing replicated state
@@ -2554,7 +2549,7 @@ described in Section
 Replication is an alternative to managing state in a central location,
 such as a datacenter. This provides resiliency by removing single
 points of failure. It supports scalability by allowing any process
-with a replia to deliver services to clients, distributing the
+with a replica to deliver services to clients, distributing the
 load. Finally, replication exploits locality (introduced in Section
 \ref{ssec:communication-patterns}) because by servicing user requests
 at the nearest replica, we can rely on communications links that are
@@ -2572,7 +2567,7 @@ to quantify divergence, and how far apart is ``too'' divergent are
 determined by user intent, usage patterns, and operational
 environment, among other things. Because updates are merely delivered
 \emph{eventually}, TSAE does not bound the divergence of each replica
-from the ``ideal'' value of the shared state at any moment. Folling Yu
+from the ``ideal'' value of the shared state at any moment. Following Yu
 and Vahdat \cite{2002tact}, we show in Section
 \ref{sec:continuous-consistency} how an implementation of the conit
 (consistency unit) model on top of TSAE can be used to enforce,
@@ -2581,7 +2576,7 @@ consistency requirements separately for each replica.
 
 We now present TSAE in terms of its assumptions
 (\ref{ssec:tsae-assumptions}), data structures and invariants
-(\ref{ssec:tsae-message-log}--\ref{ssec:tsae-acknowledgement}),
+(\ref{ssec:tsae-message-log}--\ref{ssec:tsae-acknowledgment}),
 ordering component (\ref{ssec:tsae-message-ordering}), and storage
 recycling procedure (\ref{ssec:tsae-message-purging}). Finally, we
 discuss how version matrices can be used instead of the loosely
@@ -2606,10 +2601,10 @@ membership management component, but we do not describe it here for
 simplicity.
 
 The second assumption we make is that processes have nearly
-sychronized clocks. We write $\clock{P, t}$ for the clock value at $P$
+synchronized clocks. We write $\clock{P, t}$ for the clock value at $P$
 at real time $t$.
 \begin{quote}
-  \textbf{Loose clock sychronization}: Processes' physical clocks are approximately
+  \textbf{Loose clock synchronization}: Processes' physical clocks are approximately
   synchronized, meaning the clocks of any two processes differ by at
   most some small constant $\delta$:
   \[ \forall t,\, \forall P, Q \in \AllProc, |\clock{P, t} - \clock{Q, t}| < \delta
@@ -2755,7 +2750,7 @@ $Q$ to initiate an anti-entropy session. We conceptualize this process
 as happening in three phases (setup, message exchange, and conclusion):
 \begin{enumerate}
 \item $\summary{P}{P}$ is advanced to $\clock{P, t}$. Symmetrically,
-  $\summary{Q}{Q}$ is advanced to $\clock{Q, t}$. The parters exchange summary vectors.
+  $\summary{Q}{Q}$ is advanced to $\clock{Q, t}$. The partners exchange summary vectors.
 \item For each process $X \in \AllProc$, $P$ sends to $Q$ the set of
   messages in $\WLat{P}{X}$ with timestamps greater than
   $\summary{Q}{X}$, if any. Likewise for each $X$ it receives all messages
@@ -2865,7 +2860,7 @@ hold at all times for all $P$ and $Q$ (including when $P = Q$):
     \centering
     \includegraphics[width=1.4\textwidth]{images/tsaenew/TSAE9.png}
     \caption{TSAE at time $t=9$. $A$ and $B$ finish their anti-entropy
-      session and have both seen all messages with timestampsless than
+      session and have both seen all messages with timestamps less than
       or equal to $t = 7$. $B$ and $C$ can remove all messages with
       timestamps less than or equal to $4$ from their logs, since they
       both have minimum entries $\ack{}{C} = 4$. $C$ has received the
@@ -2875,8 +2870,8 @@ hold at all times for all $P$ and $Q$ (including when $P = Q$):
   \end{figure}
 \end{landscape}
 
-\subsection{Acknowledgement Vector}
-\label{ssec:tsae-acknowledgement}
+\subsection{Acknowledgment Vector}
+\label{ssec:tsae-acknowledgment}
 $P$'s summary vector enables another process to quickly learn which
 messages $P$ has seen. Additionally, $P$ must keep tabs on which
 messages \emph{other} processes have seen. This information is
@@ -2894,7 +2889,7 @@ quadratic in the size of the process group. This approach is
 considered further in~\ref{ssec:tsae-unsynchronized}.
 
 The other mechanism presented by Golding requires each process $P$
-to maintain an \emph{acknowledgement vector} $\ackVec{P}$. The basic idea
+to maintain an \emph{acknowledgment vector} $\ackVec{P}$. The basic idea
 is to coarsely summarize $P$'s knowledge of other processes not with
 its summary vector, but the minimal element in this vector, a scalar,
 which is stored in $\ack{P}{P}$. For reasons explained in
@@ -2905,7 +2900,7 @@ $\min_{X \in \AllProc} \left(\summary{P}{X}\right)$.  For correctness,
 the invariant required of $\ack{P}{P}$ is that it is always a lower
 bound of this minimum.
 \begin{quote}
-  \textbf{Acknowledgement Property}: $P$'s commit line is less than or
+  \textbf{Acknowledgment Property}: $P$'s commit line is less than or
   equal to the minimum value in $P$'s summary vector.\footnote{The
     inequality here can be thought of as morally an equality. It may
     be a strict inequality while $P$ is updating $\summaryVec{P}$
@@ -2922,7 +2917,7 @@ like vector clocks and version vectors.
 \begin{enumerate}
 \item At the beginning of the session, $\ack{P}{P}$ is updated to
   $\min_{X \in \AllProc} \left(\summary{P}{X}\right)$. Symmetrically
-  for $Q$. $P$ and $Q$ exchange acknowledgement vectors alongside
+  for $Q$. $P$ and $Q$ exchange acknowledgment vectors alongside
   their summary vectors.
 \item At the end of the session, $P$ sets $\ackVec{P}$ and to the
   pointwise maximum of its current value and the value of $\ackVec{Q}$
@@ -2988,7 +2983,7 @@ since a received message will not be acknowledged until each entry in
 $\summaryVec{P}$, not just the entry of its sender, is greater than
 $\timestamp{m}$. We now explain how acknowledged messages can be
 delivered to the application and ultimately purged from $\WL{P}$,
-before considering the matrix-based alternative to acknowledgement
+before considering the matrix-based alternative to acknowledgment
 vectors.
 
 \subsection{Message Ordering}
@@ -3003,7 +2998,7 @@ delivery. A message ordering layer buffers incoming messages upon
 receipt, giving time for slower messages to catch up to faster ones,
 before delivering them to the application in a predictable
 order. Below, we describe a simple implementation of totally ordered
-delivery for TSAE. Golding also describes straightfoward mechanisms to
+delivery for TSAE. Golding also describes straightforward mechanisms to
 enforce causal and total-causal order in Section 5.5 in his
 dissertation.
 
@@ -3435,8 +3430,8 @@ timestamped anti-entropy with a totally ordered delivery component,
 defined in Section~\ref{ssec:tsae-message-ordering}. Each process $P$
 maintains a write log $\WL{P}$, which is used as the message log of
 TSAE. $P$ also maintains the other data structures required by TSAE,
-whether in the form of summary and acknowledgement vectors (Sections
-\ref{ssec:tsae-summary-vectors} and~\ref{ssec:tsae-acknowledgement})
+whether in the form of summary and acknowledgment vectors (Sections
+\ref{ssec:tsae-summary-vectors} and~\ref{ssec:tsae-acknowledgment})
 or summary matrices (Section~\ref{ssec:tsae-unsynchronized}).
 
 Writes originating at $P$ are tagged with $P$'s identifier and clock
@@ -3605,9 +3600,9 @@ that measures divergence at the level of whole replicas.
 The conit framework strikes a balance between being general enough to
 work in applications with different data models and practical enough
 to efficiently enforce consistency with simple protocols. The question
-of what consitutes a unit of enforceable consistency is handled
+of what constitutes a unit of enforceable consistency is handled
 simply: the decision is entirely delegated to the programmer. In terms
-of how they are implementated, a ``conit'' is nothing but an
+of how they are implemented, a ``conit'' is nothing but an
 identifier invented by the programmer. Somewhat arbitrarily, we refer
 to conits with names like $F$, $F_1$, $F_2$, and so on.
 
@@ -3631,8 +3626,8 @@ with a tuple of three values:
 These stand for Numerical Error, Order Error, and Real Time Error,
 respectively. Recall that the disagreement between $\Dstate{P}$ and
 its ideal value comes from two sources: messages that have not been
-seen, and tenative writes applied in an order differing from the final
-global order. Numerical error and real-time error (used interchangably
+seen, and tentative writes applied in an order differing from the final
+global order. Numerical error and real-time error (used interchangeably
 with staleness) are both forms of unseen error, and out of order
 error, naturally, bounds the number of messages applied out of
 order. We describe each error metric below, starting with numerical error.
@@ -3931,7 +3926,7 @@ is under consideration.
   \EstUnseen^P|^+_F{\left(Q\right)} \equiv \{ w \in \EstUnseen^{P}{\left(Q\right)} | \NumWeight\left(w, F\right) > 0 \} \\
   \EstUnseen^P|^-_F{\left(Q\right)} \equiv \{ w \in \EstUnseen^{P}{\left(Q\right)} | \NumWeight\left(w, F\right) < 0 \}
 \end{gather}
-For each $F$, define the following values totalling the positive and
+For each $F$, define the following values totaling the positive and
 negative weights to conit $F$ of writes from $P$ thought to be unseen by $Q$.
 \begin{gather}
   \twp{P}{Q, F} \equiv \sum \{ \NumWeight\left(w, F\right) | w \in \EstUnseen|^+_F{\left(P,Q\right)} \} \\
@@ -3939,7 +3934,7 @@ negative weights to conit $F$ of writes from $P$ thought to be unseen by $Q$.
 \end{gather}
 To bound numerical error for $F$ and $Q$, the intuition is that $P$'s
 estimate of numerical weight on $F$ that has not been seen by $Q$ must
-not exceed an alloted ``share'' of $Q$'s total error bound, or
+not exceed an allotted ``share'' of $Q$'s total error bound, or
 $\NE(Q, F)$. Since there are $|\AllProc| - 1$ processes that can
 accept writes without immediately adding them to $\WL{Q}$, this means
 the total weight of unseen messages accepted by each process must not
@@ -4002,7 +3997,7 @@ letting writes with positive weight ``cancel out'' writes with
 negative weight can lead to incorrect behavior. For example, suppose
 $P$ has accepted writes with positive and negative weights that
 exactly cancel out, and suppose $Q$ has actually seen, unbeknownst to
-$P$, all of the writes with negative weight. If $P$ totalled all
+$P$, all of the writes with negative weight. If $P$ totaled all
 weights together, it would wrongly estimate that the weight of writes
 unseen by $Q$ is $0$, when the actual value would be some positive
 value that may exceed $Q$'s error bounds.
@@ -4090,7 +4085,7 @@ the correct order.
   client, while $Q$'s client attempts to double book the seat and is
   issued a refund.'' The rollback process at $Q$ may be associated
   with business rules triggering a notification to $Q$'s client that
-  their reservation has been cancelled, alongside issuing a refund (and
+  their reservation has been canceled, alongside issuing a refund (and
   hopefully a compensation fee).
 \end{example}
 
@@ -4129,7 +4124,7 @@ We will describe how to implement write commitment with TSAE below.
 An access received by $P$ observes the state, called its
 \emph{observed prefix history}, of $\WL{P}$ at the time the access is
 accepted. Let this value be denoted $\PHobs$. The same access occurs
-in an ideal history, where the set of writes preceding it consitutes
+in an ideal history, where the set of writes preceding it constitutes
 its \emph{ideal prefix history}, $\PHideal$. Given two histories $H$
 and $H'$, let their \emph{intersection} or \emph{greatest common
   prefix}, $H \cap H'$, be the set of all accesses they agree on since
@@ -4224,7 +4219,7 @@ writes to any of the conits it depends on.
 
 Because the committed writes are never out of order, the out of order
 writes form a subset of the uncommitted writes. Thus, $P$ can estimate
-the order error of an access by totalling the order weight of accesses
+the order error of an access by totaling the order weight of accesses
 to $\Conits$ that have not been committed:
 \begin{equation}
   \EstOrderError\left(r, \mathcal{F}\right) \equiv \sum_{F \in \Conits} \{ \OrderWeight\left(w, F\right) | w \in \Uncommitted{P}|_\Conits \}
@@ -4234,11 +4229,11 @@ Note that $\mathsf{OOO}\left(\Conits\right) \subseteq \Uncommitted{P}|_\Conits$ 
 Let $\OErr$ be the allowable upper bound of
 $\mathsf{OrderError}\left(r,\Conits\right)$ for an access $r$. While
 handling this access, if the value above exceeds $\OErr(P, \Conits)$,
-the $P$ engages the write committment procedure assumed earlier to
+the $P$ engages the write commitment procedure assumed earlier to
 commit enough writes in its log to reduce the size of estimated order
 error.
 
-For the TSAE+TO implementation, committment is implemented with a
+For the TSAE+TO implementation, commitment is implemented with a
 \emph{pull-based} approach, where $P$ pulls enough messages from
 remotes to decide the final order of enough writes as to ensure the
 order error is within bounds. $P$ can commit writes by pulling
@@ -4339,7 +4334,7 @@ with respect to their ideal values in a strongly consistent history.
 \begin{theorem}[Yu and Vahdat]
   \label{thm:conit-correct}
   Assuming the two-phase locking policy is used during compulsory
-  write propgation, there is an ECG history such observed numerical
+  write propagation, there is an ECG history such observed numerical
   and order error of every access is correctly bounded with respect to
   its ideal return value in the ECG history.
 \end{theorem}
@@ -4560,3 +4555,7 @@ the $21^\textrm{st}$ century.
 %%% mode: LaTeX
 %%% TeX-master: t
 %%% End:
+
+% LocalWords:  th Wi Fi hoc et IoBT al Kshemkalyani Singhal DECT pgf
+% LocalWords:  Shivaratri Lamport's mpEx recv Ahamad RSM AE Minecraft
+% LocalWords:  Donkervliet's dyconits
