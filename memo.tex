@@ -75,7 +75,7 @@
 
 
 \abstract{The System Wide Safety (SWS) program has been investigating
-  how crewed and uncrewed aircraft can safely operate in shared
+  how manned and unmanned aircraft can safely operate in shared
    airspace. Enforcing safety requirements for distributed agents
   requires coordination by passing messages over a communication
   network. Unfortunately, the operational environment will not admit
@@ -105,11 +105,11 @@ inherent risks, the application of sound engineering practices and
 conservative operating procedures has made flying the safest mode of
 transport today. Now, the industry's strong requirements for safety
 make it difficult to integrate unmanned vehicles into the airspace,
-accomodate emerging applications, and keep pace with significant
+accommodate emerging applications, and keep pace with significant
 recent growth in commercial aviation. To that end, the NASA
 Aeronautics' Airspace Operations and Safety Program (AOSP) has
 initiated the System Wide Safety (SWS) project to investigate
-technologies and methods to enable crewed and uncrewed aircraft to
+technologies and methods to enable manned and unmanned aircraft to
 safely operate in shared airspace.
 
 This memo surveys topics in computing that are relevant to maintaining
@@ -157,7 +157,7 @@ even adversarial environment.
 
 \subsection{Summaries of the sections}
 \label{ssec:summaries-of-the-sections}
-Section \ref{sec:disaster-response} opens with a practical overview of
+Section~\ref{sec:disaster-response} opens with a practical overview of
 disaster response and some of the computing challenges encountered in
 this setting. The heavily disruptive nature of the communications
 network in these environments invariably raises issues fundamental to
@@ -165,10 +165,10 @@ the science of distributed systems. Real-world examples from disaster
 response scenarios are presented that demonstrate how these challenges
 affect system-wide safety.
 
-Section \ref{sec:background} summarizes fundamental concepts and
+Section~\ref{sec:background} summarizes fundamental concepts and
 mechanisms used in distributed systems, culminating in the classic
 ``CAP'' theorem for both the linearizable and sequential consistency
-models (Theorems \ref{thm:cap} and \ref{thm:cap-sequential}). CAP is
+models (Theorems~\ref{thm:cap} and~\ref{thm:cap-sequential}). CAP is
 considered a ``negative'' result, as it proves that a distributed
 system cannot guarantee strong consistency and remain available to
 users when the communication network is disconnected. The practical
@@ -180,7 +180,7 @@ tradeoff. Furthermore, real-world systems often exhibit a kind of
 ``locality'' that mitigates some of the constraints implied by the
 theorem.
 
-Section \ref{sec:tsae} presents Golding's Timestamped Anti-Entropy
+Section~\ref{sec:tsae} presents Golding's Timestamped Anti-Entropy
 (TSAE) protocol. TSAE provides a fault-tolerant message propagation
 mechanism that ensures messages are eventually delivered to all
 parties. This implements a weak (eventual) consistency model,
@@ -192,7 +192,7 @@ before this occurs. Therefore, users are not provided any guarantees
 limiting how far apart a data item observed by the user may be from
 its ``true'' value.
 
-Section \ref{sec:continuous-consistency} describes a TSAE-based
+Section~\ref{sec:continuous-consistency} describes a TSAE-based
 replication mechanism suitable for networks with frequent disruptions,
 but where it is also important to measure and control how far apart
 replicas may diverge at any moment. This uses the theory of
@@ -211,7 +211,7 @@ resilience of weak consistency, this model is suitable where the
 tradeoffs implied by the CAP theorem may need to be carefully
 calibrated to support both performance and safety.
 
-We conclude in Section \ref{sec:conclusion} by recapping some of the
+We conclude in Section~\ref{sec:conclusion} by recapping some of the
 main themes in this document and highlighting areas for further
 investigation. Ultimately, building distributed systems requires
 design decisions tailored to the environment and application, which
@@ -257,7 +257,7 @@ public safety broadband network (NPSBN).
 Unreliable networks make coordinating distributed agents a significant
 challenge. Coherent decision-making and coordinated action require
 consistency, meaning agreement on the data shared between agents. We
-define consistency more precisely in Section \ref{sec:background}, but
+define consistency more precisely in Section~\ref{sec:background}, but
 the idea is clear: it is critical for everyone to agree which
 firetrucks should respond to which areas, where helicopters should
 land, which tasks should be prioritized, or which radio frequencies
@@ -308,7 +308,7 @@ tradeoff.
 For example, consider the use of firefighting airtankers, particularly
 Very Large Airtankers (VLATs), which can carry over 8,000 gallons of
 water or fire retardant \cite{2019:airtankerops}
-(Figure \ref{fig:airtanker}). The largest VLATs can drop more than
+(Figure~\ref{fig:airtanker}). The largest VLATs can drop more than
 20,000 gallons---about 170,000 pounds' worth---in a single pass. In
 the U.S., these drops are typically made from just 250 feet above the
 tree canopy \cite{2019:airtankerops}, and sometimes lower in
@@ -324,7 +324,7 @@ applications like TAK, the Team Awareness Kit, developed by the
 U.S. military in 2010 and later released in a civilian
 version. Wildland firefighters are increasingly using TAK, extended
 with aftermarket plugins, on ordinary cell phones to coordinate their
-activities in the field (Figure \ref{fig:atak}). A key application of
+activities in the field (Figure~\ref{fig:atak}). A key application of
 this tool could be tracking the real-time GPS coordinates of
 firefighters for safety monitoring.
 
@@ -449,7 +449,7 @@ communications:
 
 These related observations are what is meant by simply the
 ``locality'' principle. Locality is a crucial factor to analyze
-because, as presented in Section \ref{sec:background}, there are major
+because, as presented in Section~\ref{sec:background}, there are major
 theoretical and practical limits to how well agents can coordinate
 \emph{globally}, meaning with all agents knowing and agreeing on
 everything. To the extent the system exhibits locality, coordination
@@ -513,7 +513,7 @@ $11^\textrm{th}$ attacks.
 Use of centralized infrastructure comes with the potential for
 widespread failure when the infrastructure breaks down. For example,
 in California, the Ironside Mountain lookout/repeater station (seen in
-Figure \ref{fig:ironside}) was destroyed during the 2021 Monument
+Figure~\ref{fig:ironside}) was destroyed during the 2021 Monument
 Fire, which burned approximately 223,124 acres over 88 days
 \cite{2021:monumentfire}. The Ironside Mountain station had strategic
 importance, being located on a tall ridge. According to a video blog
@@ -531,7 +531,7 @@ until crews could ascend the ridge to deploy a temporary station:
 \end{quote}
 A scenario where communication between two groups is completely
 severed is exactly the sort of thing considered by the CAP theorem in
-Section \ref{sec:background}.
+Section~\ref{sec:background}.
 
 \paragraph{Ground vehicles}
 Large numbers of ground vehicles---sometimes on the order of 100
@@ -787,7 +787,7 @@ building applications relevant to the scenarios described in Section
 strategies for developing distributed systems that can endure the
 delays and disruptions inherent to these communication-challenged
 environments. Readers interested in a summary of the highlights may
-skip to Section \ref{ssec:background-summary}.
+skip to Section~\ref{ssec:background-summary}.
 
 At its core, a distributed system is a network of independent entities
 working together to solve problems too complex for any one part to
@@ -812,7 +812,7 @@ system is thus a dynamic mosaic of elements cooperating to protect
 lives and property.
 
 Given the unpredictable nature of the environment and the locality
-principle outlined in Section \ref{sec:disaster-response},
+principle outlined in Section~\ref{sec:disaster-response},
 communication between edge components---such as field operators---and
 centralized hubs is often inconsistent, sometimes available only
 intermittently. As a result, information flow is subject to
@@ -875,7 +875,7 @@ numerous and diverse assortment of devices have precisely synchronized
 internal clocks.
 
 Clock drift can be corrected for using, for instance, signals from GPS
-satellites, but as mentioned in Section \ref{sec:disaster-response},
+satellites, but as mentioned in Section~\ref{sec:disaster-response},
 civil disaster environments are frequently GPS-denied: factors like
 mountainous terrain, heavy smoke, and subterranean operations can lead
 to errors or block signals entirely. Protocols like the Network Time
@@ -921,7 +921,7 @@ depends on which networking technology (or which layer of the OSI
 networking model \cite{1983:osi-reference-model}) is under
 consideration.
 
-Figure \ref{fig:message-latencies} illustrates a series of time
+Figure~\ref{fig:message-latencies} illustrates a series of time
 diagrams for messages exchanged between three processes: $P_1$, $P_2$,
 and $P_3$. The $x$-axis represents the flow of real time from left to
 right, which each process represented by a worldline depicting the
@@ -954,7 +954,7 @@ In these diagrams, arrows connect corresponding send and receive
 events, with their diagonal slant representing the latencies
 experienced as messages traverse the network. Because messages arrive
 with varying delays, they might arrive in a different order than they
-were sent in. In Figure \ref{fig:message-latencies-a}, for example,
+were sent in. In Figure~\ref{fig:message-latencies-a}, for example,
 $P_1$ sends messages $m_2$ and $m_4$ sequentially, but $m_4$ arrives
 before $m_2$, which might occur if $P_1$ and $P_3$ are separated by a
 high-latency communication link. In Figure
@@ -1010,14 +1010,14 @@ proscription means an application cannot let an ``answer'' appear
 before the underlying ``question''.
 
 \begin{example}
-  Figure \ref{fig:causal-precedence} illustrates the causal precedence
-  relation corresponding to the time diagrams in Figure
-  \ref{fig:message-latencies}. For readability we suppress redundant
-  transitive arrows. The visual difference between Figures
-  \ref{fig:message-latencies-b} and \ref{fig:message-co-b} reflects
-  the fact that causal order only captures a logical relationship
-  between events, but does not reflect their absolute time or within
-  which process they occurred.
+  Figure~\ref{fig:causal-precedence} illustrates the causal precedence
+  relation corresponding to the time diagrams in
+  Figure~\ref{fig:message-latencies}. For readability we suppress
+  redundant transitive arrows. The visual difference between
+  Figures~\ref{fig:message-latencies-b} and~\ref{fig:message-co-b}
+  reflects the fact that causal order only captures a logical
+  relationship between events, but does not reflect their absolute
+  time or within which process they occurred.
 \end{example}
 
 Mathematically, causal precedence is an irreflexive partial order:
@@ -1038,9 +1038,9 @@ reflexive and symmetric but not necessarily transitive are sometimes
 called \emph{compatibility relations}.
 \begin{example}
   \label{ex:synchronous-intransitive}
-  In Figure \ref{fig:message-co-a}, $\sync{\mrecv{1}}{\mrecv{2}}$ and
+  In Figure~\ref{fig:message-co-a}, $\sync{\mrecv{1}}{\mrecv{2}}$ and
   $\sync{\mrecv{2}}{\msend{4}}$, but $\mrecv{1} \to \msend{4}$. In
-  Figure \ref{fig:message-co-b}, $\msend{1}$ is logically synchronous
+  Figure~\ref{fig:message-co-b}, $\msend{1}$ is logically synchronous
   with every event except $\mrecv{1}$, but those other events are
   totally ordered by causality and not synchronous with each other.
 \end{example}
@@ -1051,17 +1051,17 @@ called \emph{compatibility relations}.
   \begin{subfigure}{1\textwidth}
     \centering
     \input{images/pgf/mpEx1CO.pgf}
-    \caption{Causal precedence among the events in Figure \ref{fig:message-latencies-a}}
+    \caption{Causal precedence among the events in Figure~\ref{fig:message-latencies-a}}
     \label{fig:message-co-a}
   \end{subfigure}
   \endgroup
   \begin{subfigure}{1\textwidth}
     \centering
     \input{images/pgf/mpEx2CO.pgf}
-    \caption{Causal precedence among the events in Figure \ref{fig:message-latencies-b}}
+    \caption{Causal precedence among the events in Figure~\ref{fig:message-latencies-b}}
     \label{fig:message-co-b}
   \end{subfigure}
-  \caption{Causal precedence relations for Figure \ref{fig:message-latencies} (transitive arrows not shown)}
+  \caption{Causal precedence relations for Figure~\ref{fig:message-latencies} (transitive arrows not shown)}
   \label{fig:causal-precedence}
 \end{figure}
 
@@ -1128,13 +1128,13 @@ clocks satisfy \eqref{eq:sc}.
 
   \begin{subfigure}{1\textwidth}
     \centering \input{images/pgf/mpEx1Sc.pgf}
-    \caption{Figure \ref{fig:message-latencies-a} redepicted with scalar clocks}
+    \caption{Figure~\ref{fig:message-latencies-a} redepicted with scalar clocks}
     \label{fig:message-latencies-scalar-a}
   \end{subfigure}
 
   \begin{subfigure}{1\textwidth}
     \centering \input{images/pgf/mpEx2Sc.pgf}
-    \caption{Figure \ref{fig:message-latencies-b} redepicted with scalar clocks}
+    \caption{Figure~\ref{fig:message-latencies-b} redepicted with scalar clocks}
     \label{fig:message-latencies-scalar-b}
   \end{subfigure}
 
@@ -1158,8 +1158,8 @@ initialized to $0$. The clock follows two simple update rules:
 \end{enumerate}
 
 \begin{example}
-  Figure \ref{fig:message-latencies-scalar} depicts the same events in
-  Figure \ref{fig:message-latencies} with scalar timestamps (shown in
+  Figure~\ref{fig:message-latencies-scalar} depicts the same events in
+  Figure~\ref{fig:message-latencies} with scalar timestamps (shown in
   parentheses) assigned to each event. Piggybacked timestamps are
   shown as labels on the message arrows.
 \end{example}
@@ -1169,7 +1169,7 @@ observed by tracing the path of causality between related events and
 seeing that the clock is incremented at each step. However, they do
 not satisfy \eqref{eq:sc}.  While $e$ having a lesser timestamp than
 $e'$ rules out $e' \to e$, it does not imply $e \to e'$. For instance,
-in Figure \ref{fig:message-latencies-scalar-b}, $\msend{1}$ has a
+in Figure~\ref{fig:message-latencies-scalar-b}, $\msend{1}$ has a
 globally minimal timestamp value of $1$, but it does not causally
 precede all events with timestamps greater than $1$, or indeed any
 event except $\mrecv{1}$.
@@ -1197,7 +1197,7 @@ comparable.
   \begin{subfigure}{1\textwidth}
     \centering
     \input{images/pgf/mpEx1Vec.pgf}
-    \caption{Figure \ref{fig:message-latencies-a} redepicted with vector clocks}
+    \caption{Figure~\ref{fig:message-latencies-a} redepicted with vector clocks}
     \label{fig:message-latencies-vector-a}
   \end{subfigure}
 
@@ -1205,7 +1205,7 @@ comparable.
 
   \begin{subfigure}{1\textwidth}
     \centering \input{images/pgf/mpEx2Vec.pgf}
-    \caption{Figure \ref{fig:message-latencies-b} redepicted with vector clocks}
+    \caption{Figure~\ref{fig:message-latencies-b} redepicted with vector clocks}
     \label{fig:message-latencies-vector-b}
   \end{subfigure}
 
@@ -1241,8 +1241,8 @@ clocks are updated according to two rules:
 These rules are more intuitively understood by demonstration.
 
 \begin{example}
-  Figure \ref{fig:message-latencies-vector} depicts the same events as
-  Figure \ref{fig:message-latencies} with vector timestamps.
+  Figure~\ref{fig:message-latencies-vector} depicts the same events as
+  Figure~\ref{fig:message-latencies} with vector timestamps.
 \end{example}
 
 For all other $Q$ in $\AllProc$, $\vt{P}[Q]$ represents $P$'s
@@ -1325,31 +1325,31 @@ maximum of all other rows.
   \setlength\belowcaptionskip{4ex}
   \begin{subfigure}{1\textwidth}
     \input{images/pgf/mpEx1Mat.pgf}%
-    \caption{Matrix clock timestamps for the events in Figure \ref{fig:message-latencies-a}}
+    \caption{Matrix clock timestamps for the events in Figure~\ref{fig:message-latencies-a}}
     \label{fig:message-latencies-matrix-a}
   \end{subfigure}
   \begin{subfigure}{1\textwidth}
     \input{images/pgf/mpEx2Mat.pgf}%
-    \caption{Matrix clock timestamps for the events in Figure \ref{fig:message-latencies-b}}
+    \caption{Matrix clock timestamps for the events in Figure~\ref{fig:message-latencies-b}}
     \label{fig:message-latencies-matrix-b}
   \end{subfigure}
-  \caption{Figure \ref{fig:message-latencies} depicted with matrix clocks}
+  \caption{Figure~\ref{fig:message-latencies} depicted with matrix clocks}
   \label{fig:message-latencies-matrix}
   \endgroup
 \end{figure}
 
 \begin{example}
-  Figure \ref{fig:message-latencies-matrix} depicts the same events as
-  Figures \ref{fig:message-latencies},
-  \ref{fig:message-latencies-scalar} and
-  \ref{fig:message-latencies-vector} using matrix timestamps. By
-  comparison to Figure \ref{fig:message-latencies-vector}, observe
+  Figure~\ref{fig:message-latencies-matrix} depicts the same events as
+  Figures~\ref{fig:message-latencies},
+ ~\ref{fig:message-latencies-scalar} and
+ ~\ref{fig:message-latencies-vector} using matrix timestamps. By
+  comparison to Figure~\ref{fig:message-latencies-vector}, observe
   that for each process $X$, rows of the form $\mt{X}{[X]}{}$---for
   instance, the top row of matrices in $P_1$---act like ordinary vector
   clocks.
 \end{example}
 
-In Section \ref{sec:background}, we mentioned the epistemic nature of
+In Section~\ref{sec:background}, we mentioned the epistemic nature of
 reasoning about distributed systems: a process can only make decisions
 based on what it \emph{knows}, which is usually a strict subset of all
 (system-wide) truths. In many cases, it is important to take into
@@ -1357,8 +1357,8 @@ account a kind of second-order knowledge: what does a process know
 about what other processes know? A typical utility of vector and
 matrix clocks is to track which facts known to one process are also
 known to another processes. Often it is of interest to compute which
-facts are known to \emph{all} other processes. Sections \ref{sec:tsae}
-and \ref{sec:continuous-consistency} feature running examples of
+facts are known to \emph{all} other processes. Sections~\ref{sec:tsae}
+and~\ref{sec:continuous-consistency} feature running examples of
 mechanisms similar to vector and matrix clocks, called version vectors
 and matrices. These are used in the context of database replication,
 where they drive decision-making about which updates need to be
@@ -1493,22 +1493,21 @@ precedence.  Unlike FIFO, the CO condition enforces a partial order
 among messages with (in general) different senders.
 
 \begin{example}
-  Figure \ref{fig:message-ordering} demonstrates different message
+  Figure~\ref{fig:message-ordering} demonstrates different message
   ordering conditions. We make a few observations for emphasis.
 
   \begin{itemize}
     \tightlist
-  \item \ref{fig:ordex-non-fifo} violates FIFO because messages $m_1$
+  \item Figure~\ref{fig:ordex-non-fifo} violates FIFO because messages $m_1$
     and $m_2$ are both sent from $P_1$ to $P_2$, but the arrive in the wrong order.
-  \item \ref{fig:ordex-co-1} satisfies CO and therefore FIFO. Messages
+  \item Figure~\ref{fig:ordex-co-1} satisfies CO and therefore FIFO. Messages
     $m_1$ and $m_2$ arrive in the opposite order but they are sent to
     different destinations.
-  \item \ref{fig:ordex-non-co-1} violates CO because the send event of
+  \item Figure~\ref{fig:ordex-non-co-1} violates CO because the send event of
     $m_1$ happens before the send of $m_3$ via the chain
     $\msend{1} \to \msend{2} \to \mrecv{2} \to \msend{3},$ but
     $\mrecv{3} \to \mrecv{1}$.
-  \item \ref{fig:ordex-non-co-2} violates CO because it is equivalent to
-    \ref{fig:ordex-non-co-1} with the roles of $P_2$ and $P_3$ swapped.
+  \item Figure~\ref{fig:ordex-non-co-2} violates CO because it is equivalent to~\ref{fig:ordex-non-co-1} with the roles of $P_2$ and $P_3$ swapped.
   \end{itemize}
 \end{example}
 
@@ -1529,9 +1528,9 @@ recipient. Regardless of implementation, the challenge and importance
 of ensuring consistent message ordering across an entire group is a
 paramount concern.
 
-The FIFO and CO broadcast conditions are adapted from Definitions
-\ref{def:fifo} and \ref{def:causalorder}. Additionally, we present the
-notion of total ordering (TO).
+The FIFO and CO broadcast conditions are adapted from
+Definitions~\ref{def:fifo} and~\ref{def:causalorder}. Additionally, we
+present the notion of total ordering (TO).
 
 \begin{definition}[FIFO broadcast]
   \label{def:fifo-bcast}
@@ -1557,7 +1556,7 @@ causality along worldlines and message arrows.
 \end{figure}
 
 \begin{example}
-  In Figure \ref{fig:broadcast-fifo-1}, causal order is violated. Imagine the following conversation:
+  In Figure~\ref{fig:broadcast-fifo-1}, causal order is violated. Imagine the following conversation:
   \begin{itemize}
     \tightlist
   \item [$P_1$]: ``I need an ambulance at location A.''
@@ -1621,24 +1620,24 @@ causality.
 \end{figure}
 
 \begin{example}
-Figure \ref{fig:bcast-ordering-examples} depicts examples of broadcast
+Figure~\ref{fig:bcast-ordering-examples} depicts examples of broadcast
 message orders.
 \begin{itemize}
   \tightlist
-\item Figure \ref{fig:bcast-order-examples-1} trivially satisfies FIFO
+\item Figure~\ref{fig:bcast-order-examples-1} trivially satisfies FIFO
   because no process sends more than one broadcast. CO is violated
   because $\msend{1} \to \mrecv{1,4} \to \msend{2}$, while $P_2$
   receives $m_2$ before $m_1$. TO is violated because $P_2$ and $P_3$
   receive the messages in opposite orders.
-\item Figure \ref{fig:bcast-order-examples-2} violates TO for the same
+\item Figure~\ref{fig:bcast-order-examples-2} violates TO for the same
   reason above, but satisfies causality because the two send events
   have no causal relation.
-\item Figure \ref{fig:bcast-order-examples-3}
+\item Figure~\ref{fig:bcast-order-examples-3}
   satisfies TO, but $m_2$ arrives at both processes before $m_1$ so
   FIFO is violated.
 \end{itemize}
 \end{example}
-Section \ref{ssec:tsae-message-ordering} describes a conventional
+Section~\ref{ssec:tsae-message-ordering} describes a conventional
 mechanism used to implement total order broadcast.
 \paragraph{Self-delivered messages}
 In some contexts one considers broadcast primitives that include the
@@ -1649,7 +1648,7 @@ with ordering guarantees. A typical use case is that participants are
 using a total order broadcast to maintain local replicas of a state
 machine that can be advanced by any participating process by
 announcing updates.  This usage is presented in Sections
-\ref{sec:tsae} and \ref{sec:continuous-consistency}, with the goal of
+\ref{sec:tsae} and~\ref{sec:continuous-consistency}, with the goal of
 replicating shared state over a disruption-heavy network.
 
 \subsection{Shared Memory}
@@ -1686,7 +1685,7 @@ of the virtual memory layer, meaning knowing what guarantees it makes
 concerning what values can be returned at which times, is a crucial
 part of building applications that function correctly while providing
 reliable performance. Because of the sorts of tensions discussed in
-Section \ref{sec:disaster-response}, the design space here is
+Section~\ref{sec:disaster-response}, the design space here is
 generally marked by a tradeoff between stronger consistency guarantees
 and faster performance.
 
@@ -1700,11 +1699,11 @@ and faster performance.
 \begin{figure}
   \centering
   \input{images/pgf/dsm_ex1_DAG.pgf}
-  \caption{External order relation among operations in Figure \ref{fig:dsm-example-1} (with edges implied by transitivity not shown)}
+  \caption{External order relation among operations in Figure~\ref{fig:dsm-example-1} (with edges implied by transitivity not shown)}
   \label{fig:dsm-example-1-DAG}
 \end{figure}
 
-Figure \ref{fig:dsm-example-1} depicts an exemplary time diagram for
+Figure~\ref{fig:dsm-example-1} depicts an exemplary time diagram for
 the shared memory abstraction, similar to those for message
 passing. Two kinds of operations are shown: \emph{reads} and
 \emph{writes}. A read operation, $\memread{x}$, retrieves the value
@@ -1747,7 +1746,7 @@ events in terms of real, physical time: external order is the partial
 order of events witnessed by an outside observer who can watch
 operations executing globally in real time. Figure
 \ref{fig:dsm-example-1-DAG} depicts the external order among the
-operations in Figure \ref{fig:dsm-example-1}, forming a directed
+operations in Figure~\ref{fig:dsm-example-1}, forming a directed
 acyclic graph (DAG).
 
 Two events not related by external order are said to be physically
@@ -1762,7 +1761,7 @@ concurrent.
 \end{definition}
 
 Note that we have reused notation between Definitions
-\ref{def:logically-synchronous} and \ref{def:physical-concurrency}.
+\ref{def:logically-synchronous} and~\ref{def:physical-concurrency}.
 Though they are similar concepts (both are reflexive and symmetric but
 generally non-transitive binary relations), physically concurrent
 memory operations in the DSM model should not be confused with
@@ -1808,7 +1807,7 @@ value.
 %  \label{exmpl:concurrentupdates}
 %\end{example}
 
-Consider the history shown in Figure \ref{fig:dsm-example-2}, which
+Consider the history shown in Figure~\ref{fig:dsm-example-2}, which
 contains three operation that write to location $x$. Two of these
 operations, $\memwrite{x}{3}$ $\memwrite{x}{5}$, are executed at
 overlapping moments in time, making it unclear which should be
@@ -1833,7 +1832,7 @@ One can consider many different ways of answering these questions,
 depending on the consistency requirements of the high-level
 application. The strictest memory model, called
 \emph{linearizability}, is a sort of gold standard. If the distributed
-system whose history is shown in Figure \ref{fig:dsm-example-2} is
+system whose history is shown in Figure~\ref{fig:dsm-example-2} is
 linearizable, the all three read operations must return the same
 value, and this must be either $3$ or $5$. This model is intuitive but
 too strict for our use case, so programmers must be prepared for less
@@ -1911,7 +1910,7 @@ features.
 \end{enumerate}
 \end{definition}
 
-Definition \ref{def:linearizable-history} is concerned with an
+Definition~\ref{def:linearizable-history} is concerned with an
 individual history of some distributed application. When the
 application only ever admits linearizable histories, as permitted by
 the memory manager, the entire system is said to be linearizable.
@@ -1919,10 +1918,10 @@ the memory manager, the entire system is said to be linearizable.
 \begin{definition}[Linearizable system]
   \label{def:linearizable-system}
   A DSM application is linearizable if all possible histories of the
-  application satisfy Definition \ref{def:linearizable-history}.
+  application satisfy Definition~\ref{def:linearizable-history}.
 \end{definition}
 
-Consider the history Figure \ref{fig:dsm-example-2} again. If the
+Consider the history Figure~\ref{fig:dsm-example-2} again. If the
 application is linearizable, the read responses must agree on some
 order $\sigma$ consistent with external order, implying that
 $\memwrite{x}{4}$ happens before $\memwrite{x}{3}$ and
@@ -1933,7 +1932,7 @@ ordered last (meaning most recent), which is either $3$ or $5$. These
 possibilities are illustrated in Figure
 \ref{fig:dsm-example-2-linearizations}.
 
-Figure \ref{fig:dsm-example-2-linearizations} also depict an
+Figure~\ref{fig:dsm-example-2-linearizations} also depict an
 equivalent, more visually intuitive way, of approaching defining
 linearizability. A linearizable history where returned values are
 consistent with a choice of linearization point for each operation.
@@ -1964,7 +1963,7 @@ linearization points in yellow.
         \caption{A linearization where the read operations return 5}
     \label{fig:dsm-example-2-linearizations-b}
   \end{subfigure}
-  \caption{Two possible linearizations of Figure \ref{fig:dsm-example-2} with linearization points shown in yellow}
+  \caption{Two possible linearizations of Figure~\ref{fig:dsm-example-2} with linearization points shown in yellow}
   \label{fig:dsm-example-2-linearizations}
 \end{figure}
 
@@ -2020,10 +2019,10 @@ consistent.
   A linearizable execution is sequentially consistent.
 \end{lemma}
 
-The converse of Lemma \ref{lem:linearsequential} does not hold,
+The converse of Lemma~\ref{lem:linearsequential} does not hold,
 meaning some sequentially consistent executions are not
 linearizable. As noted earlier, there are only two linearizable
-histories of Figure \ref{fig:dsm-example-2}, and they both require all
+histories of Figure~\ref{fig:dsm-example-2}, and they both require all
 three read operations to return the same value. Examples
 \ref{ex:dsm-example-2-sequential-1} and
 \ref{ex:dsm-example-2-sequential-2}, below, demonstrate sequentially
@@ -2048,12 +2047,12 @@ consistent histories where $P_1$ and $P_2$ read non-equal values.
 
 \begin{example}
   \label{ex:dsm-example-2-sequential-1}
-  Figure \ref{fig:dsm-example-2-sequential-1-sub} depicts a sequentially
+  Figure~\ref{fig:dsm-example-2-sequential-1-sub} depicts a sequentially
   consistent history of the operations depicted in Figure
-  \ref{fig:dsm-example-2}. This history is non-linearizable because
+ ~\ref{fig:dsm-example-2}. This history is non-linearizable because
   $P_1$ and $P_2$ read different values for $x$. It is sequentially
   consistent because it returns values consistent with the alternate
-  history shown in Figure \ref{fig:dsm-example-2-sequential-1-serial},
+  history shown in Figure~\ref{fig:dsm-example-2-sequential-1-serial},
   which is sequential because has no overlapping operations. The
   latter can be obtained by ``sliding'' the operations in $P_2$ along
   their worldline so they occur after those in $P_1$.
@@ -2078,12 +2077,12 @@ consistent histories where $P_1$ and $P_2$ read non-equal values.
 
 \begin{example}
   \label{ex:dsm-example-2-sequential-2}
-  Figure \ref{fig:dsm-example-2-sequential-2-sub} depicts another
+  Figure~\ref{fig:dsm-example-2-sequential-2-sub} depicts another
   sequentially consistent history of the operations in Figure
-  \ref{fig:dsm-example-2}. In this example, $P_2$ appears to travel
+ ~\ref{fig:dsm-example-2}. In this example, $P_2$ appears to travel
   backwards in time, reading the stale value $4$ immediately after
   reading $5$. This history is consistent with the serialization
-  shown in Figure \ref{fig:dsm-example-2-sequential-2-serial}.
+  shown in Figure~\ref{fig:dsm-example-2-sequential-2-serial}.
 \end{example}
 
 The time-traveling nature of Example
@@ -2102,7 +2101,7 @@ application is executed on real computers, there is no guarantee about
 the relative timing of program steps that run on different computers,
 since different machines may run at different speeds. For instance,
 before running the program and observing the series of events shown in
-Figure \ref{fig:dsm-example-2-sequential-2-sub}, we did not
+Figure~\ref{fig:dsm-example-2-sequential-2-sub}, we did not
 necessarily know that the $\memwrite{x}{4}$ operation would precede
 the $\memwrite{x}{5}$ operation in real-time---they are both the first
 steps of their respective programs, with no relation to each
@@ -2181,7 +2180,7 @@ we term this property \emph{behavioral invariance}.
   eventual availability.
 \end{theorem}
 \begin{proof}
-  Consider the history in Figure \ref{fig:dsm-cap-example-1}. Clearly
+  Consider the history in Figure~\ref{fig:dsm-cap-example-1}. Clearly
   there is only possible linearization of this history:
   $\memwrite{x}{1}$ executes, $\memwrite{x}{2}$ executes, and
   $\memread{x}$ reads the value $2$. Now suppose $P_1$ and $P_2$ are
@@ -2208,7 +2207,7 @@ we term this property \emph{behavioral invariance}.
   availability. More precisely, to ensure both of these properties, we
   would have to assume the network never suffers from partitions, but
   this is unrealistic. As discussed in Section
-  \ref{sssec:ground-communication}, real-world examples of partitions
+ ~\ref{sssec:ground-communication}, real-world examples of partitions
   in wildland firefighting environments are common.
 \end{proof}
 
@@ -2253,7 +2252,7 @@ CAP-unavailabile.
   in the presense of network partitions.
 \end{lemma}
 \begin{proof}
-  Consider the history in Figure \ref{fig:dsm-cap-example-2} and
+  Consider the history in Figure~\ref{fig:dsm-cap-example-2} and
   suppose all memory locations are initialized to $0$. Following
   similar reasoning as above, behavioral invariance means that if
   $P_1$ and $P_2$ are separated by a partition and remain available,
@@ -2261,15 +2260,15 @@ CAP-unavailabile.
   value it would return assuming $P_2$ does not write to
   $y$. Likewise, $P_2$ would read $\memreadVal{x}{0}$. However, the
   resulting history, shown in Figure
-  \ref{fig:dsm-cap-example-2-results}, is not sequentially
+ ~\ref{fig:dsm-cap-example-2-results}, is not sequentially
   consistent. For $\memreadVal{y}{0}$ to be consistent, the sequential
   order of operations would have to arrange $\memreadVal{y}{0}$ before
   $\memwrite{y}{1}$---otherwise reading $0$ is incorrect. This results
-  in the order shown in Figure \ref{fig:dsm-cap-example-2-serial1},
+  in the order shown in Figure~\ref{fig:dsm-cap-example-2-serial1},
   which is incorrect because $\memreadVal{x}{0}$ occurs after
   $\memwrite{x}{1}$. The situation is symmetric: to order
   $\memreadVal{x}{0}$ before $\memwrite{x}{1}$ results in an order where
-  $\memwrite{y}{1}$ precedes $\memreadVal{y}{0}$ (Figure \ref{fig:dsm-cap-example-2-serial2}).
+  $\memwrite{y}{1}$ precedes $\memreadVal{y}{0}$ (Figure~\ref{fig:dsm-cap-example-2-serial2}).
 \end{proof}
 
 \subsubsection{Consequences of CAP}
@@ -2317,7 +2316,7 @@ We have not defined what causal precedence means for memory
 operations. The notion is similar in its motivation to causal
 precedence in message-passing framework (Definition
 \ref{def:causalprecedence}) and the idea of causal broadcast
-(Definition \ref{def:causalorder-bcast}) but the definition of
+(Definition~\ref{def:causalorder-bcast}) but the definition of
 causally related memory operations is not as simple as that of causal
 precedence among messages. In message passing, a receive event is
 always associated with a unique send event, but multiple processes can
@@ -2371,14 +2370,14 @@ the union of $\localhistory{P}$ and the set of all writes in $H$.
   observes some serialization of $A|_{P}$ consistent with $\causalityorder$.
 \end{definition}
 
-Notably, Definition \ref{def:causalconsistency} does not require that
+Notably, Definition~\ref{def:causalconsistency} does not require that
 all processes behave as if they are observing the \emph{same}
 serialization.
 
 \begin{example}
   \label{ex:dsm-causal-ex1}
-  Figure \ref{fig:dsm-causal-ex1} depicts a causally consistent
-  execution of the operations in Figure \ref{fig:dsm-example-2} that
+  Figure~\ref{fig:dsm-causal-ex1} depicts a causally consistent
+  execution of the operations in Figure~\ref{fig:dsm-example-2} that
   is not sequentially consistent. The writes-into order is depicted
   with dotted edges. The operations $\memwrite{x}{5}$ and
   $\memwrite{x}{3}$ are not related by $\causalityorder$ and therefore
@@ -2439,7 +2438,7 @@ Causal consistency is not subject to the limits of the CAP theorem.
   operations.
 \end{proof}
 
-The proof of the Lemma \ref{thm:cap-causal} speaks to the weakness of
+The proof of the Lemma~\ref{thm:cap-causal} speaks to the weakness of
 causal consistency. In the proof, different processes are allowed to
 deviate arbitrarily far from consistency with each other. At any
 moment in time, they may diverge wildly, which violates our goal of
@@ -2515,7 +2514,7 @@ Golding as ``principals,'' managing shared state and communicating
 through message exchange. These messages are an application-specific
 construct and might contain things like instructions to update a
 database. These may not map one-to-one with low-level network messages
-like those discussed in Section \ref{ssec:message-passing}, which we
+like those discussed in Section~\ref{ssec:message-passing}, which we
 think of as analogous to Internet Protocol (IP) packets. Note that an
 IP packet might contain multiple application messages, and a large
 application message may be split up into multiple packets during
@@ -2626,11 +2625,11 @@ synchronization can be achieved with a protocol like NTP.  Section
 \ref{ssec:tsae-unsynchronized} explains how synchronized physical
 clocks can be replaced with version matrices at the cost of a
 quadratic storage requirement. For the purpose of implementing
-continuous consistency in Section \ref{sec:continuous-consistency},
+continuous consistency in Section~\ref{sec:continuous-consistency},
 timestamps from conventional scalar logical clocks can be used in
 place of physical clocks, which is how Yu and Vahdat implement TSAE as
 part of their TACT framework \cite{2002tact}. The real-time
-consistency metric discussed in \ref{ssec:conit-real-time-consistency}
+consistency metric discussed in~\ref{ssec:conit-real-time-consistency}
 requires each process to keep a physical clock to measure elapsed
 time, though synchronization does not appear to be strictly required
 here either, assuming each clock runs at a consistent rate. We assume
@@ -2704,10 +2703,10 @@ order, an additional ordering component is used, as in
 \ref{ssec:tsae-message-ordering}.
 
 \begin{example}
-  Figure \ref{fig:message-log} shows a message log for containing six
+  Figure~\ref{fig:message-log} shows a message log for containing six
   messages from three processes $A$, $B$, and $C$. For readability it
   is convenient to depict logs whose contents are disaggregated by
-  sender (Figure \ref{fig:message-log-b}). Disaggregation has the
+  sender (Figure~\ref{fig:message-log-b}). Disaggregation has the
   downside of obscuring the fact that message logs with the same
   contents may be arranged in different orders, as the reader should
   keep in mind.
@@ -2738,7 +2737,7 @@ Besides $\WL{P}$, the message propagation component maintains a
 \emph{version vector} $\summaryVec{P}$ whose role is to quickly
 communicate to other processes which messages $P$ has already
 received. This structure is very similar to a vector clock (see
-Section \ref{sssec:vector-clocks}) with a few differences. First, the
+Section~\ref{sssec:vector-clocks}) with a few differences. First, the
 version of TSAE presented here happens to store physical, rather than
 logical, clock values. A more essential distinction is that while a
 vector clock tracks causality between events and increments the local
@@ -2797,7 +2796,7 @@ hold at all times for all $P$ and $Q$ (including when $P = Q$):
 
 \begin{example}
   \label{ex:tsae}
-  Figures \ref{fig:tsae1}---\ref{fig:tsae6} depict the evolution of
+  Figures~\ref{fig:tsae1}---\ref{fig:tsae6} depict the evolution of
   TSAE executing across three distributed processes $A$, $B$, and
   $C$. The figures depict the following chain of events beginning at
   $t = 3$. Note that by $t = 9$, $A$ learns of writes submitted with
@@ -2892,14 +2891,14 @@ its partner alongside its $\summaryVec{P}$, taking their pointwise
 maximums afterwards. This leads to the idea of a version matrix, but
 it has the downside of a per-process space requirement this is
 quadratic in the size of the process group. This approach is
-considered further in \ref{ssec:tsae-unsynchronized}.
+considered further in~\ref{ssec:tsae-unsynchronized}.
 
 The other mechanism presented by Golding requires each process $P$
 to maintain an \emph{acknowledgement vector} $\ackVec{P}$. The basic idea
 is to coarsely summarize $P$'s knowledge of other processes not with
 its summary vector, but the minimal element in this vector, a scalar,
 which is stored in $\ack{P}{P}$. For reasons explained in
-Section \ref{sec:continuous-consistency}, this value is called $P$'s \emph{commit
+Section~\ref{sec:continuous-consistency}, this value is called $P$'s \emph{commit
   line}. Periodically, $P$'s commit line is updated to the minimal
 timestamp in its summary vector,
 $\min_{X \in \AllProc} \left(\summary{P}{X}\right)$.  For correctness,
@@ -2933,7 +2932,7 @@ Note that $\ack{P}{Q} \leq \ack{Q}{Q}$ at all times for all $P$ and
 $Q$.
 
 Slightly different from Golding's presentation of the protocol, the
-figures discussed in Example \ref{ex:tsae} also demonstrate an
+figures discussed in Example~\ref{ex:tsae} also demonstrate an
 optimization that takes advantage of the fact that summary vectors are
 updated at the end of anti-entropy sessions. After updating these
 vectors to their pointwise maximum, we immediately recompute
@@ -2976,14 +2975,14 @@ of estimating global state.
 \end{lemma}
 \begin{proof}
   Now $\timestamp{m} \leq \ack{P}{Q} \leq \ack{Q}{Q}$. By Lemma
-  \ref{lem:commitline}, $Q$ has received $m$.
+ ~\ref{lem:commitline}, $Q$ has received $m$.
 \end{proof}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 When a message $m$ in the write log satisfies
 $\timestamp{m} \leq \ack{P}{P}$, $P$ is said to have
-\emph{acknowledged} $m$. In light of Lemma \ref{lem:commitline}, all
+\emph{acknowledged} $m$. In light of Lemma~\ref{lem:commitline}, all
 acknowledged messages have been received. The converse does not hold,
 since a received message will not be acknowledged until each entry in
 $\summaryVec{P}$, not just the entry of its sender, is greater than
@@ -2998,7 +2997,7 @@ TSAE guarantees that messages will eventually be received by all other
 processes, but ordering of these messages in different processes' logs
 may vary. In some applications this is acceptable, but other
 applications require more control over delivery order. Recall from
-Section \ref{ssec:message-ordering} that to enforce ordering
+Section~\ref{ssec:message-ordering} that to enforce ordering
 guarantees, a distinction is made between message receipt and
 delivery. A message ordering layer buffers incoming messages upon
 receipt, giving time for slower messages to catch up to faster ones,
@@ -3027,14 +3026,14 @@ has the following eventual convergence property.
 \end{lemma}
 \begin{proof}
   Assuming periodic anti-entropy sessions, the protocol in Section
-  \ref{ssec:tsae-message-log} ensures that each message is eventually
+ ~\ref{ssec:tsae-message-log} ensures that each message is eventually
   received by $P$ and each value of the form $\summary{P}{X}$
   eventually increases. Thus, the minimum entry in $\summaryVec{P}$,
   and thus $\ack{P}{P}$, will eventually increase beyond
   $\timestamp{m}$, so each $m$ will be delivered as long as the
   ordering component runs periodically. The fact that messages are
   delivered in the same order everywhere follows from Lemma
-  \ref{lem:commitline}, since $P$ has seen all messages whose
+ ~\ref{lem:commitline}, since $P$ has seen all messages whose
   timestamp is less than $\ack{P}{P}$, and therefore the stream of
   deliverable messages does not have any ``gaps'' in the total order.
 \end{proof}
@@ -3109,7 +3108,7 @@ lemma.
   Let message $m \in \WL{P}$ originate at $R$ with timestamp less than
   $P$'s purge line. Now the following inequalities hold for all $Q$:
   \[ \timestamp{m} \leq \min_{X \in \AllProc}\left(\ack{P}{X}\right)
-    \leq \ack{P}{Q}.\] Therefore, by Lemma \ref{lem:ack-vector}, $m$
+    \leq \ack{P}{Q}.\] Therefore, by Lemma~\ref{lem:ack-vector}, $m$
   has been delivered to $Q$. Since $Q$ is arbitrary, $m$ has been
   received everywhere (where it will eventually be delivered as well)
   and can be purged from $\WL{P}$ to reclaim storage space.
@@ -3206,7 +3205,7 @@ systems where $n$ is on the order of 1,000 or greater.
 \section{Continuous Consistency}
 \label{sec:continuous-consistency}
 We now turn our attention back to the topic of distributed memory
-consistency, first introduced in Section \ref{ssec:shared-memory}. We
+consistency, first introduced in Section~\ref{ssec:shared-memory}. We
 will unite the main themes in this document by explaining the ideas
 behind \emph{continuous} consistency. We particularly focus on the
 conit (short for ``consistency unit'') model proposed by Yu and Vahdat
@@ -3282,7 +3281,7 @@ directly by a client, $P$ is said to be the \emph{originating
   replica}. For all other requests, $P$ is said to be a \emph{remote
   replica}.
 
-As in Section \ref{ssec:shared-memory}, we imagine requests divided
+As in Section~\ref{ssec:shared-memory}, we imagine requests divided
 into two types: read requests and write requests. We call either type
 of request a data \emph{access}. Unlike in Section
 \ref{ssec:shared-memory}, we allow for write accesses that are more
@@ -3372,10 +3371,10 @@ two metrics with respect to which we can limit unseen updates. The
 first, numerical error, limits the total ``weight'' of unseen updates,
 where weight is a conceptual measure of how significant an update is
 with respect to the data model. Numerical error is the subject of
-Section \ref{ssec:conit-numerical-consistency}. The second, real-time
+Section~\ref{ssec:conit-numerical-consistency}. The second, real-time
 staleness, limits the maximum amount of time that may pass before a
 process is made aware of a new update. Real-time staleness is the
-subject of Section \ref{ssec:conit-real-time-consistency}.
+subject of Section~\ref{ssec:conit-real-time-consistency}.
 
 Out of order updates can occur because when $P$ receives an update (or
 a batch of updates), whether submitted by a client locally or
@@ -3384,7 +3383,7 @@ to its own replica immediately, \emph{bypassing} the total-order
 delivery mechanism. This may improve performance because the
 application might otherwise have to block while the ordering mechanism
 determines their total order. This is an I/O-bound operation,
-described in Section \ref{ssec:conit-order-consistency}, since it
+described in Section~\ref{ssec:conit-order-consistency}, since it
 generally requires pulling updates from other processes over the
 network.
 
@@ -3433,12 +3432,12 @@ accesses between the processes in $\AllProc$---this is a general
 method for replicating a state machine. The implementation we describe
 is the one proposed by Yu and Vahdat, which is based on TSAE+TO, or
 timestamped anti-entropy with a totally ordered delivery component,
-defined in Section \ref{ssec:tsae-message-ordering}. Each process $P$
+defined in Section~\ref{ssec:tsae-message-ordering}. Each process $P$
 maintains a write log $\WL{P}$, which is used as the message log of
 TSAE. $P$ also maintains the other data structures required by TSAE,
 whether in the form of summary and acknowledgement vectors (Sections
-\ref{ssec:tsae-summary-vectors} and \ref{ssec:tsae-acknowledgement})
-or summary matrices (Section \ref{ssec:tsae-unsynchronized}).
+\ref{ssec:tsae-summary-vectors} and~\ref{ssec:tsae-acknowledgement})
+or summary matrices (Section~\ref{ssec:tsae-unsynchronized}).
 
 Writes originating at $P$ are tagged with $P$'s identifier and clock
 value (whether physical or logical) and entered into $\WL{P}$ when
@@ -3687,7 +3686,7 @@ bound on the total numerical weight applied to $F$ of writes
 that $P$ is unaware of---setting this value to $0$ means $P$ will be
 notified of every write access that affects $F$ originating at any
 process before that write request is finished executing. This process
-will be described in Section \ref{ssec:conit-numerical-consistency}.
+will be described in Section~\ref{ssec:conit-numerical-consistency}.
 
 Separately form numerical weight, each write is associated with an
 order weight for each conit.
@@ -3961,7 +3960,7 @@ will be zero.\footnote{The exact handling of write propagation,
   particularly when $P$ sends updates to several remotes at once,
   involves the orthogonal consideration of whether and how to acquire
   remote locks on data items. This will be discussed more in Section
-  \ref{ssec:conit-correctness}.}
+ ~\ref{ssec:conit-correctness}.}
 
 \begin{lemma}[Numerical weight correctness]
   When following the above protocol, then each value of each conit at process will satisfy
@@ -4023,14 +4022,14 @@ relative error without knowing the ideal value $V_{\textrm{final}}$.
 \begin{figure}
   \centering
   \includegraphics[width=0.6\textwidth]{images/conit/Numerical1.png}
-  \caption{Write log $\WL{A}$ for Example \ref{ex:conit-numerical}, where
+  \caption{Write log $\WL{A}$ for Example~\ref{ex:conit-numerical}, where
     messages with a grid background represent $A$'s view of $\WL{C}$.}
   \label{fig:conit-numerical}
 \end{figure}
 
 \begin{example}
   \label{ex:conit-numerical}
-  Figure \ref{fig:conit-numerical} depicts the role of numerical
+  Figure~\ref{fig:conit-numerical} depicts the role of numerical
   weight for a process $A$.  Messages with a grid background represent
   $A$'s view of $\WL{C}$. We are assuming here that matrices are used,
   so $A$ has a view of $\WLat{C}{B}$, but this does not play a role as
@@ -4095,7 +4094,7 @@ the correct order.
   hopefully a compensation fee).
 \end{example}
 
-In Example \ref{ex:conit-booking}, accepting $w_Q$ in a tentative
+In Example~\ref{ex:conit-booking}, accepting $w_Q$ in a tentative
 state represented a liability for $Q$. An indirect way this liability
 might have been prevented is if $Q$ had enforced $0$ numerical error,
 but this is not a full solution. To see why, suppose another
@@ -4155,18 +4154,18 @@ write where $\PHobs$ does not agree with $\PHideal$:
     \caption{$\WL{A}$ shown at a later time}
     \label{fig:conit-order-b}
   \end{subfigure}
-  \caption{Logs for Example \ref{ex:conit-order} where committed writes are drawn with a dotted background}
+  \caption{Logs for Example~\ref{ex:conit-order} where committed writes are drawn with a dotted background}
   \label{fig:conit-order}
 \end{figure}
 
 \begin{example}
   \label{ex:conit-order}
-  Figure \ref{fig:conit-order} depicts two write logs where committed
+  Figure~\ref{fig:conit-order} depicts two write logs where committed
   writes are shown with a dotted grid pattern. In Figure
-  \ref{fig:conit-order-a}, five writes are uncommitted. No write with
+ ~\ref{fig:conit-order-a}, five writes are uncommitted. No write with
   timestamp greater than or equal to $3$ can be committed, since the
   minimum entry in the log, $\summary{A}{C}$, is only $2$. The final order
-  of these accesses is shown in Figure \ref{fig:conit-order-b}. For
+  of these accesses is shown in Figure~\ref{fig:conit-order-b}. For
   the next access, $(A, 11)$, submitted to $A$, the errant history
   consists of all accesses after and including $(A, 6)$, the point at
   which the write log deviates from the ideal history.
@@ -4257,7 +4256,7 @@ $P$. This also works with scalar logical clocks, since $Q$ would
 increment its clock to be greater than $P$'s clock.
 
 \begin{example}
-  Suppose in Figure \ref{fig:conit-order-a} that the next access
+  Suppose in Figure~\ref{fig:conit-order-a} that the next access
   submitted to $A$ is timestamped $(A, 11)$. Suppose all writes apply
   unit order weight to a conit $F$. If $(A, 11)$ depends on $F$ with
   an allowable order error of less than $5$, the number of uncommitted
@@ -4429,7 +4428,7 @@ player. Adapting their \emph{dyconits} (dynamic conits) framework to
 the wide-area tactical environment may be worthwhile.
 
 \paragraph{Interaction with the Network}
-We mentioned in Section \ref{sssec:allocation-of-network-resource} our
+We mentioned in Section~\ref{sssec:allocation-of-network-resource} our
 expectation of a tighter, more complex interaction between the network
 and application layers in this environment because of the need to
 optimize scarce network resources for the most important
