@@ -3650,7 +3650,9 @@ order. We describe each error metric below, starting with numerical error.
 
 Each write is associated a well-defined numerical weight defined for
 each conit, though this may be $0$ for conits that the write does not
-modify.
+modify. The numerical error of a replica is always measured at the
+level of weight applied to individual conits.
+
 \begin{definition}
   The \emph{numerical weight} of a write $w$ on a conit $F$ is a real
   number $\NumWeight(w, F)$ supplied by the programmer when $w$ is
@@ -3672,34 +3674,14 @@ although in some cases there is an ``obvious'' choice.
   $y$ should be specified with $\NumWeight(w, F_{\mathsf{sum}}) = 2$.
 \end{example}
 
-The divergence of a replica is always measured in terms of the
-deviation of individual conits from their ideal values. For instance,
-suppose $P$ and $Q$ are initialized in state $\Dinit$. Suppose a
-client submits two writes accesses $w$ and $w'$ to $P$ with the following weights:~\\
-
-\begin{minipage}{0.5\textwidth}
-\begin{itemize}
-\item[] $\NumWeight(w, F_y) = 2$
-\item[] $\NumWeight(w, F_z) = 5$
-\end{itemize}
-\end{minipage}%
-\begin{minipage}{0.5\textwidth}
-  \begin{itemize}
-  \item[] $\NumWeight(w', F_y) = 1$
-  \item[] $\NumWeight(w', F_z) = -2$
-  \end{itemize}
-\end{minipage}~\\
-
-\noindent If $Q$ has not seen $w$ and $w'$ yet, then the numerical
-error of $D_Q$ with respect to $F_y$ and $F_z$ is $2 + 1 = 3$ and
-$5 - 2 = 3$, respectively. The value $\NE\left(P, F\right)$ sets a
-bound on the total numerical weight applied to $F$ of writes
-that $P$ is unaware of---setting this value to $0$ means $P$ will be
-notified of every write access that affects $F$ originating at any
-process before that write request is finished executing. This process
+$\NE\left(P, F\right)$ sets a bound on the total numerical weight
+applied to $F$ of writes that $P$ is unaware of. Setting this value to
+$0$ means $P$ will be notified of every write access that affects $F$
+originating at any process before that write request is finished
+executing and returns to the client who submitted it. This process
 will be described in Section~\ref{ssec:conit-numerical-consistency}.
 
-Separately form numerical weight, each write is associated with an
+Separately from numerical weight, each write is associated with an
 order weight for each conit.
 \begin{definition}
   The \emph{order weight} of a write $w$ on a conit $F$ is a
@@ -3718,15 +3700,14 @@ updates that affect $F$ that $P$ might apply out of order---setting
 this value to $0$ means all writes that affect $F$ will be applied
 locally by $P$ in their correct order relative to each other, where
 ``correct'' is defined with respect to some global history $\Hglobal$
-whose existence is guaranteed by the conit framework (see Theorem
-\ref{thm:conit-correct}).
+whose existence is guaranteed by the conit framework.
 
 How the middleware associates a write $w$ with numerical and order
 weights is an implementation detail. The approach described by Yu and
-Vahdat \cite{2002tact} has the programmer to invoke function calls of
-the form $\mathsf{AffectConit}(F, x, y)$ inside in the body of
-functions that modify the backing data store. Here, $F$ is the conit,
-$x$ is $\NumWeight(w, F)$, and $y$ is $\OrderWeight(w, F)$.
+Vahdat \cite{2002tact} has the programmer invoke function calls of the
+form $\mathsf{AffectConit}(F, x, y)$ inside in the body of functions
+that modify the backing data store. Here, $F$ is the conit, $x$ is
+$\NumWeight(w, F)$, and $y$ is $\OrderWeight(w, F)$.
 
 The third metric used to measure consistency is real-time staleness,
 which bounds the real time that is allowed to elapse between when a
@@ -3735,46 +3716,61 @@ it. Because it is measured in terms of physical time, the programmer
 cannot specify the ``real time weight'' of a write on a conit.
 
 $\RTE(P, F)$ bounds the real time staleness of $P$ with respect to any
-write that affects $F$---setting this value to, say, $5$ seconds
+write that affects $F$. Setting this value to $5$ seconds, say,
 implies that $P$ will always be aware of any write affecting $F$ that
-returned to the user who submitted it more than $5$ seconds
-ago. Setting this to $0$ has the same logical effect as setting
-$\NE(P, F)$ to $0$, though they are enforced with different
-mechanisms. Real-time staleness will is described in Section
-\ref{ssec:conit-real-time-consistency}.
+finished executing more than $5$ seconds ago. Setting either of
+$\RTE(P, F)$ or $\NE(P, F)$ to $0$ would make the other effectively
+$0$ as well, though the metrics are enforced with different mechanisms
+and would exhibit different behavior (both being correct in the sense
+of preserving the correctness properties, but with different
+application performance). Real-time staleness is described in
+Section \ref{ssec:conit-real-time-consistency}.
 
 \subsubsection{Enforcing Error Bounds}
 \label{sssec:conit-tuning-bounds}
-%TODO Compulsory anti-entropy
+Each read or write access submitted to $P$ is responsible for
+informing the middleware about which conits the access depends
+on. These are the conits that logically represent data in $D_P$ that
+might influence how the access is executed and what value it returns
+to the user; these are the ones whose consistency will be enforced
+before handling the access. We adopt a convention of denoting a set of
+conits with a script $\Conits$. The middleware is responsible for
+ensuring that each of $\NE \left(P, F\right)$, $\OErr(P, F)$, and
+$\RTE(P, F)$ is enforced for each conit $F \in \Conits$ that an access
+depends on.
+
 The three measures of consistency are enforced with different
 mechanisms. Both order error and real-time error are bounded purely
 locally---that is, $P$ can enforce these error bounds without
 proactive cooperation from other processes. Numerical error is bounded
-by a proactive protocol that requires every other process to know
-$P$'s error bounds and actively cooperate to ensure they are enforced.
+by a proactive protocol that requires every process to know $P$'s
+error bounds and actively cooperate to ensure they are enforced.
 Roughly speaking, when a data access is submitted to $P$ by a client,
 $P$ executes the following steps:
 \begin{enumerate}
-\item \textbf{Enforce $\OErr$ and $\RTE$:} For each conit $F$, the
-  values $\OErr(P, F)$ and $\RTE(P, F)$ are enforced using compulsory
-  pull-based anti-entropy sessions to pull updates from remote
-  replicas, if necessary.
+\item \textbf{Enforce $\OErr$ and $\RTE$:} For each depended-on conit
+  $F$, the values $\OErr(P, F)$ and $\RTE(P, F)$ are enforced using
+  compulsory pull-based anti-entropy sessions to pull updates from
+  remote replicas, if necessary.
 \item \textbf{Apply the access locally:} The access is applied to the
   local replica, which in general will yield some return value.
-\item \textbf{Add writes to the log} If the access is a write access,
+\item \textbf{Add writes to the log:} If the access is a write access,
   it is tagged with the pair $(P, \clock{P,t})$ and pushed onto $\WL{P}$ so
   that it may participate in write propagation.
-\item \textbf{Enforce $\NE$:} If the access is a write, for each
-  affected conit $F$, the system decides for each remote $Q$ whether
-  it is required to initiate compulsory push-based anti-entropy with
-  $Q$ to cooperatively bound $\NE(Q, F)$.
+\item \textbf{Enforce $\NE$ for remotes:} If the access is a write
+  $w$, for each conit $F$ affected by $w$, the system decides for each
+  remote $Q$ whether it is required to initiate compulsory push-based
+  anti-entropy with $Q$ to cooperatively bound $\NE(Q, F)$.
 \item \textbf{Return to the user:} The request returns control back to
   the user, yielding the return value of the access if there was one.
 \end{enumerate}
 
-%TODO
-Explain when conits can be changed.
-
+Because $\OErr\left(P, F\right)$ and $\RTE(P, F)$ are enforced
+locally, these values can be changed on a per-access basis, with each
+access specifying its preferred consistency levels. However, changing
+$\NE\left(P, F\right)$ requires notifying every other process about
+the update so they can proactively enforce it, so may be costly to
+change this value frequently.
 
 \subsection{Numerical Consistency}
 \label{ssec:conit-numerical-consistency}
