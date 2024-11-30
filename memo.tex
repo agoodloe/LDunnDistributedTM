@@ -2768,7 +2768,7 @@ of $P$'s message log.
   \textbf{Coverage Property}: For all $Q$, $P$ has received
   all messages originating at $Q$ whose timestamps are less than the
   $Q^\textrm{th}$ entry in $P$'s summary timestamp vector.
-  \[ \{m \in \WLat{Q}{Q} | \timestamp{m} \leq \summary{P}{Q} \} \subseteq \WLat{P}{Q} \]
+  \[ \{m \in \WLat{Q}{Q} \mid \timestamp{m} \leq \summary{P}{Q} \} \subseteq \WLat{P}{Q} \]
 \end{quote}
 The previous subset relation is ``morally'' an equality---messages in
 $\WLat{P}{Q}$ but not the subset are said to be ``early''---but only the
@@ -3812,8 +3812,8 @@ following holds:
 Combining this with Equations \eqref{eq:conit-D-obs} and
 \eqref{eq:conit-D-ideal} gives
 \begin{gather}
-  \conitAt{F}{P} = \Vinit{F} + \sum \{\NumWeight(w, F) | w \in \localhistory{P}\} \\
-  \Videal{F} = \Vinit{F} + \sum \{\NumWeight(w, F) | w \in \Hglobal\}
+  \conitAt{F}{P} = \Vinit{F} + \sum \{\NumWeight(w, F) \mid w \in \localhistory{P}\} \\
+  \Videal{F} = \Vinit{F} + \sum \{\NumWeight(w, F) \mid w \in \Hglobal\}
 \end{gather}
 
 The correctness condition required of numerical error is that the
@@ -3826,7 +3826,7 @@ Enforcing this condition requires bounding the combined weight of set
 of writes that $P$ has not seen, specifically the ones that affect
 conit $F$:
 \[
-  \{ w \in \Hglobal | \NumWeight(w, F) \neq 0 \} \setminus \WL{P}
+  \{ w \in \Hglobal \mid \NumWeight(w, F) \neq 0 \} \setminus \WL{P}
 \]
 This is accomplished by requiring all \emph{other} process to maintain
 approximate knowledge of the contents $\WL{P}$. Each process $Q$
@@ -3907,7 +3907,7 @@ of $\clock{Q,t}$ at the time of the last push to $P$. $Q$
 conservatively estimates that $P$ has not received any messages from
 $Q$ (via a third party) since $\last{Q}{P}$:
 \begin{equation}
-  \View{Q}{P} \equiv \{ m \in \WLat{Q}{Q} | \timestamp{m} \leq
+  \View{Q}{P} \equiv \{ m \in \WLat{Q}{Q} \mid \timestamp{m} \leq
   \last{Q}{P} \}
 \end{equation}
 While handling a write with timestamp $\clock{Q, t}$, after pushing
@@ -3923,7 +3923,7 @@ If TSAE is implemented with summary matrices, $Q$ estimates that $P$
 has not seen any messages from $Q$ with timestamp newer than
 $\ackMatrix{Q}[P][Q]$:
 \begin{equation}
-  \View{Q}{P} \equiv \{ m \in \WLat{Q}{Q} | \timestamp{m} \leq
+  \View{Q}{P} \equiv \{ m \in \WLat{Q}{Q} \mid \timestamp{m} \leq
   \ackMatrix{Q}[P][Q] \}
 \end{equation}
 
@@ -3941,15 +3941,15 @@ paper~\cite{2000tactalgorithms}. For reasons explained below, we
 consider writes with positive and negative weights
 separately.
 \begin{gather}
-  \EstUnseenPos{Q}{F}{P} \equiv \{ w \in \EstUnseen^{Q}{\left(P\right)} | \NumWeight\left(w, F\right) > 0 \} \\
-  \EstUnseenNeg{Q}{F}{P} \equiv \{ w \in \EstUnseen^{Q}{\left(P\right)} | \NumWeight\left(w, F\right) < 0 \}
+  \EstUnseenPos{Q}{F}{P} \equiv \{ w \in \EstUnseen^{Q}{\left(P\right)} \mid \NumWeight\left(w, F\right) > 0 \} \\
+  \EstUnseenNeg{Q}{F}{P} \equiv \{ w \in \EstUnseen^{Q}{\left(P\right)} \mid \NumWeight\left(w, F\right) < 0 \}
 \end{gather}
 For each $F$, define the following values totaling the positive and
 negative weights to conit $F$ of writes originating at $Q$ thought to
 be unseen by $P$.
 \begin{gather}
-  \twp{Q}{F}{P} \equiv \sum \{ \NumWeight\left(w, F\right) | w \in \EstUnseenPos{Q}{F}{P} \} \\
-  \twn{Q}{F}{P} \equiv \sum \{ \NumWeight\left(w, F\right) | w \in \EstUnseenNeg{Q}{F}{P} \}
+  \twp{Q}{F}{P} \equiv \sum \{ \NumWeight\left(w, F\right) \mid w \in \EstUnseenPos{Q}{F}{P} \} \\
+  \twn{Q}{F}{P} \equiv \sum \{ \NumWeight\left(w, F\right) \mid w \in \EstUnseenNeg{Q}{F}{P} \}
 \end{gather}
 To bound $\NE\left(P, F\right)$, the intuition is that $Q$'s estimate
 of numerical weight on $F$ unseen by $P$ must not exceed an allotted
@@ -3982,19 +3982,19 @@ $\twp{Q}{F}{P}$ and $\twn{Q}{F}{P}$ will be zero.
   writes that are not in $P$'s write log:
   \begin{equation*}
     % \Videal{F} - \conitAt{F}{P} =  \sum_{Q \in \AllProc \setminus \{P\}} \{ \NumWeight\left(w, F\right) | w \in \WLat{Q}{Q} \setminus \WLat{P}{Q}\}
-    \Videal{F} - \conitAt{F}{P} =  \sum_{Q \in \AllProc \setminus \{P\}} \{ \NumWeight\left(w, F\right) | w \in \Unseen^Q\left(P\right) \}
+    \Videal{F} - \conitAt{F}{P} =  \sum_{Q \in \AllProc \setminus \{P\}} \{ \NumWeight\left(w, F\right) \mid w \in \Unseen^Q\left(P\right) \}
   \end{equation*}
   Because actual unseen writes are a subset of estimated unseen writes, we have the following equation:
   \begin{align*}
-    & \sum \{ \NumWeight\left(w, F\right) | w \in \Unseen^Q\left(P\right) \} \\
-    < & \sum \{ \NumWeight\left(w, F\right) | w \in \EstUnseenPos{Q}{F}{P} \}\\
+    & \sum \{ \NumWeight\left(w, F\right) \mid w \in \Unseen^Q\left(P\right) \} \\
+    < & \sum \{ \NumWeight\left(w, F\right) \mid w \in \EstUnseenPos{Q}{F}{P} \}\\
     \equiv & \ \twp{Q}{F}{P}
   \end{align*}
   Likewise we have the following:
   \begin{align*}
     &  \twn{Q}{F}{P} \\
-    \equiv & \sum \{ \NumWeight\left(w, F\right) | w \in \EstUnseenNeg{Q}{F}{P} \}\\
-    < & \sum \{ \NumWeight\left(w, F\right) | w \in \Unseen^Q\left(P\right) \}
+    \equiv & \sum \{ \NumWeight\left(w, F\right) \mid w \in \EstUnseenNeg{Q}{F}{P} \}\\
+    < & \sum \{ \NumWeight\left(w, F\right) \mid w \in \Unseen^Q\left(P\right) \}
   \end{align*}
   Now as long as the invariants
   \begin{equation*}
@@ -4199,9 +4199,9 @@ some reservations without immediately checking for seat conflicts, so
 long as an allowable dollar amount of potential refunds is not
 exceeded.
 
-An indirect way this liability might have been prevented is if $Q$ had
-enforced $\NE(Q, F_{\textrm{flight}}) = 0$. Indeed, if the
-two-phase locking policy is used (see
+An indirect way to bound this sort of liability would be for $Q$ to
+enforce $\NE(Q, F_{\textrm{flight}}) = 0$. Indeed, if the two-phase
+locking policy is used (see
 Section~\ref{sssec:conit-distributed-locking}), $Q$ would not accept a
 reservation without being aware of a conflicting reservation at
 $P$. However, this would be enforced with a push-based protocol where
@@ -4213,18 +4213,6 @@ pull-based and would only require communication with $P$ when the cost
 of $Q$'s tentative reservations exceeds its allowable bounds. One or
 the other strategy may be substantially more efficient depending on
 the application characteristics.
-
-\begin{comment}
-However, why, suppose another reservation server $R$ is notified about
-both $w_Q$ and $w_P$, so it has $0$ numerical error, but learns about
-them in the opposite order and ends up in state
-$D_R = \Dinit + w_Q + w_P$ where $Q$'s client appears to get the
-reservation first. This state, which has $0$ numerical error, would
-persist at $R$ until the total ordering component at $R$ discovers
-that $w_P$ should be first. Numerical error only controls which
-updates a process sees, but not the order in which they are applied to
-the local replica.
-\end{comment}
 
 \subsubsection{Out-of-Order Error}
 
@@ -4343,7 +4331,7 @@ writes to any of the conits it depends on.
   each $F$ in $\Conits$, for all writes $w$ that are in the out-of-order
   set for $\mathcal{F}$.
   \begin{equation}
-    \OrderError\left(a, \mathcal{F}\right) \equiv \sum_{F \in \Conits} \{ \OrderWeight\left(w, F\right) | w \in \mathsf{OOO}\left(a, \Conits\right) \}
+    \OrderError\left(a, \mathcal{F}\right) \equiv \sum_{F \in \Conits} \{ \OrderWeight\left(w, F\right) \mid w \in \mathsf{OOO}\left(a, \Conits\right) \}
   \end{equation}
 \end{definition}
 
@@ -4352,7 +4340,7 @@ can estimate the order error of an access by totaling the order weight
 of accesses to $\Conits$ that have not been committed, yielding the
 following value:
 \begin{equation}
-  \EstOrderError\left(a, \mathcal{F}\right) \equiv \sum_{F \in \Conits} \{ \OrderWeight\left(w, F\right) | w \in \Uncommitted{P}|_\Conits \}
+  \EstOrderError\left(a, \mathcal{F}\right) \equiv \sum_{F \in \Conits} \{ \OrderWeight\left(w, F\right) \mid w \in \Uncommitted{P}|_\Conits \}
 \end{equation}
 Now
 $\mathsf{OOO}\left(a, \Conits\right) \subseteq
@@ -4450,41 +4438,61 @@ The \emph{real time staleness} metric allows each process $P$ to bound
 the maximum amount of time between an access affecting a conit being
 issued and $P$ seeing that access. Here we rely on the assumption that
 $\summaryVec{P}$ stores physical timestamps from loosely synchronized
-physical clocks, though this assumption can be weakened. Let $P$ have
-an upper bound of $\eprt \geq 0$ on the real-time staleness of a conit
-$F$. Here, $\eprt$ should be greater than the time it takes for $P$ to
-engage in a typical anti-entropy session. The rule for enforcing
-real-time bounds is very simple.
+physical clocks, though this assumption can be weakened.
 
+\begin{definition}
+  The \emph{real-time staleness} of an access $a$ relative to conit
+  $F$ is the value
+  \begin{equation*}
+    \memstart{a} - \min \left\{\memstop{w} \quad \big|\quad
+      \begin{aligned}&w \in \PHideal-\PHobs \\
+                     \textrm{and } &\NumWeight\left(w, F\right) \neq 0 \\
+                     \textrm{and } &\textrm{$w$ externally precedes $a$}
+    \end{aligned}\quad \right\}
+  \end{equation*}
+\end{definition}
+
+The correctness condition for real-time staleness is that the above
+value is less than $\RTE\left(P, F\right)$ for any access originating
+at $P$ with a read dependency on $F$.
+
+\subsubsection{Implementation}
 While handling an access with a read dependency on $F$, submitted at
-time $t$, $P$ checks for each $X \in \AllProc$ whether
-$|\clock{P, t} - \summary{P}{X}| < \eprt$ is true. If it is not true,
-then $P$ engages in a pull-based anti-entropy session with $X$, at
-which point $\summary{P}{X}$ has value $\clock{X, t'}$ for some
-$t' > t$. Note that the assumption of loose synchronization implies
-$\clock{X, t'} \approx \clock{P, t}$ if $t \approx t'$. This protocol
-ensures that the original access, timestamped with value
-$\clock{P,t}$, will observe the effect of all writes affecting $F$
-with timestamps less than $\clock{P,t} - \eprt$.
+real time $t$, $P$ checks for each $X \in \AllProc$ whether
+$|\clock{P, t} - \summary{P}{X}| < \RTE\left(P, F\right)$ is true for
+each $X$. If it is not true, then $P$ engages in a pull-based
+anti-entropy session with $X$, at which point $\summary{P}{X}$ has
+value $\clock{X, t'}$ for some $t' \approx t$. Note that the assumption of
+loose synchronization implies $\clock{X, t'} \approx \clock{P, t}$.
 
-A pull-based protocol may seem wasteful because $P$ may poll $X$ for
-updates even if $X$ does not have any new writes. However, an approach
-where $X$ pushes updates to $P$ cannot bound real-time staleness
-without an upper bound on the time it takes to push messages across
-the network to $P$.
+This protocol ensures that the original access, timestamped with value
+$\clock{P,t}$, will observe the effect of all writes affecting $F$
+with timestamps less than $\clock{P, t} - \RTE(P, F)$. The assumption
+of external precedence owes to the corner case scenario where
+processing the access takes a long time, during which time some other
+process, whose writes were already pulled by $P$, originates a new
+write that finishes before $P$'s write by more than
+$\RTE\left(P, F\right)$. Such a write has no external precedence over
+$P$'s write, although it may be ordered before it in the global order.
+
+A pull-based protocol may seem wasteful because $P$ may poll remotes
+for updates even if when they do not have any new writes. However, an
+approach where remotes push updates to $P$ cannot bound real-time
+staleness without an upper bound on the time it takes to push messages
+across the network to $P$. The pull-based approach does not suffer the
+same problem---high network latencies will cause $P$ to block for a
+long time, but will preserve the intended correctness property.
 
 If clocks are not loosely synchronized, an alternative implementation
 strategy is for $P$ to maintain a vector $\vtphys{P}{}$ where
-$\vtphys{P}[X]$ stores the value $\clock{P,t}$ of $P$'s clock at the
-last time $P$ was on the receiving end of an anti-entropy session
-directly with $X$. Then $P$ enforces consistency by ensuring that
-$|\clock{P, t} - \vtphys{P}{[X]}| < \eprt$ is true before handling an
-access submitted at time $t$. Since this approach only compares values
-from $P$'s clock, synchronization is not required assuming $\clock{P}$
-runs at a constant rate. However, this approach has the downside that,
-unlike $\summary{P}{Q}$, $\vtphys{P}[Q]$ cannot be updated based on
-information indirectly learned during anti-entropy with a third
-party.
+$\vtphys{P}[X]$ stores the value $\clock{P,t}$ of the last time $P$
+was on the receiving end of an anti-entropy session directly with
+$X$. Then $P$ enforces consistency by using $\vtphys{P}$ in place of
+$\summary{P}{X}$ above. This approach only compares values from $P$'s
+clock; synchronization is not required assuming $\clock{P}$ runs at a
+constant rate. However, this approach has the downside that, unlike
+$\summary{P}{Q}$, the value of $\vtphys{P}[Q]$ is not updated based on
+information indirectly learned during anti-entropy with a third party.
 
 \subsection{Correctness Properties}
 \label{ssec:conit-correctness}
