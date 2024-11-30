@@ -3779,30 +3779,34 @@ We assume each conit $F$ is associated with a valuation function,
   \Val^F\colon \mathsf{Database\ Image} \to \mathbb{R}
 \]
 that maps a database state to some real number representing the value
-of that conit. For each conit $F$, each write $w$ is associated with a
-value, $\NumWeight(w, F)$ codifying the effect on $F$ of
-applying $w$ to the database:
-\begin{equation*}
+of that conit. Yu and Vahdat actually \emph{define} a conit as what we
+have called a valuation function. We adopt a slightly more abstract
+terminology and say that a conit is just an identifier such that each
+write is associated with a well-defined numerical weight for each
+conit. Intuitively, the value $\NumWeight(w, F)$ codifies the effect
+on $F$ of applying $w$ to the database in the sense that it should be
+defined by the following equation:
+\begin{equation}
   \NumWeight\left(w, F\right) \equiv \Val^F(D + w) - \Val^F(D).
-\end{equation*}
-To make sense of this equation, we must assume the weight applied to
-each conit is independent of the current state $D$ of the
-database. Recall that we think of ``write'' accesses as containing
+\end{equation}
+To make sense of this equation, we must assume the value on the
+right-hand side is independent of the current state $D$ of the
+database. This is sensible because we think of writes as containing
 logic to modify the database, such as incrementing or decrementing a
-value. This stands in contrast to thinking about writes that directly
-set the final value of each data item after the update is
-performed---the significance of such an update would depend on the
-current value of the data items.
+value. This contrasts with writes that directly set the value of each
+data item, in which case the difference would directly depend on the
+item's previous value.  If the change applied to $F$ by $w$ could
+depend on the state of the replica, then $\NumWeight\left(w, F\right)$
+might be given as an upper bound of the above expression quantified
+over possible states of $D$ instead, but have not come across a use
+case where this would be required.
 
-Yu and Vahdat actually \emph{define} a conit as what we have called a
-valuation function. We adopt a slightly more abstract terminology and
-say that a conit is just an identifier such that each write is
-associated with a well-defined numerical weight for each conit. A
-weight of $0$ indicates that a conit is not affected by $w$.
-
-Let $V^F_P$ denote the current value of $F$ at $P$'s replica $\Dstate{P}$. Let
-$\Videal{F}$ represents the value of $F$ at $\Dideal$.  Now $F$
-distributes over $+$ in the sense that the following holds:
+Let $Vinit{F} \equiv V^F(\Dinit)$ denote the value of $F$
+in the initial database state. Let $V^F_P \equiv V^F(\Dstate{P})$
+denote the current value of $F$ at $P$'s replica. Let
+$\Videal{F} \equiv V^F(\Dideal)$ represent the value of $F$ at
+$\Dideal$.  Now $F$ distributes over $+$ in the sense that the
+following holds:
 \begin{equation}
   \Val^F(D + w) = \Val^F(D) + \NumWeight(w, F).
 \end{equation}
@@ -3814,9 +3818,8 @@ Combining this with Equations \eqref{eq:conit-D-obs} and
 \end{gather}
 
 The correctness condition required of numerical error is that the
-difference between these values is bounded at all times. Let
-$\NE(P, F)$ be the allowable numerical error of $P$ for conit $F$. We
-seek to enforce the following inequality as an invariant:
+difference between these values is bounded at all times according to
+the following inequality:
 \begin{equation}
   | \Videal{F} - \conitAt{F}{P} | < \NE\left(P, F \right)
 \end{equation}
@@ -3826,7 +3829,7 @@ has not seen, specifically the ones that affect conit $F$:
   \{ w \in \Hglobal | \NumWeight(w, F) > 0 \} \setminus \WL{P}
 \]
 This is accomplished by requiring all \emph{other} process to maintain
-approximate knowledge of the contents $\WL{P}$. Each other process $Q$
+approximate knowledge of the contents $\WL{P}$. Each process $Q$
 uses its estimate of $\WL{P}$ to bound its own ``contribution''
 towards the writes in $\Hglobal$ that are not in $\WL{P}$, namely the
 writes originating at $Q$ that $P$ has not been notified of yet.
@@ -3835,8 +3838,8 @@ writes originating at $Q$ that $P$ has not been notified of yet.
 \label{sssec:conit-numerical-assumptions}
 
 Bounding numerical error requires a cooperation between all
-processes. In particular, our first assumption is that each process
-knows every other process's numerical error bounds for each conit.
+processes. For this, we make an assumption that each process knows
+every other process's numerical error bounds for each conit.
 \begin{quote}
   \textbf{Global knowledge of error bounds}: Every process knows
   $\NE\left(P, F \right)$ for each conit $F$ and each process $P$.
@@ -3845,129 +3848,132 @@ If $P$ wishes to dynamically update its numerical error bounds for a
 conit $F$, it must invoke some mechanism to inform all other processes
 of this change.
 
-Our second assumption is that each process $Q$ maintains a
-conservative estimate, called its \emph{view}, of which writes
-originating at $Q$ have been received by each other process. $Q$'s
-view of $P$ is denoted by $\View{Q}{P}$.
+In order to bound $P$'s numerical error, each remote process $Q$ needs
+to known which writes $P$ has not seen. Specifically, $Q$ keeps track
+of which writes \emph{originating at $Q$} $P$ has not seen. Recall
+that $\WLat{P}{Q}$ contains the writes $P$ has received that
+originated at $Q$. Therefore, the set of writes originating at $Q$
+unseen by $P$, which we call $P$'s actually unseen writes, is defined
+by the following set difference:
+\begin{equation}
+  \ActualUnseen^{Q}{\left(P\right)} \equiv \WLat{Q}{Q} \setminus \WLat{Q}{P}
+\end{equation}
+Exactly computing the set of unseen writes would require $Q$ to have
+perfect knowledge of $\WLat{Q}{P}$, which would be extremely
+inefficient. Instead, our second assumption required to bound
+numerical error is that $Q$ maintains a conservative estimate, called
+its \emph{view}, of this value. $Q$'s view of $P$ is denoted
+$\View{Q}{P}$.
 \begin{quote}
   \textbf{Approximate knowledge of remote knowledge}: Each process $Q$
   can compute a set $\View{Q}{P}$ subject to the following invariant:
-  \begin{equation*}
-    \View{Q}{P} \subseteq \WLat{P}{Q}
-  \end{equation*}
-  $Q$ must also implement a mechanism to advance its view by
-  pushing updates to $P$.
+  \begin{equation}
+    \View{Q}{P} \subseteq \WLat{P}{Q}  \label{eqn:conit-approximate-view}
+  \end{equation}
+  $Q$ must also implement a mechanism to advance its view by pushing
+  updates to $P$, at which point $\View{Q}{P} =
+  \WLat{P}{Q}$. Section~\ref{sssec:conit-views} describes two ways to
+  implement views.
 \end{quote}
-Recall that $\WLat{P}{Q}$ is the set of writes that $P$ has received
-that originated at $Q$. The subset relation above states that $Q$
-maintains a lower bound estimate of this set---it is a lower bound
-because $P$ might have learned about writes originating at $Q$ through
-anti-entropy with some intermediary process $R$, and $Q$ may not know
-that $P$ has been informed about these writes. We now describe two
-ways of to implement views for the $\ackVec{}$ and $\ackMatrix{}$
-implementations of TSAE.
-\begin{itemize}
-\item If TSAE is implemented with $\ackVec{}{}$, then $Q$ maintains an
-  additional vector $\lastVec{Q}$ where $\last{Q}{P}$ stores the value
-  of $\clock{Q,t}$ at the time of the last push to $P$. $Q$
-  conservatively estimates that $P$ has not received any messages from $Q$
-  (via a third party) since $\last{Q}{P}$:
-  \begin{equation}
-    \View{Q}{P} \equiv \{ m \in \WLat{Q}{Q} | \timestamp{m} \leq
-    \last{Q}{P} \}
-  \end{equation}
-  While handling a write with timestamp $\clock{Q, t}$, after pushing
-  messages to $P$, $\last{Q}{P}$ is advanced to $\clock{Q, t}$.
-\item If TSAE is implemented with $\ackMatrix{}$, $Q$ estimates that $P$ has
-  not seen any messages from $Q$ with timestamp newer than
-  $\ackMatrix{Q}[P][Q]$:
-  \begin{equation}
-    \View{Q}{P} \equiv \{ m \in \WLat{Q}{Q} | \timestamp{m} \leq
-    \ackMatrix{Q}[P][Q] \}
-  \end{equation}
-  While handling a write update with timestamp $\clock{Q, t}$, if $Q$
-  engages in push-based anti-entropy, $Q$'s view is advanced because
-  $\ackMatrix{Q}[P][Q]$ will have value $\clock{Q, t}$.
-\end{itemize}
-Note that matrices allow $P$ to maintain a view of which updates $Q$
-has seen from any $X$, but for the protocol, only an estimate of
-$\WLat{Q}{P}$ is required. For the $\ackVec{}$-based implementation of
-TSAE, $\ack{P}{Q}$ itself provides a conservative view of $\WL{Q}$,
-but it is too coarse: there is no guarantee it will advance after
-pushing updates to $Q$, since it is a lower bound of the minimum value
-of $\summary{Q}{X}$ for \emph{any} $X$. The advantage of using
-$\ackMatrix{}$ over $\lastVec{}$ is that, for example, it allows $P$
-to learn from some process $R$ that $Q$ has received messages that
-originated at $P$. Entries in $\lastVec{P}$ can only be updated by $P$
+The subset relation above states that $Q$ maintains a lower bound
+estimate of this set---it is a lower bound because $P$ might have
+learned about writes originating at $Q$ through anti-entropy with some
+intermediary process $R$, and $Q$ may not know that $P$ has been
+informed about these writes. This lower bound corresponds to an upper
+bound estimate of the messages it has originated that $Q$ has
+\emph{not} received yet. This estimate is defined by the following
+equation:
+\begin{equation}
+  \EstUnseen^{Q}{\left(P\right)} \equiv \WLat{Q}{Q} \setminus \View{Q}{P}
+\end{equation}
+\noindent Finally, condition \eqref{eqn:conit-approximate-view} implies the
+following subset relation:
+\begin{equation}
+  \ActualUnseen^{Q}{\left(P\right)} \subseteq \EstUnseen^{Q}{\left(P\right)}
+\end{equation}
+
+To bound numerical error, $Q$ never allows the combined weight of
+writes in $\EstUnseen^{Q}{\left(P\right)}$ to exceed a certain
+threshold on a per-conit basis. As long as every process collaborates
+in this manner, the weight of writes unseen by $P$ will remain within
+$P$'s numerical error
+bounds. Section~\ref{sssec:conit-split-weight-ae} describes a simple
+mechanism for achieving this.
+
+\subsubsection{Implementations of Views}\label{sssec:conit-views}
+We describe two ways to implement views for two implementations of
+TSAE described in Section \ref{sec:tsae}.
+
+\paragraph{Acknowledgment Vectors}
+If TSAE is implemented using acknowledgment vectors, $Q$ maintains an
+additional vector $\lastVec{Q}$ where $\last{Q}{P}$ stores the value
+of $\clock{Q,t}$ at the time of the last push to $P$. $Q$
+conservatively estimates that $P$ has not received any messages from
+$Q$ (via a third party) since $\last{Q}{P}$:
+\begin{equation}
+  \View{Q}{P} \equiv \{ m \in \WLat{Q}{Q} | \timestamp{m} \leq
+  \last{Q}{P} \}
+\end{equation}
+While handling a write with timestamp $\clock{Q, t}$, after pushing
+messages to $P$, $\last{Q}{P}$ is advanced to $\clock{Q, t}$.
+
+Note that $\ack{P}{Q}$ itself provides a conservative view of
+$\WL{Q}$, but it is too coarse: there is no guarantee it will advance
+after pushing updates to $Q$, since it is a lower bound of the minimum
+value of $\summary{Q}{X}$ for \emph{any} $X$.
+
+\paragraph{Matrices}
+If TSAE is implemented with summary matrices, $Q$ estimates that $P$
+has not seen any messages from $Q$ with timestamp newer than
+$\ackMatrix{Q}[P][Q]$:
+\begin{equation}
+  \View{Q}{P} \equiv \{ m \in \WLat{Q}{Q} | \timestamp{m} \leq
+  \ackMatrix{Q}[P][Q] \}
+\end{equation}
+
+The advantage of using $\ackMatrix{}$ over $\lastVec{}$ is that it
+allows $Q$ to learn from other processes which messages originating at
+$Q$ $P$ has received, since all processes will track this
+information. Entries in $\lastVec{Q}$ can only be updated by $Q$
 itself, making it a coarser estimate of $Q$'s write log, potentially
 causing $P$ to push updates more often.
 
-This lower bound knowledge provided by $P$'s view of $Q$ corresponds
-to an upper bound estimate of the messages it has originated that $Q$
-has \emph{not} received yet, namely
-$\WLat{P}{P} \setminus \View{P}{Q}$. We denote the set of writes
-originating at $P$ that $P$ estimates have not been received by $Q$ as
-follows:
-\begin{equation*}
-  \EstUnseen^{Q}{\left(P\right)} \equiv \WLat{Q}{Q} \setminus \View{Q}{P}
-\end{equation*}
-Note that the actual set of writes originating at $Q$ unseen by $P$ is
-defined
-\begin{equation*}
-  \ActualUnseen^{Q}{\left(P\right)} \equiv \WLat{Q}{Q} \setminus \WLat{Q}{P}
-\end{equation*}
-which implies
-\begin{equation*}
-  \ActualUnseen^{Q}{\left(P\right)} \subseteq \EstUnseen^{Q}{\left(P\right)}
-\end{equation*}
-
-To bound numerical error, $P$ maintains an invariant that the weight
-of writes in $\EstUnseen^{P}{\left(Q\right)}$ must not exceed a
-certain threshold. As long as every process collaborates in this
-manner, the set of writes unseen by $Q$ will remain within some
-bounds. We now describe a simple mechanism for achieving this.
-
-\subsubsection{Split Weight Absolute Error}
-We describe \emph{split-weight AE} (absolute error) algorithm, which
-Yu and Vahdat explicate most at length in a 2000 paper
-\cite{2000tactalgorithms}. For reasons explained below, we consider
-writes with positive and negative weights separately. Additionally, we
-disaggregate the weight of unseen writes with respect to which conit
-is under consideration.
+\subsubsection{Split Weight Absolute Error}\label{sssec:conit-split-weight-ae}
+We describe the \emph{split-weight AE} (absolute error) algorithm,
+which Yu and Vahdat explicate most at length in a 2000
+paper~\cite{2000tactalgorithms}. For reasons explained below, we
+consider writes with positive and negative weights
+separately.
 \begin{gather}
-  \EstUnseen^P|^+_F{\left(Q\right)} \equiv \{ w \in \EstUnseen^{P}{\left(Q\right)} | \NumWeight\left(w, F\right) > 0 \} \\
-  \EstUnseen^P|^-_F{\left(Q\right)} \equiv \{ w \in \EstUnseen^{P}{\left(Q\right)} | \NumWeight\left(w, F\right) < 0 \}
+  \EstUnseenPos{Q}{F}{P} \equiv \{ w \in \EstUnseen^{Q}{\left(P\right)} | \NumWeight\left(w, F\right) > 0 \} \\
+  \EstUnseenNeg{Q}{F}{P} \equiv \{ w \in \EstUnseen^{Q}{\left(P\right)} | \NumWeight\left(w, F\right) < 0 \}
 \end{gather}
 For each $F$, define the following values totaling the positive and
-negative weights to conit $F$ of writes from $P$ thought to be unseen by $Q$.
+negative weights to conit $F$ of writes originating at $Q$ thought to
+be unseen by $P$.
 \begin{gather}
-  \twp{P}{Q, F} \equiv \sum \{ \NumWeight\left(w, F\right) | w \in \EstUnseen|^+_F{\left(P,Q\right)} \} \\
-  \twn{P}{Q, F} \equiv \sum \{ \NumWeight\left(w, F\right) | w \in \EstUnseen|^-_F{\left(P,Q\right)} \}
+  \twp{Q}{F}{P} \equiv \sum \{ \NumWeight\left(w, F\right) | w \in \EstUnseenPos{Q}{F}{P} \} \\
+  \twn{Q}{F}{P} \equiv \sum \{ \NumWeight\left(w, F\right) | w \in \EstUnseenNeg{Q}{F}{P} \}
 \end{gather}
-To bound numerical error for $F$ and $Q$, the intuition is that $P$'s
-estimate of numerical weight on $F$ that has not been seen by $Q$ must
-not exceed an allotted ``share'' of $Q$'s total error bound, or
-$\NE(Q, F)$. Since there are $|\AllProc| - 1$ processes that can
-accept writes without immediately adding them to $\WL{Q}$, this means
-the total weight of unseen messages accepted by each process must not
-exceed
-$\NE\left(Q, F \right) / \left(|\AllProc| - 1\right)$.
-When $P$ submits a new write, $P$ first checks for whether the
-following conditions hold:
+To bound $\NE\left(P, F\right)$, the intuition is that $Q$'s estimate
+of numerical weight on $F$ unseen by $P$ must not exceed an allotted
+``share'' of $\NE\left(P, F\right)$. There are $|\AllProc|$ total
+processes, of which $|\AllProc| - 1$ can originate writes
+without $P$ immediately seeing them. Therefore, the total weight of
+unseen messages accepted by these processes must not exceed
+$\NE\left(P, F \right) / \left(|\AllProc| - 1\right)$.  When $P$
+submits a new write, $P$ first checks whether the following
+conditions hold:
 \begin{align*}
-  \twp{P}{Q, F} + \NumWeight(w, F) &<   \frac{\NE\left(Q, F\right)}{|\AllProc| - 1} & \textrm{if $\NumWeight(w, F) > 0$} \\
-  \twn{P}{Q, F} + \NumWeight(w, F) &> - \frac{\NE\left(Q, F\right)}{|\AllProc| - 1} & \textrm{if $\NumWeight(w, F) < 0$}
+  \twp{Q}{F}{P} + \NumWeight(w, F) &< \phantom{-}  \frac{\NE\left(P, F\right)}{|\AllProc| - 1} & \textrm{if $\NumWeight(w, F) > 0$} \\
+  \twn{Q}{F}{P} + \NumWeight(w, F) &> - \frac{\NE\left(P, F\right)}{|\AllProc| - 1} & \textrm{if $\NumWeight(w, F) < 0$}
 \end{align*}
-If either of these conditions are violated, then $P$ updates its view
-of $Q$, which might involve sending updates that $Q$ has not
-seen. Before the write access completes, meaning returns to $P$'s
-client, $\WL{Q}$ will be reflect both the unseen writes and the write
-$P$ is currently handling, and $\twp{P}{Q, F}$ and $\twn{P}{Q, F}$
-will be zero.\footnote{The exact handling of write propagation,
-  particularly when $P$ sends updates to several remotes at once,
-  involves the orthogonal consideration of whether and how to acquire
-  remote locks on data items. This will be discussed more in Section
- ~\ref{ssec:conit-correctness}.}
+If either condition is violated, then $Q$ updates its view of $P$,
+requesting the latest value of $P$'s summary vector and sending any
+actually unseen writes in $\WLat{Q}{Q}$. Before the write completes,
+$\WL{P}$ will reflect all updates originating at $Q$ before and
+including the one being handled, and $\twp{Q}{F}{P}$ and
+$\twn{Q}{F}{P}$ will be zero.
 
 \begin{lemma}[Numerical weight correctness]
   When following the above protocol, then each value of each conit at process will satisfy
@@ -3984,35 +3990,35 @@ will be zero.\footnote{The exact handling of write propagation,
   Because actual unseen writes are a subset of estimated unseen writes, we have the following equation:
   \begin{align*}
     & \sum \{ \NumWeight\left(w, F\right) | w \in \ActualUnseen^Q\left(P\right) \} \\
-    < & \sum \{ \NumWeight\left(w, F\right) | w \in \EstUnseen|^+_F{\left(P,Q\right)} \}\\
-    \equiv & \ \twp{P}{Q, F}
+    < & \sum \{ \NumWeight\left(w, F\right) | w \in \EstUnseenPos{Q}{F}{P} \}\\
+    \equiv & \ \twp{Q}{F}{P}
   \end{align*}
   Likewise we have the following:
   \begin{align*}
-    &  \twn{P}{Q, F} \\
-    \equiv & \sum \{ \NumWeight\left(w, F\right) | w \in \EstUnseen|^-_F{\left(P,Q\right)} \}\\
+    &  \twn{P}{F}{Q} \\
+    \equiv & \sum \{ \NumWeight\left(w, F\right) | w \in \EstUnseenNeg{Q}{F}{P} \}\\
     < & \sum \{ \NumWeight\left(w, F\right) | w \in \ActualUnseen^Q\left(P\right) \}
   \end{align*}
-
   Now as long as the invariants
   \begin{equation*}
-    \twp{P}{Q, F} < \frac{\NE(Q, F)}{\left(|\AllProc|-1\right)}  \textrm{\ and\ } \twn{P}{Q, F} > -\frac{\NE(Q, F)}{\left(|\AllProc|-1\right)}
-  \end{equation*} are maintained for each $P$ and $Q$, then
+    -\frac{\NE(P, F)}{|\AllProc|-1} < \twn{Q}{F}{P} \textrm{\quad{}and\quad}
+    \twp{Q}{F}{P} < \frac{\NE(Q, F)}{|\AllProc|-1}
+  \end{equation*} are maintained for each choice of $Q$, then the following inequality holds:
   \begin{equation*}
     - \NE{(P, F)} < \Videal{F} - \conitAt{F}{P} < \NE{(P, F)}
   \end{equation*}
 \end{proof}
 
 The motivation for tracking positive and negative weights separately
-stems from the fact that $P$'s view is conservative. In this case,
-letting writes with positive weight ``cancel out'' writes with
-negative weight can lead to incorrect behavior. For example, suppose
-$P$ has accepted writes with positive and negative weights that
-exactly cancel out, and suppose $Q$ has actually seen, unbeknownst to
-$P$, all of the writes with negative weight. If $P$ totaled all
-weights together, it would wrongly estimate that the weight of writes
-unseen by $Q$ is $0$, when the actual value would be some positive
-value that may exceed $Q$'s error bounds.
+stems from the fact that $P$'s view is conservative, and letting
+writes with positive weight ``cancel out'' writes with negative weight
+can lead to incorrect behavior. For example, suppose $Q$ has
+originated writes with positive and negative weights that exactly
+cancel out, and suppose $P$ has actually seen, unbeknownst to $Q$, all
+of the writes with negative weight. If $Q$ totaled all estimated
+unseen weights together, it would wrongly estimate that the weight of
+writes unseen by $P$ is $0$, when the actual value would be some
+positive value that may exceed $\NE{(P, F)}$.
 
 \paragraph{Variations} Yu and Vahdat also describe two other schemes
 for bounding numerical error. \emph{Compound-weight absolute error} is
@@ -4021,10 +4027,10 @@ to cancel out. This method represents a potential tradeoff between
 storage space and communication, but they did not find the savings
 particularly compelling in their performance analysis. They also
 consider a scheme, \emph{inductive relative error}, which bounds the
-relative error $|1 - \frac{V_i}{V_{\textrm{final}}}|$. Notably, this
-algorithm only relies on $P$'s local knowledge. This is particularly
-interesting because it is not obvious how to efficiently bound
-relative error without knowing the ideal value $V_{\textrm{final}}$.
+relative error $|1 - V^F_P / \Videal{F} |$. It is somewhat notable
+that this algorithm relies only on each process' local knowledge,
+because it is not obvious how to efficiently bound relative error
+without knowing $\Videal{F}$.
 
 \begin{figure}
   \centering
@@ -4038,12 +4044,13 @@ relative error without knowing the ideal value $V_{\textrm{final}}$.
   \label{ex:conit-numerical}
   Figure~\ref{fig:conit-numerical} depicts the role of numerical
   weight for a process $A$.  Messages with a grid background represent
-  $A$'s view of $\WL{C}$. We are assuming here that matrices are used,
-  so $A$ has a view of $\WLat{C}{B}$, but this does not play a role as
-  $A$ only works to bound the weight of its own writes unseen by $C$.
+  $A$'s view of $\WL{C}$. We are assuming here that summary matrices
+  are used to implement TSAE, so $A$ also has a view of $\WLat{C}{B}$,
+  though this does not play a role. $A$ only works to bound the weight
+  of its own writes unseen by $C$.
 
-  $A$ estimates there are two messages, with timestamps $(A, 6)$ and
-  $(A, 9)$, in $\WLat{A}{A}$ that are not in $\WLat{C}{A}$. We assume
+  $A$ estimates there are two messages (with timestamps $(A, 6)$ and
+  $(A, 9)$) in $\WLat{A}{A}$ that are not in $\WLat{C}{A}$. We assume
   both of these updates apply positive weight to a conit $F$. While
   handling access $(A, 9)$, before returning to the user, the combined
   weight of the updates must be less than
@@ -4051,8 +4058,7 @@ relative error without knowing the ideal value $V_{\textrm{final}}$.
   would become unavailable and engage in compulsory anti-entropy with
   $C$. Note that if $A$ is multithreaded and can handle multiple
   accesses at once, then $A$ only has to be unavailable for further
-  access involving the same underlying conits. Reads and writes only
-  affecting other conits are not blocked.
+  accesses involving the same underlying conit.
 \end{example}
 
 \subsection{Order Consistency}

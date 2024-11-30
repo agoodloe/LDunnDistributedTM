@@ -79,11 +79,13 @@
 \newcommand{\eprt}{\epsilon_{\textrm{rt}}}
 %% Numerical error
 \newcommand{\EstUnseen}{\mathsf{EstUnseen}}
+\newcommand{\EstUnseenPos}[3]{\EstUnseen|_{#2}^{#1+}{\left(#3\right)}}
+\newcommand{\EstUnseenNeg}[3]{\EstUnseen|_{#2}^{#1-}{\left(#3\right)}}
 \newcommand{\ActualUnseen}{\mathsf{ActualUnseen}}
 \newcommand{\NumWeight}{\mathsf{NumWeight}}
 \newcommand{\View}[2]{\mathsf{View}^{#1}\left(#2\right)}
-\newcommand{\twp}[2]{\mathsf{twp}^{#1}\left(#2\right)}
-\newcommand{\twn}[2]{\mathsf{twn}^{#1}\left(#2\right)}
+\newcommand{\twp}[3]{\mathsf{twp}|_{#2}^{#1}\left(#3\right)}
+\newcommand{\twn}[3]{\mathsf{twn}|_{#2}^{#1}\left(#3\right)}
 \newcommand{\last}[2]{\mathsf{last}^{#1}[#2]}
 \newcommand{\lastVec}[1]{\mathsf{last}^{#1}}
 %% Histories
