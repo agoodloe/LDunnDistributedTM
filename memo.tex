@@ -192,24 +192,23 @@ before this occurs. Therefore, users are not provided any guarantees
 limiting how far apart a data item observed by the user may be from
 its ``true'' value.
 
-Section~\ref{sec:continuous-consistency} describes a TSAE-based
-replication mechanism suitable for networks with frequent disruptions,
-but where it is also important to measure and control how far apart
-replicas may diverge at any moment. This uses the theory of
+Section~\ref{sec:continuous-consistency} describes a TSAE-based data
+replication mechanism suitable for networks with frequent disruptions
+supporting applications that need to exercise control over the
+consistency of replicas. This framework is based on the theory of
 \emph{conits} (short for ``consistency unit'') developed by Yu and
-Vahdat \cite{2002tact}, which provides a \emph{continuous} consistency
-model that balances the competing objectives of consistency and
-availability in a quantifiable way. The idea is that applications can
-tolerate some level of inconsistency between replicas of a data item,
+Vahdat \cite{2002tact}, which balances the competing objectives of
+consistency and availability in a quantifiable way. The idea is that
+applications can tolerate some level of inconsistency between replicas
 as long as the divergence remains less than some defined upper
 bound. Using the conit framework allows applications to define units
 of replicated state of interest, enforce policies limiting
 inconsistency between their replicas, and adapt these policies
-dynamically in response to the environment. By combining the enforced
-guarantees of strong consistency models with the flexibility and
+dynamically in response to the environment. Because it provides
+fine-grained control without sacrificing the flexibility and
 resilience of weak consistency, this model is suitable where the
-tradeoffs implied by the CAP theorem may need to be carefully
-calibrated to support both performance and safety.
+tradeoffs implied by the CAP theorem need to be carefully calibrated
+to support both performance and safety.
 
 We conclude in Section~\ref{sec:conclusion} by recapping some of the
 main themes in this document and highlighting areas for further
