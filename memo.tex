@@ -3436,7 +3436,7 @@ a summary matrix (Section~\ref{ssec:tsae-unsynchronized}).
 
 Writes originating at $P$ are tagged with $P$'s identifier and clock
 value (whether physical or logical) and entered into $\WL{P}$ when
-they are applied to $D_P$. Remote write access added to $\WL{P}$
+they are applied to $D_P$. Remote write accesses added to $\WL{P}$
 during anti-entropy are applied to $D_P$ in the order they are
 received.  Thus, at all times $\WL{P}$ contains the history of all
 updates applied to $D_P$ and we have the following equation:
