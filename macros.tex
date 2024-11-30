@@ -62,7 +62,7 @@
 \newcommand{\Dinit}{D_\textrm{init}}
 \newcommand{\Writes}{\mathbf{\mathsf{Writes}}}
 %% Global histories
-\newcommand{\Dstate}[1]{D_{\textrm{#1}}}
+\newcommand{\Dstate}[1]{D^{#1}}
 \newcommand{\Dideal}{D_{\textrm{ideal}}}
 \newcommand{\Dobs}{D_{\textrm{obs}}}
 \newcommand{\Videal}[1]{V^{#1}_{\textrm{ideal}}}
@@ -71,7 +71,8 @@
 \newcommand{\conitAt}[2]{V^{#1}_{#2}}
 \newcommand{\WLideal}{\WL{\textrm{ideal}}}
 \newcommand{\Hglobal}{H_\mathrm{global}}
-\newcommand{\localhistory}[1]{H|_{#1}}
+\newcommand{\restrictedhistory}[1]{H|_{#1}}%Used in Section 2
+\newcommand{\localhistory}[1]{H^{#1}}%Used in Section 5
 %% Types of errors
 \newcommand{\NE}{\mathsf{NE}}
 \newcommand{\OErr}{\mathsf{OE}}
@@ -81,7 +82,7 @@
 \newcommand{\EstUnseen}{\mathsf{EstUnseen}}
 \newcommand{\EstUnseenPos}[3]{\EstUnseen|_{#2}^{#1+}{\left(#3\right)}}
 \newcommand{\EstUnseenNeg}[3]{\EstUnseen|_{#2}^{#1-}{\left(#3\right)}}
-\newcommand{\ActualUnseen}{\mathsf{ActualUnseen}}
+\newcommand{\Unseen}{\mathsf{Unseen}}
 \newcommand{\NumWeight}{\mathsf{NumWeight}}
 \newcommand{\View}[2]{\mathsf{View}^{#1}\left(#2\right)}
 \newcommand{\twp}[3]{\mathsf{twp}|_{#2}^{#1}\left(#3\right)}
@@ -92,7 +93,8 @@
 \newcommand{\PH}{\mathsf{PH}}
 \newcommand{\PHobs}{\mathsf{PH}_{\mathrm{obs}}}
 \newcommand{\PHideal}{\mathsf{PH}_{\mathrm{ideal}}}
-\newcommand{\Uncommitted}[1]{\mathsf{Uncomm}^{#1}}
+\newcommand{\Committed}[1]{\mathsf{Committed}^{#1}}
+\newcommand{\Uncommitted}[1]{\mathsf{Tentative}^{#1}}
 \newcommand{\OrderWeight}{\mathsf{OrderWeight}}
 \newcommand{\OrderError}{\mathsf{OrderError}}
 \newcommand{\EstOrderError}{\mathsf{EstOrderError}}

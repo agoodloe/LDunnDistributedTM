@@ -1723,7 +1723,7 @@ other processes over the network, say by looking up the current value
 of a memory location, but this is not shown in the diagrams. The
 entire sequence of requests across all processes forms what we call a
 \emph{history}. If $H$ is a history and $P$ is a process, we write
-$\localhistory{P}$ to mean just the sequence of operations that happen on $P$, the
+$\restrictedhistory{P}$ to mean just the sequence of operations that happen on $P$, the
 so-called \emph{local history} of $P$.
 
 Because they have a duration, memory operations on different
@@ -2361,7 +2361,7 @@ operation that reads this value, it is not clear which write
 
 We can now define causally consistent executions of memory
 operations. For a history $H$ and each process $P$, let $A|_{P}$ be
-the union of $\localhistory{P}$ and the set of all writes in $H$.
+the union of $\restrictedhistory{P}$ and the set of all writes in $H$.
 
 \begin{definition}[Causal consistency]
   \label{def:causalconsistency}
@@ -3266,7 +3266,7 @@ membership following Golding \cite{1992:golding-thesis}.
 Each process begins with their replica in the same initial starting
 state, denoted $\Dinit$. For each participating process
 $P \in \AllProc$, we denote the current state of $P$'s replica with
-$D_P$. $D_P$ changes as $P$ learns about updates to the data, which
+$\Dstate{P}$. $\Dstate{P}$ changes as $P$ learns about updates to the data, which
 can come from two sources: a request submitted to $P$ by a client of
 the application, or a notification about a request submitted to some
 other process by one of its clients. For a request submitted to $P$
@@ -3311,7 +3311,7 @@ bounds, which can improve application performance.
 Recall that a \emph{history} is an ordered sequence of read and write
 accesses. If $H$ is any history, for each access $a \in H$ in the
 history, the \emph{prefix} history of $a$, denoted
-$\PH{\left(a\right)}$, is the set of accesses in $H$ that precede
+$\PH{\left(a\right)}$, is the sequence of accesses in $H$ that precede
 $a$. The \emph{local history} of a process $P$, denoted
 $\localhistory{P}$, is the sequence of accesses $P$ has applied to the
 initial state $\Dinit$ since the start of the application. Let $D + H$
@@ -3326,16 +3326,16 @@ written $\Dstate{P}$, is governed by the following equation:
 The effect of executing a read or write access $a$ against the replica
 at $P$ is entirely determined by the local history of $P$ at the time
 $a$ is submitted. Because, in general, accesses can encode arbitrarily
-complex application-level logic, the state of $D_P$ observed by $a$
+complex application-level logic, the state of $\Dstate{P}$ observed by $a$
 can strongly influence how $a$ is executed and what value it returns
 to the user.
 
 \begin{definition}
   The \emph{observed prefix history} $\PHobs{\left(a\right)}$ of an
-  access $a$ originating at $P$ is the prefix of the local history
-  $\localhistory{P}$ at the time $a$ is applied. The \emph{observed
-    state} of an access $a$ is the state of $\Dstate{P}$ at the time
-  $a$ is applied.
+  access $a$ originating at $P$ is the value of $\localhistory{P}$
+  immediately before $a$ is applied to $\Dstate{P}$. The
+  \emph{observed state}, denoted $\Dobs\left(a\right)$, is the state of
+  $\Dstate{P}$ at the time $a$ is applied, which gives the equation
   \begin{gather}
     \Dobs\left(a\right) = \Dinit + \PHobs{\left(a\right)} \label{eq:conit-D-obs-at}
   \end{gather}
@@ -3343,8 +3343,8 @@ to the user.
 
 
 Intuitively, the goal of the conit framework is ensure that each
-access observes a value of $D_P$ whose divergence from its correct or
-``ideal'' value is limited by an upper bound. The ideal value of $D_P$
+access observes a value of $\Dstate{P}$ whose divergence from its correct or
+``ideal'' value is limited by an upper bound. The ideal value of $\Dstate{P}$
 is the state it would be in if it has received all updates and applied
 them locally in the correct order. In the conit framework, there are
 two sources of error that can cause a replica to diverge from its
@@ -3435,10 +3435,10 @@ a summary matrix (Section~\ref{ssec:tsae-unsynchronized}).
 
 Writes originating at $P$ are tagged with $P$'s identifier and clock
 value (whether physical or logical) and entered into $\WL{P}$ when
-they are applied to $D_P$. Remote write accesses added to $\WL{P}$
-during anti-entropy are applied to $D_P$ in the order they are
+they are applied to $\Dstate{P}$. Remote write accesses added to $\WL{P}$
+during anti-entropy are applied to $\Dstate{P}$ in the order they are
 received.  Thus, at all times $\WL{P}$ contains the history of all
-updates applied to $D_P$ and we have the following equation:
+updates applied to $\Dstate{P}$ and we have the following equation:
 \begin{equation}
   \Dstate{P} = \Dinit + \WL{P} \label{eq:conit-DP}
 \end{equation}
@@ -3729,7 +3729,7 @@ Section \ref{ssec:conit-real-time-consistency}.
 \label{sssec:conit-tuning-bounds}
 Each read or write access submitted to $P$ is responsible for
 informing the middleware about which conits the access depends
-on. These are the conits that logically represent data in $D_P$ that
+on. These are the conits that logically represent data in $\Dstate{P}$ that
 might influence how the access is executed and what value it returns
 to the user; these are the ones whose consistency will be enforced
 before handling the access. We adopt a convention of denoting a set of
@@ -3800,7 +3800,7 @@ might be given as an upper bound of the above expression quantified
 over possible states of $D$ instead, but have not come across a use
 case where this would be required.
 
-Let $Vinit{F} \equiv V^F(\Dinit)$ denote the value of $F$
+Let $\Vinit{F} \equiv V^F(\Dinit)$ denote the value of $F$
 in the initial database state. Let $V^F_P \equiv V^F(\Dstate{P})$
 denote the current value of $F$ at $P$'s replica. Let
 $\Videal{F} \equiv V^F(\Dideal)$ represent the value of $F$ at
@@ -3822,10 +3822,11 @@ the following inequality:
 \begin{equation}
   | \Videal{F} - \conitAt{F}{P} | < \NE\left(P, F \right)
 \end{equation}
-Enforcing this condition requires bounding the set of writes that $P$
-has not seen, specifically the ones that affect conit $F$:
+Enforcing this condition requires bounding the combined weight of set
+of writes that $P$ has not seen, specifically the ones that affect
+conit $F$:
 \[
-  \{ w \in \Hglobal | \NumWeight(w, F) > 0 \} \setminus \WL{P}
+  \{ w \in \Hglobal | \NumWeight(w, F) \neq 0 \} \setminus \WL{P}
 \]
 This is accomplished by requiring all \emph{other} process to maintain
 approximate knowledge of the contents $\WL{P}$. Each process $Q$
@@ -3848,21 +3849,18 @@ conit $F$, it must invoke some mechanism to inform all other processes
 of this change.
 
 In order to bound $P$'s numerical error, each remote process $Q$ needs
-to known which writes $P$ has not seen. Specifically, $Q$ keeps track
-of which writes \emph{originating at $Q$} $P$ has not seen. Recall
-that $\WLat{P}{Q}$ contains the writes $P$ has received that
-originated at $Q$. Therefore, the set of writes originating at $Q$
-unseen by $P$, which we call $P$'s actually unseen writes, is defined
-by the following set difference:
+to know which writes $P$ has not seen. Specifically, $Q$ must keep
+track of at least its \emph{own} writes $P$ has not seen. Recall that
+$\WLat{P}{Q}$ contains the writes $P$ has received that originated at
+$Q$. Therefore, the set of writes originating at $Q$ unseen by $P$ is
+defined by the following set difference:
 \begin{equation}
-  \ActualUnseen^{Q}{\left(P\right)} \equiv \WLat{Q}{Q} \setminus \WLat{Q}{P}
+  \Unseen^{Q}{\left(P\right)} \equiv \WLat{Q}{Q} \setminus \WLat{P}{Q}
 \end{equation}
-Exactly computing the set of unseen writes would require $Q$ to have
-perfect knowledge of $\WLat{Q}{P}$, which would be extremely
-inefficient. Instead, our second assumption required to bound
-numerical error is that $Q$ maintains a conservative estimate, called
-its \emph{view}, of this value. $Q$'s view of $P$ is denoted
-$\View{Q}{P}$.
+$Q$ cannot compute this set exactly because $\WLat{P}{Q}$ is a data
+structure maintained by $P$, not $Q$. For this reason, we require $Q$
+to maintain a conservative estimate, called its \emph{view}, of this
+value. $Q$'s view of $P$ is denoted $\View{Q}{P}$.
 \begin{quote}
   \textbf{Approximate knowledge of remote knowledge}: Each process $Q$
   can compute a set $\View{Q}{P}$ subject to the following invariant:
@@ -3875,20 +3873,19 @@ $\View{Q}{P}$.
   implement views.
 \end{quote}
 The subset relation above states that $Q$ maintains a lower bound
-estimate of this set---it is a lower bound because $P$ might have
+estimate of this set. It is a lower bound because $P$ might have
 learned about writes originating at $Q$ through anti-entropy with some
-intermediary process $R$, and $Q$ may not know that $P$ has been
-informed about these writes. This lower bound corresponds to an upper
-bound estimate of the messages it has originated that $Q$ has
-\emph{not} received yet. This estimate is defined by the following
-equation:
+intermediary process $R$, and $Q$ may not know about this. The lower
+bound corresponds to an upper bound estimate of the updates
+originating at $Q$ that $P$ has \emph{not} received yet, defined by the
+following equation:
 \begin{equation}
   \EstUnseen^{Q}{\left(P\right)} \equiv \WLat{Q}{Q} \setminus \View{Q}{P}
 \end{equation}
 \noindent Finally, condition \eqref{eqn:conit-approximate-view} implies the
 following subset relation:
 \begin{equation}
-  \ActualUnseen^{Q}{\left(P\right)} \subseteq \EstUnseen^{Q}{\left(P\right)}
+  \Unseen^{Q}{\left(P\right)} \subseteq \EstUnseen^{Q}{\left(P\right)}
 \end{equation}
 
 To bound numerical error, $Q$ never allows the combined weight of
@@ -3969,10 +3966,11 @@ conditions hold:
 \end{align*}
 If either condition is violated, then $Q$ updates its view of $P$,
 requesting the latest value of $P$'s summary vector and sending any
-actually unseen writes in $\WLat{Q}{Q}$. Before the write completes,
-$\WL{P}$ will reflect all updates originating at $Q$ before and
-including the one being handled, and $\twp{Q}{F}{P}$ and
-$\twn{Q}{F}{P}$ will be zero.
+unseen writes (including those not necessarily originating at $Q$)
+following a one-sided version of the usual TSAE protocol. Before the write
+access at $Q$ returns to the user, $\WL{P}$ will reflect all updates
+originating at $Q$ before and including the one being handled, and
+$\twp{Q}{F}{P}$ and $\twn{Q}{F}{P}$ will be zero.
 
 \begin{lemma}[Numerical weight correctness]
   When following the above protocol, then each value of each conit at process will satisfy
@@ -3984,19 +3982,19 @@ $\twn{Q}{F}{P}$ will be zero.
   writes that are not in $P$'s write log:
   \begin{equation*}
     % \Videal{F} - \conitAt{F}{P} =  \sum_{Q \in \AllProc \setminus \{P\}} \{ \NumWeight\left(w, F\right) | w \in \WLat{Q}{Q} \setminus \WLat{P}{Q}\}
-    \Videal{F} - \conitAt{F}{P} =  \sum_{Q \in \AllProc \setminus \{P\}} \{ \NumWeight\left(w, F\right) | w \in \ActualUnseen^Q\left(P\right) \}
+    \Videal{F} - \conitAt{F}{P} =  \sum_{Q \in \AllProc \setminus \{P\}} \{ \NumWeight\left(w, F\right) | w \in \Unseen^Q\left(P\right) \}
   \end{equation*}
   Because actual unseen writes are a subset of estimated unseen writes, we have the following equation:
   \begin{align*}
-    & \sum \{ \NumWeight\left(w, F\right) | w \in \ActualUnseen^Q\left(P\right) \} \\
+    & \sum \{ \NumWeight\left(w, F\right) | w \in \Unseen^Q\left(P\right) \} \\
     < & \sum \{ \NumWeight\left(w, F\right) | w \in \EstUnseenPos{Q}{F}{P} \}\\
     \equiv & \ \twp{Q}{F}{P}
   \end{align*}
   Likewise we have the following:
   \begin{align*}
-    &  \twn{P}{F}{Q} \\
+    &  \twn{Q}{F}{P} \\
     \equiv & \sum \{ \NumWeight\left(w, F\right) | w \in \EstUnseenNeg{Q}{F}{P} \}\\
-    < & \sum \{ \NumWeight\left(w, F\right) | w \in \ActualUnseen^Q\left(P\right) \}
+    < & \sum \{ \NumWeight\left(w, F\right) | w \in \Unseen^Q\left(P\right) \}
   \end{align*}
   Now as long as the invariants
   \begin{equation*}
@@ -4018,18 +4016,6 @@ of the writes with negative weight. If $Q$ totaled all estimated
 unseen weights together, it would wrongly estimate that the weight of
 writes unseen by $P$ is $0$, when the actual value would be some
 positive value that may exceed $\NE{(P, F)}$.
-
-\paragraph{Variations} Yu and Vahdat also describe two other schemes
-for bounding numerical error. \emph{Compound-weight absolute error} is
-similar to split-weight AE, but allows positive and negative weights
-to cancel out. This method represents a potential tradeoff between
-storage space and communication, but they did not find the savings
-particularly compelling in their performance analysis. They also
-consider a scheme, \emph{inductive relative error}, which bounds the
-relative error $|1 - V^F_P / \Videal{F} |$. It is somewhat notable
-that this algorithm relies only on each process' local knowledge,
-because it is not obvious how to efficiently bound relative error
-without knowing $\Videal{F}$.
 
 \begin{figure}
   \centering
@@ -4060,98 +4046,214 @@ without knowing $\Videal{F}$.
   accesses involving the same underlying conit.
 \end{example}
 
+\subsubsection{Distributed Locking}
+\label{sssec:conit-distributed-locking}
+A subtle but important implementation detail we have not described
+concerns the finer details of write propagation. Yu and Vahdat
+describe two possible implementations of what happens when, following
+the protocol in Section~\ref{sssec:conit-split-weight-ae}, $Q$ decides
+to push updates to $P$. The difference concerns whether ensures that
+no concurrent writes are possible while $Q$ handles the client's
+request.
+
+\paragraph{Single Round Push} With this implementation, $Q$ applies
+the write update to its own replica immediately, then engages in
+anti-entropy with $P$ (and any other required processes) to push the
+new update, awaits acknowledgment from all destinations, then returns
+to the user.
+
+\paragraph{Two Round Push} With this implementation, $Q$ first
+acquires locks (i.e. exclusive rights to modify) covering any
+of the data items affected by the write on $P$ and any other required
+processes. After acquiring all locks, the write is executed against
+$\Dstate{Q}$ and pushed to all destinations, and then returns to
+the user after receiving all acknowledgments.
+
+The two-round protocol, a simple form of distributed two-phase
+locking, is required for correctness if numerical error bounds are
+enforced for the observed state seen write accesses $w$ submitted to
+$Q$. Acquiring locks prevents any of the destinations from initiating
+their own updates while $w$ is executed against
+$\Dstate{Q}$. Otherwise, destinations may update the data while $Q$ is
+handling $w$, and those updates may be found to precede $w$ in the
+global history, making them unseen updates for $w$.
+
+The single-phase protocol is appropriate when observed numerical error
+bounds do not have to be enforced for write updates.  According to the
+authors, applications where writes are interchangeable may benefit
+from the one-round protocol.
+
+\subsubsection{Variations}
+Yu and Vahdat also describe two other schemes
+for bounding numerical error. \emph{Compound-weight absolute error} is
+similar to split-weight AE, but allows positive and negative weights
+to cancel out. This method represents a potential tradeoff between
+storage space and communication, but they did not find the savings
+particularly compelling in their performance analysis. They also
+consider a scheme, \emph{inductive relative error}, which bounds the
+relative error $|1 - V^F_P / \Videal{F} |$. It is somewhat notable
+that this algorithm relies only on each process' local knowledge,
+because it is not obvious how to efficiently bound relative error
+without knowing $\Videal{F}$.
+
+
 \subsection{Order Consistency}
 \label{ssec:conit-order-consistency}
 The write log $\WL{P}$ is a linearly ordered structure, and the local
-replica state $\Dstate{P} = \Dinit + \WL{P}$ reflects this order. Writes are
-added to $\WL{P}$ and applied to $\Dstate{P}$ as they are received, instead
-of waiting for the totally-ordered delivery component to execute, so
-at any moment it is possible that $P$'s state machine has diverged
-from its ideal value, beginning at the first access $P$ that was not
-applied in the final order. The allowable order error bounds how far
-$P$'s replicated state machine may tread down an errant path of
-transitions, before winding back transitions and reapplying them in
-the correct order.
+replica state $\Dstate{P} = \Dinit + \WL{P}$ reflects this
+order. Generally, writes are added to $\WL{P}$ and applied to
+$\Dstate{P}$ in the order they are received, instead of waiting for
+the totally-ordered delivery component of TSAE+TO to determine their
+correct order. Consequently, writes might be applied in the wrong
+order. This section provides a way to enforce an upper bound on the
+``weight'' of out-of-order writes at any moment.
 
+Periodically, following the protocol described in this section, the
+total-order component learns more information about the final (global)
+order of writes; at this time, it may discover that some of the recent
+updates have been applied in the wrong order. Such writes then have to
+be un-applied from $\Dstate{P}$, as it were, and then reapplied in their
+correct order. How this rollback-and-reapply mechanism is implemented
+is determined by the application and its data model. The mechanism
+described in this section only determines when this process is
+necessary to avoid violating the application's consistency
+requirements.
+
+Writes accepted in $\localhistory{P}$ whose final order has been
+confirmed are said to be committed. Other writes are said to be
+tentative. This distinction divides the local history into two
+contiguous segments:
+\begin{equation}
+  \localhistory{P} = \Committed{P} + \Uncommitted{P} \label{eqn:conit-history-segments}
+\end{equation}
+
+The out-of-order error $\OErr(P, F)$ is enforced as an upper bound on
+the weight of the tentative segment, relative to the conit $F$. Before
+defining this value formally, we describe a running example, adapted
+from an application described by Yu and Vahdat \cite{2002tact}, which
+we will use to demonstrate out-of-order error and write
+commitment.
+
+\begin{comment}
+so at any moment it
+is possible that $P$'s state machine has diverged from its ideal
+value, beginning at the first access $P$ that was not applied in the
+final order. The allowable order error bounds how far $P$'s replicated
+state machine may tread down an errant path of transitions, before
+winding back transitions and reapplying them in the correct order.
+\end{comment}
 \begin{example}
   \label{ex:conit-booking}
-  Suppose $P$ and $Q$ are two web servers that allow clients to
-  reserve individual seats for a flight, and suppose both servers
-  independently process requests from clients to reserve a ticket for
-  seat \#1 at the same time. Assume for performance reasons that $P$
-  and $Q$ do not maintain linearizability, which causes them to both
-  issue tickets for seat \#1, so it becomes double-booked. Let these
-  reservations correspond to two write updates $w_P$ and $w_Q$. The
-  local replicas at $P$ and $Q$ are left in state $\Dinit + w_P$ and
+  Suppose $P$ and $Q$ are two web servers independently processing
+  client requests to reserve seats on a flight. To improve performance,
+  they do not maintain strong consistency. Now suppose both process
+  separate reservations for seat $A1$ at the same time, denoted $w_P$
+  and $w_Q$. This results in inconsistent states, $\Dinit + w_P$ and
   $\Dinit + w_Q$, respectively.
 
-  TSAE promises that eventually $P$ and $Q$ learn about each
-  other's updates and commit them in some agreed upon order. Let us
-  arbitrarily suppose $P$'s update is ordered first.  Thus, $P$
-  advances its state to \mbox{$\Dinit + w_P + w_Q$}, while $Q$ rolls
-  back its state and reapplies its write, which we represent a series
-  of transitions:
+  Eventually, $P$ and $Q$ learn about each other's updates through
+  anti-entropy and commit them in an agreed order. Assume $P$'s update
+  is ordered first. In this case, $P$ transitions to
+  $\Dinit + w_P + w_Q$, while $Q$ rolls back its state and reapplies
+  its write as follows:
   \begin{equation*}
     \Dinit + w_Q \xmapsto{\textrm{rollback}} \Dinit \xmapsto{\textrm{reapply}} \Dinit + w_P +
     w_Q
   \end{equation*}
 
-  Recall that $w_P$ and $w_Q$ represent transactions and may contain
-  business logic.  Thus, the final database state $\Dinit + w_P + w_Q$
-  might have the interpretation, ``Seat \#1 is reserved to $P$'s
-  client, while $Q$'s client attempts to double book the seat and is
-  issued a refund.'' The rollback process at $Q$ may be associated
-  with business rules triggering a notification to $Q$'s client that
-  their reservation has been canceled, alongside issuing a refund (and
-  hopefully a compensation fee).
+  Recall that $w_P$ and $w_Q$ represent transactions that may include
+  business logic. The final state $\Dinit + w_P + w_Q$ might be
+  interpreted as, ``Seat $A1$ is reserved for $P$'s client, while
+  $Q$'s client experiences a double-booking error.''  The rollback
+  process may trigger notifications to $Q$'s client about the
+  cancellation, along with issuing a refund (and possibly a
+  compensation fee).
 \end{example}
 
-In Example~\ref{ex:conit-booking}, accepting $w_Q$ in a tentative
-state represented a liability for $Q$. An indirect way this liability
-might have been prevented is if $Q$ had enforced $0$ numerical error,
-but this is not a full solution. To see why, suppose another
-reservation server $R$ is notified about both $w_Q$ and $w_P$, so it
-has $0$ numerical error, but learns about them in the opposite order
-and ends up in state $D_R = \Dinit + w_Q + w_P$ where $Q$'s client
-appears to get the reservation first. This state, which has $0$
-numerical error, would persist at $R$ until the total ordering
-component at $R$ discovers that $w_P$ should be first. Numerical error
-only controls which updates a process sees, but not the order in which
-they are applied to the local replica.
 
-A more direct approach to controlling the potential cost of rollbacks
-is to bound the order error of the local database state. For each
-conit $F$, each write is associated with a real value
-$\OrderWeight{(w, F)}$. In the example above, this value might be the
-total cost of refunding the ticket in case $w$ has to be reverted. The
-allowable order error acts as an upper bound on the sum of the order
-weight of writes that appear locally in the wrong order.
+The order weight $\OrderWeight\left(w, F\right)$ of a write $w$
+defines the relative cost of rolling back a tentative update, which
+can be thought of as a liability. In Example~\ref{ex:conit-booking},
+accepting $w_Q$ in a tentative state represented a liability for the
+airline. One way to bound this liability is by defining a single
+conit, say $F_{\textrm{flight}}$, to represent the seats on the
+flight. Then, a natural policy would be to define each reservation on
+the flight to apply $\NumWeight\left(w,F_{\textrm{flight}}\right) = 1$
+(or whatever number of seats the reservation is for) and set
+$\OrderWeight\left(w,F_{\textrm{flight}}\right)$ to the airline's cost
+to cancel the reservation and refund the reservation holder. We will
+now walk through how such an application would execute depending on
+how the bounds are set.
 
-Unlike numerical error, order error can be bound without direct
-cooperation from other processes. We only need to assume that
-processes, when required, can invoke a write commitment mechanism to
-learn the final order of their tentatively accepted updates.
-\begin{quote}
-  \textbf{Ability to commit writes}: While handling an access, each
-  process has a mechanism to determine the final order of any
-  uncommitted writes in its write log.
-\end{quote}
-We will describe how to implement write commitment with TSAE below.
+Suppose the airline wishes to avoid double-booking. Setting
+$\OErr(Q, F_{\textrm{flight}}) = 0$ would suffice to ensure that $Q$
+never accepts a reservation without knowing its final order in the
+global history, meaning $Q$ never incorrectly tells a client that
+their reservation has been successful. On the other hand, suppose the
+airline is willing to risk double-booking seats to support application
+performance (perhaps $P$ and $Q$ are located on opposite sides of the
+world). In this case, $\OErr(Q, F_{\textrm{flight}})$ would be set to
+the maximum potential cost of issuing refunds the airline is willing
+to tolerate from server $Q$. Effectively, $Q$ would be free to issue
+some reservations without immediately checking for seat conflicts, so
+long as an allowable dollar amount of potential refunds is not
+exceeded.
 
-An access received by $P$ observes the state, called its
-\emph{observed prefix history}, of $\WL{P}$ at the time the access is
-accepted. Let this value be denoted $\PHobs$. The same access occurs
-in an ideal history, where the set of writes preceding it constitutes
-its \emph{ideal prefix history}, $\PHideal$. Given two histories $H$
-and $H'$, let their \emph{intersection} or \emph{greatest common
-  prefix}, $H \cap H'$, be the set of all accesses they agree on since
-their beginning. The \emph{errant history} of an access is defined as
-all of the writes at the tail end of $\PHobs$, beginning at the first
-write where $\PHobs$ does not agree with $\PHideal$:
-\begin{equation*}
- \PHobs - \left(\PHobs \cap
-   \PHideal\right)
-\end{equation*}
+An indirect way this liability might have been prevented is if $Q$ had
+enforced $\NumErr(Q, F_{\textrm{flight}}) = 0$. Indeed, if the
+two-phase locking policy is used (see
+Section~\ref{sssec:conit-distributed-locking}), $Q$ would not accept a
+reservation without being aware of a conflicting reservation at
+$P$. However, this would be enforced with a push-based protocol where
+$P$ immediately notifies $Q$ of every new reservation, which may be
+inefficient. Furthermore, this metric does not provide a natural way
+of allowing $Q$ to issue a controlled number of tentative
+reservations. The protocol to bound order error, described below, is
+pull-based and would only require communication with $P$ when the cost
+of $Q$'s tentative reservations exceeds its allowable bounds. One or
+the other strategy may be substantially more efficient depending on
+the application characteristics.
+
+\begin{comment}
+However, why, suppose another reservation server $R$ is notified about
+both $w_Q$ and $w_P$, so it has $0$ numerical error, but learns about
+them in the opposite order and ends up in state
+$D_R = \Dinit + w_Q + w_P$ where $Q$'s client appears to get the
+reservation first. This state, which has $0$ numerical error, would
+persist at $R$ until the total ordering component at $R$ discovers
+that $w_P$ should be first. Numerical error only controls which
+updates a process sees, but not the order in which they are applied to
+the local replica.
+\end{comment}
+
+\subsubsection{Out-of-Order Error}
+
+We now define out-of-order error rigorously.
+
+\begin{definition}
+  Given two histories $H$ and $H'$, let their \emph{intersection} or
+  \emph{greatest common prefix}, $H \cap H'$, be the set of all
+  accesses they agree on since their beginning
+\end{definition}
+
+\begin{definition}
+  The \emph{errant history} of an access $a$ submitted to $P$ is defined
+  as all of the writes at the tail end of $\PHobs(a)$, beginning at the
+  first write where $\PHobs(a)$ does not agree with $\PHideal(a)$:
+  \begin{equation*} \PHobs(a) - \left(\PHobs(a) \cap \PHideal(a)\right)
+  \end{equation*}
+\end{definition}
+
+As an exercise, the reader may which to check that the following
+relation holds, where $H \subseteq H'$ means $H$ is a prefix of $H'$:
+\begin{equation}\label{eqn:conit-committed-subset-ideal}
+  \Committed{P} \subseteq \PHobs(a) \cap \PHideal(a)
+\end{equation}
+This follows because the committed segment of $\localhistory{P}$ is
+always a prefix of both the ideal history $\Hglobal$ and the observed
+history $\PHobs(a)$. Equation \eqref{eqn:conit-committed-subset-ideal}
+implies that the errant history is a suffix of the tentative
+writes. These facts are demonstrated in the next example.
 
 \begin{figure}
   \begin{subfigure}{0.5\textwidth}
@@ -4176,9 +4278,9 @@ write where $\PHobs$ does not agree with $\PHideal$:
   writes are shown with a dotted grid pattern. In Figure
  ~\ref{fig:conit-order-a}, five writes are uncommitted. No write with
   timestamp greater than or equal to $3$ can be committed, since the
-  minimum entry in the log, $\summary{A}{C}$, is only $2$. The final order
+  minimum timestamp in the summary vector is only $2$. The final order
   of these accesses is shown in Figure~\ref{fig:conit-order-b}. For
-  the next access, $(A, 11)$, submitted to $A$, the errant history
+  the next access submitted to $A$, with tag $(A, 11)$, the errant history
   consists of all accesses after and including $(A, 6)$, the point at
   which the write log deviates from the ideal history.
   \begin{align*}
@@ -4189,95 +4291,145 @@ write where $\PHobs$ does not agree with $\PHideal$:
 
 Let $r$ be a read access submitted to $P$ with a dependency on conit
 set $\mathcal{F}$.  Let $\Uncommitted{P}$ represent the uncommitted
-messages in $\WL{P}$.  Since committed writes are a subset of the
-ideal prefix history, the writes in the errant history are a subset of
-the uncommitted ones:
+messages in $\WL{P}$. As a set, the errant history is a subset
+(actually a suffix) of the tentative writes.
 \begin{equation}
-  \PHobs - \left(\PHobs \cap \PHideal\right) \subseteq \Uncommitted{P}
+  \PHobs(a) - \left(\PHobs(a) \cap \PHideal(a)\right) \subseteq \Uncommitted{P}
 \end{equation}
-
+Therefore, the tentative writes can be used as an upper bound estimate
+of which writes may be out of order.
 
 For a read access that depends on conits in a set $\Conits$, the
-relative order of updates applied to $\Dstate{P}$ only matters if they affect
-(i.e. apply non-zero order weight to) one or more of the conits in
-$\Conits$. In fact, this can be considered an axiomatic constraint on
-how applications should define conits and order weight. The errant
-history overstates the difference between $\PHobs$ and $\PHideal$. For
-instance, suppose they only differ in the relative order of updates
-applied to conits that do not affect $\Conits$; in this case, a read
+relative order of updates applied to $\Dstate{P}$ only matters if they
+affect (i.e. apply non-zero order weight to) one or more of the conits
+in $\Conits$. (This can be considered an axiomatic constraint on how
+applications should define conits and order weight.) This means the
+errant history actually overstates the difference between $\PHobs$ and
+$\PHideal$. For instance, if they only differ in the relative order of
+updates applied to conits that do not affect $\Conits$, then a read
 depending on $\Conits$ should be considered to observe $0$ order
-error. Let $H|_\Conits$ denote the \emph{write-order projection} of
-$H$ to $\Conits$, which consists of just the writes $w$ such that
-$\OrderWeight(w, F) \neq 0$ for at least one $F$ in $\Conits$. We the
-define the \emph{out-of-order} accesses to $\Conits$,
-$\mathsf{OOO}\left(\Conits\right)$, as the set of all writes affecting
-any conit in $\Conits$ that have been applied in an order deviating
-from their final order relative to each other:
+error.
+
+\begin{definition}[Write-order projection]
+  Let $H|_\Conits$ denote the restriction of $H$ to $\Conits$,
+  consisting of just the writes $w$ such that
+  $\OrderWeight(w, F) \neq 0$ for at least one $F$ in $\Conits$.
+\end{definition}
+
+\begin{definition}
+  For an access $a$ depending on a set of conits $\Conits$, the set of
+  observed \emph{out-of-order} accesses to $\Conits$,
+  $\mathsf{OOO}\left(a, \Conits\right)$ is the set of all writes
+  affecting any conit in $\Conits$ that have been applied in an order
+  deviating from their final order relative to each other:
 \begin{equation}
-  \mathsf{OOO}\left(\Conits\right)  = \PHobs|_\Conits - \left(\PHobs|_\Conits \cap \PHideal|_\Conits \right)
+  \mathsf{OOO}\left(a, \Conits\right)  = \PHobs(a)|_\Conits - \left(\PHobs(a)|_\Conits \cap \PHideal(a)|_\Conits \right)
 \end{equation}
+\end{definition}
+
 The reader may want to verify with an example that computing the
-errant history and then restricting to writes that affect $\Conits$ is
-not correct, since the errant history is affected by conits that do
-not affect $\Conits$.
+errant history and then restricting to writes that affect $\Conits$, yielding the sequence
+\begin{equation*}
+  \left(\PHobs(a) - \left(\PHobs(a) \cap \PHideal(a)\right)\right)|_\Conits
+\end{equation*}
+overcounts the number of out-of-order updates if only the relative
+order of writes affecting $\Conits$ is considered important.
 
 The order error of an access is the total order weight of out of order
 writes to any of the conits it depends on.
 \begin{definition}[Order error]
-  The \emph{order error} of an access $r$ depending on a conit set
-  $\mathcal{F}$ is the sum of $\OrderWeight\left(w, F\right)$ for
+  The \emph{order error} of an access $a$ depending on a conit set
+  $\mathcal{F}$ is the sum of $\OrderWeight\left(a, F\right)$ for
   each $F$ in $\Conits$, for all writes $w$ that are in the out-of-order
   set for $\mathcal{F}$.
   \begin{equation}
-    \OrderError\left(r, \mathcal{F}\right) \equiv \sum_{F \in \Conits} \{ \OrderWeight\left(w, F\right) | w \in \mathsf{OOO}\left(\Conits\right) \}
+    \OrderError\left(a, \mathcal{F}\right) \equiv \sum_{F \in \Conits} \{ \OrderWeight\left(w, F\right) | w \in \mathsf{OOO}\left(a, \Conits\right) \}
   \end{equation}
 \end{definition}
 
-
-Because the committed writes are never out of order, the out of order
-writes form a subset of the uncommitted writes. Thus, $P$ can estimate
-the order error of an access by totaling the order weight of accesses
-to $\Conits$ that have not been committed:
+The out-of-order set is always a subset of the uncommitted writes. So, $P$
+can estimate the order error of an access by totaling the order weight
+of accesses to $\Conits$ that have not been committed, yielding the
+following value:
 \begin{equation}
-  \EstOrderError\left(r, \mathcal{F}\right) \equiv \sum_{F \in \Conits} \{ \OrderWeight\left(w, F\right) | w \in \Uncommitted{P}|_\Conits \}
+  \EstOrderError\left(a, \mathcal{F}\right) \equiv \sum_{F \in \Conits} \{ \OrderWeight\left(w, F\right) | w \in \Uncommitted{P}|_\Conits \}
 \end{equation}
-Note that $\mathsf{OOO}\left(\Conits\right) \subseteq \Uncommitted{P}|_\Conits$ implies $\OrderError\left(r, \mathcal{F}\right) \leq \EstOrderError\left(r, \mathcal{F}\right)$.
+Now
+$\mathsf{OOO}\left(a, \Conits\right) \subseteq
+\Uncommitted{P}|_\Conits$ implies
+$\OrderError\left(a, \mathcal{F}\right) \leq \EstOrderError\left(a,
+  \mathcal{F}\right)$. Therefore it suffices for $P$ to bound the
+estimated order error of each access.
 
-Let $\OErr$ be the allowable upper bound of
-$\mathsf{OrderError}\left(r,\Conits\right)$ for an access $r$. While
-handling this access, if the value above exceeds $\OErr(P, \Conits)$,
-the $P$ engages the write commitment procedure assumed earlier to
-commit enough writes in its log to reduce the size of estimated order
-error.
+
+\subsubsection{Implementation}
+To bound out-of-order error, we assume that processes, when required,
+can invoke a write commitment mechanism to learn the final order of
+their tentatively accepted updates.
+\begin{quote}
+  \textbf{Ability to commit writes}: While handling an access, each
+  process has a mechanism to determine the final order of any
+  uncommitted writes in its write log.
+\end{quote}
 
 For the TSAE+TO implementation, commitment is implemented with a
-\emph{pull-based} approach, where $P$ pulls enough messages from
-remotes to decide the final order of enough writes as to ensure the
-order error is within bounds. $P$ can commit writes by pulling
+pull-based approach. Recall that $P$ can commit writes by pulling
 messages through anti-entropy to advance its commit line
 ($\min_{X \in \AllProc} \left(\summary{P}{X}\right)$) far enough for
 the total ordering component to decide the final value of all writes
-in its log, at which point any errant updates can be rolled back and
-reapplied in their final order. Let $t$ be the greatest timestamp of
-any message in its write log. To guarantee that $P$ can advance its
-commit line enough to commit the write, it is enough to ensure that
-$\summary{P}{Q}$ is greater than $t$ after engaging in anti-entropy
-with each $Q$. This is true of physically synchronized clocks, since
-$\summary{P}{Q}$ will reflect the time at which $Q$ was contacted by
-$P$. This also works with scalar logical clocks, since $Q$ would
-increment its clock to be greater than $P$'s clock.
+in its log, meaning the commit line must be greater than the maximum
+timestamp of a write in the log. When $P$ pulls enough messages from
+remotes to decide the final order of its tentative updates, any errant
+updates can be rolled back and reapplied in their final order.
+
+Let $t$ be the greatest timestamp of any message in $P$'s write
+log. To guarantee that $P$ can advance its commit line enough to
+commit the write, it is enough to ensure that $\summary{P}{Q}$ is
+greater than $t$ after engaging in anti-entropy with each $Q$. This is
+true of physically synchronized clocks, since $\summary{P}{Q}$ will
+reflect the time at which $P$ initiated contact with $Q$. This is also
+true if processes maintain simple scalar logical clocks, since
+$\summary{P}{Q}$ would be set to the value of $Q$'s scalar clock after
+being contacted by $P$, which will be greater than $P$'s clock, itself
+an upper bound of the timestamp of any message in the log.
+
+One can imagine two ways to bound out-of-order error, though which is
+the intention of the authors is not entirely made clear in
+\cite{2002tact}. First, $\OErr(P, F)$ can be taken as the allowable
+upper bound of $\OrderError\left(a,\{F\}\right)$ for an access $a$,
+where $\{F\}$ means the set consisting of just $F$. While handling
+this access, for each conit $F$ that $a$ depends on, if
+$\EstOrderError(a, \{F\})$ exceeds $\OErr(P, F)$, $P$ engages the
+write commitment procedure to commit all its tentative updates, until
+the order error $0$. This process is repeated for the entire set of
+conits $a$ depends on.
+
+Alternatively, the definition of $\mathsf{OOO}\left(a, \Conits\right)$
+suggests considering conits as a group, rather than bounding their
+order errors individually. With this policy, an access specifies the
+entire set of conits it depends on as a set $\Conits$, and
+additionally specifies its error bound for
+$\OrderError\left(a,\Conits\right)$. Then, $P$ checks whether
+$\EstOrderError(a, \Conits)$ exceeds this value, and engages write
+commitment if necessary. Note that this measurement of out-of-order
+error considers the relative order of all updates that affect conits
+in $\Conits$, even ones that affect different conits, which differs
+from the policy above where each conit is considered separately. Which
+of these mechanisms, if either of them, was intended by Yu and
+Vahdat is not totally clear to us.
 
 \begin{example}
-  Suppose in Figure~\ref{fig:conit-order-a} that the next access
-  submitted to $A$ is timestamped $(A, 11)$. Suppose all writes apply
-  unit order weight to a conit $F$. If $(A, 11)$ depends on $F$ with
-  an allowable order error of less than $5$, the number of uncommitted
-  writes, then the submission of $(A, 11)$ will not return until $A$
-  pulls writes from $B$ and $C$ so that all messages up to $(A, 9)$
-  can be committed. Note that the actual order error is $4$, less than
-  the estimate of $5$.
+  Suppose in Figure~\ref{fig:conit-order-a} that an access submitted
+  to $A$ at time $t = 11$ is timestamped $(A, 11)$. Suppose all writes
+  apply unit order weight to a conit $F$. If $(A, 11)$ depends on $F$
+  with an allowable order error of less than $5$, the number of
+  uncommitted writes, then the update will be executed until $A$ pulls
+  writes from $B$ and $C$ so that all messages up to $(A, 9)$ can be
+  committed. Figure~\ref{fig:conit-order-b} shows a possible state at
+  a later time $t = 13$.
 \end{example}
 
+\begin{comment}
 To a first approximation, the implementation described ensures that
 all committed writes are applied everywhere in the same total
 order---that is, the committed writes at $P$ are either equal to the
@@ -4290,6 +4442,7 @@ relative order of order-independent updates does not affect the data
 model. If this is the case, then the only way for users to observe
 writes applied in different orders at different replicas is if those
 writes have not yet been committed.
+\end{comment}
 
 \subsection{Real Time Staleness}
 \label{ssec:conit-real-time-consistency}
@@ -4506,7 +4659,7 @@ consistency models, such as linearizability or sequential consistency,
 are not a good fit for this sort of use case. This implication
 stems largely from the locality principle in Section
 \ref{ssec:communication-patterns}, which suggests that the quality of
-communication between distributed agents---whether measured?? by message
+communication between distributed agents---whether measured by message
 latency, packet loss, or some other metric---is strongly influenced by
 the geographical distance between them.
 
