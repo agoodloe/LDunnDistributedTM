@@ -75,7 +75,7 @@
 
 \abstract{The System Wide Safety (SWS) program has been investigating
   how manned and unmanned aircraft can safely operate in shared
-   airspace. Enforcing safety requirements for distributed agents
+  airspace. Enforcing safety requirements for distributed agents
   requires coordination by passing messages over a communication
   network. Unfortunately, the operational environment will not admit
   reliable high-bandwidth communication between all agents,
@@ -84,11 +84,12 @@
   invariants. Taking disaster response scenarios, particularly
   wildfire suppression, as a motivating use case, this self-contained
   memo discusses some of the distributed systems challenges involved
-  in system-wide safety through a pragmatic lens. We survey topics
-  ranging from consistency models and network architectures to data
-  replication and data fusion, in each case focusing on the practical
-  relevance of topics in the literature to the sorts of scenarios and
-  challenges we expect from our use case.  }
+  in system-wide safety through a pragmatic lens, offering many
+  illustrations for clarity. We explain through figures and examples
+  the essential concepts behind the continuous consistency model,
+  arguing that this model has great relevance for safety-related
+  distributed applications that run over adversarial and
+  disruption-prone networks.}
 
 \begin{document}
 \newpage
@@ -3202,8 +3203,7 @@ consistency, first introduced in Section~\ref{ssec:shared-memory}. We
 will unite the main themes in this document by explaining the ideas
 behind \emph{continuous} consistency. We particularly focus on the
 conit (short for ``consistency unit'') model proposed by Yu and Vahdat
-in a series of papers
-\cite{2000tact,2000tactalgorithms,10.5555/1251229.1251250,DBLP:conf/icdcs/YuV01,2002tact}.
+in a series of papers~\cite{2000tact,2000tactalgorithms,10.5555/1251229.1251250,DBLP:conf/icdcs/YuV01,2002tact}.
 Accompanying their work is a prototype implementation called TACT
 (Tunable Availability and Consistency Toolkit), a Java-powered
 middleware that uses timestamped anti-entropy to maintain a
