@@ -2819,19 +2819,19 @@ hold at all times for all $P$ and $Q$ (including when $P = Q$):
   \end{figure}
   \begin{figure}[h]
     \centering
-    \includegraphics[width=1.4\textwidth]{images/tsaenew/TSAE3.png}
+    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE3.png}
     \caption{TSAE at time $t=3$.}
     \label{fig:tsae1}
   \end{figure}
   \begin{figure}[h]
     \centering
-    \includegraphics[width=1.4\textwidth]{images/tsaenew/TSAE4.png}
+    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE4.png}
     \caption{TSAE at time $t=4$. $A$ advances $\summary{A}{A}$ to $\clock{A, t} = 4$ and likewise for $B$. After exchanging summary vectors, the participants decide to exchange the shaded messages.}
     \label{fig:tsae2}
   \end{figure}
   \begin{figure}[h]
     \centering
-    \includegraphics[width=1.4\textwidth]{images/tsaenew/TSAE5.png}
+    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE5.png}
     \caption{TSAE at time $t=5$. $B$ has submitted a message with timestamp
       $t = 5$ while $A$ and $B$ are still engaged in an anti-entropy
       session in the background.}
@@ -2839,25 +2839,25 @@ hold at all times for all $P$ and $Q$ (including when $P = Q$):
   \end{figure}
   \begin{figure}[h]
     \centering
-    \includegraphics[width=1.4\textwidth]{images/tsaenew/TSAE6.png}
+    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE6.png}
     \caption{TSAE at time $t=6$. $A$ and $B$ have finished their session and updated their summary vectors. Neither $A$ nor $B$ can update their commit line past $0$ because they both contain $\summary{}{C} = 0$, indicating they have not seen any messages from $C$. $C$ submits a message with timestamp $t = 6$.}
     \label{fig:tsae4}
   \end{figure}
   \begin{figure}[h]
     \centering
-    \includegraphics[width=1.4\textwidth]{images/tsaenew/TSAE7.png}
+    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE7.png}
     \caption{TSAE at time $t=7$. $B$ and $C$ update and exchange summary vectors before deciding to exchange the shaded messages. $A$ submits a message with timestamp $t = 7$.}
     \label{fig:tsae4}
   \end{figure}
   \begin{figure}[h]
     \centering
-    \includegraphics[width=1.4\textwidth]{images/tsaenew/TSAE8.png}
+    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE8.png}
     \caption{TSAE at time $t=8$. $B$ and $C$ finish their anti-entropy session. Both sides can update their commit line to $4$, since they have seen all messages $m$ such that $\timestamp{m} \leq 4$. $A$ and $B$ begin anti-entropy, exchanging updated summary vectors and exchanging the shaded boxes.}
     \label{fig:tsae6}
   \end{figure}
   \begin{figure}[h]
     \centering
-    \includegraphics[width=1.4\textwidth]{images/tsaenew/TSAE9.png}
+    \includegraphics[width=1.4\textwidth]{images/tsae/TSAE9.png}
     \caption{TSAE at time $t=9$. $A$ and $B$ finish their anti-entropy
       session and have both seen all messages with timestamps less than
       or equal to $t = 7$. $B$ and $C$ can remove all messages with
