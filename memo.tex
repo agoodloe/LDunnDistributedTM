@@ -4063,11 +4063,11 @@ new update, awaits acknowledgment from all destinations, then returns
 to the user.
 
 \paragraph{Two Round Push} With this implementation, $Q$ first
-acquires locks (i.e. exclusive rights to modify) covering any
-of the data items affected by the write on $P$ and any other required
+acquires locks (i.e. exclusive rights to modify) covering any of the
+data items affected by the write on $P$ and any other required
 processes. After acquiring all locks, the write is executed against
-$\Dstate{Q}$ and pushed to all destinations, and then returns to
-the user after receiving all acknowledgments.
+$\Dstate{Q}$ and pushed to all destinations. Locks are released and
+the request returns to the user after receiving all acknowledgments.
 
 The two-round protocol, a simple form of distributed two-phase
 locking, is required for correctness if numerical error bounds are
@@ -4478,69 +4478,68 @@ information indirectly learned during anti-entropy with a third party.
 
 \subsection{Correctness Properties}
 \label{ssec:conit-correctness}
-Yu and Vahdat describe two implementations of write propagation that
-differ in their guarantees. The first involves a two-phase locking
-procedure where, during write propagation, remote locks covering all
-of the affected data items are first acquired from all hosts where one
-intends to send write updates. Once all locks have been acquired, all
-necessary writes are sent. While locks are held, reads from affected
-conits are blocked on those remotes. When the writes are propagated,
-locks are released. This two-phase locking mechanism, which is also
-used in a conventional implementation of linearizability, ensures that
-the propagated write operations appear to take effect at all
-destinations at the same time. When writes are propagated this way,
-the numerical and order weights of all accesses are properly bounded
-with respect to their ideal values in a strongly consistent history.
+Section \ref{sssec:conit-distributed-locking} described two
+implementations of write propagation that differ in their
+guarantees. The stronger but less efficient method involves a
+two-phase locking procedure where, during write propagation, remote
+locks covering all of the affected data items are first acquired from
+all hosts where one intends to send write updates. Once all locks have
+been acquired, all necessary writes are sent. While locks are held,
+reads from affected conits are blocked on those remotes. When the
+writes are propagated, locks are released. This two-phase locking
+mechanism, which is also a conventional method to implement of
+linearizability, ensures that the propagated write operations appear
+to take effect at all destinations at the same time. When writes are
+propagated this way, the numerical and order weights of all accesses
+are properly bounded with respect to their ideal values in a strongly
+consistent history.
 \begin{theorem}[Yu and Vahdat]
   \label{thm:conit-correct}
   Assuming the two-phase locking policy is used during compulsory
-  write propagation, there is an ECG history such observed numerical
-  and order error of every access is correctly bounded with respect to
-  its ideal return value in the ECG history.
+  write propagation, there is an ECG history such that the observed
+  numerical, order, and real-time error of every access is correctly
+  bounded with respect to its ideal return value in the ECG history.
 \end{theorem}
 
 The following theorems are Theorems 4.1 and 4.3 of their 2002 paper
 \cite{2002tact}. Note that ``strict serializability'' here is
-essentially synonymous with linearizability.\footnote{Strict
-  serializability is essentially linearizability for replicated
-  databases. The condition also implies serializable isolation of
-  transactions, which is a concept specific to the database context.}
+essentially synonymous linearizability in the context of replicated
+databases. (The condition also implies serializable isolation of
+transactions, which is a concept specific to the database context.)
 \begin{theorem}
   \label{thm:conit-correct-linearizability}
-  If a conit is defined for each data item, if reads have 0 allowable
-  numerical error and order error on all read conits, and all writes
-  have unit weight on all affected conits, then the system provides
+  If a conit is defined for each data item, and an access depends on
+  each conit it reads or writes, if the allowable numerical error and
+  order error on all conits is $0$, and all writes have unit numerical
+  and order weight on all affected conits, then the system provides
   strict serializability.
 \end{theorem}
-
-Allowing unbounded numerical error provides one-copy serializability
-(1SR) \cite{1984:1sr}. The condition of 1SR roughly states that the
-history is consistent with some totally ordered history, but the
-history does not have to respect real-time order. Thus, one-copy
-serializability is something of an analogue of sequential consistency
-for replicated databases, where the unit of operation is a database
-transaction.
+\begin{comment}
+On the other hand, allowing unbounded numerical error provides
+one-copy serializability (1SR) \cite{1984:1sr}. The condition of 1SR
+roughly states that the history is consistent with some totally
+ordered history, but the history does not have to respect real-time
+order. Thus, one-copy serializability is something of an analogue of
+sequential consistency for replicated databases, where the unit of
+operation is a database transaction.
 \begin{theorem}
     \label{thm:conit-correct-1sr}
-  If reads have 0 allowable order error and no bounds on their
-  numerical error, and all writes have unit weight on all affected
-  conits, then the systems provides one-copy serializability.
+    If the above conditions are enforced except numerical weight is
+    unbounded, the system provides one-copy serializability.
 \end{theorem}
+\end{comment}
 
-Yu and Vahdat also consider a lazy propagation method where remote
-locks are not acquired before pushing writes. This allows some
-replicas to seemingly learn about writes (meaning it is visible by
-read accesses) before others. That is, this policy does not enforce
-atomic visibility (updates appear to multiple items, in this case
-multiple replicas, appear to occur at different physical times instead
-of all at once). This is a weaker consistency model but may be
-valuable for certain kinds of information, particularly for
-applications such that accepting new updates is always valuable, even
-if the update has not propagated to others yet. In this case, the
-guarantee provided by bounding numerical error is that the weight of
-unseen \emph{finished} writes (meaning writes that returned to the
-client at their originating replica) never exceeds the allowable
-numerical error for each conit at each replica.
+If the one-round protocol is used where remote locks are not acquired
+before pushing writes, then some replicas appear to see new writes
+before others. That is, this policy does not enforce atomic visibility
+---updates at different replicas, appear to occur at different
+physical times instead of all at once. This is a weaker consistency
+model but may be valuable for certain kinds of information,
+particularly for applications where accepting new updates is
+always valuable, even if this update has not propagated to others
+yet. Otherwise, the two-round protocol would require all replicas to
+be notified before the new information can affect future read
+requests.
 
 \subsection{Extensions}
 \label{ssec:conit-extensions}
@@ -4549,21 +4548,29 @@ with additional capabilities. These topics are outside the scope of
 this memo but offered for future consideration.
 
 \paragraph{Dynamic bounds}
-Because real-time staleness and order error are bounded by pull-based
-anti-entropy sessions, it is straightforward to allow the user to
-dynamically change the error bounds at each site. However, numerical
-error is bounded by a push-based approach that requires every process
-to be track all other processes' error bounds and cooperate to enforce
-it. Therefore, dynamically tuning numerical $P$'s numerical error
-bounds requires a consensus mechanism so that $P$ can inform other
-processes any changes to its error bounds. However, $P$ cannot be sure
-its new bounds will be respected until every process has acknowledged
-the update.
+We imagine dynamically changing error bounds automatically in response
+to operational factors. For example, if the network is badly
+congested, the application may temporarily relax its error
+bounds. Returning to the VLAT example in
+Section~\ref{ssec:communication-and-safety}, heavy smoke may cause an
+application to relax the real-time staleness bounds for information
+about firefighters' locations on the ground. Correspondingly, the
+application may enforce a wider margin for authorizing VLAT drops,
+requiring the location estimates to be an even greater distance
+outside the drop zone to compensate for the increased
+uncertainty. This can resolve the discontinuity highlighted in that
+section, where poor network performance might require grounding VLATs
+to enforce an overly rigid safety policy that cannot be adjusted for
+ground conditions.
 
-Yu and Vahdat do not propose a particular mechanism for consensus. One
-possible approach may be to reuse the existing message-propagating
-mechanism to announce changes to error bounds, similar to Golding's
-approach for handling dynamic group membership.
+Because real-time staleness and order error are bounded by pull-based
+anti-entropy, the user can dynamically change the error bounds for
+each access. However, numerical error is bounded by a push-based
+approach that requires every process to be track all other processes'
+error bounds. One might following Golding's approach
+\cite{1992:golding-thesis} to extend the model with dynamic group
+membership and provide a consensus mechanism for adjusting numerical
+error bounds.
 
 \paragraph{Dynamic conits}
 The framework we have described above assumes the set of conits is
@@ -4580,40 +4587,45 @@ consistency bounds tuned as the user approaches them, exploiting a
 form of locality to allocate network resources for information the
 where inconsistency would most readily be perceived by the
 player. Adapting their \emph{dyconits} (dynamic conits) framework to
-the wide-area tactical environment may be worthwhile.
+the wide-area tactical environment may be worthwhile. It is notable
+that games like Minecraft, where players navigate three-dimensional
+environments and communicate over a network with sometimes perceptible
+delays, some similarities with real-world environments, such as the
+fact nearby users are likely to share an interest in the same conits.
 
 \paragraph{Interaction with the Network}
 We mentioned in Section~\ref{sssec:allocation-of-network-resource} our
 expectation of a tighter, more complex interaction between the network
 and application layers in this environment because of the need to
-optimize scarce network resources for the most important
-information. Because conits can quantify divergence, and therefore
-indirectly the relative importance of an update, one way this might be
-realized is by making the network conit-aware.
+optimize scarce network resources. Because conits allow quantifying
+divergence, and therefore the relative importance of an update, one
+way this might be realized is by making the network
+conit-aware. Network packets, or DTN bundles \cite{2021:intro-dtn},
+could be specially marked as containing database updates alongside any
+metadata such as the weight of the update to various conits. This
+information could then be used by the network for quality-of-service
+purposes.
 
-Network packets, or DTN bundles, could be specially marked as
-containing database updates alongside any metadata (such as the weight
-of an update to various conits) that could be used by the network for
-quality-of-service purposes. Such usage may run contrary to the
-conventional wisdom that networking protocols should be agnostic to
-the actual content of a message, e.g. routers should be concerned only
-with the data in IP packet headers but not the data contained in the
-packet. This sort of atypical usage is potentially justified in our
-setting because of a heightened requirement to optimize the user of
-very scarce networking resources, even at the cost of blurring the
-line between the network and application layers.
+Such usage may run contrary to a general wisdom that networking
+protocols should be agnostic to the content of a message---routers for
+example should only inspect IP packet headers but not the data
+payload. This sort of usage may be justified in our setting because of
+a heightened requirement to optimize network resources, potentially
+at the cost of blurring the line between the network and application
+layers.
 
 Modifying a network protocol to optimize a particular middleware or
 application is not a lightweight task, particularly since network
 drivers are often embedded into an operating system kernel or into
-hardware---this makes their modification difficult or at least
-fraught. We conjecture that SDN would be particularly suitable because
-it is easier to modify or customize software-defined networking
-protocols, so that custom hardware is not required even for extremely
-specialized networking needs. The ability to design network protocols
-at the level of conventional application software, rather than baking
-them into hardware, might offer the flexibility to experiment with
-variations of protocols.
+hardware. Software-defined networking \cite{2016:sdn-battlefield}, a
+trend that broadly raises network protocols to the level of ordinary
+software development, is likely to be highly useful for this kind of
+experimentation. Using a language such as P4 \cite{2014:p4} to
+implement a conit-aware extension of delay-tolerant networking
+protocols, for instance building on work by Ta et
+al. \cite{2023:towards-sdn-dtn}, would offer the ability to prototype
+designs without needing to design special-purpose hardware or replace
+low-level drivers.
 
 \section{Conclusion}
 \label{sec:conclusion}

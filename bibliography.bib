@@ -1198,3 +1198,92 @@
                   recovery;site initialization},
   doi          = {10.1109/TSE.1984.5010293}
 }
+
+@Article{2023:towards-sdn-dtn,
+  AUTHOR       = {Ta, Dominick and Booth, Stephanie and Dudukovich,
+                  Rachel},
+  TITLE        = {Towards Software-Defined Delay Tolerant Networks},
+  JOURNAL      = {Network},
+  VOLUME       = 3,
+  YEAR         = 2023,
+  NUMBER       = 1,
+  PAGES        = {15--38},
+  URL          = {https://www.mdpi.com/2673-8732/3/1/2},
+  ISSN         = {2673-8732},
+  ABSTRACT     = {This paper proposes a Software-Defined Delay
+                  Tolerant Networking (SDDTN) architecture as a
+                  solution to managing large Delay Tolerant Networking
+                  (DTN) networks in a scalable manner. This work is
+                  motivated by the planned deployments of large DTN
+                  networks on the Moon and beyond in deep
+                  space. Current space communication involves
+                  relatively few nodes and is heavily deterministic
+                  and scheduled, which will not be true in the
+                  future. It is unclear how these large space DTN
+                  networks, consisting of inherently intermittent
+                  links, will be able to adapt to dynamically changing
+                  network conditions. In addition to the proposed
+                  SDDTN architecture, this paper explores data plane
+                  programming and the Programming Protocol-Independent
+                  Packet Processors (P4) language as a possible method
+                  of implementing this SDDTN architecture, enumerates
+                  the challenges of this approach, and presents
+                  intermediate results.},
+  DOI          = {10.3390/network3010002}
+}
+
+@article{2016:sdn-battlefield,
+  author       = {Nobre, Jéferson and Rosário, Denis and Both,
+                  Cristiano and Cerqueira, Eduardo and Gerla, Mario},
+  year         = 2016,
+  month        = 10,
+  pages        = {152-157},
+  title        = {Toward software-defined battlefield networking},
+  volume       = 54,
+  journal      = {IEEE Communications Magazine},
+  doi          = {10.1109/MCOM.2016.7588285}
+}
+
+@article{2014:p4,
+  author       = {Bosshart, Pat and Daly, Dan and Gibb, Glen and
+                  Izzard, Martin and McKeown, Nick and Rexford,
+                  Jennifer and Schlesinger, Cole and Talayco, Dan and
+                  Vahdat, Amin and Varghese, George and Walker, David},
+  title        = {P4: programming protocol-independent packet
+                  processors},
+  year         = 2014,
+  issue_date   = {July 2014},
+  publisher    = {Association for Computing Machinery},
+  address      = {New York, NY, USA},
+  volume       = 44,
+  number       = 3,
+  issn         = {0146-4833},
+  url          = {https://doi.org/10.1145/2656877.2656890},
+  doi          = {10.1145/2656877.2656890},
+  abstract     = {P4 is a high-level language for programming
+                  protocol-independent packet processors. P4 works in
+                  conjunction with SDN control protocols like
+                  OpenFlow. In its current form, OpenFlow explicitly
+                  specifies protocol headers on which it
+                  operates. This set has grown from 12 to 41 fields in
+                  a few years, increasing the complexity of the
+                  specification while still not providing the
+                  flexibility to add new headers. In this paper we
+                  propose P4 as a strawman proposal for how OpenFlow
+                  should evolve in the future. We have three goals:
+                  (1) Reconfigurability in the field: Programmers
+                  should be able to change the way switches process
+                  packets once they are deployed. (2) Protocol
+                  independence: Switches should not be tied to any
+                  specific network protocols. (3) Target independence:
+                  Programmers should be able to describe
+                  packet-processing functionality independently of the
+                  specifics of the underlying hardware. As an example,
+                  we describe how to use P4 to configure a switch to
+                  add a new hierarchical label.},
+  journal      = {SIGCOMM Comput. Commun. Rev.},
+  month        = jul,
+  pages        = {87–95},
+  numpages     = 9,
+  keywords     = {sdn, reconfigurability, protocol-independent, p4}
+}
