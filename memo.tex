@@ -4323,15 +4323,15 @@ errant history and then restricting to writes that affect $\Conits$, yielding th
 overcounts the number of out-of-order updates if only the relative
 order of writes affecting $\Conits$ is considered important.
 
-The order error of an access is the total order weight of out of order
-writes to any of the conits it depends on.
+The order error for conit $F$ of an access $a$ depending on conits
+in $\Conits$ is the total order weight of out of order writes.
 \begin{definition}[Order error]
-  The \emph{order error} of an access $a$ depending on a conit set
-  $\mathcal{F}$ is the sum of $\OrderWeight\left(a, F\right)$ for
-  each $F$ in $\Conits$, for all writes $w$ that are in the out-of-order
-  set for $\mathcal{F}$.
+  Let $a$ be an access depending on a conit set $\mathcal{F}$. The
+  \emph{order error} relative to the conit $F$ is the sum of
+  $\OrderWeight\left(a, F\right)$ for all writes $w$ that are in the
+  out-of-order set for $\mathcal{F}$.
   \begin{equation}
-    \OrderError\left(a, \mathcal{F}\right) \equiv \sum_{F \in \Conits} \{ \OrderWeight\left(w, F\right) \mid w \in \mathsf{OOO}\left(a, \Conits\right) \}
+    \OrderError\left(a, F\right) \equiv \sum \{ \OrderWeight\left(w, F\right) \mid w \in \mathsf{OOO}\left(a, \Conits\right) \}
   \end{equation}
 \end{definition}
 
@@ -4340,14 +4340,14 @@ can estimate the order error of an access by totaling the order weight
 of accesses to $\Conits$ that have not been committed, yielding the
 following value:
 \begin{equation}
-  \EstOrderError\left(a, \mathcal{F}\right) \equiv \sum_{F \in \Conits} \{ \OrderWeight\left(w, F\right) \mid w \in \Uncommitted{P}|_\Conits \}
+  \EstOrderError\left(a, F \right) \equiv \sum \{ \OrderWeight\left(w, F\right) \mid w \in \Uncommitted{P}|_\Conits \}
 \end{equation}
 Now
 $\mathsf{OOO}\left(a, \Conits\right) \subseteq
 \Uncommitted{P}|_\Conits$ implies
-$\OrderError\left(a, \mathcal{F}\right) \leq \EstOrderError\left(a,
-  \mathcal{F}\right)$. Therefore it suffices for $P$ to bound the
-estimated order error of each access.
+$\OrderError\left(a, F\right) \leq \EstOrderError\left(a,
+  F\right)$. Therefore it suffices for $P$ to bound the estimated
+order error of each access.
 
 
 \subsubsection{Implementation}
@@ -4381,30 +4381,24 @@ $\summary{P}{Q}$ would be set to the value of $Q$'s scalar clock after
 being contacted by $P$, which will be greater than $P$'s clock, itself
 an upper bound of the timestamp of any message in the log.
 
-One can imagine two ways to bound out-of-order error, though which is
-the intention of the authors is not entirely made clear in
-\cite{2002tact}. First, $\OErr(P, F)$ can be taken as the allowable
-upper bound of $\OrderError\left(a,\{F\}\right)$ for an access $a$,
-where $\{F\}$ means the set consisting of just $F$. While handling
-this access, for each conit $F$ that $a$ depends on, if
-$\EstOrderError(a, \{F\})$ exceeds $\OErr(P, F)$, $P$ engages the
-write commitment procedure to commit all its tentative updates, until
-the order error $0$. This process is repeated for the entire set of
-conits $a$ depends on.
+Let $P$ accept an access $a$ from a client with a dependency on the
+conits in $\Conits$. The correctness condition of this metric is that
+the following inequality holds:
+\begin{equation}
+  \OrderError\left(a,F\right) < \OErr(P, F)
+\end{equation}
+While handling $a$, for each conit $F$ that $a$ depends on, if
+$\EstOrderError(a, F)$ exceeds $\OErr(P, F)$, $P$ engages the write
+commitment procedure to commit enough of its tentative updates to make
+the inequality hold. This process is repeated for each conit $F$ that
+$a$ depends on.
 
-Alternatively, the definition of $\mathsf{OOO}\left(a, \Conits\right)$
-suggests considering conits as a group, rather than bounding their
-order errors individually. With this policy, an access specifies the
-entire set of conits it depends on as a set $\Conits$, and
-additionally specifies its error bound for
-$\OrderError\left(a,\Conits\right)$. Then, $P$ checks whether
-$\EstOrderError(a, \Conits)$ exceeds this value, and engages write
-commitment if necessary. Note that this measurement of out-of-order
-error considers the relative order of all updates that affect conits
-in $\Conits$, even ones that affect different conits, which differs
-from the policy above where each conit is considered separately. Which
-of these mechanisms, if either of them, was intended by Yu and
-Vahdat is not totally clear to us.
+Note that because $P$ does not require proactive cooperation from
+other processes in $\AllProc$, the value of $\OErr(P, F)$ can be set
+uniquely for each access submitted to $P$. This allows controlling the
+risk of an out-of-order access on a per-access basis. For example, a
+preferred client of $P$ may enforce $0$ order error for any conits it
+depends on, ensuring that client never risks an canceled reservation.
 
 \begin{example}
   Suppose in Figure~\ref{fig:conit-order-a} that an access submitted
@@ -4413,24 +4407,12 @@ Vahdat is not totally clear to us.
   with an allowable order error of less than $5$, the number of
   uncommitted writes, then the update will be executed until $A$ pulls
   writes from $B$ and $C$ so that all messages up to $(A, 9)$ can be
-  committed. Figure~\ref{fig:conit-order-b} shows a possible state at
-  a later time $t = 13$.
+  committed. These anti-entropy sessions increase $\summary{A}{B}$ and
+  $\summary{A}{C}$ to $11$.  Figure~\ref{fig:conit-order-b} shows a
+  possible state at a later time $t = 13$, after accepting another
+  write with timestamp $(A, 12)$
 \end{example}
 
-\begin{comment}
-To a first approximation, the implementation described ensures that
-all committed writes are applied everywhere in the same total
-order---that is, the committed writes at $P$ are either equal to the
-committed writes at $Q$ or one is a prefix of the other. However, the
-protocol does not necessarily make guarantees about the relative order
-of \emph{order-independent} updates in the write log, which we define
-as those that do not apply non-zero order weight to any shared
-conit. It is up to the application programmer to ensure that the
-relative order of order-independent updates does not affect the data
-model. If this is the case, then the only way for users to observe
-writes applied in different orders at different replicas is if those
-writes have not yet been committed.
-\end{comment}
 
 \subsection{Real Time Staleness}
 \label{ssec:conit-real-time-consistency}
