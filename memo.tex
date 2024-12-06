@@ -2933,15 +2933,14 @@ vectors to their pointwise maximum, we immediately recompute
 $\ack{P}{P}$, setting it to
 $\min_{X \in \AllProc} \left(\summary{P}{X}\right)$. Furthermore,
 $\ack{P}{Q}$ is set to this value. Symmetrically, $Q$ updates
-$\ack{Q}{Q}$ and $\ack{Q}{P}$. Note that this preserves the preserves
-the invariant that $\ack{P}{Q}$ and $\ack{Q}{P}$ are lower bounds of
-$\ack{Q}{Q}$ and $\ack{P}{P}$, respectively, provided the
-implementation ensures $P$ increments $\ack{P}{Q}$ after confirming
-$Q$ has received all messages from $P$ and vice versa. This
-optimization advances acknowledgment vectors (and later, version
-matrices) more often than Golding's presentation, which allows the
-ordering and purging mechanisms (explained below) to progress more
-quickly.
+$\ack{Q}{Q}$ and $\ack{Q}{P}$. Note that this preserves the invariant
+that $\ack{P}{Q}$ and $\ack{Q}{P}$ are lower bounds of $\ack{Q}{Q}$
+and $\ack{P}{P}$, respectively, provided the implementation ensures
+$P$ increments $\ack{P}{Q}$ after confirming $Q$ has received all
+messages from $P$ and vice versa. This optimization advances
+acknowledgment vectors (and later, version matrices) more often than
+Golding's presentation, which allows the ordering and purging
+mechanisms (explained below) to progress more quickly.
 
 The following two lemmas explain the utility of $\ackVec{P}$ as a way
 of estimating global state.
