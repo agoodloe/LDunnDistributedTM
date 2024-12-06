@@ -4485,7 +4485,7 @@ all hosts where one intends to send write updates. Once all locks have
 been acquired, all necessary writes are sent. While locks are held,
 reads from affected conits are blocked on those remotes. When the
 writes are propagated, locks are released. This two-phase locking
-mechanism, which is also a conventional method to implement of
+mechanism, which is also a conventional method to implement
 linearizability, ensures that the propagated write operations appear
 to take effect at all destinations at the same time. When writes are
 propagated this way, the numerical and order weights of all accesses
