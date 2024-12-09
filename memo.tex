@@ -4499,13 +4499,11 @@ consistent history.
   bounded with respect to its ideal return value in the ECG history.
 \end{theorem}
 
-% TODO Reword this sentence Reword to reflect that I removed one of
-% the theorems about sequential consistency
-The following theorems are Theorems 4.1 and 4.3 of their 2002 paper
-\cite{2002tact}. Note that ``strict serializability'' here is
-essentially synonymous linearizability in the context of replicated
-databases. (The condition also implies serializable isolation of
-transactions, which is a concept specific to the database context.)
+The following result is Theorem 4.1 from \cite{2002tact}. Note that
+``strict serializability'' here is essentially synonymous
+linearizability in the context of replicated databases. (The condition
+also implies serializable isolation of transactions, which is a
+concept specific to the database context.)
 \begin{theorem}
   \label{thm:conit-correct-linearizability}
   If a conit is defined for each data item, and an access depends on
