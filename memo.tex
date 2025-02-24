@@ -54,10 +54,10 @@
 \SubjectCategory{64}         % two digit number
 \LNumber{XXXXX}              % Langley L-number
 \Number{XXXXXX}              % Report number
-\Month{12}                   % two digit number
-\Year{2022}                  % four digit number
+\Month{03}                   % two digit number
+\Year{2025}                  % four digit number
 \SubjectTerms{Distributed Systems, Formal Methods, Logic, }     % 4-5 comma separated words
-\Pages{46}                   % all the pages from the front to back covers
+\Pages{102}                   % all the pages from the front to back covers
 \DatesCovered{}              % 10/2000--9/2002
 \ContractNumber{}            % NAS1-12345
 \GrantNumber{}               % NAG1-1234
@@ -66,7 +66,7 @@
 \TaskNumber{}                % Task 123
 \WorkUnitNumber{}            % 123-45-67-89
 \SupplementaryNotes{}
-\Acknowledgment{The work was conducted during a summer internship at the NASA Langley Research Center in the Safety-Critical Avionics Systems Branch focusing on distributed computing  issues arising in the Safety Demonstrator challenge in the NASA Aeronautics System Wide Safety (SWS) program.}
+\Acknowledgment{The first author conducted the work during a summer internship at the NASA Langley Research Center in the Safety-Critical Avionics Systems Branch focusing on distributed computing  issues arising in the Safety Demonstrator challenge in the NASA Aeronautics System Wide Safety (SWS) program.}
 
 %Added for Pandoc
 \providecommand{\tightlist}{%
@@ -119,25 +119,25 @@ accessible to a technical audience without a deep background in
 distributed systems. Our primary motivating use cases come from civil
 emergency response scenarios, especially wildfire suppression and
 hurricane relief. These were chosen primarily for three
-reasons. First, improved technology for wildfire suppression,
-especially related to communications and data sharing, is frequently
-cited as a national priority \cite{pcast2023}.  Second, the rules for
+reasons. First, improved technology for wildfire suppression
+is frequently cited as a national priority \cite{pcast2023}.
+First responders often stress the need for new technology
+to improve communications and data sharing.  
+  Second, the rules for
 operating in the US national airspace are typically relaxed during
 natural disasters and relief efforts, so this is a suitable setting
 for testing new technologies. Finally, this setting is an excellent
-microcosm for the sorts of general challenges faced by other,
+microcosm for the general challenges faced by other,
 non-emergency applications.
 
-One theme visited throughout this document is \emph{continuity} in the
-sense considered by topology.\footnote{For an introductory textbook
-  see \cite{mendelson2012introduction}.}  The systems we examine must
-function under harsh operating conditions that limit their
+
+  The systems we examine must function under harsh operating conditions that limit their
 performance. For example, wireless communication is less reliable
 during severe weather. To design a system whose behavior and
 performance is predictable---this is clearly a prerequisite for
 safety---it must flexible enough to perform reliably under a wide
 range of adverse conditions. In other words, the behavior of a safe
-system should in some sense be a \emph{continuous} function of its
+system should in some sense be a \emph{continuous} function~\footnote{For a mathematical introduction to the topological notion of continuity see \cite{mendelson2012introduction}.}   of its
 inputs and environment. Achieving this sort of robust design is
 challenging because distributed systems designers must navigate
 delicate tradeoffs between competing objectives. At a high level,
@@ -147,8 +147,8 @@ strong level of global consistency between system components.
 
 The key insight the reader should take away from this document is that
 achieving system-wide safety is not solely a matter of improving
-communications hardware and physical infrastructure. It is also in
-large part a computer science and software problem concerned with the
+communications hardware and physical infrastructure. It is also
+a computer science and software problem concerned with the
 high-level applications that execute on top of the communications
 infrastructure. These software systems must be engineered to maintain
 a common operating picture between distributed users while making
@@ -174,7 +174,7 @@ system cannot guarantee strong consistency and remain available to
 users when the communication network is disconnected. The practical
 implication of the theorem is that agents in emergency response
 environments will always operate with incomplete information about the
-global system.  While the CAP theorem is often presented as a kind of
+global system.  While the CAP theorem is often presented as an 
 unfortunate prohibition, it merely highlights a general kind of
 tradeoff. Furthermore, real-world systems often exhibit a kind of
 ``locality'' that mitigates some of the constraints implied by the
@@ -241,7 +241,7 @@ power, to name a few.
 Field agents often face high message loss, distorted signals, and
 unpredictable delays in communication. A cautious approach suggests
 preparing for the worst performance at critical times---network
-failures often coincide with the sorts of conditions that demand
+failures often coincide with the conditions that demand
 urgent, reliable contact. Disasters often damage and degrade the
 communications infrastructure, which is accompanied by a sudden surge
 in user demand that can overwhelm a network completely. This was
@@ -257,7 +257,7 @@ Unreliable networks make coordinating distributed agents a significant
 challenge. Coherent decision-making and coordinated action require
 consistency, meaning agreement on the data shared between agents. We
 define consistency more precisely in Section~\ref{sec:background}, but
-the idea is clear: it is critical for everyone to agree which
+the concept is as follows: it is critical for everyone to agree which
 firetrucks should respond to which areas, where helicopters should
 land, which tasks should be prioritized, or which radio frequencies
 are in use. Achieving stronger standards for consistency requires
@@ -282,7 +282,7 @@ agents face a difficult choice: either wait for more information
 before acting, or act now with incomplete knowledge. Both inaction and
 uninformed action carry risks. This dilemma is closely related to a
 fundamental computer science principle known as the safety/liveness
-tradeoff.
+tradeoff~/cite{ALPERNS1985}.
 
 \begin{figure}
   \centering
@@ -318,7 +318,7 @@ others were injured, when an unexpectedly powerful drop from a Boeing
 \cite{2018:calfire}.
 
 Improving firefighter communications can be expected to lead to better
-safety outcomes. One such improvement is the through the use of
+safety outcomes. One such improvement is through the use of
 applications like TAK, the Team Awareness Kit, developed by the
 U.S. military in 2010 and later released in a civilian
 version. Wildland firefighters are increasingly using TAK, extended
@@ -427,7 +427,7 @@ setting. This makes wildfires an interesting and generalizable example
 for other kinds of civil disaster environments where the network is
 unreliable.
 
-One important concept to draw attention to is a kind of ``geospatial
+One important concept to draw attention to is  ``geospatial
 locality of reference'' that system designers should consider. By
 this, we mean the concomitance of two observations which, while not
 guaranteed rules, are approximately true in many circumstances. The
@@ -611,7 +611,7 @@ handled.
 Agents in disaster response environments will be both producers and
 consumers of data, and this data will need to processed by humans and
 machines in ways that agents can readily make sense of to support
-their decision-making. We list just some of the possible sources and
+their decision-making. We list some of the possible sources and
 types of pertinent data:
 \begin{itemize}
 \item Free-form communication, especially real-time or recorded voice messages
@@ -619,7 +619,7 @@ types of pertinent data:
   machines to extract the most pertinent information into a more
   actionable format
 \item The exact or estimated location of victims, firefighters,
-  vehicles, hazards, and so on displayed on applications like TAK
+  vehicles, hazards, etc. displayed on applications like TAK
 \item Medical information gathered from victims, perhaps stored in and
   collected from electronic triage tags \cite{2009:triagetag}
 \item Data about current and predicted fire behavior gathered from
@@ -642,7 +642,7 @@ presented with information that is sometimes incomplete, out of date,
 or contradictory---all problems that are further exacerbated by an
 unreliable network. A competing concern is that the information
 presented will be \emph{overcomplete}, filled with petty details that
-distract agents from their important tasks.
+distract agents from their critical tasks.
 
 In some ways, future systems for disaster response will bear
 resemblance to future systems for war fighting, such as the conceptual
@@ -728,7 +728,7 @@ shared with whom first, which has ramifications for network-level
 mechanisms designed to prioritize important messages.
 
 There is a widely accepted wisdom in computing---the end-to-end
-principle \cite{1984:end-to-end}---which suggests roughly that
+principle \cite{1984:end-to-end}---which suggests that
 applications should not make assumptions about the network, and that
 the network should be relatively agnostic to high-level application
 logic. However, in natural disaster environments where resources are
@@ -738,8 +738,8 @@ achieve the best performance. This approach would not contravene the
 end-to-end principle, but would involve carefully considering its
 application in this relatively extreme context.
 
-Consider, say 5 to 10 years in the future, a centralized data fusion
-application that running in an edge data center.\footnote{An
+Consider a centralized data fusion
+application running in an edge data center.\footnote{An
   \emph{edge} data center is one located closer to a network's edge,
   nearer to users, to provide low-latency communications for
   time-sensitive applications. Edge centers support applications that
@@ -794,7 +794,7 @@ tackle alone. From a bird’s-eye view, the systems we envision are
 intricate and complex, made up of diverse, interconnected elements:
 field agents like firefighters, their handheld devices, airborne and
 ground vehicles loaded with communication and computing tools, swarms
-of sensors and IoT devices, and so on. These decentralized components
+of sensors and Internet of Things (IoT) devices, and so on. These decentralized components
 operate alongside more centralized hubs: data fusion centers, incident
 command (IC) posts, public safety answering points (PSAPs), and
 emergency operations centers (EOCs). We imagine these components being
@@ -836,7 +836,7 @@ assume that some parts of the wider system will not have
 instantaneous, complete knowledge of every new piece of
 information. Only a few components, if any, will be able to maintain a
 global systemwide awareness. While deploying additional infrastructure
-in the field, such as COWs (Cells on Wheels), can help, the inherently
+in the field, such as Cells on Wheels (COWs), can help, the inherently
 distributed nature of the environment cannot be fully overcome or
 abstracted away. This reality must be embedded in the design of the
 software and networking architecture itself. Typically, this manifests
@@ -1365,7 +1365,7 @@ propagated and which updates have already been applied everywhere.
 
 \subsection{Message Ordering}
 \label{ssec:message-ordering}
-Coulouris et al. \cite{coulouris2005distributed} aptly summarized why
+Coulouris et al. \cite{coulouris2005distributed} summarized why
 it is a problem for unpredictable network latencies to cause messages
 to arrive in a different order than they were sent in.
 \begin{quote}
@@ -1419,9 +1419,9 @@ protocol (TCP).\footnote{The other classic internet transport, user
   reliability guarantees.} Applications built on top of TCP or a
 similar transport can take therefore take FIFO for granted. Providing
 FIFO can be as simple as marking messages sent from $P$ to $Q$ with
-consecutive integers. If message $1$ arrives and then $3$ arrives, $Q$
-infers that $2$ is lagging behind, delivering $1$ to the user but
-withholding delivery of $3$ until after $2$ is received and delivered.
+consecutive integers. If message $1$ arrives and then message $3$ arrives, $Q$
+infers that message $2$ is lagging behind, delivering message $1$ to the user, but
+withholding delivery of message $3$ until after message $2$ is received and delivered.
 
 The guarantees provided by FIFO are minimal because they only apply on
 a per-link basis: every link requires its own numbering scheme, so
@@ -1681,10 +1681,11 @@ setting it is not clear a priori what it means for a returned value to
 be ``up-to-date'' in the first place, in light of the fact that two
 different processes can write conflicting values to the same memory
 location at the same time. For developers, understanding the semantics
-of the virtual memory layer, meaning knowing what guarantees it makes
-concerning what values can be returned at which times, is a crucial
+of the virtual memory layer is a crucial
 part of building applications that function correctly while providing
-reliable performance. Because of the sorts of tensions discussed in
+reliable performance. This requires  knowing what guarantees the
+virtual memory layer  makes concerning what values can be returned at which times. 
+ Because of the sorts of tensions discussed in
 Section~\ref{sec:disaster-response}, the design space here is
 generally marked by a tradeoff between stronger consistency guarantees
 and faster performance.
@@ -1830,8 +1831,8 @@ several questions like the following ones:
 
 One can consider many different ways of answering these questions,
 depending on the consistency requirements of the high-level
-application. The strictest memory model, called
-\emph{linearizability}, is a sort of gold standard. If the distributed
+application. The strictest memory model is called
+\emph{linearizability}. If the distributed
 system whose history is shown in Figure~\ref{fig:dsm-example-2} is
 linearizable, the all three read operations must return the same
 value, and this must be either $3$ or $5$. This model is intuitive but
@@ -2143,11 +2144,11 @@ proof is fairly straightforward, the CAP theorem is sometimes
 misunderstood, so it is worth clarifying its key terms.
 
 \begin{description}
-\item[Consistency] Gilbert and Lynch define consistency as
+\item[Consistency:] Gilbert and Lynch define consistency as
   linearizability.
-\item[Availability] A CAP-available system eventually responds to every client
+\item[Availability:] A CAP-available system eventually responds to every client
   request (a read or write operation) after a finite time.
-\item[Partition tolerance] A partition-tolerant system continues to
+\item[Partition tolerance:] A partition-tolerant system continues to
   function in the face of arbitrary partitions in the network.
 \end{description}
 
@@ -2767,8 +2768,8 @@ of $P$'s message log.
 \begin{quote}
   \textbf{Coverage Property}: For all $Q$, $P$ has received
   all messages originating at $Q$ whose timestamps are less than the
-  $Q^\textrm{th}$ entry in $P$'s summary timestamp vector.
-  \[ \{m \in \WLat{Q}{Q} \mid \timestamp{m} \leq \summary{P}{Q} \} \subseteq \WLat{P}{Q} \]
+  $Q^\textrm{th}$ entry in $P$'s summary timestamp vector,
+  \[ \{m \in \WLat{Q}{Q} \mid \timestamp{m} \leq \summary{P}{Q} \} \subseteq \WLat{P}{Q}. \]
 \end{quote}
 The previous subset relation is ``morally'' an equality---messages in
 $\WLat{P}{Q}$ but not the subset are said to be ``early''---but only the
