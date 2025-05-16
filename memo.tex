@@ -24,6 +24,7 @@
 \usepackage{comment}
 \usepackage{rotating}%sidewaysfigure
 \usepackage{pdflscape}%alt to sidewaysfigure
+\usepackage{cleveref}
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}[theorem]{Corollary}
@@ -97,128 +98,44 @@
 \tableofcontents
 \newpage
 
-\section{Introduction}
-\label{sec:introduction}
-Civil aviation has traditionally focused primarily on the efficient
-and safe transportation of people and goods via the airspace. Despite
-inherent risks, the application of sound engineering practices and
-conservative operating procedures has made flying the safest mode of
-transport today. Now, the industry's strong requirements for safety
-make it difficult to integrate unmanned vehicles into the airspace,
-accommodate emerging applications, and keep pace with significant
-recent growth in commercial aviation. To that end, the NASA
-Aeronautics' Airspace Operations and Safety Program (AOSP) has
-initiated the System Wide Safety (SWS) project to investigate
-technologies and methods to enable manned and unmanned aircraft to
-safely operate in shared airspace.
+\section{Introduction}\label{sec:introduction}
+Civil aviation has traditionally focused primarily on the efficient and safe transportation of people and goods via the airspace. Despite inherent risks, the application of sound engineering practices and conservative operating procedures has made flying the safest mode of transport today. Now, the industry's strong safety requirements make it difficult to integrate unmanned vehicles into the airspace, accommodate emerging applications, and keep pace with significant recent growth in commercial aviation. To that end, the Airspace Operations and Safety Program (AOSP) initiated the System Wide Safety (SWS) project to investigate technologies and methods that enable manned and unmanned aircraft to safely operate in shared airspace.
 
-This memo surveys topics in computing that are relevant to maintaining
-system-wide safety across large, physically distributed data and
-communication systems. It is intended to be self-contained and
-accessible to a technical audience without a deep background in
-distributed systems. Our primary motivating use cases come from civil
-emergency response scenarios, especially wildfire suppression and
-hurricane relief. These were chosen primarily for three
-reasons. First, improved technology for wildfire suppression
-is frequently cited as a national priority \cite{pcast2023}.
-First responders often stress the need for new technology
-to improve communications and data sharing.  
-  Second, the rules for
-operating in the US national airspace are typically relaxed during
-natural disasters and relief efforts, so this is a suitable setting
-for testing new technologies. Finally, this setting is an excellent
-microcosm for the general challenges faced by other,
-non-emergency applications.
+This memo surveys topics in computing that are relevant to maintaining system-wide safety across large, physically distributed data and communication systems. It is intended to be self-contained and accessible to a technical audience without a deep background in distributed systems. Our motivating use cases come from civil emergency response scenarios, especially wildfire suppression. This setting was chosen primarily for three reasons. First, improved technology for wildfire suppression is frequently cited as a national priority \cite{pcast2023}. First responders often stress the need for new technology to improve communications and data sharing. Second, the rules for operating in the US national airspace are typically relaxed during natural disasters and relief efforts, so this a suitable environment for testing new technologies. Finally, this setting is an excellent microcosm for the general challenges faced by other, non-emergency applications.
+
+\subsection{Continuity and Distributed Systems}
+A central theme of this document is \emph{continuity}, in the sense of continuous functions from mathematics. At a high level, a continuous function is one where small changes in the input lead to small, predictable changes in the output. A familiar example is the volume knob on a speaker: adjusting the knob slightly leads to a proportionate change in sound level, without abrupt spikes or drop-offs. Continuity underlies much of safe engineering. Many functions found in an engineering context are continuous, so small changes in a system's environment (e.g., temperature, pressure, wind speed) typically yield small changes in its behavior, at least for changes falling within a certain range. This predictability allows engineers to measure, model, and anticipate a system's performance with high confidence.
+
+Software systems, by contrast, do not inherently exhibit continuity. For example, consider that flipping a single bit from 1 to 0 can mean the difference between a valid memory access and a segmentation fault, a positive number and a negative one, and a correct or broken authentication check. Unlike many physical systems, small changes in a program's runtime environment can produce large, discontinuous changes in its behavior, unless the system is designed to respond gracefully. For applications that model physical systems, continuity may arise naturally, but many desirable properties in a general computing context (e.g., strong consistency, defined in \Cref{sec:background}) are all-or-nothing: you either have them or you do not, without an obvious middle ground. This is challenging because, as we will show, this inflexibility often leads to situations where one desirable property must come at the expense of another, which must therefore be ``sacrificed'' by the system designer. Working in a more continuous framework can allow for a more balanced tradeoff between competing objectives, but it is not always clear what continuity means for software systems, nor how to achieve it.
+
+The kinds of software applications under discussion here (examined in detail in \Cref{sec:disaster-response}) support emergency responders in the field. They comprise diverse computing components that exchange data across communication networks to provide what emergency workers call a \emph{common operating picture} to users of the application. In computer science terms, these are \emph{distributed systems}: systems composed of physically separated nodes that coordinate via message-passing over a network. What makes these systems ``distributed'' is that the timescale of sending messages across the network can be significant relative to other kinds of events, such as a change in environmental conditions that might threaten responders on the ground. Furthermore, the network is far from perfect, which means that delayed, out-of-order, or lost messages become central engineering concerns for application developers. Network performance may be difficult to control and predict---particularly in the emergency response environment, where systems face difficult operating conditions, such as damaged infrastructure. Naturally, all of this unreliable behavior in the message-exchange medium makes it challenging to build robust, predictable applications that rely on the network to coordinate.
+
+In the distributed systems setting, developers must navigate delicate tradeoffs between competing objectives. One classic tradeoff, which is central to this document, stems from an inherent tension between building a system that responds to user requests quickly and one that prioritizes a strong level of global consistency between system components (the ``common'' aspect of the phrase ``common operating picture''). This tension is brought to a head in the CAP theorem, defined in \Cref{sec:background}. CAP is a fundamental result ruling out an idealized system that maintains strong consistency and guarantees system availability despite a faulty network. A na\"ive but somewhat common framing of the CAP theorem is that it forces developers to ``choose'' between consistency and responsiveness, which is exactly the sort of harsh binary choice we seek to eliminate---safe engineering implies we want systems to satisfy multiple competing objectives, rather than preferring one idealized extreme over another. Therefore, the present document culminates in a discussion of one solution proposed in the literature (the \emph{conit} model of Yu and Vahdat \cite{2002tact}) for escaping the dilemma presented by the CAP theorem. This model, one possible solution among many, offers the continuous flexibility required of a safe but efficient system that runs over an imperfect network.
+
+%, which can be broadly understood as a choice between safety (which has a narrow technical meaning in this context, discussed in \Cref{sec:disaster-response,sec:background}) and performance.
+%In the context of these kinds of discrete, yes-or-no properties, it is not always clear what continuity means, nor how to achieve it.
 
 
-  The systems we examine must function under harsh operating conditions that limit their
-performance. For example, wireless communication is less reliable
-during severe weather. To design a system whose behavior and
-performance is predictable---this is clearly a prerequisite for
-safety---it must flexible enough to perform reliably under a wide
-range of adverse conditions. In other words, the behavior of a safe
-system should in some sense be a \emph{continuous} function~\footnote{For a mathematical introduction to the topological notion of continuity see \cite{mendelson2012introduction}.}   of its
-inputs and environment. Achieving this sort of robust design is
-challenging because distributed systems designers must navigate
-delicate tradeoffs between competing objectives. At a high level,
-these tradeoffs stem from an inherent tension between designing a
-system that handles user requests quickly and one that prioritizes a
-strong level of global consistency between system components.
+Ultimately, a central thesis of this document is that system-wide safety in emergency communications is not just a matter of improving radios, routers, or bandwidth. Rather, it is also a problem of computer science: ensuring that the applications built on top of this infrastructure behave reliably \emph{despite} the inherent challenges of their environments.  These systems must be engineered to make highly efficient use of their limited resources while degrading gracefully in the face of harsh conditions. In short, these systems must react to their environment continuously, so that small failures or delays do not cascade into system-wide unpredictability.
 
-The key insight the reader should take away from this document is that
-achieving system-wide safety is not solely a matter of improving
-communications hardware and physical infrastructure. It is also
-a computer science and software problem concerned with the
-high-level applications that execute on top of the communications
-infrastructure. These software systems must be engineered to maintain
-a common operating picture between distributed users while making
-efficient use of networking and compute resources in a dynamic and
-even adversarial environment.
 
-\subsection{Summaries of the sections}
-\label{ssec:summaries-of-the-sections}
-Section~\ref{sec:disaster-response} opens with a practical overview of
-disaster response and some of the computing challenges encountered in
-this setting. The heavily disruptive nature of the communications
-network in these environments invariably raises issues fundamental to
-the science of distributed systems. Real-world examples from disaster
-response scenarios are presented that demonstrate how these challenges
-affect system-wide safety.
+\subsection{Summaries of the sections}\label{ssec:summaries-of-the-sections}
+This document does not present any novel research. Rather, our contribution is to explain in accessible terms the key technical ideas within a single document to a technical but non-specialist audience, while also explaining the specifics of the use case to readers unfamiliar with scenarios envisioned for these applications.
 
-Section~\ref{sec:background} summarizes fundamental concepts and
-mechanisms used in distributed systems, culminating in the classic
-``CAP'' theorem for both the linearizable and sequential consistency
-models (Theorems~\ref{thm:cap} and~\ref{thm:cap-sequential}). CAP is
-considered a ``negative'' result, as it proves that a distributed
-system cannot guarantee strong consistency and remain available to
-users when the communication network is disconnected. The practical
-implication of the theorem is that agents in emergency response
-environments will always operate with incomplete information about the
-global system.  While the CAP theorem is often presented as an 
-unfortunate prohibition, it merely highlights a general kind of
-tradeoff. Furthermore, real-world systems often exhibit a kind of
-``locality'' that mitigates some of the constraints implied by the
-theorem.
 
-Section~\ref{sec:tsae} presents Golding's Timestamped Anti-Entropy
-(TSAE) protocol. TSAE provides a fault-tolerant message propagation
-mechanism that ensures messages are eventually delivered to all
-parties. This implements a weak (eventual) consistency model,
-representing an optimistic approach to consistency where replicas of
-shared state are allowed to diverge temporarily and have their
-differences reconciled periodically. However, it has the downside that
-it cannot enforce bounds on how far apart any two replicas may diverge
-before this occurs. Therefore, users are not provided any guarantees
-limiting how far apart a data item observed by the user may be from
-its ``true'' value.
+Section~\ref{sec:disaster-response} opens with a practical overview of disaster response and some of the computing challenges encountered in this setting. The heavily disruptive nature of the communications network in these environments raises issues fundamental to the science of distributed systems. Real-world examples from disaster response scenarios are presented that demonstrate how these challenges affect system-wide safety.
 
-Section~\ref{sec:continuous-consistency} describes a TSAE-based data
-replication mechanism suitable for networks with frequent disruptions
-supporting applications that need to exercise control over the
-consistency of replicas. This framework is based on the theory of
-\emph{conits} (short for ``consistency unit'') developed by Yu and
-Vahdat \cite{2002tact}, which balances the competing objectives of
-consistency and availability in a quantifiable way. The idea is that
-applications can tolerate some level of inconsistency between replicas
-as long as the divergence remains less than some defined upper
-bound. Using the conit framework allows applications to define units
-of replicated state of interest, enforce policies limiting
-inconsistency between their replicas, and adapt these policies
-dynamically in response to the environment. Because it provides
-fine-grained control without sacrificing the flexibility and
-resilience of weak consistency, this model is suitable where the
-tradeoffs implied by the CAP theorem need to be carefully calibrated
-to support both performance and safety.
+Section~\ref{sec:background} summarizes fundamental concepts and mechanisms used in distributed systems, culminating in the classic CAP theorem for both the linearizable and sequential shared memory consistency models (Theorems~\ref{thm:cap} and~\ref{thm:cap-sequential}). CAP is a ``negative'' result, meaning it proves that a distributed system cannot guarantee strong consistency and remain available to users when the communication network is disconnected. The practical implication is that agents in emergency response environments invariably have incomplete information about the global system.  While the CAP theorem is often presented as an unfortunate prohibition, this section explains that CAP merely highlights a general tradeoff. Furthermore, real-world applications often exhibit a kind of ``locality'' that mitigates some of the constraints implied by the theorem, which developers should take into account.
 
-We conclude in Section~\ref{sec:conclusion} by recapping some of the
-main themes in this document and highlighting areas for further
-investigation. Ultimately, building distributed systems requires
-design decisions tailored to the environment and application, which
-leaves many opportunities to specialize the concepts discussed here to
-the real-world needs of users.
+Section~\ref{sec:tsae} presents Golding's Timestamped Anti-Entropy (TSAE) protocol \cite{1992:golding-thesis}. TSAE provides a fault-tolerant message propagation mechanism that ensures messages are eventually delivered to all parties despite an imperfect network. This implements a ``weak'' consistency model, so it is not directly subject to the CAP theorem. By itself, TSAE does not solve the fundamental problems contemplated by this document, but it provides a strong foundation upon which to build.
+% However, it has the downside that it cannot enforce bounds on how far apart any two replicas may diverge before this occurs. Therefore, users are not provided any guarantees limiting how far apart a data item observed by the user may be from its ``true'' value.
 
-\section{Coordination Challenges in Disaster Response}
-\label{sec:disaster-response}
+Section~\ref{sec:continuous-consistency} describes a TSAE-based data replication mechanism suitable for applications that run over networks with frequent disruptions, where the application must exercise control over the consistency of replicated data. This framework is based on the theory of \emph{conits} (short for ``consistency unit'') developed by Yu and Vahdat \cite{2002tact}, which balances the competing objectives of consistency and availability in a quantifiable way. %The idea is that applications can tolerate some level of inconsistency between replicas as long as the divergence remains less than some defined upper bound.
+Using the conit framework allows applications to define units of replicated state of interest, enforce policies limiting inconsistency between their replicas, and adapt these policies dynamically in response to changing conditions. Because it provides fine-grained control without sacrificing the flexibility and resilience of weak consistency, this model is suitable when the tradeoffs implied by the CAP theorem need to be carefully calibrated to support both performance and safety.
+
+We conclude in Section~\ref{sec:conclusion} by recapping the main themes in this document and highlighting areas for further investigation. Ultimately, building distributed systems requires design decisions tailored to the environment and application, and the specific techniques discussed in this document are suggestive examples, but not universal nor complete solutions. This leaves many opportunities to specialize the concepts discussed here to the real-world needs of users.
+
+\section{Coordination Challenges in Disaster Response}\label{sec:disaster-response}
 This section explores key aspects of disaster response, particularly
 firefighting, that shape the focus of this document. We highlight how
 real-world environments create fundamental challenges that require
@@ -774,8 +691,7 @@ network may need to be more specialized to higher-level applications
 than in traditional environments.
 
 
-\section{Introduction to Distributed Systems}
-\label{sec:background}
+\section{Introduction to Distributed Systems}\label{sec:background}
 In this section, we distill two core topics in the theory of
 distributed systems: causality and timekeeping, along with shared
 memory consistency.  Our discussion is primarily informed by the
@@ -1684,7 +1600,7 @@ location at the same time. For developers, understanding the semantics
 of the virtual memory layer is a crucial
 part of building applications that function correctly while providing
 reliable performance. This requires  knowing what guarantees the
-virtual memory layer  makes concerning what values can be returned at which times. 
+virtual memory layer  makes concerning what values can be returned at which times.
  Because of the sorts of tensions discussed in
 Section~\ref{sec:disaster-response}, the design space here is
 generally marked by a tradeoff between stronger consistency guarantees
