@@ -236,21 +236,23 @@ might be to disallow drops unless a VLAT's computers have up-to-date
 information about the location of ground personnel. Unfortunately,
 system-wide safety is not so easily achieved, as the proposed measure
 is precisely the sort of thing subject to the safety/liveness
-tradeoff. Here, it is important to recognize a linguistic nuance: in
+tradeoff. Before giving an example of this tradeoff, it is important to recognize a linguistic nuance: in
 the context of distributed systems, ``safety'' refers to a specific
-type of system property. The concept is not inherently related to the
-safety of people in a general systems context. In the context of emergency response, most safety properties probably affect human safety in some way, but not all properties that affect human safety are ``safety'' properties in the sense meant here. Instead, a \emph{safety} property is defined as a prohibition that stops
-a system from taking an action that might be ``bad'' in some way. Here
+type of system property, which need be related to the
+safety of people. A \emph{safety} property is defined as a prohibition that stops
+a system from taking an action that is considered ``bad.'' Here
 is a possible safety property for the example above:
 \begin{quote}
   $\Psafe$: Ground agents are known to be at least
   100 feet outside the drop zone, and this information is current to
   within 30 seconds, or airtankers will not perform a drop.
 \end{quote}
-By contrast, a \emph{liveness} property demands some kind of action
-from a system, usually one that is ``good'' in some way. A
+In the context of emergency response, most safety properties probably affect human safety in some way, but not all properties that affect human safety are ``safety'' properties in the technical sense. We do not have to look far to find an example: the next example is not a ``safety'' property, but it has implications for human safety.
+
+In contrast to safety properties, a \emph{liveness} property demands some kind of action
+from a system, usually one that is considered ``good.'' A
 characteristic of liveness properties is that they place an upper
-bound on the allowable delay of something. An exemplary liveness
+bound on the allowable delay of something. A liveness
 property for our scenario might be the following:
 \begin{quote}
   $\Plive$: A VLAT on the ground will take off and
@@ -259,11 +261,13 @@ property for our scenario might be the following:
     Fire cited 20 minutes as an upper bound on the response time for
     aerial firefighting units within designated responsibility areas
     in an interview with PBS \cite{2021:aerialfirefighting}.}
-\end{quote} Note that $\Plive$
+\end{quote}
+
+Note that $\Plive$
 is a liveness property, not a safety property in the narrow technical
 sense, but it impacts human safety: it might be critical for VLATs to
 perform drops quickly if a wildfire is threatening the safety of
-ground personnel. Throughout the remainder of this document, ``safety'' will always refer to the narrow meaning of the word, unless it is clear from context that the everyday definition is meant.
+ground personnel. That is why the safety/liveness tradeoff is a problem: we will show there is a tradeoff between these concepts, but human safety requires both ``safety'' and liveness properties from these systems, so we cannot simply ignore the tradeoff. Throughout the remainder of this document, ``safety'' will always refer to the narrow meaning of the word, unless it is clear from context that the everyday definition is meant.
 
 Safety and liveness are frequently dual mandates that cannot be
 guaranteed simultaneously. Such is the case in our example: though
