@@ -788,11 +788,11 @@ level of synchronization that can be expected from NTP in the sorts of use
 cases we have in mind. A field device initialized without internet
 access may have no idea what the time is, but it must still operate.
 
-For our use case, what seems most important about time is that
+For distributed systems, the critical feature of time is that
 \emph{the future cannot influence the past}
-\cite{1989mattern}. Fortunately, this sort of invariant can be
-enforced with mechanisms that do not rely on measuring real
-time. Below, we explain how so-called logical clocks can be used to
+\cite{1989mattern}. Fortunately, this property can be
+enforced using mechanisms that do not rely on measuring real
+time. Below, we explain how ``logical'' clocks can be used to
 measure and enforce a key relation between events, this being their
 \emph{causal precedence}.
 
