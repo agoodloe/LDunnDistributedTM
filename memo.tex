@@ -1321,9 +1321,9 @@ protocol (TCP).\footnote{The other classic internet transport, user
   reliability guarantees.} Applications built on top of TCP or a
 similar transport can take therefore take FIFO for granted. Providing
 FIFO can be as simple as marking messages sent from $P$ to $Q$ with
-consecutive integers. If message $1$ arrives and then message $3$ arrives, $Q$
-infers that message $2$ is lagging behind, delivering message $1$ to the user, but
-withholding delivery of message $3$ until after message $2$ is received and delivered.
+consecutive integers. If message one arrives and then message three arrives, $Q$
+infers that message two is lagging behind, delivering message one to the user, but
+withholding delivery of message three until after message two is received and delivered.
 
 The guarantees provided by FIFO are minimal because they only apply on
 a per-link basis: every link requires its own numbering scheme, so
