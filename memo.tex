@@ -2650,7 +2650,7 @@ value. At some point in the future, $P$ contacts some other process
 $Q$ to initiate an anti-entropy session. We conceptualize this process
 as happening in three phases (setup, message exchange, and conclusion):
 \begin{enumerate}
-\item $\summary{P}{P}$ is advanced to $\clock{P, t}$. Symmetrically,
+\item The value $\summary{P}{P}$ is advanced to $\clock{P, t}$. Symmetrically,
   $\summary{Q}{Q}$ is advanced to $\clock{Q, t}$. The partners exchange summary vectors.
 \item For each process $X \in \AllProc$, $P$ sends to $Q$ the set of
   messages in $\WLat{P}{X}$ with timestamps greater than
@@ -2669,7 +2669,7 @@ of $P$'s message log.
 \begin{quote}
   \textbf{Coverage Property}: For all $Q$, $P$ has received
   all messages originating at $Q$ whose timestamps are less than the
-  $Q^\textrm{th}$ entry in $P$'s summary timestamp vector,
+  $Q^\textrm{th}$ entry in $P$'s summary timestamp vector:
   \[ \{m \in \WLat{Q}{Q} \mid \timestamp{m} \leq \summary{P}{Q} \} \subseteq \WLat{P}{Q}. \]
 \end{quote}
 The previous subset relation is ``morally'' an equality---messages in
