@@ -32,7 +32,18 @@
 \theoremstyle{definition}
 \newtheorem{example}[theorem]{Example}
 \newtheorem{definition}[theorem]{Definition}
-\include{macros.tex}
+\input{macros.tex}
+\usepackage[backend=biber,style=numeric]{biblatex}  % or style=abbreviated equivalent
+\DeclareFieldFormat{labelnumberwidth}{#1\adddot}
+\AtEveryBibitem{%
+  \ifboolexpr{
+    test {\iffieldundef{doi}}
+    and
+    not test {\iffieldundef{url}}
+  }
+  {}
+  {\clearfield{url}}}
+\addbibresource{bibliography.bib}  % no file extension needed in newer versions, but this is safest
 
 % Globally redefine pgfpicture to use \Large fonts
 \let\origpgfpicture=\pgfpicture
@@ -4602,9 +4613,9 @@ the $21^\textrm{st}$ century.
 
 \section*{Bibliography}\label{bibliography}
 \addcontentsline{toc}{section}{Bibliography}
+\printbibliography
 
-\bibliographystyle{abbrv}
-\bibliography{bibliography}
+
 \end{document}
 
 %%% Local Variables:

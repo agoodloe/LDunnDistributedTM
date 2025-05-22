@@ -47,7 +47,7 @@
                 lmargin=1in, rmargin=1in,%
                 tmargin=1.125in, bmargin=0.75in]{geometry}[1999/10/07]
 \RequirePackage{ifthen} % ifthenelse
-\RequirePackage{cite}% sorting, collapses multiple entries, etc.
+%\RequirePackage{cite}% sorting, collapses multiple entries, etc.
 
 % Redefine caption delimeters [original from article.cls]
 \long\def\@makecaption#1#2{%
@@ -128,7 +128,7 @@
 \newcommand{\Month}[1]{\def\NC@month{\ifcase #1 \relax\or
                          01\or 02\or 03\or 04\or 05\or 06\or 07\or 08\or
                          09\else #1\fi}
-                       \def\NC@monthlong{\ifcase #1 \relax\or 
+                       \def\NC@monthlong{\ifcase #1 \relax\or
                          January\or February\or March\or April\or May\or
                          June\or July\or August\or September\or October\or
                          November\or December\else
@@ -166,7 +166,7 @@
 \newcommand{\NasaCenter}[1]{\def\NC@nasacenter{#1}}     \NasaCenter{}
 \newcommand{\SubjectCategory}[1]{\def\NC@category{#1}}  \SubjectCategory{}
 \newcommand{\Distribution}[1]{\def\NC@distribution{#1}}  \Distribution{}
-\newcommand{\SupplementaryNotes}[1]{\def\NC@supplenotes{#1}} 
+\newcommand{\SupplementaryNotes}[1]{\def\NC@supplenotes{#1}}
              \SupplementaryNotes{}
 \renewcommand{\abstract}[1]{\def\@abstract{#1}}         \abstract{}
 \newcommand{\SubjectTerms}[1]{\def\NC@subjectterms{#1}} \SubjectTerms{}
@@ -267,19 +267,19 @@
      \shortstack[l]{\bfseries Standard Form 298 (Rev. 8/98)\\[-.5mm]
      \almosttiny Prescribed by ANSI Std. Z39.18}}}
 %
-    \put(1,-32){\makebox(46,7.5)[lt]{\bfseries\almostscript 
+    \put(1,-32){\makebox(46,7.5)[lt]{\bfseries\almostscript
  1. REPORT DATE \mdseries\slshape (DD-MM-YYYY)}}
     \put(2,-32){\makebox(45,4)[tl]{01-\NC@month-\NC@year}}
 %
-    \put(49,-32){\makebox(71,7.5)[lt]{\bfseries\almostscript 
+    \put(49,-32){\makebox(71,7.5)[lt]{\bfseries\almostscript
  2. REPORT TYPE}}
     \put(50,-32){\makebox(70,4)[lt]{\NC@typelong}}
 %
-    \put(122,-32){\makebox(59,7.5)[lt]{\bfseries\almostscript 
+    \put(122,-32){\makebox(59,7.5)[lt]{\bfseries\almostscript
  3. DATES COVERED \mdseries\slshape (From - To)}}
     \put(123,-32){\makebox(58,4)[lt]{\NC@datescovered}}
 %
-    \put(1,-62){\makebox(108,29.5)[tl]{\bfseries\almostscript 
+    \put(1,-62){\makebox(108,29.5)[tl]{\bfseries\almostscript
  4. TITLE AND SUBTITLE}}
     \put(2,-38.5){\parbox[t]{107mm}{\raggedright \@title}}
 %
@@ -302,11 +302,11 @@
  5f. WORK UNIT NUMBER}}
     \put(112,-93){\makebox(69,7)[tl]{\NC@workunitnumber}}
 %
-    \put(1,-93){\makebox(108,30.5)[lt]{\bfseries\almostscript 
+    \put(1,-93){\makebox(108,30.5)[lt]{\bfseries\almostscript
  6. AUTHOR(S)}}
     \put(2,-68.5){\parbox[t]{107mm}{\raggedright \@author}}
 %
-    \put(1,-114){\makebox(119,20.5)[tl]{\bfseries\almostscript 
+    \put(1,-114){\makebox(119,20.5)[tl]{\bfseries\almostscript
  7. PERFORMING ORGANIZATION NAME(S) AND ADDRESS(ES)}}
     \put(2,-114){\makebox(118,17)[tl]{\shortstack[l]
      {NASA \NC@nasacenter}}}
@@ -318,7 +318,7 @@
 %
     \put(1,-138){\makebox(119,23.5)[lt]{\bfseries\almostscript
  9. SPONSORING/MONITORING AGENCY NAME(S) AND ADDRESS(ES)}}
-    \put(2,-138){\makebox(118,20)[tl]{\shortstack[l]{National 
+    \put(2,-138){\makebox(118,20)[tl]{\shortstack[l]{National
      Aeronautics and Space Administration\\ Washington, DC 20546-0001}}}
 %
     \put(122,-126){\makebox(59,11.5)[tl]{\bfseries\almostscript
@@ -342,15 +342,15 @@
     \put(1,-166){\makebox(180,11.5)[lt]{\bfseries\almostscript
  13. SUPPLEMENTARY NOTES}}
     \put(2,-160.5){\parbox[t]{179mm}{\raggedright\scriptsize
-     An electronic version can be found at 
+     An electronic version can be found at
      {http://ntrs.nasa.gov}.\\
      \NC@supplenotes}}
 %
-    \put(1,-207){\makebox(180,40.5)[tl]{\bfseries\almostscript 
+    \put(1,-207){\makebox(180,40.5)[tl]{\bfseries\almostscript
  14. ABSTRACT}}
     \put(2,-172.5){\parbox[t]{179mm}{\raggedright{\tiny \@abstract}}}
 %
-    \put(1,-222){\makebox(180,14.5)[tl]{\bfseries\almostscript 
+    \put(1,-222){\makebox(180,14.5)[tl]{\bfseries\almostscript
  15. SUBJECT TERMS}}
     \put(2,-213.5){\parbox[t]{179mm}{\raggedright \NC@subjectterms}}
 %
