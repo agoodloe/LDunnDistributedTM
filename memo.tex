@@ -3019,7 +3019,7 @@ log. It is still possible for $\WL{P}$ to grow without bound if the
 rate of message arrival exceeds the speed at which they are
 purged. This might occur during periods of heavy usage or during a
 network partition, as $P$ will eventually become unable to advance
-$\ack{P}{Q}$ further if $Q$ is on the other side of a partition. The
+$\ack{P}{Q}$ further if $Q$ is on the other side of a partition. In this situation, further mechanisms can be incorporated (and in practice, they often are) for $P$ to decide that $Q$ is no longer a participant, and resort to some type of failure mode, with the possibility of later reincorporating $Q$ into the group. Of course, such mechanisms add to the complexity and subtlety of distributed systems protocols, and they are outside this scope of this document. In any case, the
 storage requirements of the message log in a particular use case and
 environment should be measured empirically as part of an application
 optimization strategy.
