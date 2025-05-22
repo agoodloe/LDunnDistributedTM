@@ -21,7 +21,6 @@
 % Added for subfigures
 \usepackage{subcaption}
 \usepackage{afterpage}
-\usepackage{comment}
 \usepackage{rotating}%sidewaysfigure
 \usepackage{pdflscape}%alt to sidewaysfigure
 \usepackage{cleveref}
@@ -3030,12 +3029,6 @@ lemma.
   and can be purged from $\WL{P}$ to reclaim storage space.
 \end{proof}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{comment}
-For contrast, suppose $m$ has a timestamp greater than $\ack{P}{Q}$.
-Then without knowing the current value of $\summary{Q}{R}$ there is no
-guarantee $\timestamp{m}$ is less than this value. In this case,
-deleting $m$ from $\WL{P}$ might prevent $Q$ from ever receiving $m$.
-\end{comment}
 
 Because every message is eventually delivered and acknowledged by each
 process, $P$ will eventually be able to remove each message from its
@@ -4051,14 +4044,6 @@ from an application described by Yu and Vahdat \cite{2002tact}, which
 we will use to demonstrate out-of-order error and write
 commitment.
 
-\begin{comment}
-so at any moment it
-is possible that $P$'s state machine has diverged from its ideal
-value, beginning at the first access $P$ that was not applied in the
-final order. The allowable order error bounds how far $P$'s replicated
-state machine may tread down an errant path of transitions, before
-winding back transitions and reapplying them in the correct order.
-\end{comment}
 \begin{example}
   \label{ex:conit-booking}
   Suppose $P$ and $Q$ are two web servers independently processing
@@ -4431,20 +4416,6 @@ concept specific to the database context.)
   and order weight on all affected conits, then the system provides
   strict serializability.
 \end{theorem}
-\begin{comment}
-On the other hand, allowing unbounded numerical error provides
-one-copy serializability (1SR) \cite{1984:1sr}. The condition of 1SR
-roughly states that the history is consistent with some totally
-ordered history, but the history does not have to respect real-time
-order. Thus, one-copy serializability is something of an analogue of
-sequential consistency for replicated databases, where the unit of
-operation is a database transaction.
-\begin{theorem}
-    \label{thm:conit-correct-1sr}
-    If the above conditions are enforced except numerical weight is
-    unbounded, the system provides one-copy serializability.
-\end{theorem}
-\end{comment}
 
 If the one-round protocol is used where remote locks are not acquired
 before pushing writes, then some replicas appear to see new writes
