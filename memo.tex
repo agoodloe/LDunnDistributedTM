@@ -1092,30 +1092,6 @@ synchronous with each other (recall Example
 from a partial order, allowing clock values that are not directly
 comparable.
 
-
-\begin{figure}
-  \setlength\belowcaptionskip{5ex}
-
-  \begin{subfigure}{1\textwidth}
-    \centering
-    \input{images/pgf/mpEx1Vec.pgf}
-    \caption{Figure~\ref{fig:message-latencies-a} re-depicted with vector clocks}
-    \label{fig:message-latencies-vector-a}
-  \end{subfigure}
-
-  \vspace{4ex}
-
-  \begin{subfigure}{1\textwidth}
-    \centering \input{images/pgf/mpEx2Vec.pgf}
-    \caption{Figure~\ref{fig:message-latencies-b} re-depicted with vector clocks}
-    \label{fig:message-latencies-vector-b}
-  \end{subfigure}
-
-  \caption{Vector clock examples}
-  \label{fig:message-latencies-vector}
-\end{figure}
-\afterpage{\clearpage}
-
 Vector clocks store one scalar value for each process in the system,
 which forms a partial order when vectors are compared
 component-wise. $P$ maintains a vector $\vt{}$ of $N$ non-negative
@@ -1146,6 +1122,29 @@ These rules might be more intuitively understood by demonstration, so we provide
   Figure~\ref{fig:message-latencies-vector} depicts the same events as
   Figure~\ref{fig:message-latencies} with vector timestamps.
 \end{example}
+
+\begin{figure}
+  \setlength\belowcaptionskip{5ex}
+
+  \begin{subfigure}{1\textwidth}
+    \centering
+    \input{images/pgf/mpEx1Vec.pgf}
+    \caption{Figure~\ref{fig:message-latencies-a} re-depicted with vector clocks}
+    \label{fig:message-latencies-vector-a}
+  \end{subfigure}
+
+  \vspace{4ex}
+
+  \begin{subfigure}{1\textwidth}
+    \centering \input{images/pgf/mpEx2Vec.pgf}
+    \caption{Figure~\ref{fig:message-latencies-b} re-depicted with vector clocks}
+    \label{fig:message-latencies-vector-b}
+  \end{subfigure}
+
+  \caption{Vector clock examples}
+  \label{fig:message-latencies-vector}
+\end{figure}
+\afterpage{\clearpage}
 
 For all other $Q$ in $\AllProc$, $\vt{P}[Q]$ represents $P$'s
 conservative estimate of $Q$'s local time, or $\vt{Q}[Q]$. This
