@@ -2479,11 +2479,16 @@ synchronized physical clocks assumed below
 \subsection{Assumptions}
 \label{ssec:tsae-assumptions}
 We assume each process is associated with an identifier. In practice,
-these might be Uniform Resource Identifiers (URIs) \cite{rfc3986}
-following a structured format like
-\texttt{firefighter116@<agency>.<state>.us}. However, in the text we
-will not make a distinction between a process $P$ and its
-identifier. The first assumption we make is as follows:
+this might be a Uniform Resource Identifier (URI) \cite{rfc3986}
+following a structured format such as
+\texttt{<agent-id>@<agency>.<state>.<country>}. For instance, the first author's father, Firefighter 116 with the Orange County Fire and Rescue Department in Florida, might be assigned this fictional identifier:
+\begin{center}
+  \texttt{firefighter116@ocfrd.fl.us}
+\end{center}
+In the text, we will not make a distinction between a process $P$ and its
+identifier.
+
+The first assumption we make for the presentation of TSAE is as follows:
 \begin{quote}
   \textbf{Static process group}: The set of group members is a fixed
   set of processes $\AllProc = \{P_1, P_2, \ldots P_n\}$ where the
