@@ -1193,9 +1193,16 @@ membership in this document.
 \subsubsection{Matrix clocks}
 \label{sssec:matrix-clocks}
 If a vector clock stores both a local time and a lower bound estimate
-of every other process's local time, then a matrix clock stores a
+of every other process's local time, then a \emph{matrix clock} stores a
 local vector clock and a lower bound estimate of every other process's
-vector clock. Each process $P$ stores an $N\times{}N$ matrix
+vector clock. In Section~\ref{sec:disaster-response}, we mentioned the epistemic nature of
+reasoning about distributed systems: a process can only make decisions
+based on what it \emph{knows}, which is usually a strict subset of all
+(system-wide) truths. In many cases, it is important to take into
+account a kind of second-order knowledge: what we does a process know
+about what other processes know? In particular, it is of interest to compute which facts are known to \emph{all} other processes. Vector clocks can used for this purpose. In some contexts, we must take the idea one step further: what does a process know about what other processes know \emph{about other processes}? This is the purpose of matrix clocks. Sections~\ref{sec:tsae} and~\ref{sec:continuous-consistency} feature running examples of mechanisms similar to vector and matrix clocks, called version vectors and matrices. These are used in the context of database replication, where they drive decision-making about which updates need to be propagated and which updates have already been applied everywhere.
+
+In a matrix clock, each process $P$ stores an $N\times{}N$ matrix
 $\mt{}{}{}$, initialized to all zeros, with the following
 interpretation. The row corresponding to $P$, $\mt{}{[P]}{}$,
 stores $P$'s vector time. For all other $Q$, $\mt{}{[Q]}{}$ store $P$'s
@@ -1249,21 +1256,6 @@ maximum of all other rows.
   instance, the top row of matrices in $P_1$---act like ordinary vector
   clocks.
 \end{example}
-
-In Section~\ref{sec:background}, we mentioned the epistemic nature of
-reasoning about distributed systems: a process can only make decisions
-based on what it \emph{knows}, which is usually a strict subset of all
-(system-wide) truths. In many cases, it is important to take into
-account a kind of second-order knowledge: what does a process know
-about what other processes know? A typical utility of vector and
-matrix clocks is to track which facts known to one process are also
-known to another processes. Often it is of interest to compute which
-facts are known to \emph{all} other processes. Sections~\ref{sec:tsae}
-and~\ref{sec:continuous-consistency} feature running examples of
-mechanisms similar to vector and matrix clocks, called version vectors
-and matrices. These are used in the context of database replication,
-where they drive decision-making about which updates need to be
-propagated and which updates have already been applied everywhere.
 
 \subsection{Message Ordering}
 \label{ssec:message-ordering}
