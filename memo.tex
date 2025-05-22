@@ -3180,10 +3180,7 @@ entire \emph{database transaction}---a potentially complex set of
 steps that can read several data items, modify them, and might also
 return a value to the user. In fact, read accesses should be thought
 of as merely special cases of write accesses that do not modify any
-data. Using terminology we will introduce later, a read access is
-effectively one that applies zero numerical and order error to every
-conit, so it does not need to be entered into $\WL{P}$ or participate
-in write propagation.
+data. Later, we will describe how the concepts of ``read error'' and ``order error'' measure the significance of an update when applied to a database replica---then, a read request can be thought of as an update that measures zero with respect to both of these metrics, because it does not change the database state.
 
 It is important to note that a write access can encode
 application-level logic. For example, it may read a value in the
