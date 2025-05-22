@@ -2700,7 +2700,7 @@ hold at all times for all $P$ and $Q$ (including when $P = Q$):
 
 \begin{example}
   \label{ex:tsae}
-  Figures~\ref{fig:tsae1}---\ref{fig:tsae6} depict the evolution of
+  Figures~\ref{fig:tsae1}---\ref{fig:tsae7} depict the evolution of
   TSAE executing across three distributed processes $A$, $B$, and
   $C$. The figures depict the following chain of events beginning at
   $t = 3$. Note that by $t = 9$, $A$ learns of writes submitted with
@@ -2757,7 +2757,7 @@ hold at all times for all $P$ and $Q$ (including when $P = Q$):
     \centering
     \includegraphics[width=1.4\textwidth]{images/tsae/TSAE7.png}
     \caption{TSAE at time $t=7$. $B$ and $C$ update and exchange summary vectors before deciding to exchange the shaded messages. $A$ submits a message with timestamp $t = 7$.}
-    \label{fig:tsae4}
+    \label{fig:tsae5}
   \end{figure}
   \begin{figure}[h]
     \centering
@@ -2775,7 +2775,7 @@ hold at all times for all $P$ and $Q$ (including when $P = Q$):
       both have minimum entries $\ack{}{C} = 4$. $C$ has received the
       same messages as $A$ and $B$, but has not witnessed $A$
       acknowledging them.}
-    \label{fig:tsae6}
+    \label{fig:tsae7}
   \end{figure}
 \end{landscape}
 
