@@ -3,26 +3,29 @@
 %  reports which include coverpages, titlepages, and a report
 %  documentation page (rdp) as required by NASA style requirements.
 
-% $Id: NASA.cls,v 1.54 2015/11/20 20:42:43 wawood Exp $
+% $Id: NASA.cls,v 1.62 2024/02/05 09:17:20 wawood Exp $
 % AUTHORS: Bill.Wood@NASA.gov, Bil.kleb@NASA.gov
 
 \NeedsTeXFormat{LaTeX2e}[1994/06/01]
 
-\ProvidesClass{NASA}[2015/11/20 v1.54 NASA class]
+\ProvidesClass{NASA}[2024/02/05 v1.62 NASA class]
 
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{article}%
                 \typeout{NOTE: Passing '\CurrentOption' option on to the
                          underlying LaTeX article class}}
 
-% option for RDP only
+% set up options for covers and Report Documentation Page (RDP)
 \newif\if@frontcovers
 \@frontcoverstrue
 %
 \newif\if@coveronly
 \@coveronlyfalse
 %
-\newif\if@back
-\@backtrue
+\newif\if@back  % RDP and back cover
+\@backfalse
+%
+\newif\if@backcover % outside back cover, for hardcopy printing
+\@backcoverfalse    % default on-line pdf, no back cover
 %
 \newif\if@RDPonly
 \@RDPonlyfalse
@@ -30,6 +33,7 @@
 \DeclareOption{RDPonly}{\@RDPonlytrue\@backfalse}
 \DeclareOption{coveronly}{\@coveronlytrue\@backfalse}
 \DeclareOption{nocover}{\@frontcoversfalse\@backfalse}
+\DeclareOption{backcover}{\@backcovertrue}
 \ProcessOptions
 
 \setcounter{errorcontextlines}{999}% crank up debugging output
@@ -47,7 +51,8 @@
                 lmargin=1in, rmargin=1in,%
                 tmargin=1.125in, bmargin=0.75in]{geometry}[1999/10/07]
 \RequirePackage{ifthen} % ifthenelse
-%\RequirePackage{cite}% sorting, collapses multiple entries, etc.
+% \RequirePackage{cite}% sorting, collapses multiple entries, etc.
+\RequirePackage{etoolbox}% AfterEndPreamble
 
 % Redefine caption delimeters [original from article.cls]
 \long\def\@makecaption#1#2{%
@@ -128,7 +133,7 @@
 \newcommand{\Month}[1]{\def\NC@month{\ifcase #1 \relax\or
                          01\or 02\or 03\or 04\or 05\or 06\or 07\or 08\or
                          09\else #1\fi}
-                       \def\NC@monthlong{\ifcase #1 \relax\or
+                       \def\NC@monthlong{\ifcase #1 \relax\or 
                          January\or February\or March\or April\or May\or
                          June\or July\or August\or September\or October\or
                          November\or December\else
@@ -166,7 +171,7 @@
 \newcommand{\NasaCenter}[1]{\def\NC@nasacenter{#1}}     \NasaCenter{}
 \newcommand{\SubjectCategory}[1]{\def\NC@category{#1}}  \SubjectCategory{}
 \newcommand{\Distribution}[1]{\def\NC@distribution{#1}}  \Distribution{}
-\newcommand{\SupplementaryNotes}[1]{\def\NC@supplenotes{#1}}
+\newcommand{\SupplementaryNotes}[1]{\def\NC@supplenotes{#1}} 
              \SupplementaryNotes{}
 \renewcommand{\abstract}[1]{\def\@abstract{#1}}         \abstract{}
 \newcommand{\SubjectTerms}[1]{\def\NC@subjectterms{#1}} \SubjectTerms{}
@@ -181,8 +186,9 @@
 \newcommand\twelveptsmall{\@setfontsize\twelveptsmall\@xipt{13.6}}
 \newcommand\twelveptfootnotesize{\@setfontsize\twelveptfootnotesize\@xpt\@xiipt}
 
-%       Report Documentation Page
-
+%
+%       Report Documentation Page template
+%
 \def\NC@rdp{%
  \renewcommand{\thanks}[1]{\relax}
  \thispagestyle{empty}
@@ -267,19 +273,19 @@
      \shortstack[l]{\bfseries Standard Form 298 (Rev. 8/98)\\[-.5mm]
      \almosttiny Prescribed by ANSI Std. Z39.18}}}
 %
-    \put(1,-32){\makebox(46,7.5)[lt]{\bfseries\almostscript
+    \put(1,-32){\makebox(46,7.5)[lt]{\bfseries\almostscript 
  1. REPORT DATE \mdseries\slshape (DD-MM-YYYY)}}
     \put(2,-32){\makebox(45,4)[tl]{01-\NC@month-\NC@year}}
 %
-    \put(49,-32){\makebox(71,7.5)[lt]{\bfseries\almostscript
+    \put(49,-32){\makebox(71,7.5)[lt]{\bfseries\almostscript 
  2. REPORT TYPE}}
     \put(50,-32){\makebox(70,4)[lt]{\NC@typelong}}
 %
-    \put(122,-32){\makebox(59,7.5)[lt]{\bfseries\almostscript
+    \put(122,-32){\makebox(59,7.5)[lt]{\bfseries\almostscript 
  3. DATES COVERED \mdseries\slshape (From - To)}}
     \put(123,-32){\makebox(58,4)[lt]{\NC@datescovered}}
 %
-    \put(1,-62){\makebox(108,29.5)[tl]{\bfseries\almostscript
+    \put(1,-62){\makebox(108,29.5)[tl]{\bfseries\almostscript 
  4. TITLE AND SUBTITLE}}
     \put(2,-38.5){\parbox[t]{107mm}{\raggedright \@title}}
 %
@@ -302,11 +308,11 @@
  5f. WORK UNIT NUMBER}}
     \put(112,-93){\makebox(69,7)[tl]{\NC@workunitnumber}}
 %
-    \put(1,-93){\makebox(108,30.5)[lt]{\bfseries\almostscript
+    \put(1,-93){\makebox(108,30.5)[lt]{\bfseries\almostscript 
  6. AUTHOR(S)}}
     \put(2,-68.5){\parbox[t]{107mm}{\raggedright \@author}}
 %
-    \put(1,-114){\makebox(119,20.5)[tl]{\bfseries\almostscript
+    \put(1,-114){\makebox(119,20.5)[tl]{\bfseries\almostscript 
  7. PERFORMING ORGANIZATION NAME(S) AND ADDRESS(ES)}}
     \put(2,-114){\makebox(118,17)[tl]{\shortstack[l]
      {NASA \NC@nasacenter}}}
@@ -318,7 +324,7 @@
 %
     \put(1,-138){\makebox(119,23.5)[lt]{\bfseries\almostscript
  9. SPONSORING/MONITORING AGENCY NAME(S) AND ADDRESS(ES)}}
-    \put(2,-138){\makebox(118,20)[tl]{\shortstack[l]{National
+    \put(2,-138){\makebox(118,20)[tl]{\shortstack[l]{National 
      Aeronautics and Space Administration\\ Washington, DC 20546-0001}}}
 %
     \put(122,-126){\makebox(59,11.5)[tl]{\bfseries\almostscript
@@ -328,7 +334,7 @@
     \put(122,-138){\makebox(59,11.5)[tl]{\bfseries\almostscript
      \settowidth{\tmpind}{11.} \shortstack[l]{
  11. SPONSOR/MONITOR'S REPORT\\ \hspace{\tmpind} NUMBER(S)}}}
-    \put(123,-138){\makebox(58,5)[tl]{NASA/\NC@type --\NC@year --\NC@number}}
+    \put(123,-138){\makebox(58,5)[tl]{NASA/\NC@type --\NC@year \NC@number}}
 %
     \put(1,-154){\makebox(180,15.5)[tl]{\bfseries\almostscript
  12. DISTRIBUTION/AVAILABILITY STATEMENT}}
@@ -342,15 +348,15 @@
     \put(1,-166){\makebox(180,11.5)[lt]{\bfseries\almostscript
  13. SUPPLEMENTARY NOTES}}
     \put(2,-160.5){\parbox[t]{179mm}{\raggedright\scriptsize
-     An electronic version can be found at
+     An electronic version can be found at 
      {http://ntrs.nasa.gov}.\\
      \NC@supplenotes}}
 %
-    \put(1,-207){\makebox(180,40.5)[tl]{\bfseries\almostscript
+    \put(1,-207){\makebox(180,40.5)[tl]{\bfseries\almostscript 
  14. ABSTRACT}}
-    \put(2,-172.5){\parbox[t]{179mm}{\raggedright{\tiny \@abstract}}}
+    \put(2,-172.5){\parbox[t]{179mm}{\raggedright \@abstract}}
 %
-    \put(1,-222){\makebox(180,14.5)[tl]{\bfseries\almostscript
+    \put(1,-222){\makebox(180,14.5)[tl]{\bfseries\almostscript 
  15. SUBJECT TERMS}}
     \put(2,-213.5){\parbox[t]{179mm}{\raggedright \NC@subjectterms}}
 %
@@ -385,12 +391,12 @@
    \end{picture}
   \end{footnotesize}
  \end{flushleft}
-}%   end of NC@rdp
+}%   end of NC@rdp  --  RDP template
 
 
-%\AtBeginDocument{% AfterEndPreamble allows formatting that
-%AtBeginDocument does not allow.
-\RequirePackage{etoolbox}
+%
+%    Begin document
+%
 \AfterEndPreamble{%
  \if@RDPonly
 % \changepage{textheight}{textwidth}{evensidemargin}{oddsidemargin}
@@ -408,14 +414,64 @@
  \pagestyle{empty}
  \renewcommand{\thanks}[1]{\\ #1}
  \begin{flushleft}
- {\twelveptlarge NASA/\NC@type --\NC@year --\NC@number \par}%
+% 2021 and earlier have a dash between year and number
+% {\twelveptlarge NASA/\NC@type --\NC@year --\NC@number \par}%
+% 2022 and on choose to look crappy with year an number munged
+ {\twelveptlarge NASA/\NC@type --\NC@year \NC@number \par}%
  \vskip 2em%
- \includegraphics[height=1.25in]{nasalogo}\par%
+ \includegraphics[height=1.25in]{nasalogo-color}\par%
  \vskip 1em%
  {\Huge\bfseries\@title\par}%
  \vskip 3em%
  {\twelveptnormalsize\itshape\NC@authoraffiliation\par}%
  \vfill%
+%
+ \newlength{\noticeboxwidth}
+ \setlength{\noticeboxwidth}{\linewidth}
+ \addtolength{\noticeboxwidth}{-2\fboxrule}
+ \addtolength{\noticeboxwidth}{-2\fboxsep}
+%
+% Put special distribution notices here and on title page
+%
+ % \begin{center}
+ %   \begin{twelveptfootnotesize}
+ %     \framebox{%
+ %       \parbox{\noticeboxwidth}{%
+ %         \begin{center}{\bf Notice---NASA Space Act Agreement}\end{center}
+ %         This document contains information developed as a result of
+ %         activities conducted under an agreement entered into pursuant to
+ %         section 203(c)(5) and (6) of the National Aeronautics and Space
+ %         Act of 1958, as amended.
+ %         This information is subject to protection under section 303 of
+ %         this Act and therefore is exempt from general release under the
+ %         Freedom of Information Act (5 U.S.C. (b)(3)).
+ %         Recipients of this document may further disseminate it only as
+ %         directed by NASA Langley Research Center, Aeronautics Research
+ %         Directorate, Hampton, VA 23681. Date for general release:
+ %         August 2021.%
+ %       }
+ %     }
+ %     \vskip 10pt%
+ %     \framebox{%
+ %       \parbox{\noticeboxwidth}{%
+ %         \begin{center}
+ %           {\bf Export Administration Regulations (EAR) Notice}
+ %         \end{center}
+ %         This document contains information within the purview of the
+ %         Export Administration Regulations (EAR), 15 CFR 730--774, and is
+ %         export controlled.
+ %         It may not be transferred to foreign nationals in the U.S. or
+ %         abroad without specific approval of a knowledgeable NASA export
+ %         control official, and/or unless an export license/license
+ %         exception is obtained/available from the Bureau of Industry and
+ %         Security, United States Department of Commerce.
+ %         Violations of these regulations are punishable by fine,
+ %         imprisonment, or both.%
+ %       }
+ %     }
+ %   \end{twelveptfootnotesize}
+ % \end{center}
+%
  \makebox[0pt][l]{\hspace{-1in}\hspace{-\oddsidemargin}%
 \hspace{-\parindent}\rule{8in}{6pt}}
  \vskip 0.5em%
@@ -430,7 +486,7 @@
  \setlength{\baselineskip}{0.9\originalbaselineskip}
  \setlength{\parskip}{1em}\setlength{\columnsep}{0.5in}
  \global\let \@nodocument \relax% to circumvent \twocolumn[ activating error
- \twocolumn[\centering \textbf{NASA STI Program\ldots in Profile}\vskip 2em]
+ \twocolumn[\centering \textbf{NASA STI Program Report Series}\vskip 2em]
 
 Since its founding, NASA has been dedicated to the advancement of
 aeronautics and space science.
@@ -441,9 +497,9 @@ The NASA STI Program operates under the auspices of the Agency Chief
 Information Officer.
 It collects, organizes, provides for archiving, and disseminates
 NASA's STI\@.
-The NASA STI Program provides access to the NASA Aeronautics and Space
-Database and its public interface, the NASA Technical Report Server,
-thus providing one of the largest collection of aeronautical and space
+The NASA STI Program provides access to the NTRS Registered
+and its public interface, the NASA Technical Report Server,
+thus providing one of the largest collections of aeronautical and space
 science STI in the world.
 Results are published in both non-NASA channels and by NASA in the
 NASA STI Report Series, which includes the following report types:
@@ -496,13 +552,9 @@ NASA STI Report Series, which includes the following report types:
    \addtolength{\leftmargin}{\labelsep}%
    \setlength{\topsep}{0pt}}
  \item Access the NASA STI program home page at {\tt http://www.sti.nasa.gov}
- \item E-mail your question to {\tt help@sti.nasa.gov}
- \item Phone the NASA STI Information Desk at 757-864-9658
- \item Write to:\\
-  NASA STI Information Desk\\
-  Mail Stop 148\\
-  NASA Langley Research Center\\
-  Hampton, VA 23681-2199
+ \item Help desk contact information:
+   {\small\tt https://www.sti.nasa.gov/sti-contact-form/}
+   and select the ``General'' help request type.
  \end{list}
  \renewcommand{\baselineskip}{\originalbaselineskip}
  \end{twelveptsmall}
@@ -512,14 +564,59 @@ NASA STI Report Series, which includes the following report types:
 %
  \onecolumn
   \setlength{\parskip}{0pt}%
- {\twelveptlarge NASA/\NC@type --\NC@year --\NC@number \par}%
+% 2021 and earlier have a dash between year and number
+% {\twelveptlarge NASA/\NC@type --\NC@year --\NC@number \par}%
+% 2022 and on choose to look crappy with year an number munged
+ {\twelveptlarge NASA/\NC@type --\NC@year \NC@number \par}%
  \vskip 2em%
- \includegraphics[height=1.25in]{nasalogo}\par%
+ \includegraphics[height=1.25in]{nasalogo-color}\par%
  \vskip 1em%
  {\Huge\bfseries\@title\par}%
  \vskip 3em%
  {\twelveptnormalsize\itshape\NC@authoraffiliation\par}%
  \vfill%
+%
+% Put special distribution notices here, and on cover page
+%
+ % \begin{center}
+ %   \begin{twelveptfootnotesize}
+ %     \framebox{%
+ %       \parbox{\noticeboxwidth}{%
+ %         \begin{center}{\bf Notice---NASA Space Act Agreement}\end{center}
+ %         This document contains information developed as a result of
+ %         activities conducted under an agreement entered into pursuant to
+ %         section 203(c)(5) and (6) of the National Aeronautics and Space
+ %         Act of 1958, as amended.
+ %         This information is subject to protection under section 303 of
+ %         this Act and therefore is exempt from general release under the
+ %         Freedom of Information Act (5 U.S.C. (b)(3)).
+ %         Recipients of this document may further disseminate it only as
+ %         directed by NASA Langley Research Center, Aeronautics Research
+ %         Directorate, Hampton, VA 23681. Date for general release:
+ %         August 2021.%
+ %       }
+ %     }
+ %     \vskip 10pt%
+ %     \framebox{%
+ %       \parbox{\noticeboxwidth}{%
+ %         \begin{center}
+ %           {\bf Export Administration Regulations (EAR) Notice}
+ %         \end{center}
+ %         This document contains information within the purview of the
+ %         Export Administration Regulations (EAR), 15 CFR 730--774, and is
+ %         export controlled.
+ %         It may not be transferred to foreign nationals in the U.S. or
+ %         abroad without specific approval of a knowledgeable NASA export
+ %         control official, and/or unless an export license/license
+ %         exception is obtained/available from the Bureau of Industry and
+ %         Security, United States Department of Commerce.
+ %         Violations of these regulations are punishable by fine,
+ %         imprisonment, or both.%
+ %       }
+ %     }
+ %   \end{twelveptfootnotesize}
+ % \end{center}
+%
  {\twelveptfootnotesize National Aeronautics and\\
  Space Administration\par}
  \vskip 0.7em%
@@ -536,29 +633,32 @@ NASA STI Report Series, which includes the following report types:
 \newpage\raggedbottom%
 %
 \vspace*{\fill}
-\NC@acknowledgment
-\vfill
-\newlength{\noticeboxwidth}
+% Have to duplicate the notice box width definition, do not know why
 \setlength{\noticeboxwidth}{\linewidth}
+\addtolength{\noticeboxwidth}{-0.625in}
 \addtolength{\noticeboxwidth}{-2\fboxrule}
 \addtolength{\noticeboxwidth}{-2\fboxsep}
+% Center acknowledgements box: margins slightly off otherwise
+\begin{center}
+\parbox{\noticeboxwidth}{\NC@acknowledgment}
+\vfill
 \begin{twelveptfootnotesize}
  \framebox{\parbox{\noticeboxwidth}{The use of trademarks or names of
    manufacturers in this report is for accurate reporting and does not
-   constitute an offical endorsement, either expressed or implied, of
+   constitute an official endorsement, either expressed or implied, of
    such products or manufacturers by the National Aeronautics and Space
    Administration.}}
 \end{twelveptfootnotesize}
+\end{center}
 \par\vspace{1in}
 \vskip 0.5em
 \begin{twelveptfootnotesize}
   \begin{center}
     Available from:\par
     \vskip 1em
-    NASA STI Program / Mail Stop 148\\
+    NASA STI Program / Mail Stop 150\\
     NASA Langley Research Center\\
-    Hampton, VA 23681-2199\\
-    Fax: 757-864-6500
+    Hampton, VA 23681-2199
   \end{center}
 \end{twelveptfootnotesize}
 %
@@ -585,18 +685,18 @@ NASA STI Report Series, which includes the following report types:
 % Report Documentation Page
 %
   \clearpage
-  \ifodd\thepage\thispagestyle{empty}\null\newpage\fi% skip to even page
   \NC@rdp
 %
 % Back Cover (blank page and then a page with a rule at the bottom)
 %
-  \cleardoublepage
-  \null\thispagestyle{empty}
-  \newpage
-  \enlargethispage{0.25in}
-  \thispagestyle{empty}%
-  \vspace*{\fill}%
-  \makebox[0pt][l]{\hspace{-\parindent}\rule{8in}{6pt}}%
+  \if@backcover
+   \clearpage
+   \ifodd\thepage\thispagestyle{empty}\null\newpage\fi% skip to even page
+   \enlargethispage{0.25in}
+   \thispagestyle{empty}%
+   \vspace*{\fill}%
+   \makebox[0pt][l]{\hspace{-\parindent}\rule{8in}{6pt}}%
+  \fi % back cover
  \fi % back
 }% AtEndDocument
 %

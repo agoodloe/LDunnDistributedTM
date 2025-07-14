@@ -66,18 +66,18 @@
 \author{Lawrence Dunn and Alwyn E. Goodloe}
 
 \AuthorAffiliation{Lawrence Dunn \\ Department of Computer and Information
-  Science \\ University of Pennsylvania \\ Philadelphia, PA \\ Alwyn Goodloe\\                                          % for cover page
-  NASA Langley Research Center, Hampton, Virginia
+  Science \\  University of Pennsylvania,  Philadelphia, PA \\ [10pt]
+   Alwyn Goodloe\\ NASA Langley Research Center, Hampton, Virginia
 }
-\NasaCenter{Langley Research Center\\Hampton, Virginia 23681-2199}
+\NasaCenter{Langley Research Center\\Hampton, Virginia 23681-2199 }
 \Type{TM}                    % TM, TP, CR, CP, SP, TT
 \SubjectCategory{64}         % two digit number
 \LNumber{XXXXX}              % Langley L-number
-\Number{XXXXXX}              % Report number
-\Month{05}                   % two digit number
+\Number{0005643}              % Report number
+\Month{07}                   % two digit number
 \Year{2025}                  % four digit number
 \SubjectTerms{Distributed Systems, Formal Methods, Logic, }     % 4-5 comma separated words
-\Pages{102}                   % all the pages from the front to back covers
+\Pages{101}                   % all the pages from the front to back covers
 \DatesCovered{}              % 10/2000--9/2002
 \ContractNumber{}            % NAS1-12345
 \GrantNumber{}               % NAG1-1234
@@ -323,7 +323,7 @@ reliable, and it is from these imperfections that the safety/liveness
 tradeoff arises.
 
 The second aspect exhibited above, albeit negatively, is that of
-\emph{continuity}. A continuous system can flexibly adopt to its
+\emph{continuity}. A continuous system can flexibly adapt to its
 environment, but a discontinuous system is rigid and may exhibit
 suddenly different behavior in response to only small changes in the
 environment, such as a transient network failure. The properties
@@ -488,7 +488,7 @@ case calls for more sophisticated coordination schemes between
 airborne and ground-based elements than solutions like ADS-B provide
 by themselves.
 
-As aircraft generally have better line-of-site to ground crews than
+As aircraft generally have better line-of-sight to ground crews than
 ground crews have to each other, firefighters sometimes relay messages
 to air-based units over the radio, which in turn is relayed back down
 to other ground units. The locality principle comes into play for this
@@ -502,7 +502,7 @@ more critical information.
 The Communications Program of the Civil Air Patrol (a civilian
 auxiliary of the U.S. Air Force) is sometimes deployed to provide
 communications for firefighters on the ground using airplane-mounted
-radio repeaters. In this future, this sort of service could be
+radio repeaters. In the future, this sort of service could be
 provided autonomously by portable infrastructure mounted to unmanned
 aerial vehicles (UAVs), which might perform additional functions such
 as tracking the fire perimeter.
@@ -527,10 +527,10 @@ disaster response environments is a heavy reliance on data
 gathered from both humans and sensors. Besides improvements to
 communications that facilitate information sharing, we expect advances
 in machine intelligence to greatly influence how this data is
-handled.
+handled. 
 
 Agents in disaster response environments will be both producers and
-consumers of data, and this data will need to processed by humans and
+consumers of data, and this data will need to be  processed by humans and
 machines in ways that agents can readily make sense of to support
 their decision-making. We list some of the possible sources and
 types of pertinent data:
@@ -1220,7 +1220,18 @@ reasoning about distributed systems: a process can only make decisions
 based on what it \emph{knows}, which is usually a strict subset of all
 (system-wide) truths. In many cases, it is important to take into
 account a kind of second-order knowledge: what we does a process know
-about what other processes know? In particular, it is often of interest to compute which facts are known to \emph{all} other processes. Vector clocks can used for this purpose. In some contexts, we must take the idea one step further: what does a process know about what other processes know \emph{about other processes}? This is the purpose of matrix clocks. Sections~\ref{sec:tsae} and~\ref{sec:continuous-consistency} feature running examples of mechanisms similar to vector and matrix clocks, called version vectors and matrices. These are used in the context of database replication, where they drive decision-making about which updates need to be propagated and which updates have already been applied everywhere.
+about what other processes know? In particular, it is often of interest to 
+compute which facts are known to \emph{all} other processes.
+Vector clocks can be used for this purpose. In some contexts,
+we must take the idea one step further: what does a process know 
+about what other processes know \emph{about other processes}?
+This is the purpose of matrix clocks. Sections~\ref{sec:tsae} 
+and~\ref{sec:continuous-consistency} feature running examples of
+mechanisms similar to vector and matrix clocks, called version 
+vectors and matrices. These are used in the context of database
+replication, where they drive decision-making about which 
+updates need to be propagated and which updates have already been
+applied everywhere.
 
 In a matrix clock, each process $P$ stores an $N\times{}N$ matrix
 $\mt{}{}{}$, initialized to all zeros, with the following
@@ -1331,7 +1342,7 @@ typically provided at the transport layer by the transmission control
 protocol (TCP).\footnote{The other classic internet transport, user
   datagram protocol (UDP), does not provide any ordering or
   reliability guarantees.} Applications built on top of TCP or a
-similar transport can take therefore take FIFO for granted. Providing
+similar transport can therefore take FIFO for granted. Providing
 FIFO can be as simple as marking messages sent from $P$ to $Q$ with
 consecutive integers. If message one arrives and then message three arrives, $Q$
 infers that message two is lagging behind, delivering message one to the user, but
@@ -1412,7 +1423,7 @@ among messages with (in general) different senders.
   \begin{itemize}
     \tightlist
   \item Figure~\ref{fig:ordex-non-fifo} violates FIFO because messages
-    $m_1$ and $m_2$ are both sent from $P_1$ to $P_2$, but the arrive
+    $m_1$ and $m_2$ are both sent from $P_1$ to $P_2$, but then arrive
     in the wrong order.
   \item Figure~\ref{fig:ordex-co-1} satisfies CO and therefore FIFO. Messages
     $m_1$ and $m_2$ arrive in the opposite order but they are sent to
@@ -1433,7 +1444,7 @@ suppose messages are broadcast to all other recipients, though the
 definitions can easily generalize to ``multicast'' scenarios where
 messages are sent to a subset of recipients.
 
-One way to implement broadcasting is to sending distinct network
+One way to implement broadcasting is to send distinct network
 messages which, for present purposes, we would treat as a single
 unit. Alternatively, we can lean on the network itself for assistance,
 sending a single message specially marked as a broadcast, relying on
@@ -1646,7 +1657,7 @@ Because they have a duration, memory operations on different
 processes, including ones that access the same virtual memory
 locations, can occur simultaneously. A fundamental relation among
 operations is their \emph{external order}, the partial order that
-relates non-overlapping events their physical times, but does not
+relates non-overlapping events to their physical times, but does not
 assign an ordering to events whose executions overlap in physical
 time.
 \begin{definition}[External order]
@@ -1671,7 +1682,7 @@ concurrent.
 \begin{definition}[Physical concurrency]
   \label{def:physical-concurrency}
   Consider two operations $\Op^1$ and $\Op^2$. If neither externally
-  precedes the other, in another words if there is some moment in time
+  precedes the other, in other words if there is some moment in time
   during which both operations are executing, the operations are said
   to be \emph{physically concurrent}, written $\concurrent{\Op^1}{\Op^2}$.
 \end{definition}
@@ -1847,7 +1858,7 @@ ordered last (meaning most recent), which is either $3$ or $5$. These
 possibilities are illustrated in Figure
 \ref{fig:dsm-example-2-linearizations}.
 
-Figure~\ref{fig:dsm-example-2-linearizations} also depict an
+Figure~\ref{fig:dsm-example-2-linearizations} also depicts an
 equivalent, more visually intuitive way, of approaching defining
 linearizability. A linearizable history where returned values are
 consistent with a choice of linearization point for each operation.
@@ -2189,7 +2200,7 @@ CAP-unavailable.
 \label{interpretation-of-the-cap-theorem}
 While the CAP theorem is theoretically simple, its implications are
 more nuanced than they may appear \cite{2012CAP12Years}. A common
-oversimplification is that the CAP theorem is represents a ``choose 2
+oversimplification is that the CAP theorem represents a ``choose 2
 of 3'' scenario: a system designer can choose at most two of
 consistency, availability, and partition resilience. In fact, real
 systems may balance weaker forms of all three properties. The CAP
@@ -2692,7 +2703,7 @@ of $P$'s message log.
 \end{quote}
 The previous subset relation is ``morally'' an equality---messages in
 $\WLat{P}{Q}$ but not the subset are said to be ``early''---but only the
-the subset property is required for correctness.\footnote{Section
+subset property is required for correctness.\footnote{Section
   5.4.3 of Golding's thesis describes how a version of TSAE
   combined with an unreliable network-level multicast for optimization purposes can add
   messages to $\WLat{P}{Q}$ early.} Thus, besides forming a lower
@@ -3062,7 +3073,7 @@ summary vector, while $\ackMatrix{P}\left[Q\right]$ represents $P$'s
 lower bound estimate of $Q$'s summary vector. Thus,
 $\ackMatrix{P}[Q][R]$ is $P$'s lower bound estimate of the upper bound
 of the timestamp of any message $Q$ has received from $R$. Matrices
-are exchange during anti-entropy sessions just as before, with both
+are exchanged during anti-entropy sessions just as before, with both
 sides taking the pointwise maximum after.
 
 We additionally apply an optimization, similar to the one for
@@ -3148,7 +3159,7 @@ is inevitable. However, the safety-related nature of the applications
 we have in mind makes this inconsistency important to measure
 quantitatively and then limit. Of course, imposing tighter limits on
 inconsistency eventually comes at the cost of system performance. The
-advantage of the conit model is that the precise tradeoff can
+advantage of the conit model is that the precise tradeoff can be
 configured according to policies set by the application, rather than
 being determined directly by the consistency model. Indeed, it is
 possible to adjust these policies at runtime, perhaps in response to
@@ -3250,7 +3261,7 @@ to the user.
 \end{definition}
 
 
-Intuitively, the goal of the conit framework is ensure that each
+Intuitively, the goal of the conit framework is to ensure that each
 access observes a value of $\Dstate{P}$ whose divergence from its correct or
 ``ideal'' value is limited by an upper bound. The ideal value of $\Dstate{P}$
 is the state it would be in if it has received all updates and applied
@@ -3405,7 +3416,7 @@ access, which is equivalent to taking the union
 $\bigcup_{X \in \AllProc} \localhistory{X}$ of all local histories
 (more precisely, the union of their underlying sets---this notation is
 implicitly ignoring their ordered structure). Note that accesses are
-uniquely determined by the tag containing their name of their
+uniquely determined by the tag containing the name of their
 originating process, paired with the timestamp of that process at the
 time it was submitted.
 
@@ -3438,7 +3449,7 @@ history to serve as a reference point for measuring divergence.
   \end{equation}
 \end{definition}
 We will refer to an ECG history as simply a ``global'' history---the
-fact this history must respect external and causal order is
+fact that this history must respect external and causal order is
 implicit. A global history provides a notion of an ideal database
 state against which to measure each replica.
 \begin{definition}
@@ -3602,7 +3613,7 @@ rolled back later. The precise definition and utility of measuring
 order error will be given in Section
 \ref{ssec:conit-order-consistency}.
 
-$\OErr(P, F)$ bounds the maximum weight of of
+$\OErr(P, F)$ bounds the maximum weight of
 updates that affect $F$ that $P$ might apply out of order---setting
 this value to $0$ means all writes that affect $F$ will be applied
 locally by $P$ in their correct order relative to each other, where
@@ -3960,7 +3971,8 @@ A subtle but important implementation detail we have not described
 concerns the finer details of write propagation. Yu and Vahdat
 describe two possible implementations of what happens when, following
 the protocol in Section~\ref{sssec:conit-split-weight-ae}, $Q$ decides
-to push updates to $P$. The difference concerns whether ensures that
+to push updates to $P$. The difference between the implementations has to do with 
+ whether the protocol ensures that
 no concurrent writes are possible while $Q$ handles the client's
 request.
 
@@ -4470,13 +4482,13 @@ dynamic conit creation in the context of massive multiplayer online
 games, particularly Minecraft. In that work, new conits may be
 associated with newly encountered objects in an area, and their
 consistency bounds tuned as the user approaches them, exploiting a
-form of locality to allocate network resources for information the
+form of locality to allocate network resources for information
 where inconsistency would most readily be perceived by the
 player. Adapting their \emph{dyconits} (dynamic conits) framework to
 the wide-area tactical environment may be worthwhile. It is notable
 that games like Minecraft, where players navigate three-dimensional
 environments and communicate over a network with sometimes perceptible
-delays, some similarities with real-world environments, such as the
+delays, share some similarities with real-world environments, such as the
 fact nearby users are likely to share an interest in the same conits.
 
 \paragraph{Interaction with the Network}
